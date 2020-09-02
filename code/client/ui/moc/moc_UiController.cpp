@@ -20,7 +20,7 @@
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_UiController_t {
     QByteArrayData data[4];
-    char stringdata0[45];
+    char stringdata0[39];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -30,13 +30,12 @@ struct qt_meta_stringdata_UiController_t {
 static const qt_meta_stringdata_UiController_t qt_meta_stringdata_UiController = {
     {
 QT_MOC_LITERAL(0, 0, 12), // "UiController"
-QT_MOC_LITERAL(1, 13, 15), // "OnConnectionAct"
-QT_MOC_LITERAL(2, 29, 0), // ""
-QT_MOC_LITERAL(3, 30, 14) // "OnConfigureAct"
+QT_MOC_LITERAL(1, 13, 9), // "DoConnect"
+QT_MOC_LITERAL(2, 23, 0), // ""
+QT_MOC_LITERAL(3, 24, 14) // "OnConfigureAct"
 
     },
-    "UiController\0OnConnectionAct\0\0"
-    "OnConfigureAct"
+    "UiController\0DoConnect\0\0OnConfigureAct"
 };
 #undef QT_MOC_LITERAL
 
@@ -54,7 +53,7 @@ static const uint qt_meta_data_UiController[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   24,    2, 0x08 /* Private */,
+       1,    0,   24,    2, 0x0a /* Public */,
        3,    0,   25,    2, 0x08 /* Private */,
 
  // slots: parameters
@@ -70,7 +69,7 @@ void UiController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         UiController *_t = static_cast<UiController *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->OnConnectionAct(); break;
+        case 0: _t->DoConnect(); break;
         case 1: _t->OnConfigureAct(); break;
         default: ;
         }

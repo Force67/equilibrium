@@ -1,6 +1,7 @@
 // NODA: Copyright(c) NOMAD Group<nomad-group.net>
 
 #include "UiController.h"
+#include "sync/SyncClient.h"
 
 #include "forms/UiStatusBar.h"
 #include "forms/UiConnectPrompt.h"
@@ -8,9 +9,9 @@
 #include <qmainwindow.h>
 #include <qstatusbar.h>
 #include <qmenubar.h>
-#include <qobject.h>
+#include <qerrormessage.h>
 
-UiController::UiController() {
+UiController::UiController(SyncClient& client) : _client(client) {
   hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
 }
 
@@ -30,13 +31,26 @@ void UiController::BuildUi() {
 
    // create the top level menu entry
    if (auto *pMenu = pIdaWindow->menuBar()->addMenu("NODA")) {
-     pMenu->addAction("Connect", this, &UiController::OnConnectionAct);
+     pMenu->addAction("Connect", this, &UiController::DoConnect);
      pMenu->addSeparator();
      pMenu->addAction("Configure", this, &UiController::OnConfigureAct);
    }
 }
 
-void UiController::OnConnectionAct() { msg("lol"); }
+void UiController::DoConnect() { 
+    auto *pIdaWindow = qobject_cast<QMainWindow *>(
+      QApplication::activeWindow()->topLevelWidget());
+
+    bool result = _client.connect(); 
+    if (!result) {
+      QErrorMessage error(pIdaWindow);
+      error.showMessage(
+          "Unable to connect to the NODA sync host.\n"
+          "It is likely that the selected port is not available.");
+      error.exec();
+    }
+}
+
 void UiController::OnConfigureAct() {}
 
 ssize_t UiController::OnUiEvent(void *pUserp, int notificationCode,

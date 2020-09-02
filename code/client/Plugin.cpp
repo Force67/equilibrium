@@ -5,7 +5,9 @@
 
 NodaPlugin *g_Plugin{nullptr};
 
-NodaPlugin::NodaPlugin() {
+NodaPlugin::NodaPlugin() : 
+    _syncController(_client), 
+    _uiController(_client) {
 
   // bind the hooks
 

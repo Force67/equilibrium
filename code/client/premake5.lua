@@ -19,7 +19,10 @@ project("NODA - client")
         "Qt5Core.lib",
         "Qt5Gui.lib",
         "Qt5PrintSupport.lib",
-        "Qt5Widgets.lib"
+        "Qt5Widgets.lib",
+
+        -- network
+        "enet"
     })
     defines({
         -- idaq constants
@@ -34,11 +37,12 @@ project("NODA - client")
     })
     includedirs({
         ".",
-        blu.extdir .. "/idasdk72/include"
+        blu.extdir .. "/idasdk72/include",
+        blu.extdir .. "/enet/include"
     })
     libdirs({
         blu.extdir .. "/idasdk72/lib/x64_win_vc_64",
-        blu.extdir .. "/idasdk72/lib/x64_win_qt"
+        blu.extdir .. "/idasdk72/lib/x64_win_qt",
     })
     qt.enable()
     qtprefix("Qt5")

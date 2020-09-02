@@ -13,12 +13,13 @@ class QAction;
 }
 
 class UiStatusBar;
+class SyncClient;
 
 class UiController final : public QObject {
   Q_OBJECT;
 
 public:
-  UiController();
+  UiController(SyncClient&);
   ~UiController();
 
 private:
@@ -31,7 +32,10 @@ private:
   QAction *_pConnectionAct = nullptr;
   QAction *_pMenuAct = nullptr;
 
+  SyncClient &_client;
+public slots:
+  void DoConnect();
+
 private slots:
-  void OnConnectionAct();
   void OnConfigureAct();
 };
