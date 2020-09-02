@@ -11,7 +11,7 @@ public:
   ~NodaPlugin();
 
 private:
-  static ssize_t idaapi UiHandler(void *, int, va_list);
+  static ssize_t idaapi UiHandler(void*, int, va_list);
 };
 
 extern NodaPlugin *g_Plugin;
