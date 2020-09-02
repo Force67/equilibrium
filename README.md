@@ -1,20 +1,19 @@
+
 <p align="center"><img src="https://i.imgur.com/pwlmRZx.png" width="150" height="150"></p>
-<h2 align="center"><b>NODA - Your IDA buddy.</b></h2>
-NODA is an IDA Plugin which enhances your experience while reverse engineering with IDA-Pro.
+<h2 align="center"><b>NODA - Supercharge your ida. ⚡</b></h2>
+
+### NODA comes with batteries included. Features include:
+- IDA Sync: Synchronize your database.
+- PDBTool: Generate fake PDB's directly from IDA.
+- PatternTool: Generate your pattern cache directory from IDA.
+- More planned :heart:
 
 ## Installation
 
 Simply drag the plugin into your IDA Plugin directory.
 
-### Building
-
-# Build dependencies
-
-* A Windows machine with Visual Studio 2019 (Community Edition is fine too)
-* Qt 5.6.3 with `msvc2015_64` (Ensure that the `QTDIR` or `QT_DIR` environment variable are set). It can be found [here](https://download.qt.io/new_archive/qt/5.6/5.6.3/)
-
-# Setup the project
-
+# Building the project
+First, [install Qt 5.6.3](https://download.qt.io/new_archive/qt/5.6/5.6.3/). Next, clone the repo, like below:
 ```
 git clone https://github.com/NomadGroup/NODA.git
 cd NODA

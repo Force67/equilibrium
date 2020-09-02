@@ -6,7 +6,8 @@ project("NODA - client")
     files({
         "**.cpp",
         "**.h",
-        "**.ui"
+        "**.ui",
+        "**.qrc"
     })
     links({
         -- ida libraries

@@ -4,17 +4,13 @@
 
 #include "ui/moc/ui_StatusBar.h"
 
-QT_BEGIN_NAMESPACE
-
-class UiStatusBar final : public QDockWidget, public Ui_StatusBar {
+class UiStatusBar final : public QDockWidget, public Ui::StatusBar {
   Q_OBJECT;
 
 public:
   UiStatusBar() : QDockWidget(QApplication::activeWindow()) { 
-	  setupUi(this);
+	  setupUi(this); 
   }
 
   void SetColor(const char *name);
 };
-
-QT_END_NAMESPACE

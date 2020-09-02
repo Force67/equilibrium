@@ -9,7 +9,7 @@ NodaPlugin::NodaPlugin() {
 
   // bind the hooks
 
-  msg("Loaded Noda Copyright(c) NOMAD Group<nomad-group.net>");
+  msg("Loaded NODA Copyright(c) NOMAD Group<nomad-group.net>");
 }
 
 NodaPlugin::~NodaPlugin() {
@@ -23,12 +23,6 @@ const char kPluginName[] = "NODA";
 const char kPluginHotkey[] = "Alt-L";
 
 int idaapi PluginInit() {
-#if 0
-  // we need qt
-  if (!is_idaq())
-    return PLUGIN_SKIP;
-#endif
-
   g_Plugin = new NodaPlugin();
   return PLUGIN_KEEP;
 }

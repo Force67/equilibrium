@@ -5,12 +5,17 @@ include("tools/build")
 filter("architecture:x86_64")
     targetsuffix("_64")
 
+filter("configurations:Release")
+    runtime("Release")
+    optimize("Speed")
+
 workspace("NODA")
     configurations({
         "Debug",
         "Release"
     })
-    architecture("x86_64")  
+    architecture("x86_64")
+    vectorextensions("AVX")  
 
     location("./build")
     include("external")
