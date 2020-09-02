@@ -1,0 +1,84 @@
+<pre>
+Welcome to the sixth beta of IDA 7.0!
+
+Extra downloads:
+
+ * <a href="idasdk70.zip">SDK</a>
+ * <a href="flair70.zip">FLAIR</a>
+ * <a href="tilib70.zip">TIL utils</a>
+ * <a href=changes_ida7.html>full changelist</a>
+
+Known issues in beta6 (as of 2017-09-01)
+1. Objective-C metadata parsing of some modules in iOS11 ARM64 shared cache may fail.
+
+Here's a summary of major changes and some rough guidelines for testing:
+
+The main development happened in the x64 build.
+All native plugins/modules/loaders built for x86 won't work with it and will have to be ported (assuming you have the source code).
+Old binary-only plugins *may* work in the x86 build which is ABI-compatible with 6.95.
+See the SDK package for the new API and porting guidelines.
+For Python, we have tried to provide a <a href="idapython_bc695.html">compatibility layer</a> which will hopefully ease the pain but it has not been throroughly tested.
+Please try it and let us know if you run into issues.
+
+*NEW in beta6*
+ This beta will expire in a couple of weeks. Make sure to have your support renewed if you plan to use 7.0 release and
+be prepared to switch to another version if necessary.
+
+*NEW in beta5*
+  https://www.hex-rays.com/reqbeta.shtml can be used to request x64 and/or x86 build of IDA.
+
+*NEW in beta4*
+- beta4 includes an x86 build forked off the 6.95 tree
+- it includes *some*, but not all, fixes of the x64 build.
+- we may backport additional fixes on case-by-case basis, but it is intended to be used for compatibility purposes only.
+- it is binary-compatible with plugins compiled for 6.95 (and earlier) IDA versions.
+- it can open 7.0 IDBs created in the x64 build but might not support all the new features completely (e.g. non-ASCII strings).
+
+When reporting bugs present in the x86 build, mention that explicitly.
+
+The 7.0 SDK only supports x64 build of IDA.
+SDK 6.95 can be used to develop plugins for IDA 7.0-x86
+
+
+- Naming of IDA binaries has been unified across all OS variants.
+The IDA GUI binary has been renamed from idaq to just "ida[.exe]". The text-mode UI is named idat[.exe]
+(previously idaw.exe on Windows and idal on Linux/OS X).
+The IDA kernel: ida[64].wll -> ida[64].dll (Windows)
+Plugins, loaders and processor modules now use the standard OS-specific suffix
+(.dll, .so or .dylib) instead of a custom extension.
+They are still placed into separate subdirectories of the IDA install tree.
+
+There are still two variants of IDA: one supporting 32-bit (ea_t is 32-bit)
+and the other 64-bit address space(ea_t is 64-bit). IDA database
+extensions remain correspondingly .idb and .i64.
+We have considered making a single binary capable of handling both database variants
+but it seems infeasible for the time being.
+
+-Database binary format is still the same but things have been revamped inside.
+For example, most strings are now assumed to be in UTF-8 which may lead to problems if you used any non-ASCII text in comments.
+**Make backups of your old databases** and do let us know if you see any issues when upgrading.
+If you have pre-6.95 databases, please also try upgrading them directly in IDA 7 and report back.
+
+
+-Areas to test
+
+ new code:
+ 1. EH, RTTI and Objective-C parsing.
+ 2. strings handling (both autoanalysis and UI).
+ regressions:
+ 1. revamped loaders: ELF, MACH-O, PE
+ 2. UI: choosers (list views)
+ 3. if you have reported a bug and it is mentioned as fixed, please check that it has been and report if it's still there.
+All bugfixes sent to individual users are supposed to be integrated into the source tree
+but there's a possibility that we may have missed some.
+ 4. x64 compatibility issues, especially on Linux.
+
+
+- Rewards for the best testers
+To stimulate better reporting, we again plan to reward our most active testers with free support period extensions.
+We won't publish exact criterias to prevent gaming the system (they are mostly subjective anyway), but here's some hints:
+1) quality is better than quantity; we prefer a few high-impact bugs with detailed reproduction instructions
+over a dozen of short reports about minor issues accompanied by words "doesn't work"
+2) please send a single email per issue/bug so we can better divide the work and track progress
+
+</pre>

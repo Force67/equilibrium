@@ -1,0 +1,7 @@
+<!--#set var="title" value="<!--TITLE-->" -->
+<!--#include virtual="_header.shtml" -->
+<div class="colfull">
+<!--BODY-->
+</div>
+<!--#include virtual="/shared/init_galleries.html" -->
+<!--#include virtual="_footer.shtml" -->
