@@ -11,7 +11,7 @@ Simply drag the plugin into your IDA Plugin directory.
 # Build dependencies
 
 * A Windows machine with Visual Studio 2019 (Community Edition is fine too)
-* Qt >= 5.12 with `msvc2017_64` (Ensure that the `QTDIR` or `QT_DIR` environment variable are set). It can be found [here](https://www.qt.io/offline-installers)
+* Qt 5.6.3 - 5.9.9 with `msvc2017_64` (Ensure that the `QTDIR` or `QT_DIR` environment variable are set). It can be found [here](https://www.qt.io/offline-installers)
 
 # Setup the project
 

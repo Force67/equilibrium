@@ -1,9 +1,8 @@
-//NODA: Copyright(c) NOMAD Group<nomad - group.net>
+// NODA: Copyright(c) NOMAD Group<nomad-group.net>
 
-#include <ida.hpp>
-#include <idp.hpp>
-#include <kernwin.hpp>
-#include <loader.hpp>
+#pragma once
+
+#include <ui/UiController.h>
 
 class NodaPlugin {
 public:
@@ -11,7 +10,7 @@ public:
   ~NodaPlugin();
 
 private:
-  static ssize_t idaapi UiHandler(void*, int, va_list);
+  UiController _uiController;
 };
 
 extern NodaPlugin *g_Plugin;

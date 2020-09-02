@@ -1,26 +1,19 @@
 // NODA: Copyright(c) NOMAD Group<nomad-group.net>
 
 #include <Plugin.h>
+#include "IdaInc.h"
 
 NodaPlugin *g_Plugin{nullptr};
 
 NodaPlugin::NodaPlugin() {
 
   // bind the hooks
-  hook_to_notification_point(hook_type_t::HT_UI, UiHandler, this);
 
   msg("Loaded Noda Copyright(c) NOMAD Group<nomad-group.net>");
 }
 
 NodaPlugin::~NodaPlugin() {
-  unhook_from_notification_point(hook_type_t::HT_UI, UiHandler, this);
-}
-
-ssize_t NodaPlugin::UiHandler(void *pUserp, int notificationCode, va_list va) {
-  if (notificationCode == ui_notification_t::ui_ready_to_run) {
-  }
-
-  return 0;
+  
 }
 
 namespace {
@@ -30,9 +23,11 @@ const char kPluginName[] = "NODA";
 const char kPluginHotkey[] = "Alt-L";
 
 int idaapi PluginInit() {
+#if 0
   // we need qt
   if (!is_idaq())
     return PLUGIN_SKIP;
+#endif
 
   g_Plugin = new NodaPlugin();
   return PLUGIN_KEEP;
