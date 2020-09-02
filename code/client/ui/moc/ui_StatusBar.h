@@ -29,7 +29,7 @@ public:
         if (StatusBar->objectName().isEmpty())
             StatusBar->setObjectName(QStringLiteral("StatusBar"));
         StatusBar->setWindowModality(Qt::NonModal);
-        StatusBar->resize(400, 38);
+        StatusBar->resize(400, 43);
         StatusBar->setContextMenuPolicy(Qt::NoContextMenu);
         StatusBar->setAutoFillBackground(false);
         StatusBar->setStyleSheet(QLatin1String("QDockWidget\n"
@@ -48,7 +48,7 @@ public:
 
     void retranslateUi(QDockWidget *StatusBar)
     {
-        StatusBar->setWindowTitle(QApplication::translate("StatusBar", "IDA Sync-Plugin", Q_NULLPTR));
+        StatusBar->setWindowTitle(QApplication::translate("StatusBar", "NODA Sync", Q_NULLPTR));
     } // retranslateUi
 
 };

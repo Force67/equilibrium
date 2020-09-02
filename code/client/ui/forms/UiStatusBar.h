@@ -13,6 +13,8 @@ public:
   UiStatusBar() : QDockWidget(QApplication::activeWindow()) { 
 	  setupUi(this);
   }
+
+  void SetColor(const char *name);
 };
 
 QT_END_NAMESPACE
