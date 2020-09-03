@@ -10,6 +10,17 @@ NodaPlugin::NodaPlugin() :
     _uiController(_client) {
 
   // bind the hooks
+  DWORD pid = GetCurrentProcessId();
+  if (!::AttachConsole(pid)) {
+    ::AllocConsole();
+    ::AttachConsole(pid);
+    ::SetConsoleTitleW(L"NODA DEBUG OUT");
+
+    FILE *file = nullptr;
+    FILE *fuckOff = nullptr;
+    freopen_s(&file, "CON", "w", fuckOff);
+    freopen_s(&file, "CONIN$", "r", fuckOff);
+  }
 
   msg("Loaded NODA Copyright(c) NOMAD Group<nomad-group.net>");
 }

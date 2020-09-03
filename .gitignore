@@ -3,19 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-bin/
 build/
-toolbits
 .vscode
 
-# Projects
-code/projects/*
-!code/projects/template/
-!code/projects/premake5_project.lua
-
-# This is only here temporarily
-code/llvm/include/*
-code/llvm/lib/*
+!tools/build
 
 # User-specific files
 *.suo
@@ -37,8 +28,6 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
-
-!tools/premake/bin
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -313,10 +302,6 @@ paket-files/
 __pycache__/
 *.pyc
 
-# Cake - Uncomment if you are using it
-# tools/**
-# !tools/packages.config
-
 # Tabs Studio
 *.tss
 
@@ -329,21 +314,6 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
-# OpenCover UI analysis results
-OpenCover/
-
-# Azure Stream Analytics local run output
-ASALocalRun/
-
-# MSBuild Binary and Structured Log
-*.binlog
-
-# NVidia Nsight GPU debugger configuration file
-*.nvuser
-
-# MFractors (Xamarin productivity tool) working folder
-.mfractor/
-
 # Local History for Visual Studio
 .localhistory/
 
@@ -351,7 +321,3 @@ ASALocalRun/
 .DS_Store
 Thumbs.db
 .sync/
-
-# custom user specific stuff
-code/vendor/*tar.gz
-code/vendor/*tar

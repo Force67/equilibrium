@@ -2,13 +2,40 @@
 
 #include "SyncClient.h"
 
-bool SyncClient::connect() { 
+// remote server config
+constexpr char kServerIp[] = "127.0.0.1";
+constexpr uint16_t kServerPort = 4523;
+constexpr uint32_t kTimeout = 3000;
+
+bool SyncClient::_s_socketCreated = false;
+
+SyncClient::~SyncClient() { 
+    if (_s_socketCreated) {
+      enet_deinitialize();
+    }
+}
+
+bool SyncClient::InitializeNetBase() { 
+  if (!_s_socketCreated) {
+    if (enet_initialize() == 0) {
+      _s_socketCreated = true;
+      return true;
+    }
+
+    return false;
+  }
+  return _s_socketCreated;
+}
+
+bool SyncClient::Connect() { 
+  if (!InitializeNetBase())
+    return false;
+
   _netClient = enet_host_create(nullptr, 1, 2, 0, 0);
   if (!_netClient) {
     return false;
   }
 
-  // failed to crack address
   if (enet_address_set_host(&_address, kServerIp) < 0) {
     return false;
   }
@@ -21,8 +48,7 @@ bool SyncClient::connect() {
 
   if (enet_host_service(_netClient, &_netEvent, kTimeout) &&
       _netEvent.type == ENET_EVENT_TYPE_CONNECT) {
-  
-    // send auth request
+    QThread::start();
     return true;
   }
 
@@ -30,11 +56,8 @@ bool SyncClient::connect() {
   return false;
 }
 
-void SyncClient::run() {
-
-}
-
-void SyncClient::disconnect() {
+void SyncClient::Disconnect() {
+  _updateNet = false;
   enet_peer_disconnect(_netServer, 0);
 
   while (enet_host_service(_netClient, &_netEvent, kTimeout) > 0) {
@@ -47,6 +70,47 @@ void SyncClient::disconnect() {
     }
   }
 
-  // by force
+  // kill it by force
   enet_peer_reset(_netServer);
+}
+
+void SyncClient::ListenNetwork() {
+  while (enet_host_service(_netClient, &_netEvent, 0) > 0) {
+    switch (_netEvent.type) {
+    case ENET_EVENT_TYPE_CONNECT: {
+
+      printf("[CLI] A new client connected from %x:%u.\n",
+             _netEvent.peer->address.host, _netEvent.peer->address.port);
+      _netEvent.peer->data = nullptr;
+      break;
+    }
+    case ENET_EVENT_TYPE_DISCONNECT: {
+      printf("[CLI] %s disconnected.\n", _netEvent.peer->data);
+      _netEvent.peer->data = NULL;
+      break;
+    }
+    case ENET_EVENT_TYPE_RECEIVE: {
+      // invalid identifier length
+      if (_netEvent.packet->dataLength < 4) {
+        enet_packet_destroy(_netEvent.packet);
+        break;
+      }
+
+      printf("[CLI] A packet of length %u containing %s was received from %s "
+             "on channel %u.\n",
+             _netEvent.packet->dataLength, _netEvent.packet->data,
+             _netEvent.peer->data, _netEvent.channelID);
+
+      enet_packet_destroy(_netEvent.packet);
+      break;
+    }
+    }
+  }
+}
+
+void SyncClient::run() { 
+  while (_updateNet) {
+    ListenNetwork();
+    QThread::msleep(1);
+  }
 }

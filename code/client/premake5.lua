@@ -1,6 +1,6 @@
 -- Copyright (c) NOMAD Group<nomad-group.net>
 
-project("NODA - client")
+project("Client")
     kind("SharedLib")
     targetname("Noda_72")
     files({

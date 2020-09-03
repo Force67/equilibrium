@@ -37,5 +37,6 @@ public slots:
   void DoConnect();
 
 private slots:
+  void OpenSyncMenu();
   void OnConfigureAct();
 };

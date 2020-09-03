@@ -30,8 +30,9 @@ void UiController::BuildUi() {
    pIdaWindow->statusBar()->addPermanentWidget(_statusBar.data());
 
    // create the top level menu entry
-   if (auto *pMenu = pIdaWindow->menuBar()->addMenu("NODA")) {
+   if (auto *pMenu = pIdaWindow->menuBar()->addMenu(QIcon(":/logo"), "NODA")) {
      pMenu->addAction("Connect", this, &UiController::DoConnect);
+     pMenu->addAction("Synchronus", this, &UiController::OpenSyncMenu);
      pMenu->addSeparator();
      pMenu->addAction("Configure", this, &UiController::OnConfigureAct);
    }
@@ -41,7 +42,7 @@ void UiController::DoConnect() {
     auto *pIdaWindow = qobject_cast<QMainWindow *>(
       QApplication::activeWindow()->topLevelWidget());
 
-    bool result = _client.connect(); 
+    bool result = _client.Connect(); 
     if (!result) {
       QErrorMessage error(pIdaWindow);
       error.showMessage(
@@ -49,6 +50,10 @@ void UiController::DoConnect() {
           "It is likely that the selected port is not available.");
       error.exec();
     }
+}
+
+void UiController::OpenSyncMenu() {
+    msg("OpenSyncMenu");
 }
 
 void UiController::OnConfigureAct() {}
