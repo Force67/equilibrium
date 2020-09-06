@@ -3,12 +3,18 @@
 local rootdir = os.getcwd() .. '/../../build'
 blu.bindir = rootdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
 blu.libdir = rootdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"
-blu.objdir = rootdir .. "/obj/%{cfg.platform}/%{cfg.buildcfg}"
+blu.objdir = rootdir .. "/link/%{cfg.platform}/%{cfg.buildcfg}"
 blu.symdir = rootdir .. "/sym/%{cfg.platform}/%{cfg.buildcfg}"
 
+-- newprojectformat tries to outsmarten me
+blu.netdir = rootdir .. "/clr/%{cfg.platform}"
+
 location(rootdir)
-objdir(blu.objdir)
-libdirs({blu.libdir})
+
+filter("language:C or C++")
+    objdir(blu.objdir)
+    libdirs({blu.libdir})
+filter{}
 
 -- workaround a premake bug
 os.mkdir(rootdir .. "/sym")

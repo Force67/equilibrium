@@ -1,11 +1,7 @@
 // NODA: Copyright(c) NOMAD Group<nomad-group.net>
 
+#include <qsettings.h>
 #include "SyncClient.h"
-
-// remote server config
-constexpr char kServerIp[] = "127.0.0.1";
-constexpr uint16_t kServerPort = 4523;
-constexpr uint32_t kTimeout = 3000;
 
 bool SyncClient::_s_socketCreated = false;
 
@@ -36,11 +32,15 @@ bool SyncClient::Connect() {
     return false;
   }
 
-  if (enet_address_set_host(&_address, kServerIp) < 0) {
-    return false;
-  }
+  QSettings settings;
+  auto &ip = settings.value("NODASyncIp", kServerIp).toString();
+  auto port = settings.value("NODASyncPort", kServerPort).toUInt();
 
-  _address.port = kServerPort;
+  if (!enet_address_set_host(&_address, ip.toLocal8Bit().data()))
+    return false;
+
+  _address.port = static_cast<uint16_t>(port);
+
   _netServer = enet_host_connect(_netClient, &_address, 2, 0);
   if (!_netServer) {
     return false;
@@ -72,6 +72,7 @@ void SyncClient::Disconnect() {
 
   // kill it by force
   enet_peer_reset(_netServer);
+  _netServer = nullptr;
 }
 
 void SyncClient::ListenNetwork() {

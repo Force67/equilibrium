@@ -1,1 +1,2 @@
 settings - set username
+Sync History

@@ -38,5 +38,7 @@ public slots:
 
 private slots:
   void OpenSyncMenu();
+  void OpenAboutDialog();
+
   void OnConfigureAct();
 };
