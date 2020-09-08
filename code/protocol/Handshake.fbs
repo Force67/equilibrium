@@ -1,0 +1,17 @@
+// NODA: Copyright(c) NOMAD Group<nomad-group.net>
+
+namespace netmsg;
+
+table Handshake {
+  clientVersion:ushort;
+
+  hwid:string;
+  user:string;
+  pass:string; // hashed password
+
+  dbVersion:ushort;
+  dbMD5:string; // TODO: optimize
+  dbName:string;
+}
+
+root_type Handshake;

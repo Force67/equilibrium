@@ -38,7 +38,8 @@ project("Client")
     includedirs({
         ".",
         blu.extdir .. "/idasdk72/include",
-        blu.extdir .. "/enet/include"
+        blu.extdir .. "/enet/include",
+        blu.extdir .. "/flatbuffers/include"
     })
     libdirs({
         blu.extdir .. "/idasdk72/lib/x64_win_vc_64",

@@ -1,16 +1,16 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'SyncClient.h'
+** Meta object code from reading C++ file 'NetClient.h'
 **
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.6.3)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "../../sync/SyncClient.h"
+#include "../../sync/net/NetClient.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'SyncClient.h' doesn't include <QObject>."
+#error "The header file 'NetClient.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.6.3. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -18,25 +18,25 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_SyncClient_t {
+struct qt_meta_stringdata_NetClient_t {
     QByteArrayData data[1];
-    char stringdata0[11];
+    char stringdata0[10];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_SyncClient_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_NetClient_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_SyncClient_t qt_meta_stringdata_SyncClient = {
+static const qt_meta_stringdata_NetClient_t qt_meta_stringdata_NetClient = {
     {
-QT_MOC_LITERAL(0, 0, 10) // "SyncClient"
+QT_MOC_LITERAL(0, 0, 9) // "NetClient"
 
     },
-    "SyncClient"
+    "NetClient"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_SyncClient[] = {
+static const uint qt_meta_data_NetClient[] = {
 
  // content:
        7,       // revision
@@ -52,7 +52,7 @@ static const uint qt_meta_data_SyncClient[] = {
        0        // eod
 };
 
-void SyncClient::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void NetClient::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -60,26 +60,26 @@ void SyncClient::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
     Q_UNUSED(_a);
 }
 
-const QMetaObject SyncClient::staticMetaObject = {
-    { &QThread::staticMetaObject, qt_meta_stringdata_SyncClient.data,
-      qt_meta_data_SyncClient,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject NetClient::staticMetaObject = {
+    { &QThread::staticMetaObject, qt_meta_stringdata_NetClient.data,
+      qt_meta_data_NetClient,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *SyncClient::metaObject() const
+const QMetaObject *NetClient::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *SyncClient::qt_metacast(const char *_clname)
+void *NetClient::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_SyncClient.stringdata0))
-        return static_cast<void*>(const_cast< SyncClient*>(this));
+    if (!strcmp(_clname, qt_meta_stringdata_NetClient.stringdata0))
+        return static_cast<void*>(const_cast< NetClient*>(this));
     return QThread::qt_metacast(_clname);
 }
 
-int SyncClient::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int NetClient::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QThread::qt_metacall(_c, _id, _a);
     if (_id < 0)

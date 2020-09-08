@@ -30,4 +30,5 @@ workspace("NODA - Managed")
         "Release"
     })
     location("./managedbuild")
+    include("external/managed.lua")
     include("./code/server")

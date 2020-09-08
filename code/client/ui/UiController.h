@@ -9,7 +9,7 @@
 #include <qscopedpointer.h>
 
 namespace QT {
-class QAction;
+  class QAction;
 }
 
 class UiStatusBar;
@@ -18,11 +18,11 @@ class SyncClient;
 class UiController final : public QObject {
   Q_OBJECT;
 
-public:
-  UiController(SyncClient&);
+  public:
+  UiController(SyncClient &);
   ~UiController();
 
-private:
+  private:
   void BuildUi();
 
   static ssize_t idaapi OnUiEvent(void *, int, va_list);
@@ -33,10 +33,10 @@ private:
   QAction *_pMenuAct = nullptr;
 
   SyncClient &_client;
-public slots:
+  public slots:
   void DoConnect();
 
-private slots:
+  private slots:
   void OpenSyncMenu();
   void OpenAboutDialog();
 

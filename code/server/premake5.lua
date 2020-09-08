@@ -6,7 +6,10 @@ project("Server")
     dotnetframework("netcoreapp3.1")
     kind("ConsoleApp")
     files({
-        "*.cs"
+        "**.cs"
+    })
+    links({
+        "FlatBuffers",
     })
     includedirs({
         "."

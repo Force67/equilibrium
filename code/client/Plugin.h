@@ -7,11 +7,11 @@
 #include <sync/SyncClient.h>
 
 class NodaPlugin {
-public:
+  public:
   NodaPlugin();
   ~NodaPlugin();
 
-private:
+  private:
   UiController _uiController;
   SyncController _syncController;
   SyncClient _client;

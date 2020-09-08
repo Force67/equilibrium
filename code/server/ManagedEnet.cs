@@ -1,2 +1,0 @@
-// NODA-Server: Copyright(c) NOMAD Group<nomad-group.net>
-

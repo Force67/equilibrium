@@ -2,6 +2,7 @@
 
 #include "UiAbout.h"
 
-UiAbout::UiAbout(QWidget *pParent) : QDialog(pParent) { 
-	setupUi(this); 
+UiAbout::UiAbout(QWidget *pParent) :
+	QDialog(pParent) {
+  setupUi(this);
 }

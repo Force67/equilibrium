@@ -1,45 +1,42 @@
 // NODA: Copyright(c) NOMAD Group<nomad-group.net>
 
 #include "UiSettings.h"
-#include "sync/SyncClient.h"
+#include "utility/SysInfo.h"
 
-UiSettings::UiSettings(SyncClient &client, QWidget *pParent) : QDialog(pParent), _client(client) {
-	setupUi(this);
+UiSettings::UiSettings(SyncClient &client, QWidget *pParent) :
+	QDialog(pParent), _client(client) {
+  setupUi(this);
 
-	connect(editIp, &QLineEdit::textChanged, this, &UiSettings::OnIpChange);
-    connect(editPort, &QLineEdit::textChanged, this, &UiSettings::OnPortChange);
-    connect(editPassword, &QLineEdit::textChanged, this, &UiSettings::OnPasswordChange);
-    connect(editUsername, &QLineEdit::textChanged, this, &UiSettings::OnNameChange);
+  connect(editIp, &QLineEdit::textChanged, this, &UiSettings::OnIpChange);
+  connect(editPort, &QLineEdit::textChanged, this, &UiSettings::OnPortChange);
+  connect(editPassword, &QLineEdit::textChanged, this, &UiSettings::OnPasswordChange);
+  connect(editUsername, &QLineEdit::textChanged, this, &UiSettings::OnNameChange);
 
-    char username[260]{};
-#ifdef _WIN32
-    DWORD username_len = 260;
-    GetUserNameA(username, &username_len);
-#endif
+  // trying to follow the hexrays naming convention lol
+  editIp->setText(_settings.value("NODASyncIp", kServerIp).toString());
+  editPort->setText(_settings.value("NODASyncPort", kServerPort).toString());
+  editPassword->setText(_settings.value("NODASyncPass", "").toString());
+  editUsername->setText(_settings.value("NODASyncUser",
+										utility::GetSysUsername())
+							.toString());
 
-    // trying to follow the hexrays naming convention lol
-    editIp->setText(_settings.value("NODASyncIp", kServerIp).toString());
-    editPort->setText(_settings.value("NODASyncPort", kServerPort).toString());
-    editPassword->setText(_settings.value("NODASyncPass", "").toString());
-    editUsername->setText(_settings.value("NODASyncUser", username).toString());
-
-    if (client.IsConnected()) {
-      editIp->setDisabled(true);
-      editPort->setDisabled(true);
-      editPassword->setDisabled(true);
-      editUsername->setDisabled(true);
-    }
+  if (client.IsConnected()) {
+	editIp->setDisabled(true);
+	editPort->setDisabled(true);
+	editPassword->setDisabled(true);
+	editUsername->setDisabled(true);
+  }
 }
 
-void UiSettings::OnIpChange(const QString &data) { 
-  _settings.setValue("NODASyncIp", data); 
+void UiSettings::OnIpChange(const QString &data) {
+  _settings.setValue("NODASyncIp", data);
 }
 
-void UiSettings::OnPortChange(const QString& data) {
+void UiSettings::OnPortChange(const QString &data) {
   _settings.setValue("NODASyncPort", data.toUInt());
 }
 
-void UiSettings::OnPasswordChange(const QString& data) {
+void UiSettings::OnPasswordChange(const QString &data) {
   _settings.setValue("NODASyncPass", data);
 }
 

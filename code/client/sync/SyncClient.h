@@ -2,40 +2,17 @@
 
 #pragma once
 
-#include <qthread.h>
-#include <enet/enet.h>
+#include "net/NetClient.h"
+#include "netmessages/MsgList_generated.h"
 
-// remote server config
-constexpr char kServerIp[] = "127.0.0.1";
-constexpr uint16_t kServerPort = 4523;
-constexpr uint32_t kTimeout = 3000;
+using MsgBuilder = flatbuffers::FlatBufferBuilder;
 
-class SyncClient final : public QThread
-{
-  Q_OBJECT;
-public:
-  ~SyncClient();
-
+class SyncClient final : public NetClient {
+  public:
   bool Connect();
-  void Disconnect();
 
-  inline bool IsConnected() { 
-	  return _netServer;
-  }
-
-private:
-  static bool InitializeNetBase();
-  static bool _s_socketCreated;
-
-private:
-  void ListenNetwork();
-
-  void run() override;
-  bool _updateNet = false;
-
-  ENetHost* _netClient;
-  ENetPeer* _netServer;
-  ENetAddress _address{};
-  ENetEvent _netEvent{};
-  QString _userName;
+  template<typename T>
+  bool SendPacket(MsgBuilder &, netmsg::Data, const T &);
 };
+
+flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &, const QString &);

@@ -7,9 +7,10 @@
 class UiStatusBar final : public QDockWidget, public Ui::StatusBar {
   Q_OBJECT;
 
-public:
-  UiStatusBar() : QDockWidget(QApplication::activeWindow()) { 
-	  setupUi(this); 
+  public:
+  UiStatusBar() :
+	  QDockWidget(QApplication::activeWindow()) {
+	setupUi(this);
   }
 
   void SetColor(const char *name);

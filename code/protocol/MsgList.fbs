@@ -1,0 +1,15 @@
+// NODA: Copyright(c) NOMAD Group<nomad-group.net>
+
+include "Handshake.fbs";
+
+namespace netmsg;
+
+union Data {
+    Handshake
+}
+
+table MessageRoot{
+    data:Data;
+}
+
+root_type MessageRoot;

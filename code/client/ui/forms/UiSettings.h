@@ -9,11 +9,11 @@
 class UiSettings final : public QDialog, public Ui::UiSettings {
   Q_OBJECT;
 
-public:
+  public:
   UiSettings(SyncClient &, QWidget *);
   ~UiSettings() = default;
 
-private:
+  private:
   void OnIpChange(const QString &);
   void OnPortChange(const QString &);
   void OnPasswordChange(const QString &);
