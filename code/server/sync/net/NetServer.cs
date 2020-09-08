@@ -26,6 +26,10 @@ namespace noda
             Library.Deinitialize();
         }
 
+        public virtual void OnConnection() { }
+        public virtual void OnDisconnection() { }
+        public virtual void OnReceive(IntPtr data, int length) { }
+
         public void RequestQuit()
         {
             _shouldRun = false;
@@ -47,12 +51,18 @@ namespace noda
                             _netEvent.Peer.Reset();
                             break;
                         case EventType.Receive: {
+                            OnReceive(_netEvent.Packet.Data, _netEvent.Packet.Length);
                             _netEvent.Packet.Dispose();
                             break;
                         }
                     }
                 }
             }
+        }
+
+        public void Kick()
+        {
+            
         }
 
         public void SendReliable(IntPtr data, int length)
@@ -62,19 +72,8 @@ namespace noda
             _netEvent.Peer.Send(1, ref packet);
         }
 
-        private void OnConnection()
-        {
-            Console.WriteLine("Connection Request from ID: " + _netEvent.Peer.ID);
-        }
-
-        private void OnDisconnection()
-        {
-            Console.WriteLine("Client disconnected - ID: " + _netEvent.Peer.ID);
-        }
-
-    private
-        bool _shouldRun = true;
-        Host _server;
-        Event _netEvent;
+        private bool _shouldRun = true;
+        private Host _server;
+        protected Event _netEvent;
     }
 }

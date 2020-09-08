@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+// == PEER == 
+
 ENET_API enet_uint32 enet_peer_get_id(const ENetPeer *peer) {
   return peer->incomingPeerID;
 }
@@ -50,14 +52,48 @@ ENET_API void enet_peer_set_data(ENetPeer *peer, const void *data) {
   peer->data = (uint32_t *)data;
 }
 
-ENET_API int enet_address_get_ip(const ENetAddress *address, char *ip,
-                                 size_t ipLength) {
-  return enet_address_get_host_ip(address, ip, ipLength);
-}
+// == PACKET == 
 
 ENET_API void enet_packet_dispose(ENetPacket *packet) {
   if (packet->referenceCount == 0)
     enet_packet_destroy(packet);
+}
+
+ENET_API void *enet_packet_get_data(const ENetPacket *packet) {
+  return (void *)packet->data;
+}
+
+ENET_API int enet_packet_get_length(const ENetPacket *packet) {
+  return packet->dataLength;
+}
+
+ENET_API void *enet_packet_get_user_data(const ENetPacket *packet) {
+  return packet->userData;
+}
+
+ENET_API void enet_packet_set_user_data(ENetPacket *packet, void *userData) {
+  packet->userData = userData;
+}
+
+ENET_API int enet_packet_check_references(const ENetPacket *packet) {
+  return (int)packet->referenceCount;
+}
+
+// == HOST == 
+
+ENET_API enet_uint32 enet_host_get_peers_count(const ENetHost *host) {
+  return host->connectedPeers;
+}
+
+ENET_API enet_uint32 enet_host_get_packets_sent(const ENetHost *host) {
+  return host->totalSentPackets;
+}
+
+// == ADDRESS == 
+
+ENET_API int enet_address_get_ip(const ENetAddress *address, char *ip,
+                                 size_t ipLength) {
+  return enet_address_get_host_ip(address, ip, ipLength);
 }
 
 #endif

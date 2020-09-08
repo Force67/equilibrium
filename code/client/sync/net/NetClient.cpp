@@ -54,6 +54,7 @@ bool NetClient::Connect(const char *address, uint16_t port) {
 	return true;
   }
 
+  enet_peer_reset(_netServer);
   return false;
 }
 

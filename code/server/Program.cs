@@ -16,7 +16,7 @@ namespace noda
 
         public Program()
         {
-            _server = new NetServer(4523);
+            _server = new SyncServer();
         }
 
         public void Run()
@@ -24,7 +24,6 @@ namespace noda
             _server.Run();
         }
 
-    private
-        NetServer _server;
+        private SyncServer _server;
     }
 }

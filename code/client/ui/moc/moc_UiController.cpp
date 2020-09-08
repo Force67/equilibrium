@@ -20,7 +20,7 @@
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_UiController_t {
     QByteArrayData data[6];
-    char stringdata0[72];
+    char stringdata0[75];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -34,11 +34,11 @@ QT_MOC_LITERAL(1, 13, 13), // "ToggleConnect"
 QT_MOC_LITERAL(2, 27, 0), // ""
 QT_MOC_LITERAL(3, 28, 12), // "OpenSyncMenu"
 QT_MOC_LITERAL(4, 41, 15), // "OpenAboutDialog"
-QT_MOC_LITERAL(5, 57, 14) // "OnConfigureAct"
+QT_MOC_LITERAL(5, 57, 17) // "OpenConfiguration"
 
     },
     "UiController\0ToggleConnect\0\0OpenSyncMenu\0"
-    "OpenAboutDialog\0OnConfigureAct"
+    "OpenAboutDialog\0OpenConfiguration"
 };
 #undef QT_MOC_LITERAL
 
@@ -79,7 +79,7 @@ void UiController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         case 0: _t->ToggleConnect(); break;
         case 1: _t->OpenSyncMenu(); break;
         case 2: _t->OpenAboutDialog(); break;
-        case 3: _t->OnConfigureAct(); break;
+        case 3: _t->OpenConfiguration(); break;
         default: ;
         }
     }
