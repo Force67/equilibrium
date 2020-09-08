@@ -17,9 +17,8 @@ SyncController::~SyncController() {
 ssize_t SyncController::OnIdaEvent(void *userp, int code, va_list args) {
   SyncController *self = reinterpret_cast<SyncController *>(userp);
   if (self->_client.IsConnected()) {
-	  // check who can handle the emssage
+	// check who can handle the emssage
   }
-
 
   return 0;
 }

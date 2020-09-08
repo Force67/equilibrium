@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>NODA: Auto-Connect</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../../Resources.qrc">
+    <normaloff>:/logo</normaloff>:/logo</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="label">
@@ -27,7 +31,44 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="spacerLeft">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>30</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonConnect">
+       <property name="text">
+        <string>Connect</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonCancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonNO">
+       <property name="text">
+        <string>Dont ask again</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="spacerRight">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -39,34 +80,12 @@
        </property>
       </spacer>
      </item>
-     <item>
-      <widget class="QPushButton" name="button_yes">
-       <property name="text">
-        <string>Connect</string>
-       </property>
-       <property name="default">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="button_no">
-       <property name="text">
-        <string>Cancel</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="button_dontaskagain">
-       <property name="text">
-        <string>Dont ask again</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../Resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

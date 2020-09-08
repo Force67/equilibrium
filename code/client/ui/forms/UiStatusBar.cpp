@@ -1,8 +1,15 @@
-// NODA: Copyright(c) NOMAD Group<nomad-group.net>
-
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
 #include "UiStatusBar.h"
 
-void UiStatusBar::SetColor(const char *name) {
-  std::string col = "QWidget { background-color: " + std::string(name) + "; }";
-  setStyleSheet(col.c_str());
+UiStatusBar::UiStatusBar() :
+	QDockWidget(QApplication::activeWindow()) {
+  setupUi(this);
+}
+
+void UiStatusBar::SetColor(const QT::QColor color) {
+  QPalette pal;
+  pal.setColor(QPalette::Background, color);
+
+  QWidget::setPalette(pal);
 }

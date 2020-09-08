@@ -1,5 +1,5 @@
-// NODA: Copyright(c) NOMAD Group<nomad-group.net>
-
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
 #include "SysInfo.h"
 
 #ifdef _WIN32
@@ -9,7 +9,7 @@
 namespace utility {
 
   const QString &GetSysUsername() {
-	static QString s_Name;
+	static QString s_Name{};
 	if (s_Name.isEmpty()) {
 	  char username[260]{};
 #ifdef _WIN32
@@ -24,12 +24,12 @@ namespace utility {
   }
 
   const QString &GetHardwareId() {
-	static QString s_Hwid;
+	static QString s_Hwid{};
 	if (s_Hwid.isEmpty()) {
 #ifdef _WIN32
 	  HW_PROFILE_INFOA hwProfileInfo;
 	  if (! GetCurrentHwProfileA(&hwProfileInfo))
-		return {};
+		return s_Hwid;
 
 	  s_Hwid = hwProfileInfo.szHwProfileGuid;
 #endif

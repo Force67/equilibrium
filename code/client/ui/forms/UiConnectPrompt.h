@@ -4,13 +4,17 @@
 
 #include "ui/moc/ui_UiConnectPromt.h"
 
+class UiController;
+
 class UiConnectPromt final : public QDialog, public Ui::ConnectPromt {
   Q_OBJECT;
 
   public:
-  UiConnectPromt() :
-	  QDialog(QApplication::activeWindow()) {
-	setupUi(this);
-	setWindowIcon(QIcon(":/logo"));
-  }
+  UiConnectPromt(UiController &);
+
+  private:
+  void OnConnect();
+  void SetDontAskagain();
+
+  UiController &_controller;
 };

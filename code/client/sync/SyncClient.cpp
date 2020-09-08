@@ -19,8 +19,8 @@
 #endif
 
 // fast conversion
-flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder& msg, const QString & other) {
-  const char* str = const_cast<const char *>(other.toUtf8().data());
+flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &msg, const QString &other) {
+  const char *str = const_cast<const char *>(other.toUtf8().data());
   size_t sz = static_cast<size_t>(other.size());
   return msg.CreateString(str, sz);
 }
@@ -31,7 +31,7 @@ bool SyncClient::Connect() {
   uint port = settings.value("NODASyncPort", kServerPort).toUInt();
 
   // this blocks until the connection is established
-  if (!NetClient::Connect(ip.toUtf8().data(), static_cast<uint16_t>(port))) {
+  if (! NetClient::Connect(ip.toUtf8().data(), static_cast<uint16_t>(port))) {
 	msg("LMAO");
 	return false;
   }
@@ -44,7 +44,7 @@ bool SyncClient::Connect() {
   const auto dbVersion = 0;
 
   char md5[16];
-  retrieve_input_file_md5(reinterpret_cast<uchar*>(md5));
+  retrieve_input_file_md5(reinterpret_cast<uchar *>(md5));
 
   char buffer[128]{};
   get_root_filename(buffer, sizeof(buffer) - 1);
@@ -59,7 +59,7 @@ bool SyncClient::Connect() {
 	  builder.CreateString(md5),
 	  builder.CreateString(buffer));
 
-  if (!SendPacket(builder, netmsg::Data::Data_Handshake, request)) {
+  if (! SendPacket(builder, netmsg::Data::Data_Handshake, request)) {
 	NetClient::Disconnect();
 	return false;
   }
@@ -67,8 +67,8 @@ bool SyncClient::Connect() {
   return true;
 }
 
-template<typename T>
-bool SyncClient::SendPacket(MsgBuilder& mb, netmsg::Data type, const T& data) {
+template <typename T>
+bool SyncClient::SendPacket(MsgBuilder &mb, netmsg::Data type, const T &data) {
   auto msgRoot = netmsg::CreateMessageRoot(mb, type, data.Union());
   mb.Finish(msgRoot);
 

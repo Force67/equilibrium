@@ -57,7 +57,7 @@ bool NetClient::Connect(const char *address, uint16_t port) {
   return false;
 }
 
-bool NetClient::SendReliable(uint8_t* ptr, size_t size) {
+bool NetClient::SendReliable(uint8_t *ptr, size_t size) {
   auto *packet = enet_packet_create(
 	  static_cast<const void *>(ptr),
 	  size,

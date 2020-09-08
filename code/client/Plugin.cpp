@@ -1,9 +1,8 @@
-// NODA: Copyright(c) NOMAD Group<nomad-group.net>
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
 
 #include <Plugin.h>
 #include "IdaInc.h"
-
-NodaPlugin *g_Plugin{ nullptr };
 
 NodaPlugin::NodaPlugin() :
 	_syncController(_client),
@@ -16,6 +15,7 @@ NodaPlugin::~NodaPlugin() {
 }
 
 namespace {
+  NodaPlugin *g_Plugin{ nullptr };
 
   const char kPluginComment[] = "Nomad Ida Plugin";
   const char kPluginName[] = "NODA";

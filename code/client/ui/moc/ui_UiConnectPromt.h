@@ -28,15 +28,19 @@ class Ui_ConnectPromt {
   QVBoxLayout *verticalLayout;
   QLabel *label;
   QHBoxLayout *horizontalLayout;
-  QSpacerItem *horizontalSpacer;
-  QPushButton *button_yes;
-  QPushButton *button_no;
-  QPushButton *button_dontaskagain;
+  QSpacerItem *spacerLeft;
+  QPushButton *buttonConnect;
+  QPushButton *buttonCancel;
+  QPushButton *buttonNO;
+  QSpacerItem *spacerRight;
 
   void setupUi(QDialog *ConnectPromt) {
 	if (ConnectPromt->objectName().isEmpty())
 	  ConnectPromt->setObjectName(QStringLiteral("ConnectPromt"));
 	ConnectPromt->resize(518, 84);
+	QIcon icon;
+	icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
+	ConnectPromt->setWindowIcon(icon);
 	verticalLayout = new QVBoxLayout(ConnectPromt);
 	verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
 	label = new QLabel(ConnectPromt);
@@ -47,30 +51,34 @@ class Ui_ConnectPromt {
 
 	horizontalLayout = new QHBoxLayout();
 	horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
-	horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+	spacerLeft = new QSpacerItem(30, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-	horizontalLayout->addItem(horizontalSpacer);
+	horizontalLayout->addItem(spacerLeft);
 
-	button_yes = new QPushButton(ConnectPromt);
-	button_yes->setObjectName(QStringLiteral("button_yes"));
+	buttonConnect = new QPushButton(ConnectPromt);
+	buttonConnect->setObjectName(QStringLiteral("buttonConnect"));
 
-	horizontalLayout->addWidget(button_yes);
+	horizontalLayout->addWidget(buttonConnect);
 
-	button_no = new QPushButton(ConnectPromt);
-	button_no->setObjectName(QStringLiteral("button_no"));
+	buttonCancel = new QPushButton(ConnectPromt);
+	buttonCancel->setObjectName(QStringLiteral("buttonCancel"));
 
-	horizontalLayout->addWidget(button_no);
+	horizontalLayout->addWidget(buttonCancel);
 
-	button_dontaskagain = new QPushButton(ConnectPromt);
-	button_dontaskagain->setObjectName(QStringLiteral("button_dontaskagain"));
+	buttonNO = new QPushButton(ConnectPromt);
+	buttonNO->setObjectName(QStringLiteral("buttonNO"));
 
-	horizontalLayout->addWidget(button_dontaskagain);
+	horizontalLayout->addWidget(buttonNO);
+
+	spacerRight = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+	horizontalLayout->addItem(spacerRight);
 
 	verticalLayout->addLayout(horizontalLayout);
 
 	retranslateUi(ConnectPromt);
 
-	button_yes->setDefault(true);
+	buttonConnect->setDefault(true);
 
 	QMetaObject::connectSlotsByName(ConnectPromt);
   } // setupUi
@@ -78,9 +86,9 @@ class Ui_ConnectPromt {
   void retranslateUi(QDialog *ConnectPromt) {
 	ConnectPromt->setWindowTitle(QApplication::translate("ConnectPromt", "NODA: Auto-Connect", Q_NULLPTR));
 	label->setText(QApplication::translate("ConnectPromt", "NODA detected a synced IDB. Do you wish to connect to Sync-Server?", Q_NULLPTR));
-	button_yes->setText(QApplication::translate("ConnectPromt", "Connect", Q_NULLPTR));
-	button_no->setText(QApplication::translate("ConnectPromt", "Cancel", Q_NULLPTR));
-	button_dontaskagain->setText(QApplication::translate("ConnectPromt", "Dont ask again", Q_NULLPTR));
+	buttonConnect->setText(QApplication::translate("ConnectPromt", "Connect", Q_NULLPTR));
+	buttonCancel->setText(QApplication::translate("ConnectPromt", "Cancel", Q_NULLPTR));
+	buttonNO->setText(QApplication::translate("ConnectPromt", "Dont ask again", Q_NULLPTR));
   } // retranslateUi
 };
 

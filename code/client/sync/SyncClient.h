@@ -11,7 +11,7 @@ class SyncClient final : public NetClient {
   public:
   bool Connect();
 
-  template<typename T>
+  template <typename T>
   bool SendPacket(MsgBuilder &, netmsg::Data, const T &);
 };
 

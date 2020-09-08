@@ -1,4 +1,5 @@
-// NODA: Copyright(c) NOMAD Group<nomad-group.net>
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
 
 #include "UiController.h"
 #include "sync/SyncClient.h"
@@ -32,7 +33,7 @@ void UiController::BuildUi() {
 
   // pin bottom status bar (online/offline indicator)
   _statusBar.reset(new UiStatusBar());
-  _statusBar->SetColor("red");
+  _statusBar->SetColor(colorconstant::red);
   _statusBar->show();
   pIdaWindow->statusBar()->addPermanentWidget(_statusBar.data());
 
@@ -53,10 +54,12 @@ void UiController::OpenAboutDialog() {
 }
 
 void UiController::DoConnect() {
-  _statusBar->SetColor("orange");
+  _statusBar->SetColor(colorconstant::orange);
 
   bool result = _client.Connect();
   if (! result) {
+	_statusBar->SetColor(colorconstant::red);
+
 	QErrorMessage error(GetTopWindow());
 	error.showMessage(
 		"Unable to connect to the NODA sync host.\n"
@@ -65,7 +68,7 @@ void UiController::DoConnect() {
 	return;
   }
 
-  _statusBar->SetColor("green");
+  _statusBar->SetColor(colorconstant::green);
 }
 
 void UiController::OpenSyncMenu() {
@@ -77,15 +80,15 @@ void UiController::OnConfigureAct() {
   settings.exec();
 }
 
-ssize_t UiController::OnUiEvent(void *pUserp, int notificationCode,
+ssize_t UiController::OnUiEvent(void *userp, int notificationCode,
 								va_list va) {
-  auto *pThis = reinterpret_cast<UiController *>(pUserp);
+  UiController *self = reinterpret_cast<UiController *>(userp);
 
   if (notificationCode == ui_notification_t::ui_ready_to_run) {
-	if (! pThis->_statusBar) {
-	  pThis->BuildUi();
+	if (! self->_statusBar) {
+	  self->BuildUi();
 
-	  UiConnectPromt promt;
+	  UiConnectPromt promt(*self);
 	  promt.exec();
 	}
   }
