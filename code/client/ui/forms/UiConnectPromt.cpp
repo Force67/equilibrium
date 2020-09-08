@@ -18,6 +18,6 @@ void UiConnectPromt::SetDontAskagain() {
 }
 
 void UiConnectPromt::OnConnect() {
-  _controller.DoConnect();
+  _controller.ToggleConnect();
   QDialog::close();
 }

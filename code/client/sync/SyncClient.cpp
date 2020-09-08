@@ -67,6 +67,10 @@ bool SyncClient::Connect() {
   return true;
 }
 
+void SyncClient::Disconnect() {
+  NetClient::Disconnect();
+}
+
 template <typename T>
 bool SyncClient::SendPacket(MsgBuilder &mb, netmsg::Data type, const T &data) {
   auto msgRoot = netmsg::CreateMessageRoot(mb, type, data.Union());

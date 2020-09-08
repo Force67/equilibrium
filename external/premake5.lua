@@ -3,19 +3,7 @@
 require("premake-idaqt/qt")
 qt = premake.modules.qt
 
-function declare_enet(standAlone)
-    if standAlone then
-        project("enet_sv")
-        kind("SharedLib")
-        defines({
-            "ENET_DLL",
-            "ENET_BUILDING_LIB"
-        })
-    else
-        project("enet")
-        kind("StaticLib")
-    end
-    language("C")
+function enet_include()
     includedirs({
         "enet/include"
     })
@@ -34,5 +22,33 @@ function declare_enet(standAlone)
         })
 end
 
-declare_enet(true)
-declare_enet(false)
+-- enet built with extra functions for
+-- seemless interop
+local p = project("ENetNative")
+    kind("SharedLib")
+    language("C")
+    defines({
+        "ENET_DLL",
+        "ENET_BUILDING_LIB",
+        "ENET_BUILD_MANAGED"
+    })
+    targetdir(blu.bindir .. "/netcoreapp3.1")
+    enet_include()
+
+project("enet")
+    kind("StaticLib")
+    language("C")
+    enet_include()
+
+project("Flatbuffers")
+    language("C#")
+    kind("SharedLib")
+    location(blu.netout)
+    objdir(blu.netdir)
+    dotnetframework("netcoreapp3.1")
+    includedirs({
+        "flatbuffers/net"
+    })
+    files({
+        "flatbuffers/net/Flatbuffers/*.cs"
+    })

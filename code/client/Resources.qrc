@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file alias="logo">../../assets/logo.png</file>
+        <file alias="cog">../../assets/icons/cog-solid.png</file>
+        <file alias="info">../../assets/icons/info-circle-solid.png</file>
+        <file alias="sync">../../assets/icons/sync-solid.png</file>
     </qresource>
 </RCC>

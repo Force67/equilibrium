@@ -5,7 +5,6 @@
 
 build/
 netmessages/
-managedbuild/
 .vscode
 
 !tools/build

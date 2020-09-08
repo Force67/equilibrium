@@ -8,12 +8,15 @@ blu.symdir = rootdir .. "/sym/%{cfg.platform}/%{cfg.buildcfg}"
 
 -- newprojectformat tries to outsmarten me
 blu.netdir = rootdir .. "/clr/%{cfg.platform}"
+blu.netout = rootdir .. "/net"
 
 location(rootdir)
 
 filter("language:C or C++")
+    location(rootdir)
     objdir(blu.objdir)
     libdirs({blu.libdir})
+    architecture("x86_64")
 filter{}
 
 -- workaround a premake bug

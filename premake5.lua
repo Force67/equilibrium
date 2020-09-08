@@ -10,25 +10,16 @@ filter("configurations:Release")
     optimize("Speed")
 
 filter("language:C or C++")
-    vectorextensions("AVX")  
+    vectorextensions("AVX")
 
 workspace("NODA - Native")
     configurations({
         "Debug",
         "Release"
     })
-    location("./build")
-    architecture("x86_64")
-
     group("External")
     include("external")
-    include("./code/client")
 
-workspace("NODA - Managed")
-    configurations({
-        "Debug",
-        "Release"
-    })
-    location("./managedbuild")
-    include("external/managed.lua")
+    group("NODA")
+    include("./code/client")
     include("./code/server")

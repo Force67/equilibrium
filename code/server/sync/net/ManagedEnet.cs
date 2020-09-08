@@ -758,21 +758,6 @@ namespace ENet
 			}
 		}
 
-		public string IP
-		{
-			get
-			{
-				IsCreated();
-
-				byte[] ip = ArrayPool.GetByteBuffer();
-
-				if (Native.enet_peer_get_ip(nativePeer, ip, (IntPtr)ip.Length) == 0)
-					return Encoding.ASCII.GetString(ip, 0, ip.StringLength());
-				else
-					return String.Empty;
-			}
-		}
-
 		public ushort Port
 		{
 			get
@@ -851,16 +836,6 @@ namespace ENet
 			}
 		}
 
-		public ulong PacketsLost
-		{
-			get
-			{
-				IsCreated();
-
-				return Native.enet_peer_get_packets_lost(nativePeer);
-			}
-		}
-
 		public float PacketsThrottle
 		{
 			get
@@ -868,26 +843,6 @@ namespace ENet
 				IsCreated();
 
 				return Native.enet_peer_get_packets_throttle(nativePeer);
-			}
-		}
-
-		public ulong BytesSent
-		{
-			get
-			{
-				IsCreated();
-
-				return Native.enet_peer_get_bytes_sent(nativePeer);
-			}
-		}
-
-		public ulong BytesReceived
-		{
-			get
-			{
-				IsCreated();
-
-				return Native.enet_peer_get_bytes_received(nativePeer);
 			}
 		}
 
@@ -1026,7 +981,7 @@ namespace ENet
 		public const uint timeoutLimit = 32;
 		public const uint timeoutMinimum = 5000;
 		public const uint timeoutMaximum = 30000;
-		public const uint version = (1 << 16) | (3 << 8) | (14);
+		public const uint version = (1 << 16) | (3 << 8) | (16);
 
 		public static bool Initialize()
 		{
@@ -1066,7 +1021,7 @@ namespace ENet
 	[SuppressUnmanagedCodeSecurity]
 	internal static class Native
 	{
-		private const string nativeLibrary = "enet_sv_64";
+		private const string nativeLibrary = "ENetNative_64";
 
 		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern int enet_initialize();
@@ -1174,9 +1129,6 @@ namespace ENet
 		internal static extern uint enet_peer_get_id(IntPtr peer);
 
 		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern int enet_peer_get_ip(IntPtr peer, byte[] ip, IntPtr ipLength);
-
-		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern ushort enet_peer_get_port(IntPtr peer);
 
 		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
@@ -1201,16 +1153,7 @@ namespace ENet
 		internal static extern ulong enet_peer_get_packets_sent(IntPtr peer);
 
 		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern ulong enet_peer_get_packets_lost(IntPtr peer);
-
-		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern float enet_peer_get_packets_throttle(IntPtr peer);
-
-		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern ulong enet_peer_get_bytes_sent(IntPtr peer);
-
-		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern ulong enet_peer_get_bytes_received(IntPtr peer);
 
 		[DllImport(nativeLibrary, CallingConvention = CallingConvention.Cdecl)]
 		internal static extern IntPtr enet_peer_get_data(IntPtr peer);

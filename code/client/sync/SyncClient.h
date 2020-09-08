@@ -10,6 +10,7 @@ using MsgBuilder = flatbuffers::FlatBufferBuilder;
 class SyncClient final : public NetClient {
   public:
   bool Connect();
+  void Disconnect();
 
   template <typename T>
   bool SendPacket(MsgBuilder &, netmsg::Data, const T &);

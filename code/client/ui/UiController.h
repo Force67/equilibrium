@@ -29,16 +29,15 @@ class UiController final : public QObject {
 
   QT::QScopedPointer<UiStatusBar> _statusBar;
 
-  QAction *_pConnectionAct = nullptr;
+  QAction *_connectAct = nullptr;
   QAction *_pMenuAct = nullptr;
 
   SyncClient &_client;
   public slots:
-  void DoConnect();
+  void ToggleConnect();
 
   private slots:
   void OpenSyncMenu();
   void OpenAboutDialog();
-
-  void OnConfigureAct();
+  void OpenConfiguration();
 };

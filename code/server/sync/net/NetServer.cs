@@ -64,12 +64,12 @@ namespace noda
 
         private void OnConnection()
         {
-            Console.WriteLine("Client connected - ID: " + _netEvent.Peer.ID + ", IP: " + _netEvent.Peer.IP);
+            Console.WriteLine("Connection Request from ID: " + _netEvent.Peer.ID);
         }
 
         private void OnDisconnection()
         {
-            Console.WriteLine("Client disconnected - ID: " + _netEvent.Peer.ID + ", IP: " + _netEvent.Peer.IP);
+            Console.WriteLine("Client disconnected - ID: " + _netEvent.Peer.ID);
         }
 
     private
