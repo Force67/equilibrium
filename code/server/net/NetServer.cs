@@ -26,8 +26,8 @@ namespace noda
             Library.Deinitialize();
         }
 
-        public virtual void OnConnection() { }
-        public virtual void OnDisconnection() { }
+        public virtual void OnConnection(Peer source) { }
+        public virtual void OnDisconnection(Peer source) { }
         public virtual void OnReceive(IntPtr data, int length) { }
 
         public void RequestQuit()
@@ -44,10 +44,10 @@ namespace noda
                     switch (_netEvent.Type)
                     {
                         case EventType.Connect:
-                            OnConnection();
+                            OnConnection(_netEvent.Peer);
                             break;
                         case EventType.Disconnect:
-                            OnDisconnection();
+                            OnDisconnection(_netEvent.Peer);
                             _netEvent.Peer.Reset();
                             break;
                         case EventType.Receive: {
@@ -60,9 +60,14 @@ namespace noda
             }
         }
 
-        public void Kick()
+        public void Kick(protocol.DisconnectReason reason)
         {
-            
+            _netEvent.Peer.Disconnect((uint)reason);
+        }
+
+        public static void Kick(Peer peer, protocol.DisconnectReason reason)
+        {
+            peer.Disconnect((uint)reason);
         }
 
         public void SendReliable(IntPtr data, int length)

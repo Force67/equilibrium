@@ -1,16 +1,13 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-include "Handshake.fbs";
-
 namespace protocol;
 
-union Data {
-    Handshake
+enum DisconnectReason : uint
+{
+    Quit,
+    Kicked,
+    BadPassword,
+    BadConnection,
+    TimedOut,
 }
-
-table MessageRoot{
-    data:Data;
-}
-
-root_type MessageRoot;

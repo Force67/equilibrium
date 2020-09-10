@@ -8,8 +8,6 @@
 #include "net/NetBuffer.h"
 #include "netmessages/Handshake_generated.h"
 
-#include "IdaInc.h"
-
 #if 0
 //https://google.github.io/flatbuffers/md__schemas.html
 //https://stackoverflow.com/questions/37685003/flatbuffers-send-multiple-packet-types-using-a-union
@@ -19,26 +17,29 @@
 #endif
 
 // fast conversion
-flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &msg, const QString &other) {
+flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &msg, const QString &other) 
+{
   const char *str = const_cast<const char *>(other.toUtf8().data());
   size_t sz = static_cast<size_t>(other.size());
   return msg.CreateString(str, sz);
 }
 
-bool SyncClient::Connect() {
+bool SyncClient::Connect() 
+{
+  using namespace protocol;
+
   QSettings settings;
-  auto ip = settings.value("NODASyncIp", kServerIp).toString();
   uint port = settings.value("NODASyncPort", kServerPort).toUInt();
+  QString address = settings.value("NODASyncIp", kServerIp).toString();
 
   // this blocks until the connection is established
-  if (! NetClient::Connect(ip.toUtf8().data(), static_cast<uint16_t>(port))) {
-	msg("LMAO");
+  if (! NetClient::Connect(address.toUtf8().data(), static_cast<uint16_t>(port))) {
 	return false;
   }
 
-  const QString &sysName = utility::GetSysUsername();
-  const QString &sysHwid = utility::GetHardwareId();
-  auto user = settings.value("NODASyncUser", sysName).toString();
+  const QString &userName = utility::GetSysUsername();
+  const QString &hwid = utility::GetHardwareId();
+  auto user = settings.value("NODASyncUser", userName).toString();
   auto pass = settings.value("NODASyncPass", "").toString();
 
   const auto dbVersion = 0;
@@ -50,16 +51,16 @@ bool SyncClient::Connect() {
   get_root_filename(buffer, sizeof(buffer) - 1);
 
   MsgBuilder builder;
-  auto request = netmsg::CreateHandshake(
+  auto request = CreateHandshake(
 	  builder, kClientVersion,
-	  ToFbString(builder, sysHwid),
+	  ToFbString(builder, userName),
 	  ToFbString(builder, user),
 	  ToFbString(builder, pass),
 	  dbVersion,
 	  builder.CreateString(md5),
 	  builder.CreateString(buffer));
 
-  if (! SendPacket(builder, netmsg::Data::Data_Handshake, request)) {
+  if (! SendPacket(builder, Data::Data_Handshake, request)) {
 	NetClient::Disconnect();
 	return false;
   }
@@ -72,8 +73,8 @@ void SyncClient::Disconnect() {
 }
 
 template <typename T>
-bool SyncClient::SendPacket(MsgBuilder &mb, netmsg::Data type, const T &data) {
-  auto msgRoot = netmsg::CreateMessageRoot(mb, type, data.Union());
+bool SyncClient::SendPacket(MsgBuilder &mb, protocol::Data type, const T &data) {
+  auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
   mb.Finish(msgRoot);
 
   return NetClient::SendReliable(mb.GetBufferPointer(), mb.GetSize());

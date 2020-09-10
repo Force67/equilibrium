@@ -12,14 +12,14 @@ filter("configurations:Release")
 filter("language:C or C++")
     vectorextensions("AVX")
 
-workspace("NODA - Native")
+workspace("NODA")
     configurations({
         "Debug",
         "Release"
     })
-    group("External")
+    group("Dependencies")
     include("external")
 
-    group("NODA")
+    group("Project")
     include("./code/client")
     include("./code/server")

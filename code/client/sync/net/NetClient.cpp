@@ -102,6 +102,8 @@ void NetClient::run() {
 		  continue;
 		}
 
+
+
 		//TODO: add the message to queue
 
 		enet_packet_destroy(_netEvent.packet);

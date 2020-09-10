@@ -13,7 +13,7 @@ class SyncClient final : public NetClient {
   void Disconnect();
 
   template <typename T>
-  bool SendPacket(MsgBuilder &, netmsg::Data, const T &);
+  bool SendPacket(MsgBuilder &, protocol::Data, const T &);
 };
 
 flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &, const QString &);

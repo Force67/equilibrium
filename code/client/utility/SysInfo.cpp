@@ -11,13 +11,13 @@ namespace utility {
   const QString &GetSysUsername() {
 	static QString s_Name{};
 	if (s_Name.isEmpty()) {
-	  char username[260]{};
+	  wchar_t username[260]{};
 #ifdef _WIN32
 	  DWORD username_len = 260;
-	  GetUserNameA(username, &username_len);
+	  GetUserNameW(username, &username_len);
 #endif
 
-	  s_Name = username;
+	  s_Name = QString::fromWCharArray(username);
 	}
 
 	return s_Name;

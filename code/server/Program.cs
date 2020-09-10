@@ -3,20 +3,31 @@
 
 using System;
 
+// https://stackoverflow.com/questions/53706526/confused-at-control-flow-of-async-await-of-c-sharp
+
 namespace noda
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Starting NODA Server");
-
             new Program().Run();
         }
 
         public Program()
         {
-            _server = new SyncServer();
+            _config = Config.Create();
+
+            _logger = new Logger();
+            _logger.Sinks.Add(new ConSink());
+
+            _server = new SyncServer(_config, _logger);
+            _logger.Info("Starting NODA Server");
+        }
+
+        ~Program()
+        {
+            _config.Save();
         }
 
         public void Run()
@@ -25,5 +36,7 @@ namespace noda
         }
 
         private SyncServer _server;
+        private Logger _logger;
+        private Config _config;
     }
 }
