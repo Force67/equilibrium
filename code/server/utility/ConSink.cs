@@ -9,6 +9,8 @@ namespace noda
     {
         public void Write(string message, LogLevel level)
         {
+            var previousColor = Console.ForegroundColor;
+
             switch (level)
             {
                 case LogLevel.Trace:
@@ -31,7 +33,9 @@ namespace noda
                     break;
             }
 
-            Console.WriteLine(message);
+            string msg = Logger.FormatLogMessage(level, message);
+            Console.WriteLine(msg);
+            Console.ForegroundColor = previousColor;
         }
     }
 }

@@ -3,6 +3,7 @@
 
 using ENet;
 using System;
+using System.Threading;
 
 namespace noda
 {
@@ -18,6 +19,8 @@ namespace noda
             addr.Host = 0;
             addr.Port = port;
             _server.Create(addr, 10);
+
+            _thread = new Thread(Update);
         }
 
         ~NetServer()
@@ -35,7 +38,12 @@ namespace noda
             _shouldRun = false;
         }
 
-        public void Run()
+        public void Start()
+        {
+            _thread.Start();
+        }
+
+        private void Update()
         {
             while (_shouldRun)
             {
@@ -79,6 +87,7 @@ namespace noda
 
         private bool _shouldRun = true;
         private Host _server;
+        private Thread _thread;
         protected Event _netEvent;
     }
 }

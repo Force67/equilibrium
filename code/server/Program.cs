@@ -9,10 +9,10 @@ namespace noda
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            new Program().Run();
-        }
+        private SyncServer _server;
+        private DiscordFeed _discordFeed;
+        private Logger _logger;
+        private Config _config;
 
         public Program()
         {
@@ -23,20 +23,35 @@ namespace noda
 
             _server = new SyncServer(_config, _logger);
             _logger.Info("Starting NODA Server");
-        }
 
+            _discordFeed = new DiscordFeed(_logger, _config.DiscordToken);
+            _logger.Sinks.Add(_discordFeed);
+        }
+          
         ~Program()
         {
             _config.Save();
         }
 
         public void Run()
-        {
-            _server.Run();
+        { 
+            _server.Start();
+            _discordFeed.Start();
+
+            while (true)
+            {
+                var input = Console.ReadLine();
+                if (input == "/quit")
+                {
+                    _server.RequestQuit();
+                    break;
+                }
+            }
         }
 
-        private SyncServer _server;
-        private Logger _logger;
-        private Config _config;
+        static void Main(string[] args)
+        {
+            new Program().Run();
+        }
     }
 }

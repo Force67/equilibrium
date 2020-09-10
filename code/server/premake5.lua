@@ -11,7 +11,8 @@ project("Server")
     })
     links({
         "FlatBuffers",
+        "Discord.Net",
     })
-    includedirs({
-        "."
+    nuget({
+        "Discord.Net:2.2.0"
     })
