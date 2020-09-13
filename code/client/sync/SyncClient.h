@@ -1,20 +1,23 @@
-// NODA: Copyright(c) NOMAD Group<nomad-group.net>
-
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
 #include "net/NetClient.h"
 #include "protocol/MsgList_generated.h"
 
-using MsgBuilder = flatbuffers::FlatBufferBuilder;
-
-class SyncClient final : public NetClient
+namespace noda
 {
-public:
-  bool Connect();
-  void Disconnect();
+  using MsgBuilder = flatbuffers::FlatBufferBuilder;
 
-  template <typename T>
-  bool SendPacket(MsgBuilder &, protocol::Data, const T &);
-};
+  class SyncClient final : public NetClient
+  {
+  public:
+	bool Connect();
+	void Disconnect();
 
-flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &, const QString &);
+	template <typename T>
+	bool SendPacket(MsgBuilder &, protocol::Data, const T &);
+  };
+
+  flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &, const QString &);
+}

@@ -1,23 +1,26 @@
-// NODA: Copyright(c) NOMAD Group<nomad-group.net>
-
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
 #include "IdaInc.h"
 #include <qobject.h>
 
-class SyncClient;
-
-// syncdispatcher?
-class SyncController final : public QObject
+namespace noda
 {
-  Q_OBJECT;
+  class SyncClient;
 
-public:
-  SyncController(SyncClient &);
-  ~SyncController();
+  // syncdispatcher?
+  class SyncController final : public QObject
+  {
+	Q_OBJECT;
 
-private:
-  static ssize_t idaapi OnIdaEvent(void *, int, va_list);
+  public:
+	SyncController(SyncClient &);
+	~SyncController();
 
-  SyncClient &_client;
-};
+  private:
+	static ssize_t idaapi OnIdaEvent(void *, int, va_list);
+
+	SyncClient &_client;
+  };
+}

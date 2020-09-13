@@ -3,8 +3,6 @@
 
 using System;
 
-// https://stackoverflow.com/questions/53706526/confused-at-control-flow-of-async-await-of-c-sharp
-
 namespace noda
 {
     class Program

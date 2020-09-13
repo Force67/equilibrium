@@ -1,0 +1,27 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+#pragma once
+
+#include "ui/moc/ui_ConnectDialog.h"
+
+namespace noda
+{
+  class UiController;
+
+  namespace ui
+  {
+	class ConnectDialog final : public QDialog, public Ui::ConnectPromt
+	{
+	  Q_OBJECT;
+
+	public:
+	  ConnectDialog(UiController &);
+
+	  static bool ShouldShow();
+	private:
+	  void OnConnect();
+
+	  UiController &_controller;
+	};
+  }
+}

@@ -8,8 +8,8 @@ using protocol;
 namespace noda
 {
     // type annotation
-    [AttributeUsage(System.AttributeTargets.Method)]
-    public class MessageType : System.Attribute
+    [AttributeUsage(AttributeTargets.Method)]
+    public class MessageType : Attribute
     {
         public MessageType(Data data)
         {

@@ -2,24 +2,14 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "ui/moc/ui_StatusBar.h"
+#include <qcolor.h>
 
 // backport of QColorConstants for QT 5.6
 // colors taken from official color spec at
 // https://doc.qt.io/qt-5/qcolorconstants.html
-namespace colorconstant
+namespace noda::colorconstant
 {
   constexpr QRgb orange{ 0xffa500 };
   constexpr QRgb green{ 0x008000 };
   constexpr QRgb red{ 0xff0000 };
 } // namespace colorconstant
-
-class UiStatusBar final : public QDockWidget, public Ui::StatusBar
-{
-  Q_OBJECT;
-
-public:
-  UiStatusBar();
-
-  void SetColor(const QT::QColor);
-};

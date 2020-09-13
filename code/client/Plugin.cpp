@@ -1,30 +1,30 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
+// Entry point of the sync plugin
 
-#include <ui/UiController.h>
-#include <sync/SyncController.h>
-#include <sync/SyncClient.h>
-
+#include "Plugin.h"
 #include "IdaInc.h"
+
+namespace noda
+{
+  Plugin::Plugin() :
+      _syncController(_client),
+      _uiController(_client)
+  {
+	msg("Loaded NODA Copyright(c) NOMAD Group <nomad-group.net>.\n");
+  }
+
+  Plugin::~Plugin()
+  {
+  
+  }
+}
 
 namespace
 {
-  struct Plugin {
-	Plugin() :
-	    _syncController(_client),
-	    _uiController(_client)
-	{
-	  msg("Loaded NODA Copyright(c) NOMAD Group<nomad-group.net>");
-	}
+  using namespace noda;
 
-	~Plugin()
-	{
-	}
-
-	UiController _uiController;
-	SyncController _syncController;
-	SyncClient _client;
-  } * g_Plugin;
+  Plugin *g_Plugin = nullptr;
 
   const char kPluginComment[] = "Nomad Ida Plugin";
   const char kPluginName[] = "NODA";

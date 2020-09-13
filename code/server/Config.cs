@@ -35,7 +35,7 @@ namespace noda
                 WriteIndented = true
             };
 
-            string modelJson = JsonSerializer.Serialize<Config>(this, options);
+            string modelJson = JsonSerializer.Serialize(this, options);
             Console.WriteLine(modelJson);
             File.WriteAllText("NODAConfig.json", modelJson);
         }

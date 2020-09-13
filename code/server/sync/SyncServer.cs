@@ -24,9 +24,9 @@ namespace noda
         {
             _config = config;
             _logger = logger;
+            _dispatcher = new RDispatcher();
             _pendingUsers = new List<Peer>();
             _connectedUsers = new List<Peer>();
-            _dispatcher = new RDispatcher();
 
             _dispatcher.connect(HandleHandshake);
         }

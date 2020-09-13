@@ -12,6 +12,9 @@ filter("configurations:Release")
 filter("language:C or C++")
     vectorextensions("AVX")
 
+filter("language:C++")
+    cppdialect("C++17")
+
 workspace("NODA")
     configurations({
         "Debug",

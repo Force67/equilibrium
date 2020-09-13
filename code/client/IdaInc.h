@@ -1,5 +1,6 @@
-// NODA: Copyright(c) NOMAD Group<nomad-group.net>
-
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+// Only include this file
 #pragma once
 
 #pragma warning(push)

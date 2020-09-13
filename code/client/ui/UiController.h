@@ -3,8 +3,6 @@
 #pragma once
 
 #include <IdaInc.h>
-#include <memory>
-
 #include <qobject.h>
 #include <qscopedpointer.h>
 
@@ -13,33 +11,40 @@ namespace QT
   class QAction;
 }
 
-class UiStatusBar;
-class SyncClient;
-
-class UiController final : public QObject
+namespace noda
 {
-  Q_OBJECT;
+  namespace ui
+  {
+	class StatusBar;
+  }
 
-public:
-  UiController(SyncClient &);
-  ~UiController();
+  class SyncClient;
 
-private:
-  void BuildUi();
+  class UiController final : public QObject
+  {
+	Q_OBJECT;
 
-  static ssize_t idaapi OnUiEvent(void *, int, va_list);
+  public:
+	UiController(SyncClient &);
+	~UiController();
 
-  QT::QScopedPointer<UiStatusBar> _statusBar;
+  private:
+	void BuildUi();
 
-  QAction *_connectAct = nullptr;
-  QAction *_pMenuAct = nullptr;
+	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
-  SyncClient &_client;
-public slots:
-  void ToggleConnect();
+	QT::QScopedPointer<ui::StatusBar> _statusBar;
 
-private slots:
-  void OpenSyncMenu();
-  void OpenAboutDialog();
-  void OpenConfiguration();
-};
+	QAction *_connectAct = nullptr;
+	QAction *_pMenuAct = nullptr;
+
+	SyncClient &_client;
+  public slots:
+	void ToggleConnect();
+
+  private slots:
+	void OpenSyncMenu();
+	void OpenAboutDialog();
+	void OpenConfiguration();
+  };
+}
