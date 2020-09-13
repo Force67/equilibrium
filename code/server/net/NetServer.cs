@@ -9,6 +9,11 @@ namespace noda
 {
     class NetServer
     {
+        private bool _shouldRun = true;
+        private Host _server;
+        private Thread _thread;
+        protected Event _netEvent;
+
         public NetServer(ushort port)
         {
             Library.Initialize();
@@ -84,10 +89,5 @@ namespace noda
             packet.Create(data, length, PacketFlags.Reliable);
             _netEvent.Peer.Send(1, ref packet);
         }
-
-        private bool _shouldRun = true;
-        private Host _server;
-        private Thread _thread;
-        protected Event _netEvent;
     }
 }

@@ -19,22 +19,24 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_StatusBar {
-  public:
+class Ui_StatusBar
+{
+public:
   QWidget *dockWidgetContents;
 
-  void setupUi(QDockWidget *StatusBar) {
-	if (StatusBar->objectName().isEmpty())
+  void setupUi(QDockWidget *StatusBar)
+  {
+	if(StatusBar->objectName().isEmpty())
 	  StatusBar->setObjectName(QStringLiteral("StatusBar"));
 	StatusBar->setWindowModality(Qt::NonModal);
 	StatusBar->resize(400, 43);
 	StatusBar->setContextMenuPolicy(Qt::NoContextMenu);
 	StatusBar->setAutoFillBackground(false);
 	StatusBar->setStyleSheet(QLatin1String(
-		"QDockWidget\n"
-		"{\n"
-		"	background-color:rgb(255, 0, 0)\n"
-		"}"));
+	    "QDockWidget\n"
+	    "{\n"
+	    "	background-color:rgb(255, 0, 0)\n"
+	    "}"));
 	StatusBar->setFloating(false);
 	dockWidgetContents = new QWidget();
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
@@ -45,13 +47,17 @@ class Ui_StatusBar {
 	QMetaObject::connectSlotsByName(StatusBar);
   } // setupUi
 
-  void retranslateUi(QDockWidget *StatusBar) {
+  void retranslateUi(QDockWidget *StatusBar)
+  {
 	StatusBar->setWindowTitle(QApplication::translate("StatusBar", "NODA Sync", Q_NULLPTR));
   } // retranslateUi
 };
 
-namespace Ui {
-  class StatusBar : public Ui_StatusBar {};
+namespace Ui
+{
+  class StatusBar : public Ui_StatusBar
+  {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

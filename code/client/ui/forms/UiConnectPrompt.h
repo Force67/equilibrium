@@ -6,13 +6,14 @@
 
 class UiController;
 
-class UiConnectPromt final : public QDialog, public Ui::ConnectPromt {
+class UiConnectPromt final : public QDialog, public Ui::ConnectPromt
+{
   Q_OBJECT;
 
-  public:
+public:
   UiConnectPromt(UiController &);
 
-  private:
+private:
   void OnConnect();
   void SetDontAskagain();
 

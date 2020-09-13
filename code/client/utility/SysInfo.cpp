@@ -6,11 +6,12 @@
 #include <Windows.h>
 #endif
 
-namespace utility {
-
-  const QString &GetSysUsername() {
+namespace utility
+{
+  const QString &GetSysUsername()
+  {
 	static QString s_Name{};
-	if (s_Name.isEmpty()) {
+	if(s_Name.isEmpty()) {
 	  wchar_t username[260]{};
 #ifdef _WIN32
 	  DWORD username_len = 260;
@@ -23,12 +24,13 @@ namespace utility {
 	return s_Name;
   }
 
-  const QString &GetHardwareId() {
+  const QString &GetHardwareId()
+  {
 	static QString s_Hwid{};
-	if (s_Hwid.isEmpty()) {
+	if(s_Hwid.isEmpty()) {
 #ifdef _WIN32
 	  HW_PROFILE_INFOA hwProfileInfo;
-	  if (! GetCurrentHwProfileA(&hwProfileInfo))
+	  if(!GetCurrentHwProfileA(&hwProfileInfo))
 		return s_Hwid;
 
 	  s_Hwid = hwProfileInfo.szHwProfileGuid;

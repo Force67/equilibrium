@@ -1,7 +1,6 @@
 // NODA: Copyright(c) NOMAD Group<nomad-group.net>
 
 #pragma once
-#include "../netmessages/MsgList_generated.h"
 
 #if 0
 template<typename T>

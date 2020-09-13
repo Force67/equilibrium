@@ -27,8 +27,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_UiSettings {
-  public:
+class Ui_UiSettings
+{
+public:
   QAction *openFileAct;
   QAction *showGeneralOptAct;
   QAction *exitAct;
@@ -57,8 +58,9 @@ class Ui_UiSettings {
   QRadioButton *radioButton;
   QStatusBar *statusBar;
 
-  void setupUi(QDialog *UiSettings) {
-	if (UiSettings->objectName().isEmpty())
+  void setupUi(QDialog *UiSettings)
+  {
+	if(UiSettings->objectName().isEmpty())
 	  UiSettings->setObjectName(QStringLiteral("UiSettings"));
 	UiSettings->resize(714, 439);
 	QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -160,7 +162,8 @@ class Ui_UiSettings {
 	QMetaObject::connectSlotsByName(UiSettings);
   } // setupUi
 
-  void retranslateUi(QDialog *UiSettings) {
+  void retranslateUi(QDialog *UiSettings)
+  {
 	UiSettings->setWindowTitle(QApplication::translate("UiSettings", "NODA Settings", Q_NULLPTR));
 	openFileAct->setText(QApplication::translate("UiSettings", "Open File", Q_NULLPTR));
 	showGeneralOptAct->setText(QApplication::translate("UiSettings", "Tool Settings", Q_NULLPTR));
@@ -195,8 +198,11 @@ class Ui_UiSettings {
   } // retranslateUi
 };
 
-namespace Ui {
-  class UiSettings : public Ui_UiSettings {};
+namespace Ui
+{
+  class UiSettings : public Ui_UiSettings
+  {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

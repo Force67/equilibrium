@@ -3,12 +3,13 @@
 #pragma once
 
 #include "net/NetClient.h"
-#include "netmessages/MsgList_generated.h"
+#include "protocol/MsgList_generated.h"
 
 using MsgBuilder = flatbuffers::FlatBufferBuilder;
 
-class SyncClient final : public NetClient {
-  public:
+class SyncClient final : public NetClient
+{
+public:
   bool Connect();
   void Disconnect();
 

@@ -4,8 +4,8 @@
 
 #include <qstring.h>
 
-namespace utility {
-
+namespace utility
+{
   const QString &GetSysUsername();
   const QString &GetHardwareId();
 } // namespace utility

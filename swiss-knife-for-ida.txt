@@ -9,3 +9,6 @@ You must give appropriate credit, provide a link to the license, and indicate if
 If this is a real thorn in your side, grabbing a paid plan removes this attribution restriction (and gives you tons more icons and goodies too).
 
 https://pvigier.github.io/2019/09/08/beginner-guide-game-networking.html
+
+IDEA:
+mark offsets for structures by right clicking em

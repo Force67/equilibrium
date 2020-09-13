@@ -23,8 +23,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_MainMenu {
-  public:
+class Ui_MainMenu
+{
+public:
   QHBoxLayout *horizontalLayout;
   QHBoxLayout *horizontalLayout_2;
   QListWidget *list;
@@ -33,8 +34,9 @@ class Ui_MainMenu {
   QPushButton *buttonCancel;
   QSpacerItem *verticalSpacer;
 
-  void setupUi(QDialog *MainMenu) {
-	if (MainMenu->objectName().isEmpty())
+  void setupUi(QDialog *MainMenu)
+  {
+	if(MainMenu->objectName().isEmpty())
 	  MainMenu->setObjectName(QStringLiteral("MainMenu"));
 	MainMenu->resize(306, 263);
 	horizontalLayout = new QHBoxLayout(MainMenu);
@@ -73,7 +75,8 @@ class Ui_MainMenu {
 	QMetaObject::connectSlotsByName(MainMenu);
   } // setupUi
 
-  void retranslateUi(QDialog *MainMenu) {
+  void retranslateUi(QDialog *MainMenu)
+  {
 	MainMenu->setWindowTitle(QApplication::translate("MainMenu", "Noda", Q_NULLPTR));
 
 	const bool __sortingEnabled = list->isSortingEnabled();
@@ -89,8 +92,11 @@ class Ui_MainMenu {
   } // retranslateUi
 };
 
-namespace Ui {
-  class MainMenu : public Ui_MainMenu {};
+namespace Ui
+{
+  class MainMenu : public Ui_MainMenu
+  {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

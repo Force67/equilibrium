@@ -3,11 +3,13 @@
 #include "UiStatusBar.h"
 
 UiStatusBar::UiStatusBar() :
-	QDockWidget(QApplication::activeWindow()) {
+    QDockWidget(QApplication::activeWindow())
+{
   setupUi(this);
 }
 
-void UiStatusBar::SetColor(const QT::QColor color) {
+void UiStatusBar::SetColor(const QT::QColor color)
+{
   QPalette pal;
   pal.setColor(QPalette::Background, color);
 

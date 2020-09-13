@@ -14,24 +14,28 @@
 #include <qmenubar.h>
 #include <qerrormessage.h>
 
-static QMainWindow *GetTopWindow() {
+static QMainWindow *GetTopWindow()
+{
   return qobject_cast<QMainWindow *>(
-	  QApplication::activeWindow()->topLevelWidget());
+      QApplication::activeWindow()->topLevelWidget());
 }
 
 UiController::UiController(SyncClient &client) :
-	_client(client) {
+    _client(client)
+{
   hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
 }
 
-UiController::~UiController() {
+UiController::~UiController()
+{
   unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
 }
 
 // http://www.flatuicolorpicker.com/purple-rgb-color-model/  rgb(142, 68, 173)
 // https://icons8.com/articles/how-to-recolor-a-raster-icon-in-photoshop/
 
-void UiController::BuildUi() {
+void UiController::BuildUi()
+{
   auto *pIdaWindow = GetTopWindow();
 
   // pin bottom status bar (online/offline indicator)
@@ -41,7 +45,7 @@ void UiController::BuildUi() {
   pIdaWindow->statusBar()->addPermanentWidget(_statusBar.data());
 
   // create the top level menu entry
-  if (auto *pMenu = pIdaWindow->menuBar()->addMenu(QIcon(":/logo"), "NODA")) {
+  if(auto *pMenu = pIdaWindow->menuBar()->addMenu(QIcon(":/logo"), "NODA")) {
 	_connectAct = pMenu->addAction("Connect", this, &UiController::ToggleConnect);
 	pMenu->addAction(QIcon(":/sync"), "Synchronus", this, &UiController::OpenSyncMenu);
 	pMenu->addSeparator();
@@ -51,23 +55,25 @@ void UiController::BuildUi() {
   }
 }
 
-void UiController::OpenAboutDialog() {
+void UiController::OpenAboutDialog()
+{
   UiAbout dialog(GetTopWindow());
   dialog.exec();
 }
 
-void UiController::ToggleConnect() {
-  if (! _client.IsConnected()) {
+void UiController::ToggleConnect()
+{
+  if(!_client.IsConnected()) {
 	_statusBar->SetColor(colorconstant::orange);
 
 	bool result = _client.Connect();
-	if (! result) {
+	if(!result) {
 	  _statusBar->SetColor(colorconstant::red);
 
 	  QErrorMessage error(GetTopWindow());
 	  error.showMessage(
-		  "Unable to connect to the NODA sync host.\n"
-		  "It is likely that the selected port is not available.");
+	      "Unable to connect to the NODA sync host.\n"
+	      "It is likely that the selected port is not available.");
 	  error.exec();
 	  return;
 	}
@@ -81,21 +87,24 @@ void UiController::ToggleConnect() {
   }
 }
 
-void UiController::OpenSyncMenu() {
+void UiController::OpenSyncMenu()
+{
   msg("OpenSyncMenu");
 }
 
-void UiController::OpenConfiguration() {
+void UiController::OpenConfiguration()
+{
   UiSettings settings(_client, GetTopWindow());
   settings.exec();
 }
 
 ssize_t UiController::OnUiEvent(void *userp, int notificationCode,
-								va_list va) {
+                                va_list va)
+{
   UiController *self = reinterpret_cast<UiController *>(userp);
 
-  if (notificationCode == ui_notification_t::ui_ready_to_run) {
-	if (! self->_statusBar) {
+  if(notificationCode == ui_notification_t::ui_ready_to_run) {
+	if(!self->_statusBar) {
 	  self->BuildUi();
 
 	  UiConnectPromt promt(*self);

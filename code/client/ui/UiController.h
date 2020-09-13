@@ -8,21 +8,23 @@
 #include <qobject.h>
 #include <qscopedpointer.h>
 
-namespace QT {
+namespace QT
+{
   class QAction;
 }
 
 class UiStatusBar;
 class SyncClient;
 
-class UiController final : public QObject {
+class UiController final : public QObject
+{
   Q_OBJECT;
 
-  public:
+public:
   UiController(SyncClient &);
   ~UiController();
 
-  private:
+private:
   void BuildUi();
 
   static ssize_t idaapi OnUiEvent(void *, int, va_list);
@@ -33,10 +35,10 @@ class UiController final : public QObject {
   QAction *_pMenuAct = nullptr;
 
   SyncClient &_client;
-  public slots:
+public slots:
   void ToggleConnect();
 
-  private slots:
+private slots:
   void OpenSyncMenu();
   void OpenAboutDialog();
   void OpenConfiguration();

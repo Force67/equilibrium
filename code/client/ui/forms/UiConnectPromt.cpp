@@ -3,7 +3,8 @@
 #include "ui/UiController.h"
 
 UiConnectPromt::UiConnectPromt(UiController &controller) :
-	QDialog(QApplication::activeWindow()), _controller(controller) {
+    QDialog(QApplication::activeWindow()), _controller(controller)
+{
   setupUi(this);
 
   connect(buttonConnect, &QPushButton::clicked, this, &UiConnectPromt::OnConnect);
@@ -11,13 +12,15 @@ UiConnectPromt::UiConnectPromt(UiController &controller) :
   connect(buttonNO, &QPushButton::clicked, this, &UiConnectPromt::SetDontAskagain);
 }
 
-void UiConnectPromt::SetDontAskagain() {
+void UiConnectPromt::SetDontAskagain()
+{
   // TODO: notify settings
 
   QDialog::close();
 }
 
-void UiConnectPromt::OnConnect() {
+void UiConnectPromt::OnConnect()
+{
   _controller.ToggleConnect();
   QDialog::close();
 }

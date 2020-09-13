@@ -22,8 +22,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_AboutDialog {
-  public:
+class Ui_AboutDialog
+{
+public:
   QGridLayout *gridLayout;
   QVBoxLayout *textLayout;
   QHBoxLayout *horizontalLayout;
@@ -31,8 +32,9 @@ class Ui_AboutDialog {
   QLabel *labelIcon;
   QLabel *labelDesc;
 
-  void setupUi(QDialog *AboutDialog) {
-	if (AboutDialog->objectName().isEmpty())
+  void setupUi(QDialog *AboutDialog)
+  {
+	if(AboutDialog->objectName().isEmpty())
 	  AboutDialog->setObjectName(QStringLiteral("AboutDialog"));
 	AboutDialog->resize(566, 508);
 	QIcon icon;
@@ -74,7 +76,8 @@ class Ui_AboutDialog {
 	QMetaObject::connectSlotsByName(AboutDialog);
   } // setupUi
 
-  void retranslateUi(QDialog *AboutDialog) {
+  void retranslateUi(QDialog *AboutDialog)
+  {
 	AboutDialog->setWindowTitle(QApplication::translate("AboutDialog", "About NODA", Q_NULLPTR));
 #ifndef QT_NO_STATUSTIP
 	labelTitle->setStatusTip(QString());
@@ -88,8 +91,11 @@ class Ui_AboutDialog {
   } // retranslateUi
 };
 
-namespace Ui {
-  class AboutDialog : public Ui_AboutDialog {};
+namespace Ui
+{
+  class AboutDialog : public Ui_AboutDialog
+  {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

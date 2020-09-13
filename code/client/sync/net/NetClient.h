@@ -14,10 +14,11 @@ constexpr uint32_t kTimeout = 3000;
 constexpr uint32_t kNetworkerThreadIdle = 1;
 constexpr uint16_t kClientVersion = 1;
 
-class NetClient : public QThread {
+class NetClient : public QThread
+{
   Q_OBJECT;
 
-  public:
+public:
   NetClient();
   ~NetClient();
 
@@ -25,15 +26,15 @@ class NetClient : public QThread {
 
   bool SendReliable(uint8_t *, size_t);
 
-  protected:
+protected:
   bool Connect(const char *, uint16_t);
   void Disconnect();
 
-  private:
+private:
   static bool InitializeNetBase();
   static bool _s_socketCreated;
 
-  private:
+private:
   void run() override;
   bool _updateNet = false;
 

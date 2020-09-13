@@ -8,14 +8,15 @@
 class SyncClient;
 
 // syncdispatcher?
-class SyncController final : public QObject {
+class SyncController final : public QObject
+{
   Q_OBJECT;
 
-  public:
+public:
   SyncController(SyncClient &);
   ~SyncController();
 
-  private:
+private:
   static ssize_t idaapi OnIdaEvent(void *, int, va_list);
 
   SyncClient &_client;

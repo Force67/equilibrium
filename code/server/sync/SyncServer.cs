@@ -15,6 +15,7 @@ namespace noda
     {
         private List<Peer> _pendingUsers;
         private List<Peer> _connectedUsers;
+        private RDispatcher _dispatcher;
         private readonly Config _config;
         private Logger _logger;
 
@@ -25,6 +26,15 @@ namespace noda
             _logger = logger;
             _pendingUsers = new List<Peer>();
             _connectedUsers = new List<Peer>();
+            _dispatcher = new RDispatcher();
+
+            _dispatcher.connect(HandleHandshake);
+        }
+
+        // blame not having multiple inheritances for this
+        public void Connect(Action<MessageRoot> method)
+        {
+            _dispatcher.connect(method);
         }
 
         public async override void OnConnection(Peer source)
@@ -50,17 +60,10 @@ namespace noda
             // TODO: broadcast disconnect
         }
 
-        //https://github.com/Nomad-Group/IDASync/blob/6c2a3fa16b1c790328ff6975c823db87d0678856/sync-server/src/project/Project.ts
-
-        public void HandleHandshake(MessageRoot message)
+        [MessageType(Data.Handshake)]
+        private void HandleHandshake(MessageRoot message)
         {
             var hs = message.Data<Handshake>();
-            if (hs == null)
-            {
-                Kick(DisconnectReason.BadConnection);
-                return;
-            }
-
             if (hs.Value.Pass != _config.ServerPassword)
             {
                 Kick(DisconnectReason.BadPassword);
@@ -83,11 +86,7 @@ namespace noda
 
             ByteBuffer bb = new ByteBuffer(managedArray);
             var message = MessageRoot.GetRootAsMessageRoot(bb);
-            if (message.DataType == Data.Handshake)
-            {
-                HandleHandshake(message);
-            }
-            
+            _dispatcher.trigger(message);
         }
     }
 }

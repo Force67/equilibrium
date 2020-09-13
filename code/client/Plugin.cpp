@@ -1,37 +1,49 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <Plugin.h>
+#include <ui/UiController.h>
+#include <sync/SyncController.h>
+#include <sync/SyncClient.h>
+
 #include "IdaInc.h"
 
-NodaPlugin::NodaPlugin() :
-	_syncController(_client),
-	_uiController(_client) {
+namespace
+{
+  struct Plugin {
+	Plugin() :
+	    _syncController(_client),
+	    _uiController(_client)
+	{
+	  msg("Loaded NODA Copyright(c) NOMAD Group<nomad-group.net>");
+	}
 
-  msg("Loaded NODA Copyright(c) NOMAD Group<nomad-group.net>");
-}
+	~Plugin()
+	{
+	}
 
-NodaPlugin::~NodaPlugin() {
-}
-
-namespace {
-  NodaPlugin *g_Plugin{ nullptr };
+	UiController _uiController;
+	SyncController _syncController;
+	SyncClient _client;
+  } * g_Plugin;
 
   const char kPluginComment[] = "Nomad Ida Plugin";
   const char kPluginName[] = "NODA";
   const char kPluginHotkey[] = "Alt-L";
 
-  int idaapi PluginInit() {
-	g_Plugin = new NodaPlugin();
+  int idaapi PluginInit()
+  {
+	g_Plugin = new Plugin();
 	return PLUGIN_KEEP;
   }
 
-  void idaapi PluginShutdown() {
-	if (g_Plugin)
+  void idaapi PluginShutdown()
+  {
+	if(g_Plugin)
 	  delete g_Plugin;
   }
 
-  bool idaapi PluginUpdate(size_t arg) {
+  bool idaapi PluginRun(size_t arg)
+  {
 	return true;
   }
 } // namespace
@@ -41,7 +53,7 @@ plugin_t PLUGIN = {
   0, // Flags
   PluginInit,
   PluginShutdown,
-  PluginUpdate,
+  PluginRun,
   kPluginComment,
   kPluginComment,
   kPluginName,

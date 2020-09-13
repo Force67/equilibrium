@@ -3,6 +3,7 @@
 #include "UiAbout.h"
 
 UiAbout::UiAbout(QWidget *pParent) :
-	QDialog(pParent) {
+    QDialog(pParent)
+{
   setupUi(this);
 }

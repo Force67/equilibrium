@@ -23,8 +23,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_ConnectPromt {
-  public:
+class Ui_ConnectPromt
+{
+public:
   QVBoxLayout *verticalLayout;
   QLabel *label;
   QHBoxLayout *horizontalLayout;
@@ -34,8 +35,9 @@ class Ui_ConnectPromt {
   QPushButton *buttonNO;
   QSpacerItem *spacerRight;
 
-  void setupUi(QDialog *ConnectPromt) {
-	if (ConnectPromt->objectName().isEmpty())
+  void setupUi(QDialog *ConnectPromt)
+  {
+	if(ConnectPromt->objectName().isEmpty())
 	  ConnectPromt->setObjectName(QStringLiteral("ConnectPromt"));
 	ConnectPromt->resize(518, 84);
 	QIcon icon;
@@ -83,7 +85,8 @@ class Ui_ConnectPromt {
 	QMetaObject::connectSlotsByName(ConnectPromt);
   } // setupUi
 
-  void retranslateUi(QDialog *ConnectPromt) {
+  void retranslateUi(QDialog *ConnectPromt)
+  {
 	ConnectPromt->setWindowTitle(QApplication::translate("ConnectPromt", "NODA: Auto-Connect", Q_NULLPTR));
 	label->setText(QApplication::translate("ConnectPromt", "NODA detected a synced IDB. Do you wish to connect to Sync-Server?", Q_NULLPTR));
 	buttonConnect->setText(QApplication::translate("ConnectPromt", "Connect", Q_NULLPTR));
@@ -92,8 +95,11 @@ class Ui_ConnectPromt {
   } // retranslateUi
 };
 
-namespace Ui {
-  class ConnectPromt : public Ui_ConnectPromt {};
+namespace Ui
+{
+  class ConnectPromt : public Ui_ConnectPromt
+  {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

@@ -4,10 +4,11 @@
 
 #include "ui/moc/ui_UiAbout.h"
 
-class UiAbout final : public QDialog, public Ui::AboutDialog {
+class UiAbout final : public QDialog, public Ui::AboutDialog
+{
   Q_OBJECT;
 
-  public:
+public:
   UiAbout(QWidget *parent);
   ~UiAbout() = default;
 };

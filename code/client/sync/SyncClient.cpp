@@ -6,7 +6,7 @@
 #include <nalt.hpp>
 
 #include "net/NetBuffer.h"
-#include "netmessages/Handshake_generated.h"
+#include "protocol/Handshake_generated.h"
 
 #if 0
 //https://google.github.io/flatbuffers/md__schemas.html
@@ -17,14 +17,14 @@
 #endif
 
 // fast conversion
-flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &msg, const QString &other) 
+flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &msg, const QString &other)
 {
   const char *str = const_cast<const char *>(other.toUtf8().data());
   size_t sz = static_cast<size_t>(other.size());
   return msg.CreateString(str, sz);
 }
 
-bool SyncClient::Connect() 
+bool SyncClient::Connect()
 {
   using namespace protocol;
 
@@ -33,7 +33,7 @@ bool SyncClient::Connect()
   QString address = settings.value("NODASyncIp", kServerIp).toString();
 
   // this blocks until the connection is established
-  if (! NetClient::Connect(address.toUtf8().data(), static_cast<uint16_t>(port))) {
+  if(!NetClient::Connect(address.toUtf8().data(), static_cast<uint16_t>(port))) {
 	return false;
   }
 
@@ -52,15 +52,15 @@ bool SyncClient::Connect()
 
   MsgBuilder builder;
   auto request = CreateHandshake(
-	  builder, kClientVersion,
-	  ToFbString(builder, userName),
-	  ToFbString(builder, user),
-	  ToFbString(builder, pass),
-	  dbVersion,
-	  builder.CreateString(md5),
-	  builder.CreateString(buffer));
+      builder, kClientVersion,
+      ToFbString(builder, userName),
+      ToFbString(builder, user),
+      ToFbString(builder, pass),
+      dbVersion,
+      builder.CreateString(md5),
+      builder.CreateString(buffer));
 
-  if (! SendPacket(builder, Data::Data_Handshake, request)) {
+  if(!SendPacket(builder, protocol::Data_Handshake, request)) {
 	NetClient::Disconnect();
 	return false;
   }
@@ -68,12 +68,14 @@ bool SyncClient::Connect()
   return true;
 }
 
-void SyncClient::Disconnect() {
+void SyncClient::Disconnect()
+{
   NetClient::Disconnect();
 }
 
 template <typename T>
-bool SyncClient::SendPacket(MsgBuilder &mb, protocol::Data type, const T &data) {
+bool SyncClient::SendPacket(MsgBuilder &mb, protocol::Data type, const T &data)
+{
   auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
   mb.Finish(msgRoot);
 

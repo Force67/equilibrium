@@ -9,7 +9,7 @@
 #include "../../sync/SyncController.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
-#if ! defined(Q_MOC_OUTPUT_REVISION)
+#if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'SyncController.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.6.3. It"
@@ -24,10 +24,10 @@ struct qt_meta_stringdata_SyncController_t {
 };
 #define QT_MOC_LITERAL(idx, ofs, len)                          \
   Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-														  qptrdiff(offsetof(qt_meta_stringdata_SyncController_t, stringdata0) + ofs - idx * sizeof(QByteArrayData)))
+                                                          qptrdiff(offsetof(qt_meta_stringdata_SyncController_t, stringdata0) + ofs - idx * sizeof(QByteArrayData)))
 static const qt_meta_stringdata_SyncController_t qt_meta_stringdata_SyncController = {
   {
-	  QT_MOC_LITERAL(0, 0, 14) // "SyncController"
+      QT_MOC_LITERAL(0, 0, 14) // "SyncController"
 
   },
   "SyncController"
@@ -37,20 +37,21 @@ static const qt_meta_stringdata_SyncController_t qt_meta_stringdata_SyncControll
 static const uint qt_meta_data_SyncController[] = {
 
   // content:
-  7,	// revision
-  0,	// classname
+  7,    // revision
+  0,    // classname
   0, 0, // classinfo
   0, 0, // methods
   0, 0, // properties
   0, 0, // enums/sets
   0, 0, // constructors
-  0,	// flags
-  0,	// signalCount
+  0,    // flags
+  0,    // signalCount
 
   0 // eod
 };
 
-void SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a) {
+void SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
   Q_UNUSED(_o);
   Q_UNUSED(_id);
   Q_UNUSED(_c);
@@ -59,24 +60,27 @@ void SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
 
 const QMetaObject SyncController::staticMetaObject = {
   { &QObject::staticMetaObject, qt_meta_stringdata_SyncController.data,
-	qt_meta_data_SyncController, qt_static_metacall, Q_NULLPTR, Q_NULLPTR }
+    qt_meta_data_SyncController, qt_static_metacall, Q_NULLPTR, Q_NULLPTR }
 };
 
-const QMetaObject *SyncController::metaObject() const {
+const QMetaObject *SyncController::metaObject() const
+{
   return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *SyncController::qt_metacast(const char *_clname) {
-  if (! _clname)
+void *SyncController::qt_metacast(const char *_clname)
+{
+  if(!_clname)
 	return Q_NULLPTR;
-  if (! strcmp(_clname, qt_meta_stringdata_SyncController.stringdata0))
+  if(!strcmp(_clname, qt_meta_stringdata_SyncController.stringdata0))
 	return static_cast<void *>(const_cast<SyncController *>(this));
   return QObject::qt_metacast(_clname);
 }
 
-int SyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a) {
+int SyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
   _id = QObject::qt_metacall(_c, _id, _a);
-  if (_id < 0)
+  if(_id < 0)
 	return _id;
   return _id;
 }
