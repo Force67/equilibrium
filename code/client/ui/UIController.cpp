@@ -75,7 +75,7 @@ namespace noda
 	  if(!result) {
 		_statusBar->SetColor(colorconstant::red);
 
-		QErrorMessage error(GetTopWindow());
+		QErrorMessage error(QApplication::activeWindow());
 		error.showMessage(
 		    "Unable to connect to the NODA sync host.\n"
 		    "It is likely that the selected port is not available.");

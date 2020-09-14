@@ -40,8 +40,8 @@ namespace noda
 	void run() override;
 	bool _updateNet = false;
 
-	ENetHost *_netClient;
-	ENetPeer *_netServer;
+	ENetHost *_netClient = nullptr;
+	ENetPeer *_netServer = nullptr;
 	ENetAddress _address{};
 	ENetEvent _netEvent{};
   };

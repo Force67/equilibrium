@@ -22,6 +22,8 @@ namespace noda::ui
 
   void ConnectDialog::OnConnect()
   {
+	// we cannot close here yet, due to the lack of context
+	QDialog::hide();
 	_controller.ToggleConnect();
 	QDialog::accept();
   }
