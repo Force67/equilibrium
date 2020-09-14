@@ -10,7 +10,7 @@ namespace noda
 {
 namespace ui
 {
-  class Settings final : public QDialog, public Ui::UiSettings
+  class Settings final : public QDialog, public Ui::SettingsDialog
   {
 	Q_OBJECT;
 
@@ -19,11 +19,6 @@ namespace ui
 	~Settings() = default;
 
   private:
-	void OnIpChange(const QString &);
-	void OnPortChange(const QString &);
-	void OnPasswordChange(const QString &);
-	void OnNameChange(const QString &);
-
 	QSettings _settings;
 	SyncClient &_client;
   };

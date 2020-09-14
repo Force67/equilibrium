@@ -38,6 +38,7 @@ public:
     QSpacerItem *verticalSpacer;
     QVBoxLayout *verticalLayout_2;
     QLabel *labelTitle;
+    QSpacerItem *horizontalSpacer_3;
     QLabel *labelFeatures;
     QVBoxLayout *verticalLayout;
     QLabel *label_5;
@@ -51,7 +52,7 @@ public:
     {
         if (WelcomeDialog->objectName().isEmpty())
             WelcomeDialog->setObjectName(QStringLiteral("WelcomeDialog"));
-        WelcomeDialog->resize(861, 425);
+        WelcomeDialog->resize(546, 425);
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -65,10 +66,16 @@ public:
         verticalLayout_3->setContentsMargins(0, 0, 0, 0);
         headerFrame = new QWidget(WelcomeDialog);
         headerFrame->setObjectName(QStringLiteral("headerFrame"));
+        QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::Maximum);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(headerFrame->sizePolicy().hasHeightForWidth());
+        headerFrame->setSizePolicy(sizePolicy1);
         verticalLayout_5 = new QVBoxLayout(headerFrame);
         verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+        horizontalLayout_2->setSizeConstraint(QLayout::SetDefaultConstraint);
         widget_2 = new QWidget(headerFrame);
         widget_2->setObjectName(QStringLiteral("widget_2"));
         verticalLayout_4 = new QVBoxLayout(widget_2);
@@ -76,6 +83,9 @@ public:
         verticalLayout_4->setContentsMargins(0, 0, 0, 0);
         labelLogo = new QLabel(widget_2);
         labelLogo->setObjectName(QStringLiteral("labelLogo"));
+        sizePolicy1.setHeightForWidth(labelLogo->sizePolicy().hasHeightForWidth());
+        labelLogo->setSizePolicy(sizePolicy1);
+        labelLogo->setMinimumSize(QSize(50, 50));
         labelLogo->setMaximumSize(QSize(50, 50));
         QFont font;
         font.setPointSize(8);
@@ -108,6 +118,10 @@ public:
 
         verticalLayout_2->addWidget(labelTitle);
 
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        verticalLayout_2->addItem(horizontalSpacer_3);
+
         labelFeatures = new QLabel(headerFrame);
         labelFeatures->setObjectName(QStringLiteral("labelFeatures"));
         QFont font2;
@@ -135,6 +149,11 @@ public:
         verticalLayout->setContentsMargins(11, 11, 11, 11);
         label_5 = new QLabel(WelcomeDialog);
         label_5->setObjectName(QStringLiteral("label_5"));
+        QSizePolicy sizePolicy2(QSizePolicy::Minimum, QSizePolicy::Maximum);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(label_5->sizePolicy().hasHeightForWidth());
+        label_5->setSizePolicy(sizePolicy2);
         QFont font3;
         font3.setKerning(true);
         label_5->setFont(font3);
@@ -184,8 +203,8 @@ public:
         WelcomeDialog->setWindowTitle(QApplication::translate("WelcomeDialog", "Welcome to NODA", Q_NULLPTR));
         labelLogo->setText(QString());
         labelTitle->setText(QApplication::translate("WelcomeDialog", "<html><head/><body><p><span style=\" font-weight:600;\">NODA - Supercharge your ida. </span><span style=\" font-family:'apple color emoji','segoe ui emoji','noto color emoji','android emoji','emojisymbols','emojione mozilla','twemoji mozilla','segoe ui symbol'; font-size:xx-small; color:#e8e7e3;\">\342\232\241</span></p></body></html>", Q_NULLPTR));
-        labelFeatures->setText(QApplication::translate("WelcomeDialog", "<html><head/><body><p>Noda comes with batteries included. Features include:</p><p>- IDA Sync: Synchronized your database</p><p>- PDBTool: Generate fake PDB's directory from IDA</p><p>- PatternTool: Generate your pattern cache directory from IDA</p><p>- more planned <span style=\" font-family:'apple color emoji','segoe ui emoji','noto color emoji','android emoji','emojisymbols','emojione mozilla','twemoji mozilla','segoe ui symbol'; font-size:xx-small; color:#e8e7e3;\">\342\235\244\357\270\217</span></p><p><br/></p></body></html>", Q_NULLPTR));
-        label_5->setText(QApplication::translate("WelcomeDialog", "<html><head/><body><p>Please refer to the <a href=\"https://github.com/NomadGroup/NODA/tree/devel\"><span style=\" text-decoration: underline; color:#0000ff;\">Quickstart</span></a> guide found on the official website for further information.</p></body></html>", Q_NULLPTR));
+        labelFeatures->setText(QApplication::translate("WelcomeDialog", "<html><head/><body><p>Noda comes with batteries included. Features include:</p><p>- IDA Sync: Synchronize your database</p><p>- PDBTool: Generate fake PDB's directory from IDA</p><p>- PatternTool: Generate your pattern cache directory from IDA</p><p>- more planned <span style=\" font-family:'apple color emoji','segoe ui emoji','noto color emoji','android emoji','emojisymbols','emojione mozilla','twemoji mozilla','segoe ui symbol'; color:#e8e7e3;\">\342\235\244\357\270\217</span></p><p><br/></p></body></html>", Q_NULLPTR));
+        label_5->setText(QApplication::translate("WelcomeDialog", "<html><head/><body><p>Please refer to the <a href=\"https://github.com/NomadGroup/NODA/tree/devel\"><span style=\" text-decoration: underline; color:#0000ff;\">Quickstart</span></a> guide for plugin documentation.</p></body></html>", Q_NULLPTR));
         buttonContinue->setText(QApplication::translate("WelcomeDialog", "Continue", Q_NULLPTR));
         buttonDontShowAgain->setText(QApplication::translate("WelcomeDialog", "Do not show again", Q_NULLPTR));
     } // retranslateUi

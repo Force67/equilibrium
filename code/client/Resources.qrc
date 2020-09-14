@@ -4,5 +4,7 @@
         <file alias="cog">../../assets/icons/cog-solid.png</file>
         <file alias="info">../../assets/icons/info-circle-solid.png</file>
         <file alias="sync">../../assets/icons/sync-solid.png</file>
+		<file alias="bug">../../assets/icons/bug-solid.png</file>
+		<file alias="uikit">../../assets/icons/uikit-brands.png</file>
     </qresource>
 </RCC>

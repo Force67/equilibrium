@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UiSettings</class>
- <widget class="QDialog" name="UiSettings">
+ <class>SettingsDialog</class>
+ <widget class="QDialog" name="SettingsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>714</width>
-    <height>439</height>
+    <width>635</width>
+    <height>483</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>4</width>
-    <height>0</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>NODA Settings</string>
@@ -29,258 +23,409 @@
    <iconset resource="../../Resources.qrc">
     <normaloff>:/logo</normaloff>:/logo</iconset>
   </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
-  </property>
-  <widget class="QWidget" name="centralWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1061</width>
-     <height>531</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="locale">
-    <locale language="English" country="Germany"/>
-   </property>
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>1061</width>
-      <height>531</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetMaximumSize</enum>
+  <layout class="QVBoxLayout" name="settings_dialog_layout">
+   <item>
+    <widget class="QTabWidget" name="tabBar">
+     <property name="enabled">
+      <bool>true</bool>
      </property>
-     <item>
-      <widget class="QTabWidget" name="tabBar">
-       <property name="toolTip">
-        <string>x</string>
-       </property>
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="tabSync">
-        <attribute name="title">
-         <string>Sync</string>
-        </attribute>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>10</y>
-           <width>391</width>
-           <height>251</height>
-          </rect>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tabSync">
+      <attribute name="icon">
+       <iconset resource="../../Resources.qrc">
+        <normaloff>:/sync</normaloff>:/sync</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>Sync</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="networkTab_layout">
+       <item>
+        <layout class="QHBoxLayout" name="layoutSync" stretch="0,0">
+         <item>
+          <widget class="QGroupBox" name="gbSyncConfig">
+           <property name="title">
+            <string>Synchronium Server Configuration</string>
+           </property>
+           <layout class="QVBoxLayout" name="gb_network_status_layout" stretch="0,0,0">
+            <item>
+             <widget class="QGroupBox" name="gbNetAddress">
+              <property name="title">
+               <string>Network Address</string>
+              </property>
+              <layout class="QVBoxLayout" name="gb_netStatusBox_layout">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_5">
+                 <item>
+                  <widget class="QLabel" name="labelIP">
+                   <property name="text">
+                    <string>IP Address</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelPort">
+                   <property name="text">
+                    <string>Port</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                 <item>
+                  <widget class="QLineEdit" name="editIP"/>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="editPort"/>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="gbEditSyncConfig">
+              <property name="title">
+               <string>User Configuration</string>
+              </property>
+              <layout class="QVBoxLayout" name="gb_edit_dns_layout">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QLabel" name="labelUser">
+                   <property name="text">
+                    <string>Username</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelPass">
+                   <property name="text">
+                    <string>Password</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                 <item>
+                  <widget class="QLineEdit" name="editUser"/>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="editPass"/>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="networkTabSpacerLeft">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="gbNetConfig">
+           <property name="title">
+            <string>Network Configuration</string>
+           </property>
+           <layout class="QVBoxLayout" name="gb_psn_config_layout">
+            <item>
+             <widget class="QGroupBox" name="gbNetClient">
+              <property name="title">
+               <string>Net Client</string>
+              </property>
+              <layout class="QVBoxLayout" name="gb_psnStatusBox_layout">
+               <item>
+                <widget class="QLabel" name="labelTimeout">
+                 <property name="text">
+                  <string>Timeout</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="editTimeout"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="networkTabSpacerRight">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="guiTab">
+      <attribute name="icon">
+       <iconset resource="../../Resources.qrc">
+        <normaloff>:/uikit</normaloff>:/uikit</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>Ui</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="guiTab_layout">
+       <item>
+        <layout class="QHBoxLayout" name="guiTabLayout" stretch="1,1">
+         <item>
+          <layout class="QVBoxLayout" name="guiTabLayoutLeft">
+           <item>
+            <widget class="QGroupBox" name="gbStyleSheet">
+             <property name="title">
+              <string>UI Stylesheets</string>
+             </property>
+             <layout class="QVBoxLayout" name="gb_stylesheets_layout">
+              <item>
+               <widget class="QComboBox" name="comboStyles"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pbApplySheet">
+                <property name="text">
+                 <string>Apply</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gb_colors">
+             <property name="title">
+              <string>UI Colors</string>
+             </property>
+             <layout class="QVBoxLayout" name="gb_colors_layout">
+              <property name="leftMargin">
+               <number>9</number>
+              </property>
+              <property name="topMargin">
+               <number>9</number>
+              </property>
+              <property name="rightMargin">
+               <number>9</number>
+              </property>
+              <property name="bottomMargin">
+               <number>9</number>
+              </property>
+              <item>
+               <widget class="QCheckBox" name="cbCustomColors">
+                <property name="text">
+                 <string>Use custom UI Colors</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="guiTabSpacerLeft">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::MinimumExpanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="guiTabLayoutRight">
+           <item>
+            <widget class="QGroupBox" name="gbUiOptions">
+             <property name="title">
+              <string>UI Options</string>
+             </property>
+             <layout class="QVBoxLayout" name="gb_gui_options_layout">
+              <item>
+               <widget class="QCheckBox" name="cbShowWelcome">
+                <property name="text">
+                 <string>Show Welcome Screen</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbShowAutoconnect">
+                <property name="text">
+                 <string>Show Auto Connect Promt</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="guiTabSpacerRight">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::MinimumExpanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gb_updates">
+             <property name="title">
+              <string>Check for updates on startup</string>
+             </property>
+             <layout class="QVBoxLayout" name="layout_gb_updates">
+              <item>
+               <widget class="QComboBox" name="combo_updates"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gbDiscord">
+             <property name="title">
+              <string>Discord</string>
+             </property>
+             <layout class="QVBoxLayout" name="gb_discord_layout">
+              <item>
+               <widget class="QCheckBox" name="cbUseDiscordRPC">
+                <property name="text">
+                 <string>Use Discord Rich Presence</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabDebug">
+      <attribute name="icon">
+       <iconset resource="../../Resources.qrc">
+        <normaloff>:/bug</normaloff>:/bug</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>Debug</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="debugTab_layout">
+       <item>
+        <layout class="QHBoxLayout" name="debugTabLayout" stretch="1,1">
+         <item>
+          <widget class="QGroupBox" name="gb_debug_gpu">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="title">
+            <string>Plugin</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <layout class="QVBoxLayout" name="gb_debug_gpu_layout">
+            <item alignment="Qt::AlignTop">
+             <widget class="QCheckBox" name="debugOutput">
+              <property name="text">
+               <string>Debug Output</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="dbDebugMain">
+           <property name="title">
+            <string>Main</string>
+           </property>
+           <layout class="QVBoxLayout" name="gb_debug_core_layout">
+            <item>
+             <widget class="QCheckBox" name="cbXPSDebug">
+              <property name="text">
+               <string>XPS Debug</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="debugTabSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="title">
-          <string>Synchronium Server</string>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter|Qt::AlignTop</set>
-         </property>
-         <widget class="QLabel" name="labelIP">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>30</y>
-            <width>201</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Address</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelPort">
-          <property name="geometry">
-           <rect>
-            <x>140</x>
-            <y>30</y>
-            <width>121</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Port</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>90</y>
-            <width>201</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Password</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="editIp">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>50</y>
-            <width>113</width>
-            <height>25</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="editPort">
-          <property name="geometry">
-           <rect>
-            <x>140</x>
-            <y>50</y>
-            <width>121</width>
-            <height>25</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="editPassword">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>110</y>
-            <width>251</width>
-            <height>25</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelUsername">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>150</y>
-            <width>81</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Username</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="editUsername">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>170</y>
-            <width>251</width>
-            <height>25</height>
-           </rect>
-          </property>
-         </widget>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="tabStyle">
-        <attribute name="title">
-         <string>Style</string>
-        </attribute>
-        <widget class="QRadioButton" name="radioButton">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>10</y>
-           <width>181</width>
-           <height>24</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Dark mode</string>
-         </property>
-        </widget>
-       </widget>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QStatusBar" name="statusBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>3</width>
-     <height>24</height>
-    </rect>
-   </property>
-  </widget>
-  <action name="openFileAct">
-   <property name="text">
-    <string>Open File</string>
-   </property>
-  </action>
-  <action name="showGeneralOptAct">
-   <property name="text">
-    <string>Tool Settings</string>
-   </property>
-   <property name="toolTip">
-    <string>Configure CPU</string>
-   </property>
-  </action>
-  <action name="exitAct">
-   <property name="text">
-    <string>Exit</string>
-   </property>
-   <property name="toolTip">
-    <string>Exit FormatX</string>
-   </property>
-   <property name="statusTip">
-    <string>Exit the application</string>
-   </property>
-  </action>
-  <action name="aboutAppAct">
-   <property name="text">
-    <string>About RCon2</string>
-   </property>
-  </action>
-  <action name="updateAct">
-   <property name="text">
-    <string>Check for Updates</string>
-   </property>
-  </action>
-  <action name="clearRecentAct">
-   <property name="text">
-    <string>List Clear</string>
-   </property>
-  </action>
-  <action name="freezeRecentAct">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>List Freeze</string>
-   </property>
-  </action>
-  <action name="aboutQtAct">
-   <property name="text">
-    <string>About Qt</string>
-   </property>
-  </action>
-  <action name="aboutFBXAct">
-   <property name="text">
-    <string>About Autodesk® FBX®</string>
-   </property>
-  </action>
-  <action name="showServerSettingsAct">
-   <property name="text">
-    <string>Server Settings</string>
-   </property>
-  </action>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
- <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="../../Resources.qrc"/>
  </resources>

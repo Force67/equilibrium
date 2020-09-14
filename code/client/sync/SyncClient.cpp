@@ -28,7 +28,7 @@
 namespace noda
 {
   // fast conversion
-  flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &msg, const QString &other)
+  FbsStringRef ToFbString(FbsBuilder &msg, const QString &other)
   {
 	const char *str = const_cast<const char *>(other.toUtf8().data());
 	size_t sz = static_cast<size_t>(other.size());
@@ -40,8 +40,8 @@ namespace noda
 	using namespace protocol;
 
 	QSettings settings;
-	uint port = settings.value("NODASyncPort", kServerPort).toUInt();
-	QString address = settings.value("NODASyncIp", kServerIp).toString();
+	uint port = settings.value("Nd_SyncPort", kServerPort).toUInt();
+	QString address = settings.value("Nd_SyncIp", kServerIp).toString();
 
 	// this blocks until the connection is established
 	if(!NetClient::Connect(address.toUtf8().data(), static_cast<uint16_t>(port))) {
@@ -50,8 +50,8 @@ namespace noda
 
 	const QString &userName = utility::GetSysUsername();
 	const QString &hwid = utility::GetHardwareId();
-	auto user = settings.value("NODASyncUser", userName).toString();
-	auto pass = settings.value("NODASyncPass", "").toString();
+	auto user = settings.value("Nd_SyncUser", userName).toString();
+	auto pass = settings.value("Nd_SyncPass", "").toString();
 
 	const auto dbVersion = 0;
 
@@ -61,7 +61,7 @@ namespace noda
 	char buffer[128]{};
 	get_root_filename(buffer, sizeof(buffer) - 1);
 
-	MsgBuilder builder;
+	FbsBuilder builder;
 	auto request = CreateHandshake(
 	    builder, kClientVersion,
 	    ToFbString(builder, userName),
@@ -71,7 +71,7 @@ namespace noda
 	    builder.CreateString(md5),
 	    builder.CreateString(buffer));
 
-	if(!SendPacket(builder, protocol::Data_Handshake, request)) {
+	if(!SendPacket(builder, Data_Handshake, request)) {
 	  NetClient::Disconnect();
 	  return false;
 	}
@@ -85,7 +85,7 @@ namespace noda
   }
 
   template <typename T>
-  bool SyncClient::SendPacket(MsgBuilder &mb, protocol::Data type, const T &data)
+  bool SyncClient::SendPacket(FbsBuilder &mb, protocol::Data type, const T &data)
   {
 	auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
 	mb.Finish(msgRoot);

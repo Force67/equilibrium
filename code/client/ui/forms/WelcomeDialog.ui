@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>861</width>
+    <width>546</width>
     <height>425</height>
    </rect>
   </property>
@@ -38,9 +38,18 @@
    </property>
    <item>
     <widget class="QWidget" name="headerFrame" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item>
          <widget class="QWidget" name="widget_2" native="true">
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -58,6 +67,18 @@
            </property>
            <item>
             <widget class="QLabel" name="labelLogo">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>50</width>
+               <height>50</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>50</width>
@@ -123,6 +144,19 @@
            </widget>
           </item>
           <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QLabel" name="labelFeatures">
             <property name="font">
              <font>
@@ -131,7 +165,7 @@
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Noda comes with batteries included. Features include:&lt;/p&gt;&lt;p&gt;- IDA Sync: Synchronized your database&lt;/p&gt;&lt;p&gt;- PDBTool: Generate fake PDB's directory from IDA&lt;/p&gt;&lt;p&gt;- PatternTool: Generate your pattern cache directory from IDA&lt;/p&gt;&lt;p&gt;- more planned &lt;span style=&quot; font-family:'apple color emoji','segoe ui emoji','noto color emoji','android emoji','emojisymbols','emojione mozilla','twemoji mozilla','segoe ui symbol'; font-size:xx-small; color:#e8e7e3;&quot;&gt;❤️&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Noda comes with batteries included. Features include:&lt;/p&gt;&lt;p&gt;- IDA Sync: Synchronize your database&lt;/p&gt;&lt;p&gt;- PDBTool: Generate fake PDB's directory from IDA&lt;/p&gt;&lt;p&gt;- PatternTool: Generate your pattern cache directory from IDA&lt;/p&gt;&lt;p&gt;- more planned &lt;span style=&quot; font-family:'apple color emoji','segoe ui emoji','noto color emoji','android emoji','emojisymbols','emojione mozilla','twemoji mozilla','segoe ui symbol'; color:#e8e7e3;&quot;&gt;❤️&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="textFormat">
              <enum>Qt::RichText</enum>
@@ -170,13 +204,19 @@
      </property>
      <item>
       <widget class="QLabel" name="label_5">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="font">
         <font>
          <kerning>true</kerning>
         </font>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please refer to the &lt;a href=&quot;https://github.com/NomadGroup/NODA/tree/devel&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Quickstart&lt;/span&gt;&lt;/a&gt; guide found on the official website for further information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please refer to the &lt;a href=&quot;https://github.com/NomadGroup/NODA/tree/devel&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Quickstart&lt;/span&gt;&lt;/a&gt; guide for plugin documentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>

@@ -76,8 +76,8 @@ void *noda::ui::Settings::qt_metacast(const char *_clname)
     if (!_clname) return Q_NULLPTR;
     if (!strcmp(_clname, qt_meta_stringdata_noda__ui__Settings.stringdata0))
         return static_cast<void*>(const_cast< Settings*>(this));
-    if (!strcmp(_clname, "Ui::UiSettings"))
-        return static_cast< Ui::UiSettings*>(const_cast< Settings*>(this));
+    if (!strcmp(_clname, "Ui::SettingsDialog"))
+        return static_cast< Ui::SettingsDialog*>(const_cast< Settings*>(this));
     return QDialog::qt_metacast(_clname);
 }
 

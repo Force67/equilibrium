@@ -7,7 +7,8 @@
 
 namespace noda
 {
-  using MsgBuilder = flatbuffers::FlatBufferBuilder;
+  using FbsBuilder = flatbuffers::FlatBufferBuilder;
+  using FbsStringRef = flatbuffers::Offset<flatbuffers::String>;
 
   class SyncClient final : public NetClient
   {
@@ -16,8 +17,8 @@ namespace noda
 	void Disconnect();
 
 	template <typename T>
-	bool SendPacket(MsgBuilder &, protocol::Data, const T &);
+	bool SendPacket(FbsBuilder &, protocol::Data, const T &);
   };
 
-  flatbuffers::Offset<flatbuffers::String> ToFbString(MsgBuilder &, const QString &);
+  FbsStringRef ToFbString(FbsBuilder &, const QString &);
 }
