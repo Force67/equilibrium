@@ -1,6 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#if false
 using System;
 using System.Threading.Tasks;
 using Discord;
@@ -94,12 +95,14 @@ namespace noda
             return Task.CompletedTask;
         }
 
-        public async void Write(string message, LogLevel level)
+        public async void Write(string text, LogLevel level)
         {
             if (_gatewayReady)
             {
-                await ((IMessageChannel)_client.GetChannel(753606377590489128)).SendMessageAsync(level.ToString() + ": " + message);
+                var message = "<" + level.ToString() + "> " + text;
+                //await ((IMessageChannel)_client.GetChannel(753606377590489128)).SendMessageAsync(message);
             }
         }
     }
 }
+#endif

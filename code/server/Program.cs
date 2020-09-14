@@ -2,46 +2,47 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 using System;
+using System.Collections.Generic;
 
 namespace noda
 {
     class Program
     {
-        private SyncServer _server;
-        private DiscordFeed _discordFeed;
-        private Logger _logger;
-        private Config _config;
+        private SyncServer server;
+        private Logger logger;
+        private Config config;
+       // private DiscordFeed discordFeed;
+        private List<Action<string>> commands;
 
         public Program()
         {
-            _config = Config.Create();
+            config = Config.Create();
 
-            _logger = new Logger();
-            _logger.Sinks.Add(new ConSink());
+            logger = new Logger();
+            logger.Sinks.Add(new ConSink());
 
-            _server = new SyncServer(_config, _logger);
-            _logger.Info("Starting NODA Server");
+            server = new SyncServer(config, logger);
+            logger.Info("Starting NODA Server");
 
-            _discordFeed = new DiscordFeed(_logger, _config.DiscordToken);
-            _logger.Sinks.Add(_discordFeed);
+           // discordFeed = new DiscordFeed(logger, config.DiscordToken);
+          //  logger.Sinks.Add(discordFeed);
         }
           
         ~Program()
         {
-            _config.Save();
+            config.Save();
         }
 
         public void Run()
         { 
-            _server.Start();
-            _discordFeed.Start();
+            //discordFeed.Start();
 
             while (true)
             {
                 var input = Console.ReadLine();
                 if (input == "/quit")
                 {
-                    _server.RequestQuit();
+                    server.Kill();
                     break;
                 }
             }

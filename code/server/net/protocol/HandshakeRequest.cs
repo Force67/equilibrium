@@ -9,15 +9,15 @@ using global::System;
 using global::System.Collections.Generic;
 using global::FlatBuffers;
 
-public struct Handshake : IFlatbufferObject
+public struct HandshakeRequest : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
-  public static Handshake GetRootAsHandshake(ByteBuffer _bb) { return GetRootAsHandshake(_bb, new Handshake()); }
-  public static Handshake GetRootAsHandshake(ByteBuffer _bb, Handshake obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public static HandshakeRequest GetRootAsHandshakeRequest(ByteBuffer _bb) { return GetRootAsHandshakeRequest(_bb, new HandshakeRequest()); }
+  public static HandshakeRequest GetRootAsHandshakeRequest(ByteBuffer _bb, HandshakeRequest obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
-  public Handshake __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+  public HandshakeRequest __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public ushort ClientVersion { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
   public string Hwid { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
@@ -57,7 +57,7 @@ public struct Handshake : IFlatbufferObject
 #endif
   public byte[] GetDbNameArray() { return __p.__vector_as_array<byte>(16); }
 
-  public static Offset<protocol.Handshake> CreateHandshake(FlatBufferBuilder builder,
+  public static Offset<protocol.HandshakeRequest> CreateHandshakeRequest(FlatBufferBuilder builder,
       ushort clientVersion = 0,
       StringOffset hwidOffset = default(StringOffset),
       StringOffset userOffset = default(StringOffset),
@@ -66,17 +66,17 @@ public struct Handshake : IFlatbufferObject
       StringOffset dbMD5Offset = default(StringOffset),
       StringOffset dbNameOffset = default(StringOffset)) {
     builder.StartTable(7);
-    Handshake.AddDbName(builder, dbNameOffset);
-    Handshake.AddDbMD5(builder, dbMD5Offset);
-    Handshake.AddPass(builder, passOffset);
-    Handshake.AddUser(builder, userOffset);
-    Handshake.AddHwid(builder, hwidOffset);
-    Handshake.AddDbVersion(builder, dbVersion);
-    Handshake.AddClientVersion(builder, clientVersion);
-    return Handshake.EndHandshake(builder);
+    HandshakeRequest.AddDbName(builder, dbNameOffset);
+    HandshakeRequest.AddDbMD5(builder, dbMD5Offset);
+    HandshakeRequest.AddPass(builder, passOffset);
+    HandshakeRequest.AddUser(builder, userOffset);
+    HandshakeRequest.AddHwid(builder, hwidOffset);
+    HandshakeRequest.AddDbVersion(builder, dbVersion);
+    HandshakeRequest.AddClientVersion(builder, clientVersion);
+    return HandshakeRequest.EndHandshakeRequest(builder);
   }
 
-  public static void StartHandshake(FlatBufferBuilder builder) { builder.StartTable(7); }
+  public static void StartHandshakeRequest(FlatBufferBuilder builder) { builder.StartTable(7); }
   public static void AddClientVersion(FlatBufferBuilder builder, ushort clientVersion) { builder.AddUshort(0, clientVersion, 0); }
   public static void AddHwid(FlatBufferBuilder builder, StringOffset hwidOffset) { builder.AddOffset(1, hwidOffset.Value, 0); }
   public static void AddUser(FlatBufferBuilder builder, StringOffset userOffset) { builder.AddOffset(2, userOffset.Value, 0); }
@@ -84,12 +84,12 @@ public struct Handshake : IFlatbufferObject
   public static void AddDbVersion(FlatBufferBuilder builder, ushort dbVersion) { builder.AddUshort(4, dbVersion, 0); }
   public static void AddDbMD5(FlatBufferBuilder builder, StringOffset dbMD5Offset) { builder.AddOffset(5, dbMD5Offset.Value, 0); }
   public static void AddDbName(FlatBufferBuilder builder, StringOffset dbNameOffset) { builder.AddOffset(6, dbNameOffset.Value, 0); }
-  public static Offset<protocol.Handshake> EndHandshake(FlatBufferBuilder builder) {
+  public static Offset<protocol.HandshakeRequest> EndHandshakeRequest(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<protocol.Handshake>(o);
+    return new Offset<protocol.HandshakeRequest>(o);
   }
-  public static void FinishHandshakeBuffer(FlatBufferBuilder builder, Offset<protocol.Handshake> offset) { builder.Finish(offset.Value); }
-  public static void FinishSizePrefixedHandshakeBuffer(FlatBufferBuilder builder, Offset<protocol.Handshake> offset) { builder.FinishSizePrefixed(offset.Value); }
+  public static void FinishHandshakeRequestBuffer(FlatBufferBuilder builder, Offset<protocol.HandshakeRequest> offset) { builder.Finish(offset.Value); }
+  public static void FinishSizePrefixedHandshakeRequestBuffer(FlatBufferBuilder builder, Offset<protocol.HandshakeRequest> offset) { builder.FinishSizePrefixed(offset.Value); }
 };
 
 

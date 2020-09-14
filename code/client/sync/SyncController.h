@@ -39,7 +39,6 @@ namespace noda
 
 	  // network events
 	  void OnConnectRequest() override;
-	  void OnConnect() override;
 	  void OnDisconnect(uint32_t) override;
 	  void ProcessPacket(uint8_t *, size_t) override;
 

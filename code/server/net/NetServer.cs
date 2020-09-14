@@ -1,93 +1,91 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-using ENet;
 using System;
 using System.Threading;
+using System.Runtime.InteropServices;
 
-namespace noda
+namespace noda.net
 {
     class NetServer
     {
-        private bool _shouldRun = true;
-        private Host _server;
-        private Thread _thread;
-        protected Event _netEvent;
+        private bool shouldDie = false;
+        private ENet.Host host;
+        protected ENet.Event netEvent;
+        private NetDelegate netDelegate;
+        private Thread thread;
 
-        public NetServer(ushort port)
+        public NetServer(NetDelegate ndelegate, ushort port)
         {
-            Library.Initialize();
+            netDelegate = ndelegate;
 
-            _server = new Host();
-            Address addr = new Address();
+            ENet.Library.Initialize();
+
+            host = new ENet.Host();
+            var addr = new ENet.Address();
 
             addr.Host = 0;
             addr.Port = port;
-            _server.Create(addr, 10);
+            host.Create(addr, 10);
 
-            _thread = new Thread(Update);
+            thread = new Thread(Update);
+            thread.Start();
         }
 
         ~NetServer()
         {
-            _server.Dispose();
-            Library.Deinitialize();
+            host.Dispose();
+            ENet.Library.Deinitialize();
         }
 
-        public virtual void OnConnection(Peer source) { }
-        public virtual void OnDisconnection(Peer source) { }
-        public virtual void OnReceive(IntPtr data, int length) { }
-
-        public void RequestQuit()
+        public void RequestDeath()
         {
-            _shouldRun = false;
-        }
-
-        public void Start()
-        {
-            _thread.Start();
+            shouldDie = true;
         }
 
         private void Update()
         {
-            while (_shouldRun)
+            while (!shouldDie)
             {
-                if (_server.Service(0, out _netEvent) > 0)
+                if (host.Service(0, out netEvent) > 0)
                 {
-                    switch (_netEvent.Type)
+                    switch (netEvent.Type)
                     {
-                        case EventType.Connect:
-                            OnConnection(_netEvent.Peer);
+                        case ENet.EventType.Connect:
+                            //OnConnection(_netEvent.Peer);
                             break;
-                        case EventType.Disconnect:
-                            OnDisconnection(_netEvent.Peer);
-                            _netEvent.Peer.Reset();
+                        case ENet.EventType.Disconnect:
+                            //OnDisconnection(_netEvent.Peer);
+                            netEvent.Peer.Reset();
                             break;
-                        case EventType.Receive: {
-                            OnReceive(_netEvent.Packet.Data, _netEvent.Packet.Length);
-                            _netEvent.Packet.Dispose();
+                        case ENet.EventType.Receive: {
+                            var length = netEvent.Packet.Length;
+                            // convert the data to managed
+                            byte[] managedArray = new byte[length];
+                            Marshal.Copy(netEvent.Packet.Data, managedArray, 0, length);
+
+                            netDelegate.ProcessPacket(netEvent.Peer, managedArray, length);
                             break;
                         }
                     }
                 }
+
+                Thread.Sleep(1);
             }
         }
 
-        public void Kick(protocol.DisconnectReason reason)
-        {
-            _netEvent.Peer.Disconnect((uint)reason);
-        }
+        /*
+         * auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
+		mb.Finish(msgRoot);
 
-        public static void Kick(Peer peer, protocol.DisconnectReason reason)
-        {
-            peer.Disconnect((uint)reason);
-        }
+		return SendReliable(mb.GetBufferPointer(), mb.GetSize());
+         */
 
         public void SendReliable(IntPtr data, int length)
         {
-            var packet = new Packet();
-            packet.Create(data, length, PacketFlags.Reliable);
-            _netEvent.Peer.Send(1, ref packet);
+            var packet = new ENet.Packet();
+            packet.Create(data, length, ENet.PacketFlags.Reliable);
+            netEvent.Peer.Send(1, ref packet);
         }
     }
 }

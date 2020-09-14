@@ -1,13 +1,10 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-namespace protocol;
+namespace protocol.constants;
 
-enum DisconnectReason : uint
+enum ProtocolVersion : int
 {
-    Quit,
-    Kicked,
-    BadPassword,
-    BadConnection,
-    TimedOut,
+    V_1_0 = 10,
 }
+

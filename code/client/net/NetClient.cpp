@@ -30,9 +30,12 @@ namespace noda::net
 
   NetClient::~NetClient()
   {
-	enet_deinitialize();
+	if(!_updateNet)
+		QThread::terminate();
+
 	if(_host)
 	  enet_host_destroy(_host);
+	enet_deinitialize();
   }
 
   bool NetClient::ConnectServer()
@@ -42,7 +45,7 @@ namespace noda::net
 	auto NdAddress = settings.value("Nd_SyncIp", constants::kServerIp).toString();
 
 	_address.port = static_cast<uint16_t>(NdPort);
-	if(!enet_address_set_host(&_address,
+	if(enet_address_set_host(&_address,
 	                          NdAddress.toUtf8().data()) < 0)
 	  return false;
 
@@ -52,7 +55,6 @@ namespace noda::net
 	}
 
 	_updateNet = true;
-
 	QThread::start();
 	return true;
   }

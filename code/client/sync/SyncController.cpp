@@ -7,6 +7,11 @@
 #include <qsettings.h>
 #include "utility/SysInfo.h"
 
+#include "net/protocol/HandshakeRequest_generated.h"
+#include "net/protocol/HandshakeAck_generated.h"
+
+#include "IdaInc.h"
+
 namespace noda::sync
 {
   SyncController::SyncController()
@@ -56,7 +61,7 @@ namespace noda::sync
 	get_root_filename(buffer, sizeof(buffer) - 1);
 
 	net::FbsBuilder builder;
-	auto request = protocol::CreateHandshake(
+	auto request = protocol::CreateHandshakeRequest(
 	    builder,
 	    net::constants::kClientVersion,
 	    net::MakeFbStringRef(builder, hwid),
@@ -68,25 +73,30 @@ namespace noda::sync
 
 	_client->SendFBReliable(
 	    builder,
-	    protocol::Data::Data_Handshake,
+	    protocol::Data::Data_HandshakeRequest,
 	    request);
   }
 
   void SyncController::OnDisconnect(uint32_t reason)
   {
+	  // TODO: clean up other users...
+
 	// forward the event
 	emit Disconnected(reason);
-  }
-
-  void SyncController::OnConnect()
-  {
-	emit Connected();
   }
 
   void SyncController::ProcessPacket(uint8_t *data, size_t length)
   {
 	const protocol::MessageRoot *message =
 	    protocol::GetMessageRoot(static_cast<void *>(data));
+
+	if(message->data_type() == protocol::Data::Data_HandshakeAck) {
+	  const auto *ack = message->data_as_HandshakeAck();
+	  
+	  msg("We are connected %s\n", ack->project()->c_str());
+	  // looks good?
+	  emit Connected();
+	}
 
 	// find a dispatcher
 

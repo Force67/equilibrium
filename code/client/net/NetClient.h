@@ -3,7 +3,6 @@
 #pragma once
 
 #include "protocol/MsgList_generated.h"
-#include "protocol/Handshake_generated.h"
 #include "protocol/DisconnectReason_generated.h"
 
 #include "NetBase.h"
@@ -31,7 +30,7 @@ namespace noda
 	  bool SendReliable(uint8_t *, size_t);
 
 	  template <typename T>
-	  inline bool SendFBReliable(FbsBuilder &mb, protocol::Data type, const T &data)
+	  inline bool SendFBReliable(FbsBuilder &mb, protocol::Data type, const flatbuffers::Offset<T> &data)
 	  {
 		auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
 		mb.Finish(msgRoot);

@@ -7,12 +7,11 @@ namespace protocol
 
 public enum DisconnectReason : uint
 {
-  None = 0,
-  Quit = 1,
-  Kicked = 2,
-  BadPassword = 3,
-  BadConnection = 4,
-  TimedOut = 5,
+  Quit = 0,
+  Kicked = 1,
+  BadPassword = 2,
+  BadConnection = 3,
+  TimedOut = 4,
 };
 
 

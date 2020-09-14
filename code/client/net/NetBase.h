@@ -4,7 +4,7 @@
 #pragma once
 
 #include <enet/enet.h>
-#include "flatbuffers/flatbuffers.h"
+#include "protocol/Constants_generated.h"
 
 namespace noda
 {
@@ -25,7 +25,8 @@ namespace noda
 	  // constants
 	  constexpr uint32_t kTimeout = 3000;
 	  constexpr uint32_t kNetworkerThreadIdle = 1;
-	  constexpr uint16_t kClientVersion = 1;
+	  constexpr uint16_t kClientVersion = 
+		  protocol::constants::ProtocolVersion_V_1_0;
 	} // namespace constants
 
 	class NetDelegate
@@ -36,9 +37,6 @@ namespace noda
 	  // this is triggered when a connection has been
 	  // established
 	  virtual void OnConnectRequest() {}
-
-	  // When the client gets accepted by the server
-	  virtual void OnConnect() = 0;
 
 	  // We have been dropped
 	  virtual void OnDisconnect(uint32_t reason) = 0;

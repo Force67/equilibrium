@@ -3,11 +3,10 @@
 
 namespace protocol;
 
-enum DisconnectReason : uint
-{
-    Quit,
-    Kicked,
-    BadPassword,
-    BadConnection,
-    TimedOut,
+table HandshakeAck {
+  userName:string;
+  project:string;
+  dbRemoteVersion:uint;
 }
+
+root_type HandshakeAck;
