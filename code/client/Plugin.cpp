@@ -8,17 +8,16 @@
 namespace noda
 {
   Plugin::Plugin() :
-      _syncController(_client),
-      _uiController(_client)
+      _syncController(),
+      _uiController(_syncController)
   {
 	msg("Loaded NODA Copyright(c) NOMAD Group <nomad-group.net>.\n");
   }
 
   Plugin::~Plugin()
   {
-  
   }
-}
+} // namespace noda
 
 namespace
 {

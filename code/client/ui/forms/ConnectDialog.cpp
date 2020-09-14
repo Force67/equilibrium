@@ -33,4 +33,4 @@ namespace noda::ui
 	QSettings settings;
 	return settings.value("Nd_UiSkipConnect", true).toBool();
   }
-}
+} // namespace noda::ui

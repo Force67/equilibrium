@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "UiController.h"
-#include "sync/SyncClient.h"
 
 #include "forms/StatusBar.h"
 #include "forms/Settings.h"
@@ -25,8 +24,8 @@ namespace noda
 	    QApplication::activeWindow()->topLevelWidget());
   }
 
-  UiController::UiController(SyncClient &client) :
-      _client(client)
+  UiController::UiController(sync::SyncController &s) :
+      _sync(s)
   {
 	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
   }
@@ -41,22 +40,38 @@ namespace noda
 
   void UiController::BuildUi()
   {
-	auto *pIdaWindow = GetTopWindow();
+	auto *mainWindow = GetTopWindow();
 
 	// pin bottom status bar (online/offline indicator)
 	_statusBar.reset(new ui::StatusBar());
 	_statusBar->SetColor(colorconstant::red);
 	_statusBar->show();
-	pIdaWindow->statusBar()->addPermanentWidget(_statusBar.data());
+	mainWindow->statusBar()->addPermanentWidget(_statusBar.data());
 
 	// create the top level menu entry
-	if(auto *pMenu = pIdaWindow->menuBar()->addMenu(QIcon(":/logo"), "NODA")) {
-	  _connectAct = pMenu->addAction("Connect", this, &UiController::ToggleConnect);
-	  pMenu->addAction(QIcon(":/sync"), "Synchronus", this, &UiController::OpenSyncMenu);
-	  pMenu->addSeparator();
-	  pMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
-	  pMenu->addSeparator();
-	  pMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
+	auto *mainBar = mainWindow->menuBar();
+
+	if(auto *topMenu = mainBar->addMenu(QIcon(":/logo"), "NODA")) {
+	  _connectAct = topMenu->addAction("Connect", this, &UiController::ToggleConnect);
+	  topMenu->addAction(QIcon(":/sync"), "Synchronus", this, &UiController::OpenSyncMenu);
+	  topMenu->addSeparator();
+	  topMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
+	  topMenu->addSeparator();
+	  topMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
+
+#if 0
+	  // attach a left menu bar
+	  auto *rightBar = new QMenuBar(mainBar);
+
+	  QMenu *menu = new QMenu("Test menu", rightBar);
+	  rightBar->addMenu(menu);
+
+	  // net state
+	  QAction *action = new QAction("22 MS | 36 KB/s | 8.65 KBS/", rightBar);
+	  rightBar->addAction(action);
+
+	  mainBar->setCornerWidget(rightBar);
+#endif
 	}
   }
 
@@ -68,10 +83,10 @@ namespace noda
 
   void UiController::ToggleConnect()
   {
-	if(!_client.IsConnected()) {
+	if(!_sync.IsConnected()) {
 	  _statusBar->SetColor(colorconstant::orange);
 
-	  bool result = _client.Connect();
+	  bool result = _sync.ConnectServer();
 	  if(!result) {
 		_statusBar->SetColor(colorconstant::red);
 
@@ -86,7 +101,7 @@ namespace noda
 	  _connectAct->setText("Disconnect");
 	  _statusBar->SetColor(colorconstant::green);
 	} else {
-	  _client.Disconnect();
+	  _sync.DisconnectServer();
 	  _connectAct->setText("Connect");
 	  _statusBar->SetColor(colorconstant::red);
 	}
@@ -99,7 +114,7 @@ namespace noda
 
   void UiController::OpenConfiguration()
   {
-	ui::Settings settings(_client, GetTopWindow());
+	ui::Settings settings(_sync, GetTopWindow());
 	settings.exec();
   }
 
@@ -113,12 +128,12 @@ namespace noda
 		self->BuildUi();
 
 		// crashes the UI: todo investigate why
-		if (ui::WelcomeDialog::ShouldShow()) {
+		if(ui::WelcomeDialog::ShouldShow()) {
 		  ui::WelcomeDialog dialog;
 		  dialog.exec();
 		}
 
-		if (ui::ConnectDialog::ShouldShow()) {
+		if(ui::ConnectDialog::ShouldShow()) {
 		  ui::ConnectDialog promt(*self);
 		  promt.exec();
 		}
@@ -127,4 +142,4 @@ namespace noda
 
 	return 0;
   }
-}
+} // namespace noda

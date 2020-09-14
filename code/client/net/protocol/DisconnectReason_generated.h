@@ -8,18 +8,20 @@
 namespace protocol
 {
   enum DisconnectReason {
-	DisconnectReason_Quit = 0,
-	DisconnectReason_Kicked = 1,
-	DisconnectReason_BadPassword = 2,
-	DisconnectReason_BadConnection = 3,
-	DisconnectReason_TimedOut = 4,
-	DisconnectReason_MIN = DisconnectReason_Quit,
+	DisconnectReason_None = 0,
+	DisconnectReason_Quit = 1,
+	DisconnectReason_Kicked = 2,
+	DisconnectReason_BadPassword = 3,
+	DisconnectReason_BadConnection = 4,
+	DisconnectReason_TimedOut = 5,
+	DisconnectReason_MIN = DisconnectReason_None,
 	DisconnectReason_MAX = DisconnectReason_TimedOut
   };
 
-  inline const DisconnectReason (&EnumValuesDisconnectReason())[5]
+  inline const DisconnectReason (&EnumValuesDisconnectReason())[6]
   {
 	static const DisconnectReason values[] = {
+	  DisconnectReason_None,
 	  DisconnectReason_Quit,
 	  DisconnectReason_Kicked,
 	  DisconnectReason_BadPassword,
@@ -31,7 +33,8 @@ namespace protocol
 
   inline const char *const *EnumNamesDisconnectReason()
   {
-	static const char *const names[6] = {
+	static const char *const names[7] = {
+	  "None",
 	  "Quit",
 	  "Kicked",
 	  "BadPassword",
@@ -44,7 +47,7 @@ namespace protocol
 
   inline const char *EnumNameDisconnectReason(DisconnectReason e)
   {
-	if(flatbuffers::IsOutRange(e, DisconnectReason_Quit, DisconnectReason_TimedOut))
+	if(flatbuffers::IsOutRange(e, DisconnectReason_None, DisconnectReason_TimedOut))
 	  return "";
 	const size_t index = static_cast<size_t>(e);
 	return EnumNamesDisconnectReason()[index];

@@ -6,8 +6,8 @@
 
 namespace noda::ui
 {
-  Settings::Settings(SyncClient &client, QWidget *pParent) :
-      QDialog(pParent), _client(client)
+  Settings::Settings(sync::SyncController &client, QWidget *pParent) :
+      QDialog(pParent)
   {
 	setupUi(this);
 
@@ -33,18 +33,18 @@ namespace noda::ui
 	  _settings.setValue("Nd_UiSkipConnect", chcked);
 	});
 
-	editIP->setText(_settings.value("Nd_SyncIp", kServerIp).toString());
-	editPort->setText(_settings.value("Nd_SyncPort", kServerPort).toString());
+	editIP->setText(_settings.value("Nd_SyncIp", net::constants::kServerIp).toString());
+	editPort->setText(_settings.value("Nd_SyncPort", net::constants::kServerPort).toString());
 	editPass->setText(_settings.value("Nd_SyncPass", "").toString());
 	editUser->setText(_settings.value("Nd_SyncUser", utility::GetSysUsername())
-	                          .toString());
-	editTimeout->setText(_settings.value("Nd_NetTimeout", kTimeout).toString());
+	                      .toString());
+	editTimeout->setText(_settings.value("Nd_NetTimeout", net::constants::kTimeout).toString());
 	cbShowWelcome->setEnabled(_settings.value("Nd_UiSkipWelcome").toBool());
 	cbShowAutoconnect->setEnabled(_settings.value("Nd_UiSkipConnect").toBool());
 
 	// gray out these fields when the network is active
-	bool enabled = !_client.IsConnected();
+	bool enabled = !client.IsConnected();
 	gbSyncConfig->setDisabled(enabled);
 	gbNetConfig->setDisabled(enabled);
   }
-} // namespace noda
+} // namespace noda::ui

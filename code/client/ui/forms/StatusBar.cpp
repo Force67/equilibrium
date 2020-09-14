@@ -18,4 +18,4 @@ namespace noda::ui
 
 	QWidget::setPalette(pal);
   }
-}
+} // namespace noda::ui

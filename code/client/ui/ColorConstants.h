@@ -12,4 +12,4 @@ namespace noda::colorconstant
   constexpr QRgb orange{ 0xffa500 };
   constexpr QRgb green{ 0x008000 };
   constexpr QRgb red{ 0xff0000 };
-} // namespace colorconstant
+} // namespace noda::colorconstant

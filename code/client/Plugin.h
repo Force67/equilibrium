@@ -4,7 +4,6 @@
 
 #include <ui/UiController.h>
 #include <sync/SyncController.h>
-#include <sync/SyncClient.h>
 
 namespace noda
 {
@@ -16,7 +15,6 @@ namespace noda
 
   private:
 	UiController _uiController;
-	SyncController _syncController;
-	SyncClient _client;
+	sync::SyncController _syncController;
   };
-}
+} // namespace noda

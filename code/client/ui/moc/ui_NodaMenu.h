@@ -26,78 +26,77 @@ QT_BEGIN_NAMESPACE
 class Ui_MainMenu
 {
 public:
-    QHBoxLayout *horizontalLayout;
-    QHBoxLayout *horizontalLayout_2;
-    QListWidget *list;
-    QVBoxLayout *verticalLayout;
-    QPushButton *buttonOkay;
-    QPushButton *buttonCancel;
-    QSpacerItem *verticalSpacer;
+  QHBoxLayout *horizontalLayout;
+  QHBoxLayout *horizontalLayout_2;
+  QListWidget *list;
+  QVBoxLayout *verticalLayout;
+  QPushButton *buttonOkay;
+  QPushButton *buttonCancel;
+  QSpacerItem *verticalSpacer;
 
-    void setupUi(QDialog *MainMenu)
-    {
-        if (MainMenu->objectName().isEmpty())
-            MainMenu->setObjectName(QStringLiteral("MainMenu"));
-        MainMenu->resize(306, 263);
-        horizontalLayout = new QHBoxLayout(MainMenu);
-        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
-        horizontalLayout_2 = new QHBoxLayout();
-        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
-        list = new QListWidget(MainMenu);
-        new QListWidgetItem(list);
-        new QListWidgetItem(list);
-        list->setObjectName(QStringLiteral("list"));
+  void setupUi(QDialog *MainMenu)
+  {
+	if(MainMenu->objectName().isEmpty())
+	  MainMenu->setObjectName(QStringLiteral("MainMenu"));
+	MainMenu->resize(306, 263);
+	horizontalLayout = new QHBoxLayout(MainMenu);
+	horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+	horizontalLayout_2 = new QHBoxLayout();
+	horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+	list = new QListWidget(MainMenu);
+	new QListWidgetItem(list);
+	new QListWidgetItem(list);
+	list->setObjectName(QStringLiteral("list"));
 
-        horizontalLayout_2->addWidget(list);
+	horizontalLayout_2->addWidget(list);
 
-        verticalLayout = new QVBoxLayout();
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        buttonOkay = new QPushButton(MainMenu);
-        buttonOkay->setObjectName(QStringLiteral("buttonOkay"));
+	verticalLayout = new QVBoxLayout();
+	verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+	buttonOkay = new QPushButton(MainMenu);
+	buttonOkay->setObjectName(QStringLiteral("buttonOkay"));
 
-        verticalLayout->addWidget(buttonOkay);
+	verticalLayout->addWidget(buttonOkay);
 
-        buttonCancel = new QPushButton(MainMenu);
-        buttonCancel->setObjectName(QStringLiteral("buttonCancel"));
+	buttonCancel = new QPushButton(MainMenu);
+	buttonCancel->setObjectName(QStringLiteral("buttonCancel"));
 
-        verticalLayout->addWidget(buttonCancel);
+	verticalLayout->addWidget(buttonCancel);
 
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        verticalLayout->addItem(verticalSpacer);
+	verticalLayout->addItem(verticalSpacer);
 
+	horizontalLayout_2->addLayout(verticalLayout);
 
-        horizontalLayout_2->addLayout(verticalLayout);
+	horizontalLayout->addLayout(horizontalLayout_2);
 
+	retranslateUi(MainMenu);
 
-        horizontalLayout->addLayout(horizontalLayout_2);
+	QMetaObject::connectSlotsByName(MainMenu);
+  } // setupUi
 
+  void retranslateUi(QDialog *MainMenu)
+  {
+	MainMenu->setWindowTitle(QApplication::translate("MainMenu", "Noda", Q_NULLPTR));
 
-        retranslateUi(MainMenu);
+	const bool __sortingEnabled = list->isSortingEnabled();
+	list->setSortingEnabled(false);
+	QListWidgetItem *___qlistwidgetitem = list->item(0);
+	___qlistwidgetitem->setText(QApplication::translate("MainMenu", "Connect", Q_NULLPTR));
+	QListWidgetItem *___qlistwidgetitem1 = list->item(1);
+	___qlistwidgetitem1->setText(QApplication::translate("MainMenu", "Request Updates", Q_NULLPTR));
+	list->setSortingEnabled(__sortingEnabled);
 
-        QMetaObject::connectSlotsByName(MainMenu);
-    } // setupUi
-
-    void retranslateUi(QDialog *MainMenu)
-    {
-        MainMenu->setWindowTitle(QApplication::translate("MainMenu", "Noda", Q_NULLPTR));
-
-        const bool __sortingEnabled = list->isSortingEnabled();
-        list->setSortingEnabled(false);
-        QListWidgetItem *___qlistwidgetitem = list->item(0);
-        ___qlistwidgetitem->setText(QApplication::translate("MainMenu", "Connect", Q_NULLPTR));
-        QListWidgetItem *___qlistwidgetitem1 = list->item(1);
-        ___qlistwidgetitem1->setText(QApplication::translate("MainMenu", "Request Updates", Q_NULLPTR));
-        list->setSortingEnabled(__sortingEnabled);
-
-        buttonOkay->setText(QApplication::translate("MainMenu", "OK", Q_NULLPTR));
-        buttonCancel->setText(QApplication::translate("MainMenu", "Cancel", Q_NULLPTR));
-    } // retranslateUi
-
+	buttonOkay->setText(QApplication::translate("MainMenu", "OK", Q_NULLPTR));
+	buttonCancel->setText(QApplication::translate("MainMenu", "Cancel", Q_NULLPTR));
+  } // retranslateUi
 };
 
-namespace Ui {
-    class MainMenu: public Ui_MainMenu {};
+namespace Ui
+{
+  class MainMenu : public Ui_MainMenu
+  {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

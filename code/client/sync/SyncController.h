@@ -5,22 +5,45 @@
 #include "IdaInc.h"
 #include <qobject.h>
 
+#include "net/NetBase.h"
+
 namespace noda
 {
-  class SyncClient;
-
-  // syncdispatcher?
-  class SyncController final : public QObject
+  namespace net
   {
-	Q_OBJECT;
+	class NetClient;
+  }
 
-  public:
-	SyncController(SyncClient &);
-	~SyncController();
+  namespace sync
+  {
+	class SyncController final : public QObject,
+	                             public net::NetDelegate
+	{
+	  Q_OBJECT;
 
-  private:
-	static ssize_t idaapi OnIdaEvent(void *, int, va_list);
+	public:
+	  SyncController();
+	  ~SyncController();
 
-	SyncClient &_client;
-  };
-}
+	  bool ConnectServer();
+	  void DisconnectServer();
+
+	  bool IsConnected();
+
+	signals:
+	  void Connected();
+	  void Disconnected(uint32_t);
+
+	private:
+	  static ssize_t idaapi OnIdaEvent(void *, int, va_list);
+
+	  // network events
+	  void OnConnectRequest() override;
+	  void OnConnect() override;
+	  void OnDisconnect(uint32_t) override;
+	  void ProcessPacket(uint8_t *, size_t) override;
+
+	  QScopedPointer<net::NetClient> _client;
+	};
+  } // namespace sync
+} // namespace noda

@@ -5,6 +5,7 @@ namespace protocol;
 
 enum DisconnectReason : uint
 {
+    None,
     Quit,
     Kicked,
     BadPassword,

@@ -18,14 +18,17 @@ namespace noda
 	class StatusBar;
   }
 
-  class SyncClient;
+  namespace sync
+  {
+	class SyncController;
+  }
 
   class UiController final : public QObject
   {
 	Q_OBJECT;
 
   public:
-	UiController(SyncClient &);
+	UiController(sync::SyncController &);
 	~UiController();
 
   private:
@@ -38,7 +41,7 @@ namespace noda
 	QAction *_connectAct = nullptr;
 	QAction *_pMenuAct = nullptr;
 
-	SyncClient &_client;
+	sync::SyncController &_sync;
   public slots:
 	void ToggleConnect();
 
@@ -47,4 +50,4 @@ namespace noda
 	void OpenAboutDialog();
 	void OpenConfiguration();
   };
-}
+} // namespace noda

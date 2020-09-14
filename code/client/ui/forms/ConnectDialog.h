@@ -18,10 +18,11 @@ namespace noda
 	  ConnectDialog(UiController &);
 
 	  static bool ShouldShow();
+
 	private:
 	  void OnConnect();
 
 	  UiController &_controller;
 	};
-  }
-}
+  } // namespace ui
+} // namespace noda

@@ -6,16 +6,16 @@
 
 namespace noda
 {
-namespace ui
-{
-  class StatusBar final : public QDockWidget, public Ui::StatusBar
+  namespace ui
   {
-	Q_OBJECT;
+	class StatusBar final : public QDockWidget, public Ui::StatusBar
+	{
+	  Q_OBJECT;
 
-  public:
-	StatusBar();
+	public:
+	  StatusBar();
 
-	void SetColor(const QT::QColor);
-  };
-}
-}
+	  void SetColor(const QT::QColor);
+	};
+  } // namespace ui
+} // namespace noda

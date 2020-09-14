@@ -13,3 +13,5 @@ https://pvigier.github.io/2019/09/08/beginner-guide-game-networking.html
 IDEA:
 mark offsets for structures by right clicking em
 metal gear alert sound
+space shuttle anim
+net traffic up/down in the top bar

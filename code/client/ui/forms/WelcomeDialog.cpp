@@ -23,4 +23,4 @@ namespace noda::ui
 	QSettings settings;
 	return settings.value("Nd_UiSkipWelcome", true).toBool();
   }
-}
+} // namespace noda::ui

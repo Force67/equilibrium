@@ -10,4 +10,4 @@ namespace noda::ui
   {
 	setupUi(this);
   }
-}
+} // namespace noda::ui
