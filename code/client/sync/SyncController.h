@@ -35,13 +35,15 @@ namespace noda
 	  void Disconnected(uint32_t);
 
 	private:
-	  static ssize_t idaapi OnIdaEvent(void *, int, va_list);
+	  static ssize_t idaapi ProcessorEvent(void *, int, va_list);
+	  static ssize_t idaapi IdbEvent(void*, int, va_list);
 
 	  // network events
 	  void OnConnectRequest() override;
 	  void OnDisconnect(uint32_t) override;
 	  void ProcessPacket(uint8_t *, size_t) override;
 
+	  bool _accepted = false;
 	  QScopedPointer<net::NetClient> _client;
 	};
   } // namespace sync

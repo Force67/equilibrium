@@ -17,26 +17,26 @@ namespace noda.net
     [AttributeUsage(AttributeTargets.Method)]
     public class MessageType : Attribute
     {
-        public MessageType(Data data)
+        public MessageType(MsgType data)
         {
-            Id = data;
+            type = data;
         }
 
-        public Data GetData()
+        public MsgType GetData()
         {
-            return Id;
+            return type;
         }
 
-        Data Id;
+        MsgType type;
     }
 
     public class NetDispatcher<T>
     {
-        private Dictionary<Data, Action<T, MessageRoot>> _subscribers;
+        private Dictionary<MsgType, Action<T, MessageRoot>> _subscribers;
 
         public NetDispatcher()
         {
-            _subscribers = new Dictionary<Data, Action<T, MessageRoot>>();
+            _subscribers = new Dictionary<MsgType, Action<T, MessageRoot>>();
         }
 
         public void connect(Action<T, MessageRoot> method)
@@ -59,7 +59,7 @@ namespace noda.net
         {
             foreach (var sub in _subscribers)
             {
-                if (sub.Key == message.DataType)
+                if (sub.Key == message.MsgType)
                 {
                     sub.Value.Invoke(source, message);
                     break;

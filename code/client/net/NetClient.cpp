@@ -3,9 +3,6 @@
 
 #include <qsettings.h>
 #include "NetClient.h"
-#include "IdaInc.h"
-
-#include "utility/SysInfo.h"
 
 namespace noda::net
 {

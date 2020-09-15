@@ -1,0 +1,12 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+// This file defines the protocol used to synchronize the IDB.
+
+namespace protocol.sync;
+
+table Dummy {
+    addr:uint64;
+    name:string;
+    local:bool;
+}
+

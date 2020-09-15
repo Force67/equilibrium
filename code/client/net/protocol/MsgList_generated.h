@@ -8,105 +8,120 @@
 
 #include "HandshakeAck_generated.h"
 #include "HandshakeRequest_generated.h"
+#include "IdbSync_generated.h"
 
 namespace protocol {
 
 struct MessageRoot;
 struct MessageRootBuilder;
 
-enum Data {
-  Data_NONE = 0,
-  Data_HandshakeRequest = 1,
-  Data_HandshakeAck = 2,
-  Data_MIN = Data_NONE,
-  Data_MAX = Data_HandshakeAck
+enum MsgType {
+  MsgType_NONE = 0,
+  MsgType_HandshakeRequest = 1,
+  MsgType_HandshakeAck = 2,
+  MsgType_sync_NameAddr = 3,
+  MsgType_MIN = MsgType_NONE,
+  MsgType_MAX = MsgType_sync_NameAddr
 };
 
-inline const Data (&EnumValuesData())[3] {
-  static const Data values[] = {
-    Data_NONE,
-    Data_HandshakeRequest,
-    Data_HandshakeAck
+inline const MsgType (&EnumValuesMsgType())[4] {
+  static const MsgType values[] = {
+    MsgType_NONE,
+    MsgType_HandshakeRequest,
+    MsgType_HandshakeAck,
+    MsgType_sync_NameAddr
   };
   return values;
 }
 
-inline const char * const *EnumNamesData() {
-  static const char * const names[4] = {
+inline const char * const *EnumNamesMsgType() {
+  static const char * const names[5] = {
     "NONE",
     "HandshakeRequest",
     "HandshakeAck",
+    "sync_NameAddr",
     nullptr
   };
   return names;
 }
 
-inline const char *EnumNameData(Data e) {
-  if (flatbuffers::IsOutRange(e, Data_NONE, Data_HandshakeAck)) return "";
+inline const char *EnumNameMsgType(MsgType e) {
+  if (flatbuffers::IsOutRange(e, MsgType_NONE, MsgType_sync_NameAddr)) return "";
   const size_t index = static_cast<size_t>(e);
-  return EnumNamesData()[index];
+  return EnumNamesMsgType()[index];
 }
 
-template<typename T> struct DataTraits {
-  static const Data enum_value = Data_NONE;
+template<typename T> struct MsgTypeTraits {
+  static const MsgType enum_value = MsgType_NONE;
 };
 
-template<> struct DataTraits<protocol::HandshakeRequest> {
-  static const Data enum_value = Data_HandshakeRequest;
+template<> struct MsgTypeTraits<protocol::HandshakeRequest> {
+  static const MsgType enum_value = MsgType_HandshakeRequest;
 };
 
-template<> struct DataTraits<protocol::HandshakeAck> {
-  static const Data enum_value = Data_HandshakeAck;
+template<> struct MsgTypeTraits<protocol::HandshakeAck> {
+  static const MsgType enum_value = MsgType_HandshakeAck;
 };
 
-bool VerifyData(flatbuffers::Verifier &verifier, const void *obj, Data type);
-bool VerifyDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+template<> struct MsgTypeTraits<protocol::sync::NameAddr> {
+  static const MsgType enum_value = MsgType_sync_NameAddr;
+};
+
+bool VerifyMsgType(flatbuffers::Verifier &verifier, const void *obj, MsgType type);
+bool VerifyMsgTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
 struct MessageRoot FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MessageRootBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_DATA_TYPE = 4,
-    VT_DATA = 6
+    VT_MSG_TYPE = 4,
+    VT_MSG = 6
   };
-  protocol::Data data_type() const {
-    return static_cast<protocol::Data>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  protocol::MsgType msg_type() const {
+    return static_cast<protocol::MsgType>(GetField<uint8_t>(VT_MSG_TYPE, 0));
   }
-  const void *data() const {
-    return GetPointer<const void *>(VT_DATA);
+  const void *msg() const {
+    return GetPointer<const void *>(VT_MSG);
   }
-  template<typename T> const T *data_as() const;
-  const protocol::HandshakeRequest *data_as_HandshakeRequest() const {
-    return data_type() == protocol::Data_HandshakeRequest ? static_cast<const protocol::HandshakeRequest *>(data()) : nullptr;
+  template<typename T> const T *msg_as() const;
+  const protocol::HandshakeRequest *msg_as_HandshakeRequest() const {
+    return msg_type() == protocol::MsgType_HandshakeRequest ? static_cast<const protocol::HandshakeRequest *>(msg()) : nullptr;
   }
-  const protocol::HandshakeAck *data_as_HandshakeAck() const {
-    return data_type() == protocol::Data_HandshakeAck ? static_cast<const protocol::HandshakeAck *>(data()) : nullptr;
+  const protocol::HandshakeAck *msg_as_HandshakeAck() const {
+    return msg_type() == protocol::MsgType_HandshakeAck ? static_cast<const protocol::HandshakeAck *>(msg()) : nullptr;
+  }
+  const protocol::sync::NameAddr *msg_as_sync_NameAddr() const {
+    return msg_type() == protocol::MsgType_sync_NameAddr ? static_cast<const protocol::sync::NameAddr *>(msg()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
-           VerifyOffset(verifier, VT_DATA) &&
-           VerifyData(verifier, data(), data_type()) &&
+           VerifyField<uint8_t>(verifier, VT_MSG_TYPE) &&
+           VerifyOffset(verifier, VT_MSG) &&
+           VerifyMsgType(verifier, msg(), msg_type()) &&
            verifier.EndTable();
   }
 };
 
-template<> inline const protocol::HandshakeRequest *MessageRoot::data_as<protocol::HandshakeRequest>() const {
-  return data_as_HandshakeRequest();
+template<> inline const protocol::HandshakeRequest *MessageRoot::msg_as<protocol::HandshakeRequest>() const {
+  return msg_as_HandshakeRequest();
 }
 
-template<> inline const protocol::HandshakeAck *MessageRoot::data_as<protocol::HandshakeAck>() const {
-  return data_as_HandshakeAck();
+template<> inline const protocol::HandshakeAck *MessageRoot::msg_as<protocol::HandshakeAck>() const {
+  return msg_as_HandshakeAck();
+}
+
+template<> inline const protocol::sync::NameAddr *MessageRoot::msg_as<protocol::sync::NameAddr>() const {
+  return msg_as_sync_NameAddr();
 }
 
 struct MessageRootBuilder {
   typedef MessageRoot Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_data_type(protocol::Data data_type) {
-    fbb_.AddElement<uint8_t>(MessageRoot::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  void add_msg_type(protocol::MsgType msg_type) {
+    fbb_.AddElement<uint8_t>(MessageRoot::VT_MSG_TYPE, static_cast<uint8_t>(msg_type), 0);
   }
-  void add_data(flatbuffers::Offset<void> data) {
-    fbb_.AddOffset(MessageRoot::VT_DATA, data);
+  void add_msg(flatbuffers::Offset<void> msg) {
+    fbb_.AddOffset(MessageRoot::VT_MSG, msg);
   }
   explicit MessageRootBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -122,37 +137,41 @@ struct MessageRootBuilder {
 
 inline flatbuffers::Offset<MessageRoot> CreateMessageRoot(
     flatbuffers::FlatBufferBuilder &_fbb,
-    protocol::Data data_type = protocol::Data_NONE,
-    flatbuffers::Offset<void> data = 0) {
+    protocol::MsgType msg_type = protocol::MsgType_NONE,
+    flatbuffers::Offset<void> msg = 0) {
   MessageRootBuilder builder_(_fbb);
-  builder_.add_data(data);
-  builder_.add_data_type(data_type);
+  builder_.add_msg(msg);
+  builder_.add_msg_type(msg_type);
   return builder_.Finish();
 }
 
-inline bool VerifyData(flatbuffers::Verifier &verifier, const void *obj, Data type) {
+inline bool VerifyMsgType(flatbuffers::Verifier &verifier, const void *obj, MsgType type) {
   switch (type) {
-    case Data_NONE: {
+    case MsgType_NONE: {
       return true;
     }
-    case Data_HandshakeRequest: {
+    case MsgType_HandshakeRequest: {
       auto ptr = reinterpret_cast<const protocol::HandshakeRequest *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Data_HandshakeAck: {
+    case MsgType_HandshakeAck: {
       auto ptr = reinterpret_cast<const protocol::HandshakeAck *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_NameAddr: {
+      auto ptr = reinterpret_cast<const protocol::sync::NameAddr *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;
   }
 }
 
-inline bool VerifyDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyMsgTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
-    if (!VerifyData(
-        verifier,  values->Get(i), types->GetEnum<Data>(i))) {
+    if (!VerifyMsgType(
+        verifier,  values->Get(i), types->GetEnum<MsgType>(i))) {
       return false;
     }
   }

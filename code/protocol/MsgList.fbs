@@ -3,16 +3,20 @@
 
 include "HandshakeRequest.fbs";
 include "HandshakeAck.fbs";
+include "IdbSync.fbs";
 
 namespace protocol;
 
-union Data {
+union MsgType {
     HandshakeRequest,
     HandshakeAck,
+
+    // idb:
+    sync.NameAddr,
 }
 
 table MessageRoot{
-    data:Data;
+    msg:MsgType;
 }
 
 root_type MessageRoot;

@@ -37,7 +37,7 @@ namespace noda
             return peer.Send(1, ref packet);
         }
 
-        public bool SendMessage<T>(FlatBufferBuilder fbb, Data msgType, Offset<T> data) where T : struct
+        public bool SendMessage<T>(FlatBufferBuilder fbb, MsgType msgType, Offset<T> data) where T : struct
         {
             var msgRoot = MessageRoot.CreateMessageRoot(fbb, msgType, data.Value);
             fbb.Finish(msgRoot.Value);

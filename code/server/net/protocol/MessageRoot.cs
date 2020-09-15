@@ -19,21 +19,21 @@ public struct MessageRoot : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public MessageRoot __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public protocol.Data DataType { get { int o = __p.__offset(4); return o != 0 ? (protocol.Data)__p.bb.Get(o + __p.bb_pos) : protocol.Data.NONE; } }
-  public TTable? Data<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public protocol.MsgType MsgType { get { int o = __p.__offset(4); return o != 0 ? (protocol.MsgType)__p.bb.Get(o + __p.bb_pos) : protocol.MsgType.NONE; } }
+  public TTable? Msg<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
 
   public static Offset<protocol.MessageRoot> CreateMessageRoot(FlatBufferBuilder builder,
-      protocol.Data data_type = protocol.Data.NONE,
-      int dataOffset = 0) {
+      protocol.MsgType msg_type = protocol.MsgType.NONE,
+      int msgOffset = 0) {
     builder.StartTable(2);
-    MessageRoot.AddData(builder, dataOffset);
-    MessageRoot.AddDataType(builder, data_type);
+    MessageRoot.AddMsg(builder, msgOffset);
+    MessageRoot.AddMsgType(builder, msg_type);
     return MessageRoot.EndMessageRoot(builder);
   }
 
   public static void StartMessageRoot(FlatBufferBuilder builder) { builder.StartTable(2); }
-  public static void AddDataType(FlatBufferBuilder builder, protocol.Data dataType) { builder.AddByte(0, (byte)dataType, 0); }
-  public static void AddData(FlatBufferBuilder builder, int dataOffset) { builder.AddOffset(1, dataOffset, 0); }
+  public static void AddMsgType(FlatBufferBuilder builder, protocol.MsgType msgType) { builder.AddByte(0, (byte)msgType, 0); }
+  public static void AddMsg(FlatBufferBuilder builder, int msgOffset) { builder.AddOffset(1, msgOffset, 0); }
   public static Offset<protocol.MessageRoot> EndMessageRoot(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<protocol.MessageRoot>(o);

@@ -6,7 +6,7 @@
 #include <Windows.h>
 #endif
 
-namespace utility
+namespace noda::sync::utils
 {
   const QString &GetSysUsername()
   {

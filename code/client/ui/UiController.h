@@ -33,6 +33,7 @@ namespace noda
 
   private:
 	void BuildUi();
+	void OnDisconnect(uint32_t);
 
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 

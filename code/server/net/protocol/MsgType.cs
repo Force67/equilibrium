@@ -5,11 +5,12 @@
 namespace protocol
 {
 
-public enum Data : byte
+public enum MsgType : byte
 {
   NONE = 0,
   HandshakeRequest = 1,
   HandshakeAck = 2,
+  sync_NameAddr = 3,
 };
 
 

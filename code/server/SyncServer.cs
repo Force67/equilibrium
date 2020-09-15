@@ -39,13 +39,13 @@ namespace noda
             ByteBuffer buffer = new ByteBuffer(data);
             var message = MessageRoot.GetRootAsMessageRoot(buffer);
 
-            logger.Trace("Recieved packet " + message.DataType.ToString() + " | length: " + length);
+            logger.Trace("Recieved packet " + message.MsgType.ToString() + " | length: " + length);
 
             var user = userList.FirstOrDefault(it => it.GetId() == peer.ID);
 
-            if (message.DataType == Data.HandshakeRequest)
+            if (message.MsgType == MsgType.HandshakeRequest)
             {
-                var hs = message.Data<HandshakeRequest>().Value;
+                var hs = message.Msg<HandshakeRequest>().Value;
                 if (user == null)
                 {
                     if (hs.ClientVersion < (ushort)protocol.constants.ProtocolVersion.V_1_0)
@@ -70,7 +70,7 @@ namespace noda
                         fbb.CreateString(hs.User),
                         fbb.CreateString("AProject"),
                         1337);
-                    user.SendMessage(fbb, Data.HandshakeAck, ack);
+                    user.SendMessage(fbb, MsgType.HandshakeAck, ack);
 
                     logger.Info("User joined: " + hs.User);
                 }

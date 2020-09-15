@@ -1,0 +1,15 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+
+#include "ProcessorSync.h"
+
+namespace noda::sync
+{
+  ProcessorSync::ProcessorSync(SyncController &sync) :
+      _controller(sync)
+  {
+      // connect events
+  }
+
+
+}

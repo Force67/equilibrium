@@ -5,7 +5,9 @@
 #include "net/NetClient.h"
 
 #include <qsettings.h>
-#include "utility/SysInfo.h"
+
+#include "utils/IdbStorage.h"
+#include "utils/SysInfo.h"
 
 #include "net/protocol/HandshakeRequest_generated.h"
 #include "net/protocol/HandshakeAck_generated.h"
@@ -18,14 +20,14 @@ namespace noda::sync
   {
 	_client.reset(new net::NetClient(*this));
 
-	hook_to_notification_point(hook_type_t::HT_IDB, OnIdaEvent, this);
-	hook_to_notification_point(hook_type_t::HT_IDP, OnIdaEvent, this);
+	hook_to_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
+	hook_to_notification_point(hook_type_t::HT_IDP, ProcessorEvent, this);
   }
 
   SyncController::~SyncController()
   {
-	unhook_from_notification_point(hook_type_t::HT_IDB, OnIdaEvent, this);
-	unhook_from_notification_point(hook_type_t::HT_IDP, OnIdaEvent, this);
+	unhook_from_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
+	unhook_from_notification_point(hook_type_t::HT_IDP, ProcessorEvent, this);
   }
 
   bool SyncController::ConnectServer()
@@ -40,16 +42,17 @@ namespace noda::sync
 
   bool SyncController::IsConnected()
   {
-	return _client->IsConnected();
+	return _client->IsConnected() 
+		&& _accepted;
   }
 
   void SyncController::OnConnectRequest()
   {
-	const QString &userName = utility::GetSysUsername();
-	const QString &hwid = utility::GetHardwareId();
+	const QString &name = utils::GetSysUsername();
+	const QString &hwid = utils::GetHardwareId();
 
 	QSettings settings;
-	auto user = settings.value("Nd_SyncUser", userName).toString();
+	auto user = settings.value("Nd_SyncUser", name).toString();
 	auto pass = settings.value("Nd_SyncPass", "").toString();
 
 	const auto dbVersion = 0;
@@ -73,12 +76,13 @@ namespace noda::sync
 
 	_client->SendFBReliable(
 	    builder,
-	    protocol::Data::Data_HandshakeRequest,
+	    protocol::MsgType_HandshakeRequest,
 	    request);
   }
 
   void SyncController::OnDisconnect(uint32_t reason)
   {
+	_accepted = false;
 	  // TODO: clean up other users...
 
 	// forward the event
@@ -90,21 +94,37 @@ namespace noda::sync
 	const protocol::MessageRoot *message =
 	    protocol::GetMessageRoot(static_cast<void *>(data));
 
-	if(message->data_type() == protocol::Data::Data_HandshakeAck) {
-	  const auto *ack = message->data_as_HandshakeAck();
+	msg("Recieved message %s\n", 
+		protocol::EnumNameMsgType(message->msg_type()));
+
+	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
+	  const auto *ack = message->msg_as_HandshakeAck();
 	  
 	  msg("We are connected %s\n", ack->project()->c_str());
 	  // looks good?
+	  _accepted = true;
 	  emit Connected();
-	}
-
-	// find a dispatcher
-
+	  return;
+	} 
   }
 
-  ssize_t SyncController::OnIdaEvent(void *userp, int code, va_list args)
+  ssize_t SyncController::ProcessorEvent(void *userp, int code, va_list args)
   {
-	auto *self = reinterpret_cast<SyncController *>(userp);
+	auto &self = reinterpret_cast<SyncController &>(userp);
+
+	return 0;
+  }
+
+  ssize_t SyncController::IdbEvent(void *userp, int code, va_list args)
+  {
+	auto &self = reinterpret_cast<SyncController&>(userp);
+
+	if (code == idb_event::event_code_t::closebase) {
+	  self._client->Disconnect();
+	  return 0;
+	}
+
+	idb_event::func_added;
 
 	// find a dispatcher
 

@@ -28,6 +28,7 @@ namespace noda
       _sync(s)
   {
 	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
+	connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
   }
 
   UiController::~UiController()
@@ -79,6 +80,12 @@ namespace noda
   {
 	ui::AboutDialog dialog(GetTopWindow());
 	dialog.exec();
+  }
+
+  void UiController::OnDisconnect(uint32_t reason)
+  {
+	_connectAct->setText("Connect");
+	_statusBar->SetColor(colorconstant::red);
   }
 
   void UiController::ToggleConnect()
