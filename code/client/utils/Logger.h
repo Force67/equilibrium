@@ -3,24 +3,25 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <string_view>
 
-namespace noda::utils
+namespace noda
 {
-  enum class LogLevel {
-	Trace,
-	Info,
-	Warning,
-	Error
-  };
+	namespace utils {
 
-  // thread safe!
-  void PrintLogMessage(LogLevel, const char*, const fmt::format_args&);
+		enum class LogLevel {
+			Trace,
+			Info,
+			Warning,
+			Error
+		};
 
-  template <typename... Args>
-  inline void PrintLogMessage(LogLevel lvl, const Args &... args)
-  {
-	PrintLogMessage(lvl, fmt::make_format_args(args...));
-  }
+		void PrintLogMessageImpl(LogLevel, const char*, const fmt::format_args&);
+
+		template <typename... Args>
+		void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
+			PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
+		}
 
 #define LOG_TRACE(...) \
   ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Trace, __VA_ARGS__)
@@ -30,4 +31,5 @@ namespace noda::utils
   ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Warning, __VA_ARGS__)
 #define LOG_ERROR(...) \
   ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Error, __VA_ARGS__)
+	}
 } // namespace noda::utils

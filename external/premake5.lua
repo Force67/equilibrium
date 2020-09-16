@@ -40,6 +40,17 @@ project("enet")
     language("C")
     enet_include()
 
+project("fmtlib")
+    language("C++")
+    kind("StaticLib")
+    includedirs({
+        "fmt/include",
+    })
+    files({
+        "fmt/src/format.cc",
+        "fmt/src/os.cc",
+    })
+
 project("Flatbuffers")
     language("C#")
     kind("SharedLib")

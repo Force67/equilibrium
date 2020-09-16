@@ -11,7 +11,7 @@ namespace noda
       _syncController(),
       _uiController(_syncController)
   {
-	  LOG_INFO("Loaded NODA Copyright(c) NOMAD Group <nomad-group.net>.");
+	LOG_INFO("Loaded NODA Copyright(c) NOMAD Group <nomad-group.net>.");
   }
 
   Plugin::~Plugin()

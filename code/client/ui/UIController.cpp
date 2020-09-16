@@ -28,7 +28,7 @@ namespace noda
       _sync(s)
   {
 	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
-	connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
+	//connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
   }
 
   UiController::~UiController()

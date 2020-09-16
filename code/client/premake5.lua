@@ -22,7 +22,8 @@ project("Client")
         "Qt5Widgets.lib",
 
         -- network
-        "enet"
+        "enet",
+        "fmtlib"
     })
     defines({
         -- idaq constants
@@ -33,7 +34,6 @@ project("Client")
         -- qt symbol workaround, read more here:
         -- https://www.hex-rays.com/blog/ida-qt-under-the-hood/
         "QT_NAMESPACE=QT",
-
     })
     includedirs({
         ".",

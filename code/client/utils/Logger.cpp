@@ -23,11 +23,11 @@ namespace noda::utils
   }
 
   // pretty print me, please :-)
-  void PrintLogMessage(LogLevel ll, const char *text, const fmt::format_args &args)
+  void PrintLogMessageImpl(LogLevel ll, const char *text, const fmt::format_args &args)
   {
 	const char *levelName = GetLevelName(ll);
 
-	auto fmt = fmt::format("[Noda] <{}> {} ", levelName, fmt::vformat(text, args));
+	auto fmt = fmt::format("[Noda] <{}>: {}\n", levelName, fmt::vformat(text, args));
 	callui(ui_msg, fmt.c_str());
   }
 } // namespace noda::utils

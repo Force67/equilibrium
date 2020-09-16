@@ -99,7 +99,7 @@ namespace noda::sync
 	    protocol::GetMessageRoot(static_cast<void *>(data));
 
 	LOG_TRACE("Recieved message {}",
-	    protocol::EnumNameMsgType(message->msg_type()));
+	          protocol::EnumNameMsgType(message->msg_type()));
 
 	switch(message->msg_type()) {
 	case protocol::MsgType_HandshakeAck: {
@@ -107,12 +107,12 @@ namespace noda::sync
 	  _active = true;
 
 	  LOG_INFO(
-		  "Successfully connected as {} (project: {})\n"
-		  "Local Version: {} Remote Version: {}",
-		  pack->userName()->c_str(),
-		  pack->project()->c_str(),
-		  1337,
-		  pack->dbRemoteVersion());
+	      "Successfully connected as {} (project: {})\n"
+	      "Local Version: {} Remote Version: {}",
+	      pack->userName()->c_str(),
+	      pack->project()->c_str(),
+	      1337,
+	      pack->dbRemoteVersion());
 
 	  // forward event
 	  emit Connected();
@@ -122,13 +122,13 @@ namespace noda::sync
 	  const auto *pack = message->msg_as_Broadcast();
 	  switch(pack->type()) {
 	  case protocol::BroadcastType_FirstJoin:
-		  LOG_INFO("{} joined this project!", pack->name()->c_str());
+		LOG_INFO("{} joined this project!", pack->name()->c_str());
 		break;
 	  case protocol::BroadcastType_Joined:
-		  LOG_INFO("{} connected.", pack->name()->c_str());
+		LOG_INFO("{} connected.", pack->name()->c_str());
 		break;
 	  case protocol::BroadcastType_Disconnect:
-		  LOG_INFO("{} disconnected.", pack->name()->c_str());
+		LOG_INFO("{} disconnected.", pack->name()->c_str());
 		break;
 	  default:
 		break;
