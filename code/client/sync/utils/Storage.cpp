@@ -1,7 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "IdbStorage.h"
+#include "Storage.h"
 
 namespace noda::sync::utils
 {
@@ -34,6 +34,5 @@ namespace noda::sync::utils
 	// Done
 	return true;
   }
-
 
 } // namespace noda::sync::utils

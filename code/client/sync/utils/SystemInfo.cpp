@@ -1,6 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
-#include "SysInfo.h"
+
+#include "SystemInfo.h"
 
 #ifdef _WIN32
 #include <Windows.h>

@@ -6,12 +6,14 @@
 
 #include <qsettings.h>
 
-#include "utils/IdbStorage.h"
-#include "utils/SysInfo.h"
+#include "utils/Storage.h"
+#include "utils/SystemInfo.h"
 
 #include "net/protocol/HandshakeRequest_generated.h"
 #include "net/protocol/HandshakeAck_generated.h"
+#include "net/protocol/MsgList_generated.h"
 
+#include "net/NetBase.h"
 #include "IdaInc.h"
 
 #include "handlers/Dispatcher.h"
@@ -34,11 +36,13 @@ namespace noda::sync
 
   bool SyncController::ConnectServer()
   {
+	// intiialize storage?
 	return _client->ConnectServer();
   }
 
   void SyncController::DisconnectServer()
   {
+	// flush storage?
 	_client->Disconnect();
   }
 
@@ -75,7 +79,7 @@ namespace noda::sync
 	    builder.CreateString(md5),
 	    builder.CreateString(buffer));
 
-	_client->SendFBReliable(
+	SendFbsPacket(
 	    builder,
 	    protocol::MsgType_HandshakeRequest,
 	    request);
@@ -84,7 +88,6 @@ namespace noda::sync
   void SyncController::OnDisconnect(uint32_t reason)
   {
 	_active = false;
-	// TODO: clean up other users...
 
 	// forward the event
 	emit Disconnected(reason);
@@ -95,45 +98,65 @@ namespace noda::sync
 	const protocol::MessageRoot *message =
 	    protocol::GetMessageRoot(static_cast<void *>(data));
 
-	msg("Recieved message %s\n",
+	LOG_TRACE("Recieved message {}",
 	    protocol::EnumNameMsgType(message->msg_type()));
 
-	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
-	  const auto *ack = message->msg_as_HandshakeAck();
-
-	  msg("We are connected %s\n", ack->project()->c_str());
-	  // looks good?
+	switch(message->msg_type()) {
+	case protocol::MsgType_HandshakeAck: {
+	  const auto *pack = message->msg_as_HandshakeAck();
 	  _active = true;
+
+	  LOG_INFO(
+		  "Successfully connected as {} (project: {})\n"
+		  "Local Version: {} Remote Version: {}",
+		  pack->userName()->c_str(),
+		  pack->project()->c_str(),
+		  1337,
+		  pack->dbRemoteVersion());
+
+	  // forward event
 	  emit Connected();
 	  return;
 	}
-	else if (message->msg_type() == protocol::MsgType_Broadcast) {
-		const auto* broadcast = message->msg_as_Broadcast();
-		switch (broadcast->type()) {
-		case protocol::BroadcastType_FirstJoin:
-			break;
-		case protocol::BroadcastType_Joined:
-			break;
-		case protocol::BroadcastType_Disconnect:
-			break;
-		default:
-			break;
-		}
+	case protocol::MsgType_Broadcast: {
+	  const auto *pack = message->msg_as_Broadcast();
+	  switch(pack->type()) {
+	  case protocol::BroadcastType_FirstJoin:
+		  LOG_INFO("{} joined this project!", pack->name()->c_str());
+		break;
+	  case protocol::BroadcastType_Joined:
+		  LOG_INFO("{} connected.", pack->name()->c_str());
+		break;
+	  case protocol::BroadcastType_Disconnect:
+		  LOG_INFO("{} disconnected.", pack->name()->c_str());
+		break;
+	  default:
+		break;
+	  }
+	  break;
+	}
+	case protocol::MsgType_ChatMessage: {
+	  const auto *pack = message->msg_as_ChatMessage();
+	  break;
+	}
 	}
 
 	// translate message type into handler index
 	auto *applicant = GetNetApplicant(
-	    message->msg_type() -
-	    /*offset of handler messages*/ protocol::MsgType_sync_NameAddr);
+	    message->msg_type() - protocol::MsgType_sync_NameEa);
 
 	if(applicant) {
-	  applicant(&_storage, *message);
+	  applicant(this, message->msg());
 	}
   }
 
   ssize_t SyncController::ProcessorEvent(void *userp, int code, va_list args)
   {
 	auto &self = reinterpret_cast<SyncController &>(userp);
+	if(self._active) {
+	  if(code == processor_t::event_t::ev_create_func_frame) {
+	  }
+	}
 
 	return 0;
   }
@@ -147,11 +170,15 @@ namespace noda::sync
 	  return 0;
 	}
 
-	auto *reactor = GetReactor_IDB(0);
-	if (reactor) {
-	  reactor(*self._client, args);
+	if(self._active) {
+#if 0
+	  auto *reactor = GetReactor_IDB(0);
+	  if(reactor) {
+		reactor(&self, args);
+	  }
+#endif
 	}
 
 	return 0;
   }
-} // namespace noda::sync  
+} // namespace noda::sync

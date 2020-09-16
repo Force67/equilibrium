@@ -28,15 +28,10 @@ namespace noda
 	  bool ConnectServer();
 
 	  bool SendReliable(uint8_t *, size_t);
-
-	  template <typename T>
-	  inline bool SendFBReliable(FbsBuilder &mb, protocol::MsgType type, const flatbuffers::Offset<T> &data)
-	  {
-		auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
-		mb.Finish(msgRoot);
-
-		return SendReliable(mb.GetBufferPointer(), mb.GetSize());
-	  }
+	  bool SendFbsPacketReliable(
+	      net::FbsBuilder &,
+	      protocol::MsgType,
+	      const net::FbsOffset<void>);
 
 	private:
 	  void run() override;

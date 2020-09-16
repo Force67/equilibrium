@@ -1,11 +1,17 @@
 #pragma once
-#include "Dispatcher.h"
 
-#include "net/NetClient.h"
-#include "net/protocol/MsgList_generated.h"
+#include "net/protocol/IdaSync_generated.h"
 
-namespace noda::sync_NameAddr
+namespace noda::sync
 {
-  bool Apply(void *, const protocol::MessageRoot &);
-  bool React(net::NetClient &, va_list);
-} // namespace noda::sync_NameAddr
+  using namespace protocol::sync;
+
+  class SyncController;
+
+  namespace NameAddr
+  {
+	bool Apply(SyncController &, const NameEa &);
+	bool React(SyncController &, va_list);
+  } // namespace NameAddr
+
+} // namespace noda::sync

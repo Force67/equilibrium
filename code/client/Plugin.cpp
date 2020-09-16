@@ -3,7 +3,7 @@
 // Entry point of the sync plugin
 
 #include "Plugin.h"
-#include "IdaInc.h"
+#include "utils/Logger.h"
 
 namespace noda
 {
@@ -11,7 +11,7 @@ namespace noda
       _syncController(),
       _uiController(_syncController)
   {
-	msg("Loaded NODA Copyright(c) NOMAD Group <nomad-group.net>.\n");
+	  LOG_INFO("Loaded NODA Copyright(c) NOMAD Group <nomad-group.net>.");
   }
 
   Plugin::~Plugin()

@@ -15,3 +15,4 @@ mark offsets for structures by right clicking em
 metal gear alert sound
 space shuttle anim
 net traffic up/down in the top bar
+export flatbuffer protocol as json

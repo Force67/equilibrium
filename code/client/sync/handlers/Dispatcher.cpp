@@ -7,28 +7,33 @@
 
 namespace noda::sync
 {
-	// this can react to processor and idb
-  static apply_t *g_applicantRegistry[]{
-	&sync_NameAddr::Apply,
+  // apply state to client
+  static void *g_applicantRegistry[]{
+	&NameAddr::Apply,
   };
 
-  static react_t *g_idbReact[]{
-	&sync_NameAddr::React,
+  // list -> index -> nullptr if not handeled...
+  static void *g_idbReact[]{
+	&NameAddr::React,
   };
 
-  apply_t *GetNetApplicant(uint idx)
+  static void *g_idpReact[]{
+	nullptr,
+  };
+
+  apply_t *GetNetApplicant(uint index)
   {
-	if(idx > (sizeof(g_applicantRegistry) / sizeof(void *)))
+	if(index > (sizeof(g_applicantRegistry) / sizeof(void *)))
 	  __debugbreak();
 
-	return g_applicantRegistry[idx];
+	return reinterpret_cast<apply_t *>(g_applicantRegistry[index]);
   }
 
-  react_t *GetReactor_IDB(uint idx)
+  react_t *GetReactor_IDB(uint idx, bool idp)
   {
 	if(idx > (sizeof(g_idbReact) / sizeof(void *)))
 	  __debugbreak();
 
-	return g_idbReact[idx];
+	return reinterpret_cast<react_t *>(g_idbReact[idx]);
   }
 } // namespace noda::sync

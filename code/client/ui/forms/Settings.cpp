@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "Settings.h"
-#include "sync/utils/SysInfo.h"
+#include "sync/utils/SystemInfo.h"
 
 namespace noda::ui
 {

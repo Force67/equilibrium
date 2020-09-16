@@ -70,6 +70,19 @@ namespace noda::net
 	return false;
   }
 
+  bool NetClient::SendFbsPacketReliable(
+      net::FbsBuilder &fbb,
+      protocol::MsgType type,
+      const net::FbsOffset<void> packetRef)
+  {
+	fbb.Finish(protocol::CreateMessageRoot(
+	    fbb, type, packetRef));
+
+	return SendReliable(
+	    fbb.GetBufferPointer(),
+	    fbb.GetSize());
+  }
+
   void NetClient::Disconnect()
   {
 	_updateNet = false;
