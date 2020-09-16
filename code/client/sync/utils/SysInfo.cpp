@@ -39,4 +39,4 @@ namespace noda::sync::utils
 
 	return s_Hwid;
   }
-} // namespace utility
+} // namespace noda::sync::utils

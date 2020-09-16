@@ -25,8 +25,8 @@ namespace noda
 	  // constants
 	  constexpr uint32_t kTimeout = 3000;
 	  constexpr uint32_t kNetworkerThreadIdle = 1;
-	  constexpr uint16_t kClientVersion = 
-		  protocol::constants::ProtocolVersion_V_1_0;
+	  constexpr uint16_t kClientVersion =
+	      protocol::constants::ProtocolVersion_V_1_0;
 	} // namespace constants
 
 	class NetDelegate

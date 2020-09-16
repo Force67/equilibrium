@@ -1,0 +1,16 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+
+namespace protocol;
+
+enum BroadcastType : byte
+{
+    FirstJoin,
+    Joined,
+    Disconnect
+}
+
+table Broadcast {
+  type:BroadcastType;
+  name:string;
+}

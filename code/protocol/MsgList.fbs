@@ -3,16 +3,38 @@
 
 include "HandshakeRequest.fbs";
 include "HandshakeAck.fbs";
-include "IdbSync.fbs";
+include "Broadcast.fbs";
+include "ChatMessage.fbs";
+include "IdaSync.fbs";
 
 namespace protocol;
 
 union MsgType {
     HandshakeRequest,
     HandshakeAck,
+    Broadcast,
+    ChatMessage,
 
-    // idb:
-    sync.NameAddr,
+    // sync messages go ONLY after HERE:
+    sync.NameEa,
+
+    // unimplement:
+    sync.AddFunction,
+
+    sync.CreateStruct,
+    sync.RenameStruct,
+    sync.DeleteStruct,
+    sync.RenameStructMember,
+    sync.DeleteStructMember,
+    sync.ChangeStructMember,
+
+    sync.ChangeItem,
+    sync.MakeCode,
+    sync.MakeData,
+    sync.Undefine,
+    sync.ChangeComment,
+
+    sync.ChangeOperand
 }
 
 table MessageRoot{

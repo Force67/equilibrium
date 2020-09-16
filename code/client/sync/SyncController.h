@@ -2,9 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "IdaInc.h"
+#include "utils/IdbStorage.h"
 #include <qobject.h>
-
 #include "net/NetBase.h"
 
 namespace noda
@@ -36,14 +35,15 @@ namespace noda
 
 	private:
 	  static ssize_t idaapi ProcessorEvent(void *, int, va_list);
-	  static ssize_t idaapi IdbEvent(void*, int, va_list);
+	  static ssize_t idaapi IdbEvent(void *, int, va_list);
 
 	  // network events
 	  void OnConnectRequest() override;
 	  void OnDisconnect(uint32_t) override;
 	  void ProcessPacket(uint8_t *, size_t) override;
 
-	  bool _accepted = false;
+	  utils::IdbStorage _storage;
+	  bool _active = false;
 	  QScopedPointer<net::NetClient> _client;
 	};
   } // namespace sync

@@ -8,4 +8,4 @@ namespace noda::sync::utils
 {
   const QString &GetSysUsername();
   const QString &GetHardwareId();
-} // namespace utility
+} // namespace noda::sync::utils

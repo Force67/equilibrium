@@ -10,7 +10,22 @@ public enum MsgType : byte
   NONE = 0,
   HandshakeRequest = 1,
   HandshakeAck = 2,
-  sync_NameAddr = 3,
+  Broadcast = 3,
+  ChatMessage = 4,
+  sync_NameEa = 5,
+  sync_AddFunction = 6,
+  sync_CreateStruct = 7,
+  sync_RenameStruct = 8,
+  sync_DeleteStruct = 9,
+  sync_RenameStructMember = 10,
+  sync_DeleteStructMember = 11,
+  sync_ChangeStructMember = 12,
+  sync_ChangeItem = 13,
+  sync_MakeCode = 14,
+  sync_MakeData = 15,
+  sync_Undefine = 16,
+  sync_ChangeComment = 17,
+  sync_ChangeOperand = 18,
 };
 
 

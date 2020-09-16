@@ -28,7 +28,7 @@ namespace noda::net
   NetClient::~NetClient()
   {
 	if(!_updateNet)
-		QThread::terminate();
+	  QThread::terminate();
 
 	if(_host)
 	  enet_host_destroy(_host);
@@ -43,7 +43,7 @@ namespace noda::net
 
 	_address.port = static_cast<uint16_t>(NdPort);
 	if(enet_address_set_host(&_address,
-	                          NdAddress.toUtf8().data()) < 0)
+	                         NdAddress.toUtf8().data()) < 0)
 	  return false;
 
 	_serverPeer = enet_host_connect(_host, &_address, 2, 0);

@@ -1,0 +1,110 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+// This file defines the protocol used to comminicate IDB changes.
+
+namespace protocol.sync;
+
+// Note that: Addresses are represented as 64 bit numbers, 
+// even on 32 bit ida instances
+
+table NameEa {
+    ea:uint64;
+    name:string;
+    local:bool;
+}
+
+table AddFunction {
+    startea:uint64;
+    endea:uint64;
+}
+
+table CreateStruct {
+    name:string;
+    isUnion:bool;
+}
+
+table RenameStruct {
+    oldName:string;
+    newName:string;
+}
+
+table DeleteStruct {
+    name:string;
+}
+
+table RenameStructMember {
+    structName:string;
+    memberName:string;
+    offset:uint64;
+}
+
+table DeleteStructMember {
+    ea:uint64;
+    name:string;
+}
+
+enum StructMemberType : byte
+{
+    Data,
+    Struct,
+    String,
+    Enum,
+    Offset
+}
+
+table ChangeStructMember {
+    structName:string;
+    memberName:string;
+    type:StructMemberType;
+
+    offset:uint64;
+    size:uint64;
+    flags:uint;
+
+    targetStructName:string;
+    stringType:int;
+    // TODO: ReflInfo
+}
+
+table ChangeItem {
+    ea:uint64;
+    type:string;
+    names:string;
+}
+
+table MakeCode {
+    ea:uint64;
+}
+
+table MakeData {
+    ea:uint64;
+    flags:uint;
+    length:uint;
+}
+
+table ChangeComment {
+    ea:uint64;
+    text:string;
+    repeatable:bool;
+}
+
+enum OperandType : byte
+{
+    Unsupported = -1,
+    Unknown,
+    Enum,
+    StructOffset,
+    Offset,
+}
+
+table ChangeOperand {
+    ea:uint64;
+    type:OperandType;
+    opCount:byte;
+    flags:uint;
+    offset:uint64;
+}
+
+table Undefine {
+    ea:uint64;
+}

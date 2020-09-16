@@ -14,6 +14,8 @@
 
 #include "IdaInc.h"
 
+#include "handlers/Dispatcher.h"
+
 namespace noda::sync
 {
   SyncController::SyncController()
@@ -42,8 +44,7 @@ namespace noda::sync
 
   bool SyncController::IsConnected()
   {
-	return _client->IsConnected() 
-		&& _accepted;
+	return _client->IsConnected() && _active;
   }
 
   void SyncController::OnConnectRequest()
@@ -82,8 +83,8 @@ namespace noda::sync
 
   void SyncController::OnDisconnect(uint32_t reason)
   {
-	_accepted = false;
-	  // TODO: clean up other users...
+	_active = false;
+	// TODO: clean up other users...
 
 	// forward the event
 	emit Disconnected(reason);
@@ -94,18 +95,40 @@ namespace noda::sync
 	const protocol::MessageRoot *message =
 	    protocol::GetMessageRoot(static_cast<void *>(data));
 
-	msg("Recieved message %s\n", 
-		protocol::EnumNameMsgType(message->msg_type()));
+	msg("Recieved message %s\n",
+	    protocol::EnumNameMsgType(message->msg_type()));
 
 	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
 	  const auto *ack = message->msg_as_HandshakeAck();
-	  
+
 	  msg("We are connected %s\n", ack->project()->c_str());
 	  // looks good?
-	  _accepted = true;
+	  _active = true;
 	  emit Connected();
 	  return;
-	} 
+	}
+	else if (message->msg_type() == protocol::MsgType_Broadcast) {
+		const auto* broadcast = message->msg_as_Broadcast();
+		switch (broadcast->type()) {
+		case protocol::BroadcastType_FirstJoin:
+			break;
+		case protocol::BroadcastType_Joined:
+			break;
+		case protocol::BroadcastType_Disconnect:
+			break;
+		default:
+			break;
+		}
+	}
+
+	// translate message type into handler index
+	auto *applicant = GetNetApplicant(
+	    message->msg_type() -
+	    /*offset of handler messages*/ protocol::MsgType_sync_NameAddr);
+
+	if(applicant) {
+	  applicant(&_storage, *message);
+	}
   }
 
   ssize_t SyncController::ProcessorEvent(void *userp, int code, va_list args)
@@ -117,17 +140,18 @@ namespace noda::sync
 
   ssize_t SyncController::IdbEvent(void *userp, int code, va_list args)
   {
-	auto &self = reinterpret_cast<SyncController&>(userp);
+	auto &self = reinterpret_cast<SyncController &>(userp);
 
-	if (code == idb_event::event_code_t::closebase) {
+	if(code == idb_event::event_code_t::closebase) {
 	  self._client->Disconnect();
 	  return 0;
 	}
 
-	idb_event::func_added;
-
-	// find a dispatcher
+	auto *reactor = GetReactor_IDB(0);
+	if (reactor) {
+	  reactor(*self._client, args);
+	}
 
 	return 0;
   }
-} // namespace noda::sync
+} // namespace noda::sync  

@@ -6,9 +6,11 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include "Broadcast_generated.h"
+#include "ChatMessage_generated.h"
 #include "HandshakeAck_generated.h"
 #include "HandshakeRequest_generated.h"
-#include "IdbSync_generated.h"
+#include "IdaSync_generated.h"
 
 namespace protocol {
 
@@ -19,34 +21,79 @@ enum MsgType {
   MsgType_NONE = 0,
   MsgType_HandshakeRequest = 1,
   MsgType_HandshakeAck = 2,
-  MsgType_sync_NameAddr = 3,
+  MsgType_Broadcast = 3,
+  MsgType_ChatMessage = 4,
+  MsgType_sync_NameEa = 5,
+  MsgType_sync_AddFunction = 6,
+  MsgType_sync_CreateStruct = 7,
+  MsgType_sync_RenameStruct = 8,
+  MsgType_sync_DeleteStruct = 9,
+  MsgType_sync_RenameStructMember = 10,
+  MsgType_sync_DeleteStructMember = 11,
+  MsgType_sync_ChangeStructMember = 12,
+  MsgType_sync_ChangeItem = 13,
+  MsgType_sync_MakeCode = 14,
+  MsgType_sync_MakeData = 15,
+  MsgType_sync_Undefine = 16,
+  MsgType_sync_ChangeComment = 17,
+  MsgType_sync_ChangeOperand = 18,
   MsgType_MIN = MsgType_NONE,
-  MsgType_MAX = MsgType_sync_NameAddr
+  MsgType_MAX = MsgType_sync_ChangeOperand
 };
 
-inline const MsgType (&EnumValuesMsgType())[4] {
+inline const MsgType (&EnumValuesMsgType())[19] {
   static const MsgType values[] = {
     MsgType_NONE,
     MsgType_HandshakeRequest,
     MsgType_HandshakeAck,
-    MsgType_sync_NameAddr
+    MsgType_Broadcast,
+    MsgType_ChatMessage,
+    MsgType_sync_NameEa,
+    MsgType_sync_AddFunction,
+    MsgType_sync_CreateStruct,
+    MsgType_sync_RenameStruct,
+    MsgType_sync_DeleteStruct,
+    MsgType_sync_RenameStructMember,
+    MsgType_sync_DeleteStructMember,
+    MsgType_sync_ChangeStructMember,
+    MsgType_sync_ChangeItem,
+    MsgType_sync_MakeCode,
+    MsgType_sync_MakeData,
+    MsgType_sync_Undefine,
+    MsgType_sync_ChangeComment,
+    MsgType_sync_ChangeOperand
   };
   return values;
 }
 
 inline const char * const *EnumNamesMsgType() {
-  static const char * const names[5] = {
+  static const char * const names[20] = {
     "NONE",
     "HandshakeRequest",
     "HandshakeAck",
-    "sync_NameAddr",
+    "Broadcast",
+    "ChatMessage",
+    "sync_NameEa",
+    "sync_AddFunction",
+    "sync_CreateStruct",
+    "sync_RenameStruct",
+    "sync_DeleteStruct",
+    "sync_RenameStructMember",
+    "sync_DeleteStructMember",
+    "sync_ChangeStructMember",
+    "sync_ChangeItem",
+    "sync_MakeCode",
+    "sync_MakeData",
+    "sync_Undefine",
+    "sync_ChangeComment",
+    "sync_ChangeOperand",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameMsgType(MsgType e) {
-  if (flatbuffers::IsOutRange(e, MsgType_NONE, MsgType_sync_NameAddr)) return "";
+  if (flatbuffers::IsOutRange(e, MsgType_NONE, MsgType_sync_ChangeOperand)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMsgType()[index];
 }
@@ -63,8 +110,68 @@ template<> struct MsgTypeTraits<protocol::HandshakeAck> {
   static const MsgType enum_value = MsgType_HandshakeAck;
 };
 
-template<> struct MsgTypeTraits<protocol::sync::NameAddr> {
-  static const MsgType enum_value = MsgType_sync_NameAddr;
+template<> struct MsgTypeTraits<protocol::Broadcast> {
+  static const MsgType enum_value = MsgType_Broadcast;
+};
+
+template<> struct MsgTypeTraits<protocol::ChatMessage> {
+  static const MsgType enum_value = MsgType_ChatMessage;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::NameEa> {
+  static const MsgType enum_value = MsgType_sync_NameEa;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::AddFunction> {
+  static const MsgType enum_value = MsgType_sync_AddFunction;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::CreateStruct> {
+  static const MsgType enum_value = MsgType_sync_CreateStruct;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::RenameStruct> {
+  static const MsgType enum_value = MsgType_sync_RenameStruct;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::DeleteStruct> {
+  static const MsgType enum_value = MsgType_sync_DeleteStruct;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::RenameStructMember> {
+  static const MsgType enum_value = MsgType_sync_RenameStructMember;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::DeleteStructMember> {
+  static const MsgType enum_value = MsgType_sync_DeleteStructMember;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::ChangeStructMember> {
+  static const MsgType enum_value = MsgType_sync_ChangeStructMember;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::ChangeItem> {
+  static const MsgType enum_value = MsgType_sync_ChangeItem;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::MakeCode> {
+  static const MsgType enum_value = MsgType_sync_MakeCode;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::MakeData> {
+  static const MsgType enum_value = MsgType_sync_MakeData;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::Undefine> {
+  static const MsgType enum_value = MsgType_sync_Undefine;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::ChangeComment> {
+  static const MsgType enum_value = MsgType_sync_ChangeComment;
+};
+
+template<> struct MsgTypeTraits<protocol::sync::ChangeOperand> {
+  static const MsgType enum_value = MsgType_sync_ChangeOperand;
 };
 
 bool VerifyMsgType(flatbuffers::Verifier &verifier, const void *obj, MsgType type);
@@ -89,8 +196,53 @@ struct MessageRoot FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const protocol::HandshakeAck *msg_as_HandshakeAck() const {
     return msg_type() == protocol::MsgType_HandshakeAck ? static_cast<const protocol::HandshakeAck *>(msg()) : nullptr;
   }
-  const protocol::sync::NameAddr *msg_as_sync_NameAddr() const {
-    return msg_type() == protocol::MsgType_sync_NameAddr ? static_cast<const protocol::sync::NameAddr *>(msg()) : nullptr;
+  const protocol::Broadcast *msg_as_Broadcast() const {
+    return msg_type() == protocol::MsgType_Broadcast ? static_cast<const protocol::Broadcast *>(msg()) : nullptr;
+  }
+  const protocol::ChatMessage *msg_as_ChatMessage() const {
+    return msg_type() == protocol::MsgType_ChatMessage ? static_cast<const protocol::ChatMessage *>(msg()) : nullptr;
+  }
+  const protocol::sync::NameEa *msg_as_sync_NameEa() const {
+    return msg_type() == protocol::MsgType_sync_NameEa ? static_cast<const protocol::sync::NameEa *>(msg()) : nullptr;
+  }
+  const protocol::sync::AddFunction *msg_as_sync_AddFunction() const {
+    return msg_type() == protocol::MsgType_sync_AddFunction ? static_cast<const protocol::sync::AddFunction *>(msg()) : nullptr;
+  }
+  const protocol::sync::CreateStruct *msg_as_sync_CreateStruct() const {
+    return msg_type() == protocol::MsgType_sync_CreateStruct ? static_cast<const protocol::sync::CreateStruct *>(msg()) : nullptr;
+  }
+  const protocol::sync::RenameStruct *msg_as_sync_RenameStruct() const {
+    return msg_type() == protocol::MsgType_sync_RenameStruct ? static_cast<const protocol::sync::RenameStruct *>(msg()) : nullptr;
+  }
+  const protocol::sync::DeleteStruct *msg_as_sync_DeleteStruct() const {
+    return msg_type() == protocol::MsgType_sync_DeleteStruct ? static_cast<const protocol::sync::DeleteStruct *>(msg()) : nullptr;
+  }
+  const protocol::sync::RenameStructMember *msg_as_sync_RenameStructMember() const {
+    return msg_type() == protocol::MsgType_sync_RenameStructMember ? static_cast<const protocol::sync::RenameStructMember *>(msg()) : nullptr;
+  }
+  const protocol::sync::DeleteStructMember *msg_as_sync_DeleteStructMember() const {
+    return msg_type() == protocol::MsgType_sync_DeleteStructMember ? static_cast<const protocol::sync::DeleteStructMember *>(msg()) : nullptr;
+  }
+  const protocol::sync::ChangeStructMember *msg_as_sync_ChangeStructMember() const {
+    return msg_type() == protocol::MsgType_sync_ChangeStructMember ? static_cast<const protocol::sync::ChangeStructMember *>(msg()) : nullptr;
+  }
+  const protocol::sync::ChangeItem *msg_as_sync_ChangeItem() const {
+    return msg_type() == protocol::MsgType_sync_ChangeItem ? static_cast<const protocol::sync::ChangeItem *>(msg()) : nullptr;
+  }
+  const protocol::sync::MakeCode *msg_as_sync_MakeCode() const {
+    return msg_type() == protocol::MsgType_sync_MakeCode ? static_cast<const protocol::sync::MakeCode *>(msg()) : nullptr;
+  }
+  const protocol::sync::MakeData *msg_as_sync_MakeData() const {
+    return msg_type() == protocol::MsgType_sync_MakeData ? static_cast<const protocol::sync::MakeData *>(msg()) : nullptr;
+  }
+  const protocol::sync::Undefine *msg_as_sync_Undefine() const {
+    return msg_type() == protocol::MsgType_sync_Undefine ? static_cast<const protocol::sync::Undefine *>(msg()) : nullptr;
+  }
+  const protocol::sync::ChangeComment *msg_as_sync_ChangeComment() const {
+    return msg_type() == protocol::MsgType_sync_ChangeComment ? static_cast<const protocol::sync::ChangeComment *>(msg()) : nullptr;
+  }
+  const protocol::sync::ChangeOperand *msg_as_sync_ChangeOperand() const {
+    return msg_type() == protocol::MsgType_sync_ChangeOperand ? static_cast<const protocol::sync::ChangeOperand *>(msg()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -109,8 +261,68 @@ template<> inline const protocol::HandshakeAck *MessageRoot::msg_as<protocol::Ha
   return msg_as_HandshakeAck();
 }
 
-template<> inline const protocol::sync::NameAddr *MessageRoot::msg_as<protocol::sync::NameAddr>() const {
-  return msg_as_sync_NameAddr();
+template<> inline const protocol::Broadcast *MessageRoot::msg_as<protocol::Broadcast>() const {
+  return msg_as_Broadcast();
+}
+
+template<> inline const protocol::ChatMessage *MessageRoot::msg_as<protocol::ChatMessage>() const {
+  return msg_as_ChatMessage();
+}
+
+template<> inline const protocol::sync::NameEa *MessageRoot::msg_as<protocol::sync::NameEa>() const {
+  return msg_as_sync_NameEa();
+}
+
+template<> inline const protocol::sync::AddFunction *MessageRoot::msg_as<protocol::sync::AddFunction>() const {
+  return msg_as_sync_AddFunction();
+}
+
+template<> inline const protocol::sync::CreateStruct *MessageRoot::msg_as<protocol::sync::CreateStruct>() const {
+  return msg_as_sync_CreateStruct();
+}
+
+template<> inline const protocol::sync::RenameStruct *MessageRoot::msg_as<protocol::sync::RenameStruct>() const {
+  return msg_as_sync_RenameStruct();
+}
+
+template<> inline const protocol::sync::DeleteStruct *MessageRoot::msg_as<protocol::sync::DeleteStruct>() const {
+  return msg_as_sync_DeleteStruct();
+}
+
+template<> inline const protocol::sync::RenameStructMember *MessageRoot::msg_as<protocol::sync::RenameStructMember>() const {
+  return msg_as_sync_RenameStructMember();
+}
+
+template<> inline const protocol::sync::DeleteStructMember *MessageRoot::msg_as<protocol::sync::DeleteStructMember>() const {
+  return msg_as_sync_DeleteStructMember();
+}
+
+template<> inline const protocol::sync::ChangeStructMember *MessageRoot::msg_as<protocol::sync::ChangeStructMember>() const {
+  return msg_as_sync_ChangeStructMember();
+}
+
+template<> inline const protocol::sync::ChangeItem *MessageRoot::msg_as<protocol::sync::ChangeItem>() const {
+  return msg_as_sync_ChangeItem();
+}
+
+template<> inline const protocol::sync::MakeCode *MessageRoot::msg_as<protocol::sync::MakeCode>() const {
+  return msg_as_sync_MakeCode();
+}
+
+template<> inline const protocol::sync::MakeData *MessageRoot::msg_as<protocol::sync::MakeData>() const {
+  return msg_as_sync_MakeData();
+}
+
+template<> inline const protocol::sync::Undefine *MessageRoot::msg_as<protocol::sync::Undefine>() const {
+  return msg_as_sync_Undefine();
+}
+
+template<> inline const protocol::sync::ChangeComment *MessageRoot::msg_as<protocol::sync::ChangeComment>() const {
+  return msg_as_sync_ChangeComment();
+}
+
+template<> inline const protocol::sync::ChangeOperand *MessageRoot::msg_as<protocol::sync::ChangeOperand>() const {
+  return msg_as_sync_ChangeOperand();
 }
 
 struct MessageRootBuilder {
@@ -158,8 +370,68 @@ inline bool VerifyMsgType(flatbuffers::Verifier &verifier, const void *obj, MsgT
       auto ptr = reinterpret_cast<const protocol::HandshakeAck *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case MsgType_sync_NameAddr: {
-      auto ptr = reinterpret_cast<const protocol::sync::NameAddr *>(obj);
+    case MsgType_Broadcast: {
+      auto ptr = reinterpret_cast<const protocol::Broadcast *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_ChatMessage: {
+      auto ptr = reinterpret_cast<const protocol::ChatMessage *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_NameEa: {
+      auto ptr = reinterpret_cast<const protocol::sync::NameEa *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_AddFunction: {
+      auto ptr = reinterpret_cast<const protocol::sync::AddFunction *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_CreateStruct: {
+      auto ptr = reinterpret_cast<const protocol::sync::CreateStruct *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_RenameStruct: {
+      auto ptr = reinterpret_cast<const protocol::sync::RenameStruct *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_DeleteStruct: {
+      auto ptr = reinterpret_cast<const protocol::sync::DeleteStruct *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_RenameStructMember: {
+      auto ptr = reinterpret_cast<const protocol::sync::RenameStructMember *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_DeleteStructMember: {
+      auto ptr = reinterpret_cast<const protocol::sync::DeleteStructMember *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_ChangeStructMember: {
+      auto ptr = reinterpret_cast<const protocol::sync::ChangeStructMember *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_ChangeItem: {
+      auto ptr = reinterpret_cast<const protocol::sync::ChangeItem *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_MakeCode: {
+      auto ptr = reinterpret_cast<const protocol::sync::MakeCode *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_MakeData: {
+      auto ptr = reinterpret_cast<const protocol::sync::MakeData *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_Undefine: {
+      auto ptr = reinterpret_cast<const protocol::sync::Undefine *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_ChangeComment: {
+      auto ptr = reinterpret_cast<const protocol::sync::ChangeComment *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case MsgType_sync_ChangeOperand: {
+      auto ptr = reinterpret_cast<const protocol::sync::ChangeOperand *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

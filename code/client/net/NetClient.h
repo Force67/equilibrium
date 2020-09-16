@@ -30,7 +30,7 @@ namespace noda
 	  bool SendReliable(uint8_t *, size_t);
 
 	  template <typename T>
-	  inline bool SendFBReliable(FbsBuilder &mb, protocol::Data type, const flatbuffers::Offset<T> &data)
+	  inline bool SendFBReliable(FbsBuilder &mb, protocol::MsgType type, const flatbuffers::Offset<T> &data)
 	  {
 		auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
 		mb.Finish(msgRoot);
