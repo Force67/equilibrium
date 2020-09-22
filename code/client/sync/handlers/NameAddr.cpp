@@ -31,12 +31,9 @@ namespace noda::sync::NameAddr
 	auto *name = va_arg(list, const char *);
 	auto local = va_arg(list, int) != 0;
 
-	net::FbsBuilder fbb;
-	auto pack = CreateNameEa(fbb,
-	                         addr,
-	                         fbb.CreateString(name),
-	                         static_cast<bool>(local));
+	auto pack = CreateNameEaDirect(sc.fbb(), addr, name,
+	                               static_cast<bool>(local));
 
-	return sc.SendFbsPacket(fbb, protocol::MsgType_sync_NameEa, pack);
+	return sc.SendFbsPacket(protocol::MsgType_sync_NameEa, pack);
   }
 } // namespace noda::sync::NameAddr

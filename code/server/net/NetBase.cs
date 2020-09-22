@@ -10,6 +10,8 @@ namespace noda.net
 {
     public interface NetDelegate
     {
+        public void OnConnection(Peer peer);
+        public void OnDisconnection(Peer peer);
         public void ProcessPacket(Peer peer, byte[] data, int length);
     }
 

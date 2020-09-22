@@ -52,10 +52,10 @@ namespace noda.net
                     switch (netEvent.Type)
                     {
                         case ENet.EventType.Connect:
-                            //OnConnection(_netEvent.Peer);
+                            netDelegate.OnConnection(netEvent.Peer);
                             break;
                         case ENet.EventType.Disconnect:
-                            //OnDisconnection(_netEvent.Peer);
+                            netDelegate.OnDisconnection(netEvent.Peer);
                             netEvent.Peer.Reset();
                             break;
                         case ENet.EventType.Receive: {

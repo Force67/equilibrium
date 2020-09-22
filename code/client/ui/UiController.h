@@ -41,7 +41,7 @@ namespace noda
 	QAction *_connectAct = nullptr;
 	QAction *_pMenuAct = nullptr;
 
-	sync::SyncController& _sync;
+	sync::SyncController &_sync;
 
   public slots:
 	void ToggleConnect();

@@ -4,6 +4,9 @@
 
 #include <qcolor.h>
 
+// ui icon color:
+// http://www.flatuicolorpicker.com/purple-rgb-color-model/  rgb(142, 68, 173)
+
 // backport of QColorConstants for QT 5.6
 // colors taken from official color spec at
 // https://doc.qt.io/qt-5/qcolorconstants.html

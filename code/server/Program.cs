@@ -48,8 +48,18 @@ namespace noda
             }
         }
 
+        private static System.Reflection.Assembly MyResolveEventHandler(object sender, ResolveEventArgs args)
+        {
+            Console.WriteLine("Resolving... " + args.Name);
+            return typeof(Program).Assembly;
+        }
+
         static void Main(string[] args)
         {
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.AssemblyResolve += new ResolveEventHandler(MyResolveEventHandler);
+
+
             new Program().Run();
         }
     }

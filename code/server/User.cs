@@ -42,7 +42,10 @@ namespace noda
             var msgRoot = Message.CreateMessage(fbb, msgType, data.Value);
             fbb.Finish(msgRoot.Value);
 
-            return SendReliable(fbb.DataBuffer.ToSizedArray() /*Do not use toFullArray*/);
+            bool result = SendReliable(fbb.DataBuffer.ToSizedArray() /*Do not use toFullArray*/);
+            fbb.Clear();
+
+            return result;
         }
     }
 }

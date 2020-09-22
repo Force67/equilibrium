@@ -68,19 +68,17 @@ namespace noda::sync
 	char buffer[128]{};
 	get_root_filename(buffer, sizeof(buffer) - 1);
 
-	net::FbsBuilder builder;
 	auto request = protocol::CreateHandshakeRequest(
-	    builder,
+	    _fbb,
 	    net::constants::kClientVersion,
-	    net::MakeFbStringRef(builder, hwid),
-	    net::MakeFbStringRef(builder, user),
-	    net::MakeFbStringRef(builder, pass),
+	    net::MakeFbStringRef(_fbb, hwid),
+	    net::MakeFbStringRef(_fbb, user),
+	    net::MakeFbStringRef(_fbb, pass),
 	    dbVersion,
-	    builder.CreateString(md5),
-	    builder.CreateString(buffer));
+	    _fbb.CreateString(md5),
+	    _fbb.CreateString(buffer));
 
 	SendFbsPacket(
-	    builder,
 	    protocol::MsgType_HandshakeRequest,
 	    request);
   }
@@ -135,18 +133,15 @@ namespace noda::sync
 	  }
 	  break;
 	}
-	case protocol::MsgType_ChatMessage: {
-	  const auto *pack = message->msg_as_ChatMessage();
-	  break;
-	}
-	}
+	default: {
+	  // translate message type into handler indexä
+	  auto *applicant = GetNetApplicant(
+	      message->msg_type() - protocol::MsgType_sync_NameEa);
 
-	// translate message type into handler index
-	auto *applicant = GetNetApplicant(
-	    message->msg_type() - protocol::MsgType_sync_NameEa);
-
-	if(applicant) {
-	  applicant(this, message->msg());
+	  if(applicant) {
+		applicant(this, message->msg());
+	  }
+	}
 	}
   }
 

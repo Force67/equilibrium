@@ -43,8 +43,6 @@ namespace noda::ui
 	cbShowWelcome->setChecked(!_settings.value("Nd_UiSkipWelcome").toBool());
 	cbShowAutoconnect->setChecked(!_settings.value("Nd_UiSkipConnect").toBool());
 
-	LOG_INFO("Skip welcome? {}, Skip Connect? {}", _settings.value("Nd_UiSkipWelcome").toBool(), _settings.value("Nd_UiSkipConnect").toBool());
-
 	// gray out these fields when the network is active
 	bool enabled = !connected;
 	gbSyncConfig->setDisabled(enabled);

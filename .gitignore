@@ -6,7 +6,8 @@
 build/
 .vscode
 
-protocol
+code/client/net/protocol/**
+code/server/net/protocol/**
 !code/protocol
 
 !tools/build

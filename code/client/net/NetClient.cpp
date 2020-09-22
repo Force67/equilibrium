@@ -78,9 +78,15 @@ namespace noda::net
 	fbb.Finish(protocol::CreateMessage(
 	    fbb, type, packetRef));
 
-	return SendReliable(
+	bool result = SendReliable(
 	    fbb.GetBufferPointer(),
 	    fbb.GetSize());
+
+	// clear the used memory,
+	// but dont free the buffer
+	fbb.Clear();
+
+	return result;
   }
 
   void NetClient::Disconnect()

@@ -21,6 +21,7 @@ namespace noda
 	                             public net::NetDelegate
 	{
 	  Q_OBJECT;
+
 	public:
 	  SyncController();
 	  ~SyncController();
@@ -33,11 +34,15 @@ namespace noda
 	  // type safe wrapper to guarntee proper specifization
 	  template <typename T>
 	  inline bool SendFbsPacket(
-	      net::FbsBuilder &fbb,
 	      protocol::MsgType tt,
 	      const net::FbsOffset<T> ref)
 	  {
-		return _client->SendFbsPacketReliable(fbb, tt, ref.Union());
+		return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
+	  }
+
+	  net::FbsBuilder &fbb()
+	  {
+		return _fbb;
 	  }
 
 	signals:
@@ -58,6 +63,9 @@ namespace noda
 	  utils::Storage _storage;
 	  bool _active = false;
 	  QScopedPointer<net::NetClient> _client;
+
+	  net::FbsBuilder _fbb;
+	  uint32_t _heartBeatCount = 0;
 	};
   } // namespace sync
 } // namespace noda

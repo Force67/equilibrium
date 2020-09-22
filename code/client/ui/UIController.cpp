@@ -35,9 +35,6 @@ namespace noda
 	unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
   }
 
-  // http://www.flatuicolorpicker.com/purple-rgb-color-model/  rgb(142, 68, 173)
-  // https://icons8.com/articles/how-to-recolor-a-raster-icon-in-photoshop/
-
   void UiController::BuildUi()
   {
 	auto *mainWindow = GetTopWindow();
@@ -87,8 +84,8 @@ namespace noda
 
   void UiController::OnConnected()
   {
-	  _connectAct->setText("Disconnect");
-	  _statusBar->SetColor(colorconstant::green);
+	_connectAct->setText("Disconnect");
+	_statusBar->SetColor(colorconstant::green);
   }
 
   void UiController::OnDisconnect(uint32_t reason)
@@ -99,22 +96,22 @@ namespace noda
 
   void UiController::ToggleConnect()
   {
-	  if (_sync.IsConnected())
-		  _sync.DisconnectServer();
-	  else {
-		  _statusBar->SetColor(colorconstant::orange);
+	if(_sync.IsConnected())
+	  _sync.DisconnectServer();
+	else {
+	  _statusBar->SetColor(colorconstant::orange);
 
-		  bool result = _sync.ConnectServer();
-		  if (!result) {
-			  _statusBar->SetColor(colorconstant::red);
+	  bool result = _sync.ConnectServer();
+	  if(!result) {
+		_statusBar->SetColor(colorconstant::red);
 
-			  QErrorMessage error(QApplication::activeWindow());
-			  error.showMessage(
-				  "Unable to connect to the NODA sync host.\n"
-				  "It is likely that the selected port is not available.");
-			  error.exec();
-		  }
+		QErrorMessage error(QApplication::activeWindow());
+		error.showMessage(
+		    "Unable to connect to the NODA sync host.\n"
+		    "It is likely that the selected port is not available.");
+		error.exec();
 	  }
+	}
   }
 
   void UiController::OpenSyncMenu()
