@@ -33,7 +33,6 @@ namespace noda
 
   private:
 	void BuildUi();
-	void OnDisconnect(uint32_t);
 
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
@@ -42,9 +41,13 @@ namespace noda
 	QAction *_connectAct = nullptr;
 	QAction *_pMenuAct = nullptr;
 
-	sync::SyncController &_sync;
+	sync::SyncController& _sync;
+
   public slots:
 	void ToggleConnect();
+
+	void OnConnected();
+	void OnDisconnect(uint32_t);
 
   private slots:
 	void OpenSyncMenu();

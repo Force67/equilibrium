@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "protocol/MsgList_generated.h"
+#include "protocol/Message_generated.h"
 #include "protocol/DisconnectReason_generated.h"
 
 #include "NetBase.h"

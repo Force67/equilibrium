@@ -11,7 +11,7 @@
 
 #include "net/protocol/HandshakeRequest_generated.h"
 #include "net/protocol/HandshakeAck_generated.h"
-#include "net/protocol/MsgList_generated.h"
+#include "net/protocol/Message_generated.h"
 
 #include "net/NetBase.h"
 #include "IdaInc.h"
@@ -95,8 +95,8 @@ namespace noda::sync
 
   void SyncController::ProcessPacket(uint8_t *data, size_t length)
   {
-	const protocol::MessageRoot *message =
-	    protocol::GetMessageRoot(static_cast<void *>(data));
+	const protocol::Message *message =
+	    protocol::GetMessage(static_cast<void *>(data));
 
 	LOG_TRACE("Recieved message {}",
 	          protocol::EnumNameMsgType(message->msg_type()));
@@ -114,7 +114,7 @@ namespace noda::sync
 	      1337,
 	      pack->dbRemoteVersion());
 
-	  // forward event
+	  // everything OK! we can proceed
 	  emit Connected();
 	  return;
 	}

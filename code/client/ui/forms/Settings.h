@@ -20,7 +20,7 @@ namespace noda
 	  Q_OBJECT;
 
 	public:
-	  Settings(sync::SyncController &, QWidget *);
+	  Settings(bool, QWidget *);
 	  ~Settings() = default;
 
 	private:

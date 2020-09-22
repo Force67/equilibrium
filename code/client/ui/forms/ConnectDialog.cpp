@@ -16,7 +16,7 @@ namespace noda::ui
 	connect(buttonCancel, &QPushButton::clicked, this, &QDialog::close);
 	connect(buttonNO, &QCheckBox::clicked, [](bool checked) {
 	  QSettings settings;
-	  settings.setValue("Nd_UiSkipConnect", !checked);
+	  settings.setValue("Nd_UiSkipConnect", checked);
 	});
   }
 
@@ -31,6 +31,6 @@ namespace noda::ui
   bool ConnectDialog::ShouldShow()
   {
 	QSettings settings;
-	return settings.value("Nd_UiSkipConnect", true).toBool();
+	return !settings.value("Nd_UiSkipConnect", true).toBool();
   }
 } // namespace noda::ui

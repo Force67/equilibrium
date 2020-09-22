@@ -28,7 +28,6 @@ namespace noda
       _sync(s)
   {
 	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
-	//connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
   }
 
   UiController::~UiController()
@@ -42,6 +41,10 @@ namespace noda
   void UiController::BuildUi()
   {
 	auto *mainWindow = GetTopWindow();
+
+	// this needs to be done here, for some reason :D
+	connect(&_sync, &sync::SyncController::Connected, this, &UiController::OnConnected);
+	connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
 
 	// pin bottom status bar (online/offline indicator)
 	_statusBar.reset(new ui::StatusBar());
@@ -82,6 +85,12 @@ namespace noda
 	dialog.exec();
   }
 
+  void UiController::OnConnected()
+  {
+	  _connectAct->setText("Disconnect");
+	  _statusBar->SetColor(colorconstant::green);
+  }
+
   void UiController::OnDisconnect(uint32_t reason)
   {
 	_connectAct->setText("Connect");
@@ -90,28 +99,22 @@ namespace noda
 
   void UiController::ToggleConnect()
   {
-	if(!_sync.IsConnected()) {
-	  _statusBar->SetColor(colorconstant::orange);
+	  if (_sync.IsConnected())
+		  _sync.DisconnectServer();
+	  else {
+		  _statusBar->SetColor(colorconstant::orange);
 
-	  bool result = _sync.ConnectServer();
-	  if(!result) {
-		_statusBar->SetColor(colorconstant::red);
+		  bool result = _sync.ConnectServer();
+		  if (!result) {
+			  _statusBar->SetColor(colorconstant::red);
 
-		QErrorMessage error(QApplication::activeWindow());
-		error.showMessage(
-		    "Unable to connect to the NODA sync host.\n"
-		    "It is likely that the selected port is not available.");
-		error.exec();
-		return;
+			  QErrorMessage error(QApplication::activeWindow());
+			  error.showMessage(
+				  "Unable to connect to the NODA sync host.\n"
+				  "It is likely that the selected port is not available.");
+			  error.exec();
+		  }
 	  }
-
-	  _connectAct->setText("Disconnect");
-	  _statusBar->SetColor(colorconstant::green);
-	} else {
-	  _sync.DisconnectServer();
-	  _connectAct->setText("Connect");
-	  _statusBar->SetColor(colorconstant::red);
-	}
   }
 
   void UiController::OpenSyncMenu()
@@ -121,7 +124,7 @@ namespace noda
 
   void UiController::OpenConfiguration()
   {
-	ui::Settings settings(_sync, GetTopWindow());
+	ui::Settings settings(_sync.IsConnected(), GetTopWindow());
 	settings.exec();
   }
 
@@ -134,7 +137,6 @@ namespace noda
 	  if(!self->_statusBar) {
 		self->BuildUi();
 
-		// crashes the UI: todo investigate why
 		if(ui::WelcomeDialog::ShouldShow()) {
 		  ui::WelcomeDialog dialog;
 		  dialog.exec();

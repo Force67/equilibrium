@@ -32,14 +32,14 @@ namespace noda.net
 
     public class NetDispatcher<T>
     {
-        private Dictionary<MsgType, Action<T, MessageRoot>> _subscribers;
+        private Dictionary<MsgType, Action<T, Message>> _subscribers;
 
         public NetDispatcher()
         {
-            _subscribers = new Dictionary<MsgType, Action<T, MessageRoot>>();
+            _subscribers = new Dictionary<MsgType, Action<T, Message>>();
         }
 
-        public void connect(Action<T, MessageRoot> method)
+        public void connect(Action<T, Message> method)
         {
             var methodType = method.GetType();
             Attribute[] attrs = Attribute.GetCustomAttributes(methodType);
@@ -55,7 +55,7 @@ namespace noda.net
             }
         }
 
-        public void trigger(T source, MessageRoot message)
+        public void trigger(T source, Message message)
         {
             foreach (var sub in _subscribers)
             {

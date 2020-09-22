@@ -14,13 +14,13 @@ namespace noda::ui
 	connect(buttonContinue, &QPushButton::clicked, this, &QDialog::accept);
 	connect(buttonDontShowAgain, &QCheckBox::clicked, [](bool checked) {
 	  QSettings settings;
-	  settings.setValue("Nd_UiSkipWelcome", !checked);
+	  settings.setValue("Nd_UiSkipWelcome", checked);
 	});
   }
 
   bool WelcomeDialog::ShouldShow()
   {
 	QSettings settings;
-	return settings.value("Nd_UiSkipWelcome", true).toBool();
+	return !settings.value("Nd_UiSkipWelcome", true).toBool();
   }
 } // namespace noda::ui

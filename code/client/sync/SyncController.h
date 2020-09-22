@@ -6,7 +6,7 @@
 #include "net/NetBase.h"
 #include "utils/Storage.h"
 #include "utils/Logger.h"
-#include "net/protocol/MsgList_generated.h"
+#include "net/protocol/Message_generated.h"
 
 namespace noda
 {
@@ -21,7 +21,6 @@ namespace noda
 	                             public net::NetDelegate
 	{
 	  Q_OBJECT;
-
 	public:
 	  SyncController();
 	  ~SyncController();

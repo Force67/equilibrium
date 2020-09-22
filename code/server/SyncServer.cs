@@ -37,7 +37,7 @@ namespace noda
         public void ProcessPacket(ENet.Peer peer, byte[] data, int length)
         {
             ByteBuffer buffer = new ByteBuffer(data);
-            var message = MessageRoot.GetRootAsMessageRoot(buffer);
+            var message = Message.GetRootAsMessage(buffer);
 
             logger.Trace("Recieved packet " + message.MsgType.ToString() + " | length: " + length);
 

@@ -6,7 +6,7 @@
 
 namespace noda::ui
 {
-  Settings::Settings(sync::SyncController &client, QWidget *pParent) :
+  Settings::Settings(bool connected, QWidget *pParent) :
       QDialog(pParent)
   {
 	setupUi(this);
@@ -26,11 +26,11 @@ namespace noda::ui
 	connect(editTimeout, &QLineEdit::textChanged, [&](const QString &data) {
 	  _settings.setValue("Nd_NetTimeout", data.toUInt());
 	});
-	connect(cbShowWelcome, &QCheckBox::clicked, [&](bool chcked) {
-	  _settings.setValue("Nd_UiSkipWelcome", chcked);
+	connect(cbShowWelcome, &QCheckBox::clicked, [&](bool down) {
+	  _settings.setValue("Nd_UiSkipWelcome", !down);
 	});
-	connect(cbShowAutoconnect, &QCheckBox::clicked, [&](bool chcked) {
-	  _settings.setValue("Nd_UiSkipConnect", chcked);
+	connect(cbShowAutoconnect, &QCheckBox::clicked, [&](bool down) {
+	  _settings.setValue("Nd_UiSkipConnect", !down);
 	});
 
 	editIP->setText(_settings.value("Nd_SyncIp", net::constants::kServerIp).toString());
@@ -38,12 +38,15 @@ namespace noda::ui
 	editPass->setText(_settings.value("Nd_SyncPass", "").toString());
 	editUser->setText(_settings.value("Nd_SyncUser", sync::utils::GetSysUsername())
 	                      .toString());
+
 	editTimeout->setText(_settings.value("Nd_NetTimeout", net::constants::kTimeout).toString());
-	cbShowWelcome->setEnabled(_settings.value("Nd_UiSkipWelcome").toBool());
-	cbShowAutoconnect->setEnabled(_settings.value("Nd_UiSkipConnect").toBool());
+	cbShowWelcome->setChecked(!_settings.value("Nd_UiSkipWelcome").toBool());
+	cbShowAutoconnect->setChecked(!_settings.value("Nd_UiSkipConnect").toBool());
+
+	LOG_INFO("Skip welcome? {}, Skip Connect? {}", _settings.value("Nd_UiSkipWelcome").toBool(), _settings.value("Nd_UiSkipConnect").toBool());
 
 	// gray out these fields when the network is active
-	bool enabled = !client.IsConnected();
+	bool enabled = !connected;
 	gbSyncConfig->setDisabled(enabled);
 	gbNetConfig->setDisabled(enabled);
   }

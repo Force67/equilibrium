@@ -5,7 +5,7 @@
 #pragma once
 
 #include "net/NetClient.h"
-#include "net/protocol/MsgList_generated.h"
+#include "net/protocol/Message_generated.h"
 
 namespace noda::sync
 {

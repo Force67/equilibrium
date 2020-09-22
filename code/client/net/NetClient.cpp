@@ -75,7 +75,7 @@ namespace noda::net
       protocol::MsgType type,
       const net::FbsOffset<void> packetRef)
   {
-	fbb.Finish(protocol::CreateMessageRoot(
+	fbb.Finish(protocol::CreateMessage(
 	    fbb, type, packetRef));
 
 	return SendReliable(
@@ -127,7 +127,7 @@ namespace noda::net
 		      _netEvent.packet->dataLength);
 
 		  // validate the packet is not corrupted
-		  if(protocol::VerifyMessageRootBuffer(verifier)) {
+		  if(protocol::VerifyMessageBuffer(verifier)) {
 			_delegate.ProcessPacket(_netEvent.packet->data, _netEvent.packet->dataLength);
 		  }
 

@@ -39,7 +39,7 @@ namespace noda
 
         public bool SendMessage<T>(FlatBufferBuilder fbb, MsgType msgType, Offset<T> data) where T : struct
         {
-            var msgRoot = MessageRoot.CreateMessageRoot(fbb, msgType, data.Value);
+            var msgRoot = Message.CreateMessage(fbb, msgType, data.Value);
             fbb.Finish(msgRoot.Value);
 
             return SendReliable(fbb.DataBuffer.ToSizedArray() /*Do not use toFullArray*/);

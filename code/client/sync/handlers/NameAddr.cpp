@@ -3,7 +3,6 @@
 
 #include "Handlers.h"
 #include "flatbuffers/flatbuffers.h"
-#include "net/protocol/MsgList_generated.h"
 #include "net/NetClient.h"
 
 #include "IdaInc.h"

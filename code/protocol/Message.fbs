@@ -4,6 +4,7 @@
 include "HandshakeRequest.fbs";
 include "HandshakeAck.fbs";
 include "Broadcast.fbs";
+include "Heartbeat.fbs";
 include "ChatMessage.fbs";
 include "IdaSync.fbs";
 
@@ -12,6 +13,7 @@ namespace protocol;
 union MsgType {
     HandshakeRequest,
     HandshakeAck,
+    Heartbeat,
     Broadcast,
     ChatMessage,
 
@@ -37,8 +39,9 @@ union MsgType {
     sync.ChangeOperand
 }
 
-table MessageRoot{
+table Message
+{
     msg:MsgType;
 }
 
-root_type MessageRoot;
+root_type Message;
