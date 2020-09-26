@@ -3,6 +3,7 @@
 
 using FlatBuffers;
 using protocol;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
