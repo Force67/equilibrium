@@ -9,10 +9,22 @@ namespace noda
 {
     public class Config
     {
+        // Server:
         public ushort ServerPort { get; set; } = 4523;
         public string ServerPassword { get; set; } = "";
+
+        // Networking:
         public int NetTimeOut { get; set; } = 3000;
+
+        // Feed:
         public string DiscordToken { get; set; } = "";
+
+        // DB:
+        public string DbHost { get; set; } = "";
+        public string DbPort { get; set; } = "";
+        public string DbUser { get; set; } = "";
+        public string DbPass { get; set; } = "";
+        public string DbName { get; set; } = "";
 
         public static Config Create()
         {

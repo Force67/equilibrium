@@ -74,13 +74,6 @@ namespace noda.net
             }
         }
 
-        /*
-         * auto msgRoot = protocol::CreateMessageRoot(mb, type, data.Union());
-		mb.Finish(msgRoot);
-
-		return SendReliable(mb.GetBufferPointer(), mb.GetSize());
-         */
-
         public void SendReliable(IntPtr data, int length)
         {
             var packet = new ENet.Packet();

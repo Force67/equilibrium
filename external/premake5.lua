@@ -32,7 +32,6 @@ local p = project("ENetNative")
         "ENET_BUILDING_LIB",
         "ENET_BUILD_MANAGED"
     })
-    targetdir(blu.bindir .. "/netcoreapp3.1")
     enet_include()
 
 project("enet")
@@ -54,9 +53,9 @@ project("fmtlib")
 project("Flatbuffers")
     language("C#")
     kind("SharedLib")
+    dotnetframework("netcoreapp3.1")
     location(blu.netout)
     objdir(blu.netdir)
-    dotnetframework("netcoreapp3.1")
     includedirs({
         "flatbuffers/net"
     })

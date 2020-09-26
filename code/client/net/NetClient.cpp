@@ -84,6 +84,7 @@ namespace noda::net
 
 	// clear the used memory,
 	// but dont free the buffer
+	// Idea: do we really need to clear the buffer, if the last packet had the same size?
 	fbb.Clear();
 
 	return result;

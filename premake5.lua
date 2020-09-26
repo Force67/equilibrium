@@ -10,11 +10,11 @@ filter("configurations:Release")
     optimize("Speed")
 
 filter("language:C or C++")
-    vectorextensions("AVX")
+    vectorextensions("SSE4.1")
 
 filter("language:C++")
     cppdialect("C++17")
-
+    
 workspace("NODA")
     configurations({
         "Debug",

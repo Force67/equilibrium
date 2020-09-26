@@ -12,20 +12,29 @@ namespace noda
         private Logger logger;
         private Config config;
        // private DiscordFeed discordFeed;
-        private List<Action<string>> commands;
 
         public Program()
         {
+            // https://social.msdn.microsoft.com/Forums/en-US/1b1b316a-8648-4243-a651-84de51fd2508/reference-native-dll-from-managed-c-project?forum=vssmartdevicesvbcs
+
+            try
+            {
             config = Config.Create();
 
-            logger = new Logger();
-            logger.Sinks.Add(new ConSink());
+                logger = new Logger();
+                logger.Sinks.Add(new ConSink());
 
-            server = new SyncServer(config, logger);
-            logger.Info("Starting NODA Server");
+                server = new SyncServer(config, logger);
+                logger.Info("Starting NODA Server");
 
-           // discordFeed = new DiscordFeed(logger, config.DiscordToken);
-          //  logger.Sinks.Add(discordFeed);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
+
+            // discordFeed = new DiscordFeed(logger, config.DiscordToken);
+            //  logger.Sinks.Add(discordFeed);
         }
           
         ~Program()
@@ -48,18 +57,8 @@ namespace noda
             }
         }
 
-        private static System.Reflection.Assembly MyResolveEventHandler(object sender, ResolveEventArgs args)
-        {
-            Console.WriteLine("Resolving... " + args.Name);
-            return typeof(Program).Assembly;
-        }
-
         static void Main(string[] args)
         {
-            AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.AssemblyResolve += new ResolveEventHandler(MyResolveEventHandler);
-
-
             new Program().Run();
         }
     }
