@@ -7,65 +7,73 @@
 #include "utils/Storage.h"
 #include "utils/Logger.h"
 #include "net/protocol/Message_generated.h"
+#include <map>
 
 namespace noda
 {
-  namespace net
-  {
-	class NetClient;
-  }
-
-  namespace sync
-  {
-	class SyncController final : public QObject,
-	                             public net::NetDelegate
+	namespace net
 	{
-	  Q_OBJECT;
+		class NetClient;
+	}
 
-	public:
-	  SyncController();
-	  ~SyncController();
+	namespace sync
+	{
+		struct SyncHandler;
 
-	  bool ConnectServer();
-	  void DisconnectServer();
+		class SyncController final : public QObject,
+		                             public net::NetDelegate
+		{
+			Q_OBJECT;
 
-	  bool IsConnected();
+		  public:
+			SyncController();
+			SyncController(const SyncController &) = delete;
+			~SyncController();
 
-	  // type safe wrapper to guarntee proper specifization
-	  template <typename T>
-	  inline bool SendFbsPacket(
-	      protocol::MsgType tt,
-	      const net::FbsOffset<T> ref)
-	  {
-		return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
-	  }
+			bool ConnectServer();
+			void DisconnectServer();
 
-	  net::FbsBuilder &fbb()
-	  {
-		return _fbb;
-	  }
+			bool IsConnected();
 
-	signals:
-	  void Connected();
-	  void Disconnected(uint32_t);
+			// type safe wrapper to guarntee proper specifization
+			template <typename T>
+			inline bool SendFbsPacket(
+			    protocol::MsgType tt,
+			    const net::FbsOffset<T> ref)
+			{
+				return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
+			}
 
-	private:
-	  static ssize_t idaapi ProcessorEvent(void *, int, va_list);
-	  static ssize_t idaapi IdbEvent(void *, int, va_list);
+			net::FbsBuilder &fbb()
+			{
+				return _fbb;
+			}
 
-	  void OnBroadcast(const protocol::Broadcast *);
+			// IDA
+			ssize_t HandleEvent(hook_type_t, int, va_list);
 
-	  // network events
-	  void OnConnectRequest() override;
-	  void OnDisconnect(uint32_t) override;
-	  void ProcessPacket(uint8_t *, size_t) override;
+		  signals:
+			void Connected();
+			void Disconnected(uint32_t);
 
-	  utils::Storage _storage;
-	  bool _active = false;
-	  QScopedPointer<net::NetClient> _client;
+		  private:
+			void OnBroadcast(const protocol::Broadcast *);
 
-	  net::FbsBuilder _fbb;
-	  uint32_t _heartBeatCount = 0;
-	};
-  } // namespace sync
+			// network events
+			void OnConnectRequest() override;
+			void OnDisconnect(uint32_t) override;
+			void ProcessPacket(uint8_t *, size_t) override;
+
+			utils::Storage _storage;
+			bool _active = false;
+			QScopedPointer<net::NetClient> _client;
+
+			net::FbsBuilder _fbb;
+			uint32_t _heartBeatCount = 0;
+
+			using IdaEventType_t = std::pair<hook_type_t, int>;
+			std::map<IdaEventType_t, SyncHandler *> _idaEvents;
+			std::map<protocol::MsgType, SyncHandler *> _netEvents;
+		};
+	} // namespace sync
 } // namespace noda
