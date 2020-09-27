@@ -25,6 +25,11 @@ namespace noda
             await connection.OpenAsync();
         }
 
+        public void Close()
+        {
+            connection.Close();
+        }
+
         public void ExecuteQuery(string sqlStatement)
         {
             using var cmd = new SQLiteCommand(sqlStatement, connection);

@@ -8,6 +8,7 @@
 // http://www.flatuicolorpicker.com/purple-rgb-color-model/
 // Common rgb: 142:68:173
 // Blue highlight rgb: 34:69:246
+// Cloud: 47a5db
 
 // Green checkmark color:
 

@@ -65,7 +65,7 @@ namespace noda
 
 		if(auto *topMenu = mainBar->addMenu(QIcon(":/logo"), "NODA")) {
 			_connectAct = topMenu->addAction("Connect", this, &UiController::ToggleConnect);
-			topMenu->addAction(QIcon(":/sync"), "Synchronus", this, &UiController::OpenSyncMenu);
+			topMenu->addAction(QIcon(":/sync"), "INSync", this, &UiController::OpenSyncMenu);
 			topMenu->addSeparator();
 			topMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
 			topMenu->addSeparator();

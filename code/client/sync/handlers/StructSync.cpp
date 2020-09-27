@@ -14,11 +14,7 @@ namespace noda::sync::create_struct
 	{
 		LOG_TRACE("Created struct {}", pack.name()->c_str());
 
-		tid_t sid = add_struc(BADADDR, pack.name()->c_str(), pack.isUnion());
-
-		LOG_ERROR("STORE STRUCT NAME???");
-
-		return sid != BADADDR;
+		return add_struc(BADADDR, pack.name()->c_str(), pack.isUnion()) != BADADDR;
 	}
 
 	static bool React(SyncController& sc, va_list list)
@@ -26,18 +22,11 @@ namespace noda::sync::create_struct
 		tid_t sid = va_arg(list, tid_t);
 		struc_t* struc = get_struc(sid);
 
-		auto pack = CreateCreateStructDirect(sc.fbb(), get_struc_name(sid).c_str(), struc->is_union());
+		auto pack = CreateCreateStructDirect(sc.fbb(), 
+			get_struc_name(sid).c_str(), 
+			struc->is_union());
 
-		// TODO: GET NAME
-
-		LOG_ERROR("Unhandeled, create struct name!!!!");
-
-#if 0
-		auto pack = CreateDeleteStructDirect(sc.fbb(), );
-
-		return sc.SendFbsPacket(protocol::MsgType_sync_NameEa, pack);
-#endif
-		return true;
+		return sc.SendFbsPacket(protocol::MsgType_sync_CreateStruct, pack);
 	}
 
 	static SyncHandler handler{
@@ -67,25 +56,164 @@ namespace noda::sync::delete_struct
 
 	static bool React(SyncController& sc, va_list list)
 	{
-		tid_t sid = va_arg(list, tid_t);
+		struc_t *struc = va_arg(list, struc_t*);
+		auto name = get_struc_name(struc->id);
 
-		// TODO: GET NAME
-
-		LOG_ERROR("Unhandeled, delete struct name!!!!");
-
-#if 0
-		auto pack = CreateDeleteStructDirect(sc.fbb(), );
-
-		return sc.SendFbsPacket(protocol::MsgType_sync_NameEa, pack);
-#endif
-		return true;
+		auto pack = CreateDeleteStructDirect(sc.fbb(), name.c_str());
+		return sc.SendFbsPacket(protocol::MsgType_sync_DeleteStruct, pack);
 	}
 
 	static SyncHandler handler{
 		hook_type_t::HT_IDB,
-		idb_event::struc_deleted,
+		idb_event::deleting_struc,
 		protocol::MsgType_sync_DeleteStruct,
 		SyncHandler::Handlers<DeleteStruct>{ Apply, React }
 	};
 } // namespace noda::sync::delete_struct
 
+namespace noda::sync::rename_struct
+{
+	using namespace protocol::sync;
+
+	static bool Apply(SyncController&, const RenameStruct& pack)
+	{
+		LOG_TRACE("Renamed Struct {} to {}", 
+			pack.oldName()->c_str(), pack.newName()->c_str());
+
+		tid_t sid = get_struc_id(pack.oldName()->c_str());
+		if (sid == BADADDR)
+			return false;
+
+		return set_struc_name(sid, pack.newName()->c_str());
+	}
+
+	static bool React(SyncController& sc, va_list list)
+	{
+		tid_t sid = va_arg(list, tid_t);
+		auto* oldName = va_arg(list, const char*);
+		auto* newName = va_arg(list, const char*);
+
+		auto pack = CreateRenameStructDirect(sc.fbb(), oldName, newName);
+		return sc.SendFbsPacket(protocol::MsgType_sync_RenameStruct, pack);
+	}
+
+	static SyncHandler handler{
+		hook_type_t::HT_IDB,
+		idb_event::renaming_struc,
+		protocol::MsgType_sync_RenameStruct,
+		SyncHandler::Handlers<RenameStruct>{ Apply, React }
+	};
+} // namespace noda::sync::delete_struct
+
+namespace noda::sync::rename_struct_member
+{
+	using namespace protocol::sync;
+
+	static bool Apply(SyncController&, const RenameStructMember& pack)
+	{
+		tid_t sid = get_struc_id(pack.structName()->c_str());
+		if (sid == BADADDR)
+			return false;
+
+		return set_member_name(get_struc(sid), pack.offset(), pack.memberName()->c_str());
+	}
+
+	static bool React(SyncController& sc, va_list list)
+	{
+		struc_t* struc = va_arg(list, struc_t*);
+		member_t* oldName = va_arg(list, member_t*);
+		auto* newName = va_arg(list, const char*);
+
+		auto name = get_struc_name(struc->id);
+
+		auto pack = CreateRenameStructMemberDirect(sc.fbb(), name.c_str(), newName);
+		return sc.SendFbsPacket(protocol::MsgType_sync_RenameStructMember, pack);
+	}
+
+	static SyncHandler handler{
+		hook_type_t::HT_IDB,
+		idb_event::renaming_struc_member,
+		protocol::MsgType_sync_RenameStructMember,
+		SyncHandler::Handlers<RenameStructMember>{ Apply, React }
+	};
+} // namespace noda::sync::delete_struct
+
+namespace noda::sync::delete_struct_member
+{
+	using namespace protocol::sync;
+
+	static bool Apply(SyncController&, const DeleteStructMember& pack)
+	{
+		tid_t sid = get_struc_id(pack.name()->c_str());
+		if (sid == BADADDR)
+			return false;
+
+		LOG_TRACE("Deleting member {} of struct {}", pack.ea(), pack.name()->c_str());
+		return del_struc_member(get_struc(sid), pack.ea());
+	}
+
+	static bool React(SyncController& sc, va_list list)
+	{
+		struc_t* struc = va_arg(list, struc_t*);
+		tid_t memberId = va_arg(list, tid_t);
+		ea_t offset = va_arg(list, ea_t);
+
+		auto name = get_struc_name(struc->id);
+
+		auto pack = CreateDeleteStructMemberDirect(sc.fbb(), offset, name.c_str());
+		return sc.SendFbsPacket(protocol::MsgType_sync_DeleteStructMember, pack);
+	}
+
+	static SyncHandler handler{
+		hook_type_t::HT_IDB,
+		idb_event::struc_member_deleted,
+		protocol::MsgType_sync_DeleteStructMember,
+		SyncHandler::Handlers<DeleteStructMember>{ Apply, React }
+	};
+} // namespace noda::sync::delete_struct
+
+namespace noda::sync::change_struct_member
+{
+	using namespace protocol::sync;
+
+	static bool Apply(SyncController&, const ChangeStructMember& pack)
+	{
+		tid_t sid = get_struc_id(pack.structName()->c_str());
+		if (sid == BADADDR)
+			return false;
+
+		struc_t* struc = get_struc(sid);
+
+		switch (pack.type()) {
+		case StructMemberType_Struct: 
+			break;
+		case StructMemberType_String:
+			break;
+		case StructMemberType_Offset:
+			break;
+		}
+
+		LOG_ERROR("TODO: ChangeStructMember");
+		return true;
+	}
+
+	static bool React(SyncController& sc, va_list list)
+	{
+		LOG_ERROR("TODO: Send ChangeStructMember");
+		return true;
+	}
+
+	static SyncHandler handler_create{
+		hook_type_t::HT_IDB,
+		idb_event::struc_member_created,
+		protocol::MsgType_sync_ChangeStructMember,
+		SyncHandler::Handlers<ChangeStructMember>{ Apply, React }
+	};
+
+	static SyncHandler handler_change{
+		hook_type_t::HT_IDB,
+		idb_event::struc_member_changed,
+		protocol::MsgType_sync_ChangeStructMember,
+		SyncHandler::Handlers<ChangeStructMember>{ Apply, React }
+	};
+} // namespace noda::sync::delete_struct

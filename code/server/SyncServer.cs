@@ -61,7 +61,7 @@ namespace noda
             clients.ForEach(it => it.SendMessage(fbb, MsgType.Broadcast, msg));
         }
 
-        public void ProcessPacket(ENet.Peer peer, byte[] data, int length)
+        public async void ProcessPacket(ENet.Peer peer, byte[] data, int length)
         {
             ByteBuffer buffer = new ByteBuffer(data);
             var message = Message.GetRootAsMessage(buffer);
@@ -105,6 +105,8 @@ namespace noda
                     logger.Info("User joined: " + hs.User);
                 }
             }
+
+            //clients.ForEach(it => )
 
             // we still trigger the event though..
             trigger(user, message);
