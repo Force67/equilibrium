@@ -20,6 +20,10 @@
 
 #include "handlers/SyncHandler.h"
 
+#ifdef _WIN32
+#undef GetMessage
+#endif
+
 namespace noda::sync
 {
 	constexpr int kNetTrackRate = 1000;
@@ -46,13 +50,19 @@ namespace noda::sync
 		hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 		hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
 
-		auto init = detail::SyncHandler_InitDelegate::ROOT()->next;
-		while(init && init->handler) {
-			auto handler = init->handler;
-			_idaEvents[std::make_pair(handler->hookType, handler->hookEvent)] = handler;
-			_netEvents[handler->msgType] = handler;
+		for (auto* i = SyncHandler::ROOT(); i;) {
+			auto* it = i->handler;
+			if (it) {
+				LOG_TRACE("Registering handler {}", 
+					protocol::EnumNameMsgType(it->msgType));
 
-			init = init->next;
+				_idaEvents[std::make_pair(it->hookType, it->hookEvent)] = it;
+				_netEvents[it->msgType] = it;
+			}
+
+			auto* j = i->next;
+			i->next = nullptr;
+			i = j;
 		}
 	}
 

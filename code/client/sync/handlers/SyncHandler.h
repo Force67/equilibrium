@@ -2,8 +2,13 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #pragma once
-#include "net/protocol/Message_generated.h"
+
 #include <ida.hpp>
+
+#include "sync/SyncController.h"
+#include "net/protocol/Message_generated.h"
+
+#include "utils/Logger.h"
 
 namespace noda::sync
 {
@@ -12,31 +17,28 @@ namespace noda::sync
 	class SyncController;
 	struct SyncHandler;
 
-	namespace detail
-	{
-		struct SyncHandler_InitDelegate {
-			SyncHandler_InitDelegate() = default;
-			~SyncHandler_InitDelegate() = default;
+	struct SyncHandlerRegistry {
+		SyncHandlerRegistry() = default;
+		~SyncHandlerRegistry() = default;
 
-			SyncHandler_InitDelegate(SyncHandler *hndlr) :
-			    next(ROOT()),
-			    handler(hndlr)
-			{
-				ROOT()->next = this;
-			}
+		SyncHandlerRegistry(SyncHandler* hndlr) :
+			next(ROOT()),
+			handler(hndlr)
+		{
+			ROOT() = this;
+		}
 
-			SyncHandler_InitDelegate *next = nullptr;
-			SyncHandler *handler = nullptr;
+		SyncHandlerRegistry* next = nullptr;
+		SyncHandler* handler = nullptr;
 
-			static SyncHandler_InitDelegate *ROOT()
-			{
-				static SyncHandler_InitDelegate root;
-				return &root;
-			}
-		};
-	} // namespace detail
+		static SyncHandlerRegistry*& ROOT()
+		{
+			static SyncHandlerRegistry* root{ nullptr };
+			return root;
+		}
+	};
 
-	struct SyncHandler : detail::SyncHandler_InitDelegate {
+	struct SyncHandler : SyncHandlerRegistry {
 		// IDA Event
 		hook_type_t hookType = hook_type_t::HT_LAST;
 		int hookEvent = -1;
@@ -45,7 +47,7 @@ namespace noda::sync
 		protocol::MsgType msgType = protocol::MsgType_NONE;
 
 		// Delegate
-		struct BaseDelegate {
+		struct BaseHandler {
 			using apply_t = bool (*)(SyncController &, const void *);
 			apply_t apply;
 
@@ -53,27 +55,26 @@ namespace noda::sync
 			react_t react;
 		};
 
-		BaseDelegate delegates;
+		BaseHandler delegates;
 
 		template <typename T>
-		struct Delegates : BaseDelegate {
+		struct Handlers : BaseHandler {
 			using apply_t = bool (*)(SyncController &, const T &);
 
-			Delegates(apply_t apply_impl, react_t react_impl)
+			Handlers(apply_t apply_impl, react_t react_impl)
 			{
-				apply = static_cast<BaseDelegate::apply_t>(static_cast<void *>(apply_impl));
+				apply = static_cast<BaseHandler::apply_t>(static_cast<void *>(apply_impl));
 				react = react_impl;
 			}
 		};
 
-		SyncHandler(hook_type_t type, int evt, protocol::MsgType msg, BaseDelegate &&methods) :
+		explicit SyncHandler(hook_type_t type, int evt, protocol::MsgType msg, BaseHandler&& methods) :
 		    hookType(type),
 		    hookEvent(evt),
 		    msgType(msg),
-		    delegates(std::forward<BaseDelegate>(methods)),
-		    SyncHandler_InitDelegate(this)
-		{
-		}
+		    delegates(std::forward<BaseHandler>(methods)),
+			SyncHandlerRegistry(this)
+		{}
 
 		~SyncHandler() = default;
 	};

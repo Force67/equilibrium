@@ -40,8 +40,12 @@ namespace noda
 		auto *mainWindow = GetTopWindow();
 
 		// this needs to be done here, for some reason :D
-		connect(&_sync, &sync::SyncController::Connected, this, &UiController::OnConnected);
-		connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
+		connect(&_sync, &sync::SyncController::Connected, [&]() {
+			_connectAct->setText("Disconnect");
+		});
+		connect(&_sync, &sync::SyncController::Disconnected, [&]() {
+			_connectAct->setText("Connect");
+		});
 
 		// pin additonal NODA statusbar information
 		QStatusBar *statusBar = mainWindow->statusBar();
@@ -73,18 +77,6 @@ namespace noda
 	{
 		ui::AboutDialog dialog(GetTopWindow());
 		dialog.exec();
-	}
-
-	void UiController::OnConnected()
-	{
-		_connectAct->setText("Disconnect");
-		//_statusBar->SetColor(colorconstant::green);
-	}
-
-	void UiController::OnDisconnect(uint32_t reason)
-	{
-		_connectAct->setText("Connect");
-		//_statusBar->SetColor(colorconstant::red);
 	}
 
 	void UiController::ToggleConnect()

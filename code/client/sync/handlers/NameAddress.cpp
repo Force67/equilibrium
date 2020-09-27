@@ -2,30 +2,25 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "SyncHandler.h"
-#include "flatbuffers/flatbuffers.h"
-#include "net/NetClient.h"
 
 #include "IdaInc.h"
 #include <name.hpp>
 
-#include "sync/SyncController.h"
-
-namespace noda::sync::NameAddr
+namespace noda::sync
 {
 	using namespace protocol::sync;
 
-	// raw pointer msg cast?
-	bool Apply(SyncController &, const NameEa &pack)
+	static bool Apply(SyncController &, const NameEa &pack)
 	{
+		LOG_TRACE("{:x} was named {}", pack.ea(), pack.name()->c_str());
+
 		return set_name(
 		    static_cast<ea_t>(pack.ea()),
 		    pack.name()->c_str(),
 		    (pack.local() ? SN_LOCAL : 0) | SN_NOWARN);
-
-		//msg("%x was named %s\n", pack->addr(), pack->name()->c_str());
 	}
 
-	bool React(SyncController &sc, va_list list)
+	static bool React(SyncController &sc, va_list list)
 	{
 		auto addr = static_cast<uint64_t>(__crt_va_arg(list, ea_t));
 		auto *name = va_arg(list, const char *);
@@ -37,10 +32,10 @@ namespace noda::sync::NameAddr
 		return sc.SendFbsPacket(protocol::MsgType_sync_NameEa, pack);
 	}
 
-	static SyncHandler handler_registry{
+	static SyncHandler handler {
 		hook_type_t::HT_IDB,
 		idb_event::renamed,
 		protocol::MsgType_sync_NameEa,
-		SyncHandler::Delegates<NameEa>{ Apply, React }
+		SyncHandler::Handlers<NameEa>{ Apply, React }
 	};
-} // namespace noda::sync::NameAddr
+} // namespace noda::sync

@@ -3,7 +3,7 @@
 #pragma once
 
 #include <qobject.h>
-#include "net/NetBase.h"
+#include "net/NetClient.h"
 #include "utils/Storage.h"
 #include "utils/Logger.h"
 #include "net/protocol/Message_generated.h"

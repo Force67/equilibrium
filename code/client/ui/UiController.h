@@ -40,9 +40,6 @@ namespace noda
 	  public slots:
 		void ToggleConnect();
 
-		void OnConnected();
-		void OnDisconnect(uint32_t);
-
 	  private slots:
 		void OpenSyncMenu();
 		void OpenAboutDialog();
