@@ -5,9 +5,9 @@
 
 namespace noda::ui
 {
-  AboutDialog::AboutDialog(QWidget *pParent) :
-      QDialog(pParent)
-  {
-	setupUi(this);
-  }
+	AboutDialog::AboutDialog(QWidget *pParent) :
+	    QDialog(pParent)
+	{
+		setupUi(this);
+	}
 } // namespace noda::ui

@@ -8,23 +8,23 @@
 
 namespace noda
 {
-  namespace sync
-  {
-	class SyncController;
-  }
-
-  namespace ui
-  {
-	class Settings final : public QDialog, public Ui::SettingsDialog
+	namespace sync
 	{
-	  Q_OBJECT;
+		class SyncController;
+	}
 
-	public:
-	  Settings(bool, QWidget *);
-	  ~Settings() = default;
+	namespace ui
+	{
+		class Settings final : public QDialog, public Ui::SettingsDialog
+		{
+			Q_OBJECT;
 
-	private:
-	  QSettings _settings;
-	};
-  } // namespace ui
+		  public:
+			Settings(bool, QWidget *);
+			~Settings() = default;
+
+		  private:
+			QSettings _settings;
+		};
+	} // namespace ui
 } // namespace noda

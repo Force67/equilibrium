@@ -4,6 +4,8 @@
 #include "SyncController.h"
 #include "net/NetClient.h"
 
+#include <qtimer.h>
+#include <qglobal.h>
 #include <qsettings.h>
 
 #include "utils/Storage.h"
@@ -20,6 +22,8 @@
 
 namespace noda::sync
 {
+	constexpr int kNetTrackRate = 1000;
+
 	ssize_t SyncController_IdbEvent(void *userData, int code, va_list args)
 	{
 		return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
@@ -32,6 +36,12 @@ namespace noda::sync
 	SyncController::SyncController()
 	{
 		_client.reset(new net::NetClient(*this));
+
+		// post the net stats every second to the ui
+		_statsTimer.reset(new QTimer(this));
+		connect(_statsTimer.data(), &QTimer::timeout, ([&] {
+			        emit StatsUpdated(netStats);
+		        }));
 
 		hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 		hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
@@ -104,6 +114,7 @@ namespace noda::sync
 	void SyncController::OnDisconnect(uint32_t reason)
 	{
 		_active = false;
+		_statsTimer->stop();
 
 		// forward the event
 		emit Disconnected(reason);
@@ -131,6 +142,8 @@ namespace noda::sync
 			    pack->dbRemoteVersion());
 
 			// everything OK! we can proceed
+
+			_statsTimer->start(kNetTrackRate);
 			emit Connected();
 			return;
 		}
@@ -147,13 +160,16 @@ namespace noda::sync
 				LOG_INFO("{} disconnected.", pack->name()->c_str());
 				break;
 			default:
+				LOG_WARNING("Unknown broadcast announced");
 				break;
 			}
+
+			emit Broadcasted(pack->type());
 			break;
 		}
 		default: {
 			auto it = _netEvents.find(message->msg_type());
-			if (it != _netEvents.end()) {
+			if(it != _netEvents.end()) {
 				it->second->delegates.apply(*this, message);
 			}
 		}
@@ -162,23 +178,22 @@ namespace noda::sync
 
 	ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)
 	{
-		if (type == hook_type_t::HT_IDB) {
-			switch(code) {
-			case idb_event::closebase:
+		if(_active) {
+			if(type == hook_type_t::HT_IDB && code == idb_event::closebase) {
 				_client->Disconnect();
 				return 0;
+			} else if(type == hook_type_t::HT_IDP) {
+				switch(code) {
+				case processor_t::event_t::ev_create_func_frame:
+					// TODO?
+					break;
+				}
 			}
-		} else if(type == hook_type_t::HT_IDP) {
-			switch(code) {
-			case processor_t::event_t::ev_create_func_frame:
-				// TODO?
-				break;
-			}
-		}
 
-		const auto it = _idaEvents.find(std::make_pair(type, code));
-		if(it != _idaEvents.end()) {
-			it->second->delegates.react(*this, args);
+			const auto it = _idaEvents.find(std::make_pair(type, code));
+			if(it != _idaEvents.end()) {
+				it->second->delegates.react(*this, args);
+			}
 		}
 
 		return 0;

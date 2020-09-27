@@ -3,6 +3,7 @@
 project("Client")
     kind("SharedLib")
     targetname("Noda_72")
+    include_meta()
     files({
         "**.cpp",
         "**.h",

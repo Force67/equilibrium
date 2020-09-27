@@ -4,7 +4,14 @@
         <file alias="cog">../../assets/icons/cog-solid.png</file>
         <file alias="info">../../assets/icons/info-circle-solid.png</file>
         <file alias="sync">../../assets/icons/sync-solid.png</file>
-		<file alias="bug">../../assets/icons/bug-solid.png</file>
-		<file alias="uikit">../../assets/icons/uikit-brands.png</file>
+        <file alias="bug">../../assets/icons/bug-solid.png</file>
+        <file alias="uikit">../../assets/icons/uikit-brands.png</file>
+        <file alias="check">../../assets/icons/check-solid.png</file>
+        <file alias="spinner">../../assets/icons/spinner-solid.png</file>
+        <file alias="times">../../assets/icons/times-solid.png</file>
+        <file alias="envelope">../../assets/icons/envelope-regular.png</file>
+        <file alias="user">../../assets/icons/user-solid.png</file>
+        <file alias="arrow_up">../../assets/icons/arrow-up-solid.png</file>
+        <file alias="arrow_down">../../assets/icons/arrow-down-solid.png</file>
     </qresource>
 </RCC>

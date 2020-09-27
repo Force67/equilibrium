@@ -34,7 +34,7 @@ namespace noda::sync
 				return &root;
 			}
 		};
-	}
+	} // namespace detail
 
 	struct SyncHandler : detail::SyncHandler_InitDelegate {
 		// IDA Event
@@ -42,7 +42,7 @@ namespace noda::sync
 		int hookEvent = -1;
 
 		// Networking
-		protocol::MsgType msgType = protocol::MsgType::MsgType_NONE;
+		protocol::MsgType msgType = protocol::MsgType_NONE;
 
 		// Delegate
 		struct BaseDelegate {

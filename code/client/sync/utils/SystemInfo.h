@@ -6,6 +6,6 @@
 
 namespace noda::sync::utils
 {
-  const QString &GetSysUsername();
-  const QString &GetHardwareId();
+	const QString &GetSysUsername();
+	const QString &GetHardwareId();
 } // namespace noda::sync::utils

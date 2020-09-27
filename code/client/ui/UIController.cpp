@@ -3,11 +3,11 @@
 
 #include "UiController.h"
 
-#include "forms/StatusBar.h"
 #include "forms/Settings.h"
 #include "forms/ConnectDialog.h"
 #include "forms/AboutDialog.h"
 #include "forms/WelcomeDialog.h"
+#include "forms/NetStatusWidget.h"
 
 #include <qmainwindow.h>
 #include <qstatusbar.h>
@@ -18,134 +18,124 @@
 
 namespace noda
 {
-  static QMainWindow *GetTopWindow()
-  {
-	return qobject_cast<QMainWindow *>(
-	    QApplication::activeWindow()->topLevelWidget());
-  }
-
-  UiController::UiController(sync::SyncController &s) :
-      _sync(s)
-  {
-	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
-  }
-
-  UiController::~UiController()
-  {
-	unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
-  }
-
-  void UiController::BuildUi()
-  {
-	auto *mainWindow = GetTopWindow();
-
-	// this needs to be done here, for some reason :D
-	connect(&_sync, &sync::SyncController::Connected, this, &UiController::OnConnected);
-	connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
-
-	// pin bottom status bar (online/offline indicator)
-	_statusBar.reset(new ui::StatusBar());
-	_statusBar->SetColor(colorconstant::red);
-	_statusBar->show();
-	mainWindow->statusBar()->addPermanentWidget(_statusBar.data());
-
-	// create the top level menu entry
-	auto *mainBar = mainWindow->menuBar();
-
-	if(auto *topMenu = mainBar->addMenu(QIcon(":/logo"), "NODA")) {
-	  _connectAct = topMenu->addAction("Connect", this, &UiController::ToggleConnect);
-	  topMenu->addAction(QIcon(":/sync"), "Synchronus", this, &UiController::OpenSyncMenu);
-	  topMenu->addSeparator();
-	  topMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
-	  topMenu->addSeparator();
-	  topMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
-
-#if 0
-	  // attach a left menu bar
-	  auto *rightBar = new QMenuBar(mainBar);
-
-	  QMenu *menu = new QMenu("Test menu", rightBar);
-	  rightBar->addMenu(menu);
-
-	  // net state
-	  QAction *action = new QAction("22 MS | 36 KB/s | 8.65 KBS/", rightBar);
-	  rightBar->addAction(action);
-
-	  mainBar->setCornerWidget(rightBar);
-#endif
+	static QMainWindow *GetTopWindow()
+	{
+		return qobject_cast<QMainWindow *>(
+		    QApplication::activeWindow()->topLevelWidget());
 	}
-  }
 
-  void UiController::OpenAboutDialog()
-  {
-	ui::AboutDialog dialog(GetTopWindow());
-	dialog.exec();
-  }
-
-  void UiController::OnConnected()
-  {
-	_connectAct->setText("Disconnect");
-	_statusBar->SetColor(colorconstant::green);
-  }
-
-  void UiController::OnDisconnect(uint32_t reason)
-  {
-	_connectAct->setText("Connect");
-	_statusBar->SetColor(colorconstant::red);
-  }
-
-  void UiController::ToggleConnect()
-  {
-	if(_sync.IsConnected())
-	  _sync.DisconnectServer();
-	else {
-	  _statusBar->SetColor(colorconstant::orange);
-
-	  bool result = _sync.ConnectServer();
-	  if(!result) {
-		_statusBar->SetColor(colorconstant::red);
-
-		QErrorMessage error(QApplication::activeWindow());
-		error.showMessage(
-		    "Unable to connect to the NODA sync host.\n"
-		    "It is likely that the selected port is not available.");
-		error.exec();
-	  }
+	UiController::UiController(sync::SyncController &s) :
+	    _sync(s)
+	{
+		hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
 	}
-  }
 
-  void UiController::OpenSyncMenu()
-  {
-	msg("OpenSyncMenu");
-  }
+	UiController::~UiController()
+	{
+		unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
+	}
 
-  void UiController::OpenConfiguration()
-  {
-	ui::Settings settings(_sync.IsConnected(), GetTopWindow());
-	settings.exec();
-  }
+	void UiController::BuildUi()
+	{
+		auto *mainWindow = GetTopWindow();
 
-  ssize_t UiController::OnUiEvent(void *userp, int notificationCode,
-                                  va_list va)
-  {
-	auto *self = reinterpret_cast<UiController *>(userp);
+		// this needs to be done here, for some reason :D
+		connect(&_sync, &sync::SyncController::Connected, this, &UiController::OnConnected);
+		connect(&_sync, &sync::SyncController::Disconnected, this, &UiController::OnDisconnect);
 
-	if(notificationCode == ui_notification_t::ui_ready_to_run) {
-	  if(!self->_statusBar) {
-		self->BuildUi();
+		// pin additonal NODA statusbar information
+		QStatusBar *statusBar = mainWindow->statusBar();
+		statusBar->addPermanentWidget(new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT));
 
-		if(ui::WelcomeDialog::ShouldShow()) {
-		  ui::WelcomeDialog dialog;
-		  dialog.exec();
+		auto *netStats = new ui::NetStatusWidget(statusBar);
+
+		connect(&_sync, &sync::SyncController::Connected, netStats, &ui::NetStatusWidget::OnConnected);
+		connect(&_sync, &sync::SyncController::Disconnected, netStats, &ui::NetStatusWidget::OnDisconnect);
+		connect(&_sync, &sync::SyncController::Broadcasted, netStats, &ui::NetStatusWidget::OnBroadcast);
+		connect(&_sync, &sync::SyncController::StatsUpdated, netStats, &ui::NetStatusWidget::OnStatsUpdate);
+
+		statusBar->addPermanentWidget(netStats);
+
+		// create the top level menu entry
+		auto *mainBar = mainWindow->menuBar();
+
+		if(auto *topMenu = mainBar->addMenu(QIcon(":/logo"), "NODA")) {
+			_connectAct = topMenu->addAction("Connect", this, &UiController::ToggleConnect);
+			topMenu->addAction(QIcon(":/sync"), "Synchronus", this, &UiController::OpenSyncMenu);
+			topMenu->addSeparator();
+			topMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
+			topMenu->addSeparator();
+			topMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
+		}
+	}
+
+	void UiController::OpenAboutDialog()
+	{
+		ui::AboutDialog dialog(GetTopWindow());
+		dialog.exec();
+	}
+
+	void UiController::OnConnected()
+	{
+		_connectAct->setText("Disconnect");
+		//_statusBar->SetColor(colorconstant::green);
+	}
+
+	void UiController::OnDisconnect(uint32_t reason)
+	{
+		_connectAct->setText("Connect");
+		//_statusBar->SetColor(colorconstant::red);
+	}
+
+	void UiController::ToggleConnect()
+	{
+		if(_sync.IsConnected())
+			_sync.DisconnectServer();
+		else {
+			bool result = _sync.ConnectServer();
+			if(!result) {
+				QErrorMessage error(QApplication::activeWindow());
+				error.showMessage(
+				    "Unable to connect to the NODA sync host.\n"
+				    "It is likely that the selected port is not available.");
+				error.exec();
+			}
+		}
+	}
+
+	void UiController::OpenSyncMenu()
+	{
+		msg("OpenSyncMenu");
+	}
+
+	void UiController::OpenConfiguration()
+	{
+		ui::Settings settings(_sync.IsConnected(), GetTopWindow());
+		settings.exec();
+	}
+
+	ssize_t UiController::OnUiEvent(void *userp, int notificationCode,
+	                                va_list va)
+	{
+		auto *self = reinterpret_cast<UiController *>(userp);
+
+		if(notificationCode == ui_notification_t::ui_ready_to_run) {
+			if(!self->_init) {
+				self->_init = true;
+				self->BuildUi();
+
+				if(ui::WelcomeDialog::ShouldShow()) {
+					ui::WelcomeDialog dialog;
+					dialog.exec();
+				}
+
+				if(ui::ConnectDialog::ShouldShow()) {
+					ui::ConnectDialog promt(*self);
+					promt.exec();
+				}
+			}
 		}
 
-		if(ui::ConnectDialog::ShouldShow()) {
-		  ui::ConnectDialog promt(*self);
-		  promt.exec();
-		}
-	  }
+		return 0;
 	}
-
-	return 0;
-  }
 } // namespace noda

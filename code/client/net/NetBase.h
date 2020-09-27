@@ -8,41 +8,50 @@
 
 namespace noda
 {
-  namespace net
-  {
-	template <typename T>
-	using FbsOffset = flatbuffers::Offset<T>;
-
-	using FbsBuilder = flatbuffers::FlatBufferBuilder;
-	using FbsStringRef = FbsOffset<flatbuffers::String>;
-
-	namespace constants
+	namespace net
 	{
-	  // default values
-	  constexpr char kServerIp[] = "127.0.0.1";
-	  constexpr uint16_t kServerPort = 4523;
+		template <typename T>
+		using FbsOffset = flatbuffers::Offset<T>;
 
-	  // constants
-	  constexpr uint32_t kTimeout = 3000;
-	  constexpr uint32_t kNetworkerThreadIdle = 1;
-	  constexpr uint16_t kClientVersion =
-	      protocol::constants::ProtocolVersion_V_1_0;
-	} // namespace constants
+		using FbsBuilder = flatbuffers::FlatBufferBuilder;
+		using FbsStringRef = FbsOffset<flatbuffers::String>;
 
-	class NetDelegate
-	{
-	public:
-	  virtual ~NetDelegate() = default;
+		namespace constants
+		{
+			// default values
+			constexpr char kServerIp[] = "127.0.0.1";
+			constexpr uint16_t kServerPort = 4523;
 
-	  // this is triggered when a connection has been
-	  // established
-	  virtual void OnConnectRequest() {}
+			// constants
+			constexpr uint32_t kTimeout = 3000;
+			constexpr uint32_t kNetworkerThreadIdle = 1;
+			constexpr uint16_t kClientVersion =
+			    protocol::constants::ProtocolVersion_V_1_0;
+		} // namespace constants
 
-	  // We have been dropped
-	  virtual void OnDisconnect(uint32_t reason) = 0;
+		struct NetStats {
+			uint32_t bwUp;
+			uint32_t bwDown;
+			size_t totalData;
+		};
 
-	  // Handle a new message
-	  virtual void ProcessPacket(uint8_t *data, size_t length) = 0;
-	};
-  } // namespace net
+		class NetDelegate
+		{
+		  public:
+			virtual ~NetDelegate() = default;
+
+			// this is triggered when a connection has been
+			// established
+			virtual void OnConnectRequest() {}
+
+			// We have been dropped
+			virtual void OnDisconnect(uint32_t reason) = 0;
+
+			// Handle a new message
+			virtual void ProcessPacket(uint8_t *data, size_t length) = 0;
+
+		  public:
+			NetStats netStats;
+		};
+	} // namespace net
 } // namespace noda

@@ -14,7 +14,7 @@ project("Server")
     })
     nuget({
         "Discord.Net:2.2.0",
-        "Npgsql:4.1.4"
+        "System.Data.SQLite.Core:1.0.113.1"
     })
     -- auto deploy the native dll
     postbuildcommands({

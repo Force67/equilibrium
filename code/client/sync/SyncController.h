@@ -9,6 +9,11 @@
 #include "net/protocol/Message_generated.h"
 #include <map>
 
+namespace QT
+{
+	class QTimer;
+}
+
 namespace noda
 {
 	namespace net
@@ -44,9 +49,16 @@ namespace noda
 				return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
 			}
 
-			net::FbsBuilder &fbb()
+			// Get the packet builder
+			auto &fbb()
 			{
 				return _fbb;
+			}
+
+			// Get Net Stats
+			auto &stats() const
+			{
+				return netStats;
 			}
 
 			// IDA
@@ -55,10 +67,10 @@ namespace noda
 		  signals:
 			void Connected();
 			void Disconnected(uint32_t);
+			void Broadcasted(int);
+			void StatsUpdated(const net::NetStats &);
 
 		  private:
-			void OnBroadcast(const protocol::Broadcast *);
-
 			// network events
 			void OnConnectRequest() override;
 			void OnDisconnect(uint32_t) override;
@@ -74,6 +86,8 @@ namespace noda
 			using IdaEventType_t = std::pair<hook_type_t, int>;
 			std::map<IdaEventType_t, SyncHandler *> _idaEvents;
 			std::map<protocol::MsgType, SyncHandler *> _netEvents;
+
+			QScopedPointer<QTimer> _statsTimer;
 		};
 	} // namespace sync
 } // namespace noda

@@ -38,8 +38,9 @@ namespace noda::sync::NameAddr
 	}
 
 	static SyncHandler handler_registry{
-		hook_type_t::HT_IDB, idb_event::renamed,
-		protocol::MsgType::MsgType_sync_NameEa,
+		hook_type_t::HT_IDB,
+		idb_event::renamed,
+		protocol::MsgType_sync_NameEa,
 		SyncHandler::Delegates<NameEa>{ Apply, React }
 	};
 } // namespace noda::sync::NameAddr

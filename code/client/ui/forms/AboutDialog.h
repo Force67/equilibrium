@@ -6,15 +6,15 @@
 
 namespace noda
 {
-  namespace ui
-  {
-	class AboutDialog final : public QDialog, public Ui::AboutDialog
+	namespace ui
 	{
-	  Q_OBJECT;
+		class AboutDialog final : public QDialog, public Ui::AboutDialog
+		{
+			Q_OBJECT;
 
-	public:
-	  AboutDialog(QWidget *parent);
-	  ~AboutDialog() = default;
-	};
-  } // namespace ui
+		  public:
+			AboutDialog(QWidget *parent);
+			~AboutDialog() = default;
+		};
+	} // namespace ui
 } // namespace noda

@@ -8,50 +8,44 @@
 
 namespace QT
 {
-  class QAction;
-}
+	class QAction;
+	class QLabel;
+} // namespace QT
 
 namespace noda
 {
-  namespace ui
-  {
-	class StatusBar;
-  }
+	namespace sync
+	{
+		class SyncController;
+	}
 
-  namespace sync
-  {
-	class SyncController;
-  }
+	class UiController final : public QObject
+	{
+		Q_OBJECT;
 
-  class UiController final : public QObject
-  {
-	Q_OBJECT;
+	  public:
+		UiController(sync::SyncController &);
+		~UiController();
 
-  public:
-	UiController(sync::SyncController &);
-	~UiController();
+	  private:
+		void BuildUi();
 
-  private:
-	void BuildUi();
+		static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
-	static ssize_t idaapi OnUiEvent(void *, int, va_list);
+		QAction *_connectAct = nullptr;
 
-	QT::QScopedPointer<ui::StatusBar> _statusBar;
+		sync::SyncController &_sync;
 
-	QAction *_connectAct = nullptr;
-	QAction *_pMenuAct = nullptr;
+		bool _init = false;
+	  public slots:
+		void ToggleConnect();
 
-	sync::SyncController &_sync;
+		void OnConnected();
+		void OnDisconnect(uint32_t);
 
-  public slots:
-	void ToggleConnect();
-
-	void OnConnected();
-	void OnDisconnect(uint32_t);
-
-  private slots:
-	void OpenSyncMenu();
-	void OpenAboutDialog();
-	void OpenConfiguration();
-  };
+	  private slots:
+		void OpenSyncMenu();
+		void OpenAboutDialog();
+		void OpenConfiguration();
+	};
 } // namespace noda

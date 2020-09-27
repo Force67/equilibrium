@@ -11,6 +11,7 @@ namespace noda
         private SyncServer server;
         private Logger logger;
         private Config config;
+        private Database db;
        // private DiscordFeed discordFeed;
 
         public Program()
@@ -23,6 +24,9 @@ namespace noda
 
                 logger = new Logger();
                 logger.Sinks.Add(new ConSink());
+
+                db = new Database(logger, config);
+                db.Open();
 
                 server = new SyncServer(config, logger);
                 logger.Info("Starting NODA Server");

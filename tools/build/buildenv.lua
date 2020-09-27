@@ -17,6 +17,7 @@ temp = f:read("*a")
 f:close()
 blu.git_commit_long = string.gsub(temp, '\n$', '')
 
+function include_meta()
 defines({
     ('GIT_BRANCH="' .. blu.git_branch .. '"'),
     ('GIT_COMMIT="' .. blu.git_commit .. '"'),
@@ -25,3 +26,4 @@ defines({
     ('BLU_NAME_WIDE=L"%{wks.name}"'),
     ('BLU_COMPANY="Stronkat"')
 })
+end

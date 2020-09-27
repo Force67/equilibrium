@@ -7,26 +7,26 @@
 
 namespace noda
 {
-  namespace sync
-  {
-	namespace utils
+	namespace sync
 	{
-	  class Storage
-	  {
-	  public:
-		Storage();
+		namespace utils
+		{
+			class Storage
+			{
+			  public:
+				Storage();
 
-		bool Initialize();
+				bool Initialize();
 
-	  private:
-		enum DataIndex : nodeidx_t {
-		  NodaVersion,
-		  IdbVersion
-		};
+			  private:
+				enum DataIndex : nodeidx_t {
+					NodaVersion,
+					IdbVersion
+				};
 
-		netnode _node;
-	  };
+				netnode _node;
+			};
 
-	} // namespace utils
-  }   // namespace sync
+		} // namespace utils
+	}     // namespace sync
 } // namespace noda

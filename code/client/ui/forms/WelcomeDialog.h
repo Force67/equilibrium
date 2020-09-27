@@ -6,17 +6,17 @@
 
 namespace noda
 {
-  namespace ui
-  {
-	class WelcomeDialog final : public QDialog, public Ui::WelcomeDialog
+	namespace ui
 	{
-	  Q_OBJECT;
+		class WelcomeDialog final : public QDialog, public Ui::WelcomeDialog
+		{
+			Q_OBJECT;
 
-	public:
-	  WelcomeDialog();
-	  ~WelcomeDialog() = default;
+		  public:
+			WelcomeDialog();
+			~WelcomeDialog() = default;
 
-	  static bool ShouldShow();
-	};
-  } // namespace ui
+			static bool ShouldShow();
+		};
+	} // namespace ui
 } // namespace noda

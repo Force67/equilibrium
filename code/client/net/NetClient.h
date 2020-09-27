@@ -10,42 +10,42 @@
 
 namespace noda
 {
-  namespace net
-  {
-	FbsStringRef MakeFbStringRef(FbsBuilder &msg, const QString &other);
-
-	class NetClient : public QThread
+	namespace net
 	{
-	  Q_OBJECT;
+		FbsStringRef MakeFbStringRef(FbsBuilder &msg, const QString &other);
 
-	public:
-	  NetClient(NetDelegate &);
-	  ~NetClient();
+		class NetClient : public QThread
+		{
+			Q_OBJECT;
 
-	  inline bool IsConnected() { return _serverPeer; }
+		  public:
+			NetClient(NetDelegate &);
+			~NetClient();
 
-	  void Disconnect();
-	  bool ConnectServer();
+			inline bool IsConnected() { return _serverPeer; }
 
-	  bool SendReliable(uint8_t *, size_t);
-	  bool SendFbsPacketReliable(
-	      net::FbsBuilder &,
-	      protocol::MsgType,
-	      const net::FbsOffset<void>);
+			void Disconnect();
+			bool ConnectServer();
 
-	private:
-	  void run() override;
-	  bool _updateNet = false;
+			bool SendReliable(uint8_t *, size_t);
+			bool SendFbsPacketReliable(
+			    net::FbsBuilder &,
+			    protocol::MsgType,
+			    const net::FbsOffset<void>);
 
-	  ENetHost *_host = nullptr;
-	  ENetPeer *_serverPeer = nullptr;
-	  ENetAddress _address{};
-	  ENetEvent _netEvent{};
+		  private:
+			void run() override;
+			bool _updateNet = false;
 
-	  size_t _totalDataRecieved = 0;
+			ENetHost *_host = nullptr;
+			ENetPeer *_serverPeer = nullptr;
+			ENetAddress _address{};
+			ENetEvent _netEvent{};
 
-	private:
-	  NetDelegate &_delegate;
-	};
-  } // namespace net
+			size_t _totalDataRecieved = 0;
+
+		  private:
+			NetDelegate &_delegate;
+		};
+	} // namespace net
 } // namespace noda

@@ -6,21 +6,21 @@
 
 namespace noda::ui
 {
-  WelcomeDialog::WelcomeDialog() :
-      QDialog(QApplication::activeWindow())
-  {
-	setupUi(this);
+	WelcomeDialog::WelcomeDialog() :
+	    QDialog(QApplication::activeWindow())
+	{
+		setupUi(this);
 
-	connect(buttonContinue, &QPushButton::clicked, this, &QDialog::accept);
-	connect(buttonDontShowAgain, &QCheckBox::clicked, [](bool checked) {
-	  QSettings settings;
-	  settings.setValue("Nd_UiSkipWelcome", checked);
-	});
-  }
+		connect(buttonContinue, &QPushButton::clicked, this, &QDialog::accept);
+		connect(buttonDontShowAgain, &QCheckBox::clicked, [](bool checked) {
+			QSettings settings;
+			settings.setValue("Nd_UiSkipWelcome", checked);
+		});
+	}
 
-  bool WelcomeDialog::ShouldShow()
-  {
-	QSettings settings;
-	return !settings.value("Nd_UiSkipWelcome", true).toBool();
-  }
+	bool WelcomeDialog::ShouldShow()
+	{
+		QSettings settings;
+		return !settings.value("Nd_UiSkipWelcome", true).toBool();
+	}
 } // namespace noda::ui

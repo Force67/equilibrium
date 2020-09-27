@@ -7,14 +7,14 @@
 
 namespace noda
 {
-  class Plugin
-  {
-  public:
-	Plugin();
-	~Plugin();
+	class Plugin
+	{
+	  public:
+		Plugin();
+		~Plugin();
 
-  private:
-	UiController _uiController;
-	sync::SyncController _syncController;
-  };
+	  private:
+		UiController _uiController;
+		sync::SyncController _syncController;
+	};
 } // namespace noda
