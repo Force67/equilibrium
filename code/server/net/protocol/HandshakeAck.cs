@@ -19,43 +19,25 @@ public struct HandshakeAck : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public HandshakeAck __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public string UserName { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetUserNameBytes() { return __p.__vector_as_span<byte>(4, 1); }
-#else
-  public ArraySegment<byte>? GetUserNameBytes() { return __p.__vector_as_arraysegment(4); }
-#endif
-  public byte[] GetUserNameArray() { return __p.__vector_as_array<byte>(4); }
-  public string Project { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetProjectBytes() { return __p.__vector_as_span<byte>(6, 1); }
-#else
-  public ArraySegment<byte>? GetProjectBytes() { return __p.__vector_as_arraysegment(6); }
-#endif
-  public byte[] GetProjectArray() { return __p.__vector_as_array<byte>(6); }
-  public uint DbRemoteVersion { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public int Index { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int NumUsers { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
 
   public static Offset<protocol.HandshakeAck> CreateHandshakeAck(FlatBufferBuilder builder,
-      StringOffset userNameOffset = default(StringOffset),
-      StringOffset projectOffset = default(StringOffset),
-      uint dbRemoteVersion = 0) {
-    builder.StartTable(3);
-    HandshakeAck.AddDbRemoteVersion(builder, dbRemoteVersion);
-    HandshakeAck.AddProject(builder, projectOffset);
-    HandshakeAck.AddUserName(builder, userNameOffset);
+      int index = 0,
+      int numUsers = 0) {
+    builder.StartTable(2);
+    HandshakeAck.AddNumUsers(builder, numUsers);
+    HandshakeAck.AddIndex(builder, index);
     return HandshakeAck.EndHandshakeAck(builder);
   }
 
-  public static void StartHandshakeAck(FlatBufferBuilder builder) { builder.StartTable(3); }
-  public static void AddUserName(FlatBufferBuilder builder, StringOffset userNameOffset) { builder.AddOffset(0, userNameOffset.Value, 0); }
-  public static void AddProject(FlatBufferBuilder builder, StringOffset projectOffset) { builder.AddOffset(1, projectOffset.Value, 0); }
-  public static void AddDbRemoteVersion(FlatBufferBuilder builder, uint dbRemoteVersion) { builder.AddUint(2, dbRemoteVersion, 0); }
+  public static void StartHandshakeAck(FlatBufferBuilder builder) { builder.StartTable(2); }
+  public static void AddIndex(FlatBufferBuilder builder, int index) { builder.AddInt(0, index, 0); }
+  public static void AddNumUsers(FlatBufferBuilder builder, int numUsers) { builder.AddInt(1, numUsers, 0); }
   public static Offset<protocol.HandshakeAck> EndHandshakeAck(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<protocol.HandshakeAck>(o);
   }
-  public static void FinishHandshakeAckBuffer(FlatBufferBuilder builder, Offset<protocol.HandshakeAck> offset) { builder.Finish(offset.Value); }
-  public static void FinishSizePrefixedHandshakeAckBuffer(FlatBufferBuilder builder, Offset<protocol.HandshakeAck> offset) { builder.FinishSizePrefixed(offset.Value); }
 };
 
 

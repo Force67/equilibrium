@@ -5,9 +5,9 @@ using System;
 
 namespace noda
 {
-    public class ConSink : ILogSink
+    public class ConsoleLogSink : ILogSink
     {
-        public void Write(string message, LogLevel level)
+        public void Write(string source, string message, LogLevel level)
         {
             var previousColor = Console.ForegroundColor;
 
@@ -33,9 +33,15 @@ namespace noda
                     break;
             }
 
-            string msg = Logger.FormatLogMessage(level, message);
-            Console.WriteLine(msg);
+            var levelS = level.ToString();
+            var sourceS = (source == string.Empty) ? string.Empty : ("[" + source + "]");
+
+            var text = string.Format("[{0}] {1} - {2}", sourceS, levelS, message);
+
+            Console.WriteLine(text);
             Console.ForegroundColor = previousColor;
         }
+
+        public bool UseFilter { get { return true; } }
     }
 }

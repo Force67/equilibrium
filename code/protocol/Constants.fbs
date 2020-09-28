@@ -5,6 +5,7 @@ namespace protocol.constants;
 
 enum ProtocolVersion : int
 {
-    V_1_0 = 10,
+    // Change this value whenever we are adding breaking changes
+    Current = 10,
 }
 

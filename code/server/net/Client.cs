@@ -7,15 +7,17 @@ using System;
 
 namespace noda
 {
-    class User
+    class Client
     {
-        public User(ENet.Peer peer)
+        public Client(ENet.Peer peer, string name, string guid)
         {
             this.peer = peer;
+            this.name = name;
+            this.guid = guid;
         }
 
         public string name { get; set; }
-        public string hwid { get; set; }
+        public string guid { get; set; }
 
         private ENet.Peer peer;
 

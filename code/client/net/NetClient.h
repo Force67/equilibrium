@@ -34,6 +34,9 @@ namespace noda
 			    const net::FbsOffset<void>);
 
 		  private:
+			void SendHandshake();
+			void ProcessIncomingPacket(uint8_t*, size_t);
+
 			void run() override;
 			bool _updateNet = false;
 

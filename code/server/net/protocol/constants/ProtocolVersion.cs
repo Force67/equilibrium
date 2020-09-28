@@ -7,7 +7,7 @@ namespace protocol.constants
 
 public enum ProtocolVersion : int
 {
-  V_1_0 = 10,
+  Current = 10,
 };
 
 

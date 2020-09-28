@@ -1,69 +1,41 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-using System;
-using System.Collections.Generic;
-
 namespace noda
 {
     class Program
     {
-        private SyncServer server;
-        private Logger logger;
-        private Config config;
-        private Database db;
-       // private DiscordFeed discordFeed;
-
-        public Program()
+        static void Main(string[] args)
         {
-            // https://social.msdn.microsoft.com/Forums/en-US/1b1b316a-8648-4243-a651-84de51fd2508/reference-native-dll-from-managed-c-project?forum=vssmartdevicesvbcs
+            bool disableFileLogger = false;
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-nofilelog")
+                    disableFileLogger = true;
+            }
+
+            Config config = Config.Load("NODA.config");
+
+            Logger.Init();
+            Logger.AddSink(new ConsoleLogSink());
+            if (!disableFileLogger)
+                Logger.AddSink(new FileLogSink("NODAServer.log", false));
+
+            Logger.Info("Initializing NODA");
+            Logger.Info("Localizing the hardware pope");
 
             try
             {
-            config = Config.Create();
+                var server = new Server2(config);
 
-                logger = new Logger();
-                logger.Sinks.Add(new ConSink());
-
-                db = new Database(logger, config);
-                db.Open();
-
-                server = new SyncServer(config, logger);
-                logger.Info("Starting NODA Server");
-
+                while (server.IsListening())
+                    server.Tick();
             }
-            catch (Exception exc)
+            catch(System.Exception ex)
             {
-                Console.WriteLine(exc.ToString());
+                Logger.Error("Caught exception: " + ex.Message);
             }
-
-            // discordFeed = new DiscordFeed(logger, config.DiscordToken);
-            //  logger.Sinks.Add(discordFeed);
-        }
-          
-        ~Program()
-        {
-            config.Save();
-        }
-
-        public void Run()
-        { 
-            //discordFeed.Start();
-
-            while (true)
-            {
-                var input = Console.ReadLine();
-                if (input == "/quit")
-                {
-                    server.Kill();
-                    break;
-                }
-            }
-        }
-
-        static void Main(string[] args)
-        {
-            new Program().Run();
         }
     }
 }

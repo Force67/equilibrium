@@ -9,47 +9,26 @@ namespace noda
 {
     public class Config
     {
+        public static Config Load(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                string jsonContents = File.ReadAllText(fileName);
+                return JsonSerializer.Deserialize<Config>(jsonContents);
+            }
+
+            return new Config();
+        }
+
         // Server:
-        public ushort ServerPort { get; set; } = 4523;
-        public string ServerPassword { get; set; } = "";
+        public ushort Port { get; set; } = 4523;
+        public string Password { get; set; } = "";
+        public string DbLocation { get; set; } = "db";
 
         // Networking:
         public int NetTimeOut { get; set; } = 3000;
 
         // Feed:
         public string DiscordToken { get; set; } = "";
-
-        // DB:
-        public string DbHost { get; set; } = "";
-        public string DbPort { get; set; } = "";
-        public string DbUser { get; set; } = "";
-        public string DbPass { get; set; } = "";
-        public string DbName { get; set; } = "";
-
-        public static Config Create()
-        {
-            if (File.Exists("NODAConfig.json"))
-            {
-                string jsonContents = File.ReadAllText("NODAConfig.json");
-                return JsonSerializer.Deserialize<Config>(jsonContents);
-            }
-
-            var config = new Config();
-            config.Save();
-
-            return config;
-        }
-
-        public void Save()
-        {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-
-            string modelJson = JsonSerializer.Serialize(this, options);
-            Console.WriteLine(modelJson);
-            File.WriteAllText("NODAConfig.json", modelJson);
-        }
     }
 }

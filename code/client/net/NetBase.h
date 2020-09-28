@@ -26,7 +26,7 @@ namespace noda
 			constexpr uint32_t kTimeout = 3000;
 			constexpr uint32_t kNetworkerThreadIdle = 1;
 			constexpr uint16_t kClientVersion =
-			    protocol::constants::ProtocolVersion_V_1_0;
+			    protocol::constants::ProtocolVersion_Current;
 		} // namespace constants
 
 		struct NetStats {
@@ -42,13 +42,13 @@ namespace noda
 
 			// this is triggered when a connection has been
 			// established
-			virtual void OnConnectRequest() {}
+			virtual void OnConnected(int myIndex, int numUsers) = 0;
 
 			// We have been dropped
 			virtual void OnDisconnect(uint32_t reason) = 0;
 
 			// Handle a new message
-			virtual void ProcessPacket(uint8_t *data, size_t length) = 0;
+			virtual void ProcessPacket(const protocol::Message*) = 0;
 
 		  public:
 			NetStats netStats;

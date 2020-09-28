@@ -4,8 +4,18 @@
 #include <qsettings.h>
 #include "NetClient.h"
 
+#include "utils/Logger.h"
+#include "utils/UserInfo.h"
+
+// stupid windows
+#ifdef _WIN32
+#undef GetMessage
+#endif
+
 namespace noda::net
 {
+	using namespace protocol;
+
 	FbsStringRef MakeFbStringRef(FbsBuilder &msg, const QString &other)
 	{
 		const char *str = const_cast<const char *>(other.toUtf8().data());
@@ -56,6 +66,24 @@ namespace noda::net
 		return true;
 	}
 
+	void NetClient::SendHandshake()
+	{
+		const QString& defaultName = utils::GetDefaultUserName();
+		const QString& guid = utils::GetUserGuid();
+
+		QSettings settings;
+		auto userName = settings.value("Nd_SyncUser", defaultName).toString();
+
+		FbsBuilder fbb(128);
+		auto pack = protocol::CreateHandshakeRequest(fbb,
+			net::constants::kClientVersion,
+			fbb.CreateString("NotAToken"),
+			net::MakeFbStringRef(fbb, guid),
+			net::MakeFbStringRef(fbb, userName));
+
+		SendFbsPacketReliable(fbb, protocol::MsgType_HandshakeRequest, pack.Union());
+	}
+
 	bool NetClient::SendReliable(uint8_t *ptr, size_t size)
 	{
 		auto *packet = enet_packet_create(
@@ -88,6 +116,23 @@ namespace noda::net
 		fbb.Clear();
 
 		return result;
+	}
+
+	void NetClient::ProcessIncomingPacket(uint8_t* data, size_t size)
+	{
+		const Message* message = GetMessage(static_cast<void*>(data));
+
+		LOG_TRACE("Recieved message {}", EnumNameMsgType(message->msg_type()));
+
+		switch (message->msg_type()) {
+		case MsgType_HandshakeAck: {
+			auto* pack = message->msg_as_HandshakeAck();
+			_delegate.OnConnected(pack->index(), pack->numUsers());
+			return;
+		}
+		default:
+			_delegate.ProcessPacket(message);
+		}
 	}
 
 	void NetClient::Disconnect()
@@ -123,10 +168,9 @@ namespace noda::net
 				_delegate.netStats.bwUp = _serverPeer->outgoingBandwidth;
 
 				switch(_netEvent.type) {
-				case ENET_EVENT_TYPE_CONNECT: {
-					_delegate.OnConnectRequest();
+				case ENET_EVENT_TYPE_CONNECT:
+					SendHandshake();
 					break;
-				}
 				case ENET_EVENT_TYPE_DISCONNECT: {
 					_delegate.OnDisconnect(_netEvent.data);
 					break;
@@ -139,10 +183,11 @@ namespace noda::net
 					    _netEvent.packet->dataLength);
 
 					// validate the packet is not corrupted
-					if(protocol::VerifyMessageBuffer(verifier)) {
-						_delegate.ProcessPacket(_netEvent.packet->data, _netEvent.packet->dataLength);
-					}
-
+					if (VerifyMessageBuffer(verifier))
+						ProcessIncomingPacket(
+							_netEvent.packet->data, 
+							_netEvent.packet->dataLength);
+					
 					enet_packet_destroy(_netEvent.packet);
 					break;
 				}

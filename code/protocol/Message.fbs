@@ -1,21 +1,26 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-include "HandshakeRequest.fbs";
-include "HandshakeAck.fbs";
+include "Handshake.fbs";
 include "Broadcast.fbs";
 include "ChatMessage.fbs";
 include "IdaSync.fbs";
+include "Project.fbs";
 
 namespace protocol;
 
 union MsgType {
+    // system:
     HandshakeRequest,
     HandshakeAck,
     Broadcast,
     ChatMessage,
 
-    // sync messages go ONLY after HERE:
+    // sync:
+    LocalProject,
+    RemoteProject,
+
+    // handlers:
     sync.NameEa,
 
     sync.AddFunction,

@@ -10,29 +10,29 @@ namespace protocol {
 namespace constants {
 
 enum ProtocolVersion {
-  ProtocolVersion_V_1_0 = 10,
-  ProtocolVersion_MIN = ProtocolVersion_V_1_0,
-  ProtocolVersion_MAX = ProtocolVersion_V_1_0
+  ProtocolVersion_Current = 10,
+  ProtocolVersion_MIN = ProtocolVersion_Current,
+  ProtocolVersion_MAX = ProtocolVersion_Current
 };
 
 inline const ProtocolVersion (&EnumValuesProtocolVersion())[1] {
   static const ProtocolVersion values[] = {
-    ProtocolVersion_V_1_0
+    ProtocolVersion_Current
   };
   return values;
 }
 
 inline const char * const *EnumNamesProtocolVersion() {
   static const char * const names[2] = {
-    "V_1_0",
+    "Current",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameProtocolVersion(ProtocolVersion e) {
-  if (flatbuffers::IsOutRange(e, ProtocolVersion_V_1_0, ProtocolVersion_V_1_0)) return "";
-  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(ProtocolVersion_V_1_0);
+  if (flatbuffers::IsOutRange(e, ProtocolVersion_Current, ProtocolVersion_Current)) return "";
+  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(ProtocolVersion_Current);
   return EnumNamesProtocolVersion()[index];
 }
 

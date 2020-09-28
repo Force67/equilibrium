@@ -19,77 +19,51 @@ public struct HandshakeRequest : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public HandshakeRequest __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public ushort ClientVersion { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
-  public string Hwid { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public ushort ProtocolVersion { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
+  public string Token { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetHwidBytes() { return __p.__vector_as_span<byte>(6, 1); }
+  public Span<byte> GetTokenBytes() { return __p.__vector_as_span<byte>(6, 1); }
 #else
-  public ArraySegment<byte>? GetHwidBytes() { return __p.__vector_as_arraysegment(6); }
+  public ArraySegment<byte>? GetTokenBytes() { return __p.__vector_as_arraysegment(6); }
 #endif
-  public byte[] GetHwidArray() { return __p.__vector_as_array<byte>(6); }
-  public string User { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetTokenArray() { return __p.__vector_as_array<byte>(6); }
+  public string Guid { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetUserBytes() { return __p.__vector_as_span<byte>(8, 1); }
+  public Span<byte> GetGuidBytes() { return __p.__vector_as_span<byte>(8, 1); }
 #else
-  public ArraySegment<byte>? GetUserBytes() { return __p.__vector_as_arraysegment(8); }
+  public ArraySegment<byte>? GetGuidBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
-  public byte[] GetUserArray() { return __p.__vector_as_array<byte>(8); }
-  public string Pass { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetGuidArray() { return __p.__vector_as_array<byte>(8); }
+  public string Name { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetPassBytes() { return __p.__vector_as_span<byte>(10, 1); }
+  public Span<byte> GetNameBytes() { return __p.__vector_as_span<byte>(10, 1); }
 #else
-  public ArraySegment<byte>? GetPassBytes() { return __p.__vector_as_arraysegment(10); }
+  public ArraySegment<byte>? GetNameBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
-  public byte[] GetPassArray() { return __p.__vector_as_array<byte>(10); }
-  public ushort DbVersion { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
-  public string DbMD5 { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetDbMD5Bytes() { return __p.__vector_as_span<byte>(14, 1); }
-#else
-  public ArraySegment<byte>? GetDbMD5Bytes() { return __p.__vector_as_arraysegment(14); }
-#endif
-  public byte[] GetDbMD5Array() { return __p.__vector_as_array<byte>(14); }
-  public string DbName { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetDbNameBytes() { return __p.__vector_as_span<byte>(16, 1); }
-#else
-  public ArraySegment<byte>? GetDbNameBytes() { return __p.__vector_as_arraysegment(16); }
-#endif
-  public byte[] GetDbNameArray() { return __p.__vector_as_array<byte>(16); }
+  public byte[] GetNameArray() { return __p.__vector_as_array<byte>(10); }
 
   public static Offset<protocol.HandshakeRequest> CreateHandshakeRequest(FlatBufferBuilder builder,
-      ushort clientVersion = 0,
-      StringOffset hwidOffset = default(StringOffset),
-      StringOffset userOffset = default(StringOffset),
-      StringOffset passOffset = default(StringOffset),
-      ushort dbVersion = 0,
-      StringOffset dbMD5Offset = default(StringOffset),
-      StringOffset dbNameOffset = default(StringOffset)) {
-    builder.StartTable(7);
-    HandshakeRequest.AddDbName(builder, dbNameOffset);
-    HandshakeRequest.AddDbMD5(builder, dbMD5Offset);
-    HandshakeRequest.AddPass(builder, passOffset);
-    HandshakeRequest.AddUser(builder, userOffset);
-    HandshakeRequest.AddHwid(builder, hwidOffset);
-    HandshakeRequest.AddDbVersion(builder, dbVersion);
-    HandshakeRequest.AddClientVersion(builder, clientVersion);
+      ushort protocolVersion = 0,
+      StringOffset tokenOffset = default(StringOffset),
+      StringOffset guidOffset = default(StringOffset),
+      StringOffset nameOffset = default(StringOffset)) {
+    builder.StartTable(4);
+    HandshakeRequest.AddName(builder, nameOffset);
+    HandshakeRequest.AddGuid(builder, guidOffset);
+    HandshakeRequest.AddToken(builder, tokenOffset);
+    HandshakeRequest.AddProtocolVersion(builder, protocolVersion);
     return HandshakeRequest.EndHandshakeRequest(builder);
   }
 
-  public static void StartHandshakeRequest(FlatBufferBuilder builder) { builder.StartTable(7); }
-  public static void AddClientVersion(FlatBufferBuilder builder, ushort clientVersion) { builder.AddUshort(0, clientVersion, 0); }
-  public static void AddHwid(FlatBufferBuilder builder, StringOffset hwidOffset) { builder.AddOffset(1, hwidOffset.Value, 0); }
-  public static void AddUser(FlatBufferBuilder builder, StringOffset userOffset) { builder.AddOffset(2, userOffset.Value, 0); }
-  public static void AddPass(FlatBufferBuilder builder, StringOffset passOffset) { builder.AddOffset(3, passOffset.Value, 0); }
-  public static void AddDbVersion(FlatBufferBuilder builder, ushort dbVersion) { builder.AddUshort(4, dbVersion, 0); }
-  public static void AddDbMD5(FlatBufferBuilder builder, StringOffset dbMD5Offset) { builder.AddOffset(5, dbMD5Offset.Value, 0); }
-  public static void AddDbName(FlatBufferBuilder builder, StringOffset dbNameOffset) { builder.AddOffset(6, dbNameOffset.Value, 0); }
+  public static void StartHandshakeRequest(FlatBufferBuilder builder) { builder.StartTable(4); }
+  public static void AddProtocolVersion(FlatBufferBuilder builder, ushort protocolVersion) { builder.AddUshort(0, protocolVersion, 0); }
+  public static void AddToken(FlatBufferBuilder builder, StringOffset tokenOffset) { builder.AddOffset(1, tokenOffset.Value, 0); }
+  public static void AddGuid(FlatBufferBuilder builder, StringOffset guidOffset) { builder.AddOffset(2, guidOffset.Value, 0); }
+  public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(3, nameOffset.Value, 0); }
   public static Offset<protocol.HandshakeRequest> EndHandshakeRequest(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<protocol.HandshakeRequest>(o);
   }
-  public static void FinishHandshakeRequestBuffer(FlatBufferBuilder builder, Offset<protocol.HandshakeRequest> offset) { builder.Finish(offset.Value); }
-  public static void FinishSizePrefixedHandshakeRequestBuffer(FlatBufferBuilder builder, Offset<protocol.HandshakeRequest> offset) { builder.FinishSizePrefixed(offset.Value); }
 };
 
 

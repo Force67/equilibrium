@@ -3,10 +3,13 @@
 
 namespace protocol;
 
-table HandshakeAck {
-  userName:string;
-  project:string;
-  dbRemoteVersion:uint;
+table LocalProject {
+  md5:string;
+  name:string;
+  version:int;
 }
 
-root_type HandshakeAck;
+table RemoteProject {
+    version:int;
+    name:string;
+}

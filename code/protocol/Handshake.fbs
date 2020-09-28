@@ -1,0 +1,17 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+
+namespace protocol;
+
+table HandshakeRequest {
+  protocolVersion:ushort;
+
+  token:string;
+  guid:string;
+  name:string;
+}
+
+table HandshakeAck {
+  index:int;
+  numUsers:int;
+}

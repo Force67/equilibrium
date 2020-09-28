@@ -72,9 +72,9 @@ namespace noda
 
 		  private:
 			// network events
-			void OnConnectRequest() override;
+			void OnConnected(int, int) override;
 			void OnDisconnect(uint32_t) override;
-			void ProcessPacket(uint8_t *, size_t) override;
+			void ProcessPacket(const protocol::Message*) override;
 
 			utils::Storage _storage;
 			bool _active = false;

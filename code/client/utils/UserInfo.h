@@ -4,8 +4,8 @@
 
 #include <qstring.h>
 
-namespace noda::sync::utils
+namespace noda::utils
 {
-	const QString &GetSysUsername();
-	const QString &GetHardwareId();
-} // namespace noda::sync::utils
+	const QString &GetDefaultUserName();
+	const QString &GetUserGuid();
+} // namespace noda::utils

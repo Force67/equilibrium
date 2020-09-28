@@ -1,15 +1,15 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "SystemInfo.h"
+#include "UserInfo.h"
 
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-namespace noda::sync::utils
+namespace noda::utils
 {
-	const QString &GetSysUsername()
+	const QString &GetDefaultUserName()
 	{
 		static QString s_Name{};
 		if(s_Name.isEmpty()) {
@@ -25,7 +25,7 @@ namespace noda::sync::utils
 		return s_Name;
 	}
 
-	const QString &GetHardwareId()
+	const QString &GetUserGuid()
 	{
 		static QString s_Hwid{};
 		if(s_Hwid.isEmpty()) {

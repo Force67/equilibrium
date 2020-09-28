@@ -34,7 +34,7 @@ namespace noda.net
 
     public class NetDispatcher<T>
     {
-        private Dictionary<MsgType, Action<T, Message>> _subscribers;
+        
 
         public NetDispatcher()
         {

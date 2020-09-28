@@ -9,20 +9,14 @@
 #include <qsettings.h>
 
 #include "utils/Storage.h"
-#include "utils/SystemInfo.h"
 
-#include "net/protocol/HandshakeRequest_generated.h"
-#include "net/protocol/HandshakeAck_generated.h"
+#include "net/protocol/Project_generated.h"
 #include "net/protocol/Message_generated.h"
 
 #include "net/NetBase.h"
 #include "IdaInc.h"
 
 #include "handlers/SyncHandler.h"
-
-#ifdef _WIN32
-#undef GetMessage
-#endif
 
 namespace noda::sync
 {
@@ -89,36 +83,20 @@ namespace noda::sync
 		return _client->IsConnected() && _active;
 	}
 
-	void SyncController::OnConnectRequest()
+	// bounce back
+	void SyncController::OnConnected(int myIndex, int numUsers)
 	{
-		const QString &name = utils::GetSysUsername();
-		const QString &hwid = utils::GetHardwareId();
-
-		QSettings settings;
-		auto user = settings.value("Nd_SyncUser", name).toString();
-		auto pass = settings.value("Nd_SyncPass", "").toString();
-
-		const auto dbVersion = 0;
-
 		char md5[16];
-		retrieve_input_file_md5(reinterpret_cast<uchar *>(md5));
+		retrieve_input_file_md5(reinterpret_cast<uchar*>(md5));
 
-		char buffer[128]{};
-		get_root_filename(buffer, sizeof(buffer) - 1);
+		char name[128]{};
+		get_root_filename(name, sizeof(name) - 1);
 
-		auto request = protocol::CreateHandshakeRequest(
-		    _fbb,
-		    net::constants::kClientVersion,
-		    net::MakeFbStringRef(_fbb, hwid),
-		    net::MakeFbStringRef(_fbb, user),
-		    net::MakeFbStringRef(_fbb, pass),
-		    dbVersion,
-		    _fbb.CreateString(md5),
-		    _fbb.CreateString(buffer));
+		// send IDB info
+		auto pack = protocol::CreateLocalProjectDirect(_fbb, md5, name, 1337);
+		SendFbsPacket(protocol::MsgType_LocalProject, pack);
 
-		SendFbsPacket(
-		    protocol::MsgType_HandshakeRequest,
-		    request);
+		emit Connected();
 	}
 
 	void SyncController::OnDisconnect(uint32_t reason)
@@ -130,31 +108,21 @@ namespace noda::sync
 		emit Disconnected(reason);
 	}
 
-	void SyncController::ProcessPacket(uint8_t *data, size_t length)
+	void SyncController::ProcessPacket(const protocol::Message* message)
 	{
-		const protocol::Message *message =
-		    protocol::GetMessage(static_cast<void *>(data));
-
-		LOG_TRACE("Recieved message {}",
-		          protocol::EnumNameMsgType(message->msg_type()));
-
 		switch(message->msg_type()) {
-		case protocol::MsgType_HandshakeAck: {
-			const auto *pack = message->msg_as_HandshakeAck();
-			_active = true;
+		case protocol::MsgType_RemoteProject: {
+			const auto *pack = message->msg_as_RemoteProject();
 
 			LOG_INFO(
-			    "Successfully connected as {} (project: {})\n"
+			    "Successfully connected to {}\n"
 			    "Local Version: {} Remote Version: {}",
-			    pack->userName()->c_str(),
-			    pack->project()->c_str(),
+			    pack->name()->c_str(),
 			    1337,
-			    pack->dbRemoteVersion());
+			    pack->version());
 
-			// everything OK! we can proceed
-
+			_active = true;
 			_statsTimer->start(kNetTrackRate);
-			emit Connected();
 			return;
 		}
 		case protocol::MsgType_Broadcast: {
@@ -175,7 +143,7 @@ namespace noda::sync
 			}
 
 			emit Broadcasted(pack->type());
-			break;
+			return;
 		}
 		default: {
 			auto it = _netEvents.find(message->msg_type());
