@@ -61,7 +61,7 @@ namespace noda
             clients.ForEach(it => it.SendMessage(fbb, MsgType.Broadcast, msg));
         }
 
-        public async void ProcessPacket(ENet.Peer peer, byte[] data, int length)
+        public void ProcessPacket(ENet.Peer peer, byte[] data, int length)
         {
             ByteBuffer buffer = new ByteBuffer(data);
             var message = Message.GetRootAsMessage(buffer);
@@ -106,7 +106,12 @@ namespace noda
                 }
             }
 
-            //clients.ForEach(it => )
+            // simply bounce the message back for now..
+            clients.ForEach(delegate (User it)
+            {
+                if (it != user)
+                    it.SendReliable(data);
+            });
 
             // we still trigger the event though..
             trigger(user, message);

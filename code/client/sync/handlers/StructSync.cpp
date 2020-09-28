@@ -6,10 +6,10 @@
 #include "IdaInc.h"
 #include "struct.hpp"
 
+using namespace protocol::sync;
+
 namespace noda::sync::create_struct
 {
-	using namespace protocol::sync;
-
 	static bool Apply(SyncController&, const CreateStruct& pack)
 	{
 		LOG_TRACE("Created struct {}", pack.name()->c_str());
@@ -39,8 +39,6 @@ namespace noda::sync::create_struct
 
 namespace noda::sync::delete_struct
 {
-	using namespace protocol::sync;
-
 	static bool Apply(SyncController&, const DeleteStruct& pack)
 	{
 		LOG_TRACE("Struct {} was deleted ", pack.name()->c_str());
@@ -73,8 +71,6 @@ namespace noda::sync::delete_struct
 
 namespace noda::sync::rename_struct
 {
-	using namespace protocol::sync;
-
 	static bool Apply(SyncController&, const RenameStruct& pack)
 	{
 		LOG_TRACE("Renamed Struct {} to {}", 
@@ -107,8 +103,6 @@ namespace noda::sync::rename_struct
 
 namespace noda::sync::rename_struct_member
 {
-	using namespace protocol::sync;
-
 	static bool Apply(SyncController&, const RenameStructMember& pack)
 	{
 		tid_t sid = get_struc_id(pack.structName()->c_str());
@@ -140,8 +134,6 @@ namespace noda::sync::rename_struct_member
 
 namespace noda::sync::delete_struct_member
 {
-	using namespace protocol::sync;
-
 	static bool Apply(SyncController&, const DeleteStructMember& pack)
 	{
 		tid_t sid = get_struc_id(pack.name()->c_str());
@@ -174,8 +166,6 @@ namespace noda::sync::delete_struct_member
 
 namespace noda::sync::change_struct_member
 {
-	using namespace protocol::sync;
-
 	static bool Apply(SyncController&, const ChangeStructMember& pack)
 	{
 		tid_t sid = get_struc_id(pack.structName()->c_str());
@@ -199,6 +189,17 @@ namespace noda::sync::change_struct_member
 
 	static bool React(SyncController& sc, va_list list)
 	{
+		struc_t* struc = va_arg(list, ::struc_t*);
+		member_t* member = va_arg(list, ::member_t*);
+
+		if (!struc || !member)
+			return false;
+
+		const auto strucName = get_struc_name(struc->id);
+		const auto memberName = get_member_name(member->id);
+
+		//auto pack = CreateChangeStructMemberDirect(sc.fbb(),  strucName.c_str(), memberName.c_str(), 
+
 		LOG_ERROR("TODO: Send ChangeStructMember");
 		return true;
 	}

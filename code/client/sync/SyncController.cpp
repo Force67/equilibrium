@@ -39,6 +39,9 @@ namespace noda::sync
 
 	SyncController::SyncController()
 	{
+		hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
+		hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
+
 		_client.reset(new net::NetClient(*this));
 
 		// post the net stats every second to the ui
@@ -46,10 +49,7 @@ namespace noda::sync
 		connect(_statsTimer.data(), &QTimer::timeout, ([&] {
 			        emit StatsUpdated(netStats);
 		        }));
-
-		hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
-		hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
-
+		
 		for (auto* i = SyncHandler::ROOT(); i;) {
 			auto* it = i->handler;
 			if (it) {

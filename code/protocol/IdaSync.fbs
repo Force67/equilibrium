@@ -18,6 +18,64 @@ table AddFunction {
     endea:uint64;
 }
 
+table DeleteFunction {
+    ea:uint64;
+}
+
+table SetFunctionStart {
+    ea:uint64;
+    newea:uint64;
+}
+
+table SetFunctionEnd {
+    startea:uint64;
+    endea:uint64;
+}
+
+table AppendFunctionTail {
+    funcea:uint64;
+    tailEaStart:uint64;
+    tailEaEnd:uint64;
+}
+
+table DeleteFunctionTail {
+    funcea:uint64;
+    tailea:uint64;
+}
+
+table ChangeFunctionTailOwner {
+    tailea:uint64;
+    funcstart:uint64;
+}
+
+table ChangeItemComment {
+    ea:uint64;
+    comment:string;
+    repeatable:bool;
+}
+
+table ChangeRangeComment {
+    ea:uint64;
+    kind:int;
+    comment:string;
+    repeatable:bool;
+}
+
+table ChangeExtraComment {
+    ea:uint64;
+    line:int;
+    comment:string;
+}
+
+table CreateEnum {
+    id:uint64;
+    name:string;
+}
+
+table DeleteEnum {
+    name:string;
+}
+
 table CreateStruct {
     name:string;
     isUnion:bool;
@@ -80,12 +138,7 @@ table MakeData {
     ea:uint64;
     flags:uint;
     length:uint;
-}
-
-table ChangeComment {
-    ea:uint64;
-    text:string;
-    repeatable:bool;
+    tid:uint64;
 }
 
 enum OperandType : byte

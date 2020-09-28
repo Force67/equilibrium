@@ -18,8 +18,20 @@ union MsgType {
     // sync messages go ONLY after HERE:
     sync.NameEa,
 
-    // unimplement:
     sync.AddFunction,
+    sync.DeleteFunction,
+    sync.SetFunctionStart,
+    sync.SetFunctionEnd,
+    sync.AppendFunctionTail,
+    sync.DeleteFunctionTail,
+    sync.ChangeFunctionTailOwner,
+
+    sync.ChangeItemComment,
+    sync.ChangeRangeComment,
+    sync.ChangeExtraComment,
+
+    sync.CreateEnum,
+    sync.DeleteEnum,
 
     sync.CreateStruct,
     sync.RenameStruct,
@@ -32,7 +44,6 @@ union MsgType {
     sync.MakeCode,
     sync.MakeData,
     sync.Undefine,
-    sync.ChangeComment,
 
     sync.ChangeOperand
 }
