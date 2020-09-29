@@ -23,7 +23,7 @@ namespace noda
         // Server:
         public ushort Port { get; set; } = 4523;
         public string Password { get; set; } = "";
-        public string DbLocation { get; set; } = "db";
+        public string DbFolder { get; set; } = "db";
 
         // Networking:
         public int NetTimeOut { get; set; } = 3000;

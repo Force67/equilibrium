@@ -8,7 +8,7 @@
 #include <qpaintdevice.h>
 
 #include "net/NetBase.h"
-#include "net/protocol/Broadcast_generated.h"
+#include "net/protocol/Announcement_generated.h"
 
 namespace noda::ui
 {
@@ -96,11 +96,11 @@ namespace noda::ui
 	void NetStatusWidget::OnBroadcast(int code)
 	{
 		switch(code) {
-		case protocol::BroadcastType_Joined:
-		case protocol::BroadcastType_FirstJoin:
+		case protocol::AnnounceType_FirstJoin:
+		case protocol::AnnounceType_Joined:
 			_userCount++;
 			break;
-		case protocol::BroadcastType_Disconnect:
+		case protocol::AnnounceType_Disconnect:
 			_userCount--;
 			break;
 		default:

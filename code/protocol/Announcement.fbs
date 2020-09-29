@@ -3,14 +3,14 @@
 
 namespace protocol;
 
-enum BroadcastType : byte
+enum AnnounceType : byte
 {
     FirstJoin,
     Joined,
     Disconnect
 }
 
-table Broadcast {
-  type:BroadcastType;
+table Announcement {
+  type:AnnounceType;
   name:string;
 }

@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 include "Handshake.fbs";
-include "Broadcast.fbs";
+include "Announcement.fbs";
 include "ChatMessage.fbs";
 include "IdaSync.fbs";
 include "Project.fbs";
@@ -13,7 +13,7 @@ union MsgType {
     // system:
     HandshakeRequest,
     HandshakeAck,
-    Broadcast,
+    Announcement,
     ChatMessage,
 
     // sync:

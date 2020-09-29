@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "Settings.h"
-#include "sync/utils/SystemInfo.h"
+#include "utils/UserInfo.h"
 
 namespace noda::ui
 {
@@ -36,8 +36,7 @@ namespace noda::ui
 		editIP->setText(_settings.value("Nd_SyncIp", net::constants::kServerIp).toString());
 		editPort->setText(_settings.value("Nd_SyncPort", net::constants::kServerPort).toString());
 		editPass->setText(_settings.value("Nd_SyncPass", "").toString());
-		editUser->setText(_settings.value("Nd_SyncUser", sync::utils::GetSysUsername())
-		                      .toString());
+		editUser->setText(_settings.value("Nd_SyncUser", utils::GetDefaultUserName()).toString());
 
 		editTimeout->setText(_settings.value("Nd_NetTimeout", net::constants::kTimeout).toString());
 		cbShowWelcome->setChecked(!_settings.value("Nd_UiSkipWelcome").toBool());

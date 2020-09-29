@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using FlatBuffers;
 using System.Linq;
 
+#nullable enable
 namespace noda.net
 {
     class NetServer
@@ -17,7 +18,7 @@ namespace noda.net
         private Host host;
         private Event netEvent;
         private List<Client> clientRegistry;
-        private FlatBufferBuilder fbb;
+        protected FlatBufferBuilder fbb;
         private Dictionary<MsgType, Action<Client, Message>> handlers;
 
         public virtual void OnConnection(Client src) { }
@@ -58,10 +59,28 @@ namespace noda.net
             clientRegistry.ForEach(it => it.Kick(DisconnectReason.Quit));
         }
 
-        public void BroadCast(BroadcastType type, string text)
+        public void Broadcast(Client exclude, Message message)
         {
-            var pack = Broadcast.CreateBroadcast(fbb, type, fbb.CreateString(text));
-            clientRegistry.ForEach(it => it.SendMessage(fbb, MsgType.Broadcast, pack));
+            clientRegistry.ForEach(delegate (Client it)
+            {
+                if (it == exclude)
+                    return;
+
+                it.SendReliable(message.ByteBuffer.ToSizedArray());
+            });
+        }
+
+        public void Announce(AnnounceType type, string data, Client? exclude = null)
+        {
+            clientRegistry.ForEach(delegate (Client it)
+            {
+                if (it == exclude)
+                    return;
+
+                it.SendMessage(fbb, MsgType.Announcement,  
+                    Announcement.CreateAnnouncement(
+                    fbb, type, fbb.CreateString(data)));
+            });
         }
 
         public void Tick()
@@ -74,14 +93,13 @@ namespace noda.net
                         break;
                     case EventType.Disconnect:
                     {
-                         var client = clientRegistry.FirstOrDefault(it => it.GetId() == netEvent.Peer.ID);
-                         if (client == null)
+                         var it = clientRegistry.FirstOrDefault(it => it.id == netEvent.Peer.ID);
+                         if (it == null)
                             return;
 
-                         BroadCast(BroadcastType.Disconnect, client.name);
-                         OnDisconnection(client);
+                         clientRegistry.Remove(it);
 
-                         clientRegistry.Remove(client);
+                         OnDisconnection(it);
                          netEvent.Peer.Reset();
                          break;
                     }
@@ -106,7 +124,7 @@ namespace noda.net
 
             Logger.Trace("Message: " + message.MsgType.ToString() + " | " + length);
 
-            var client = clientRegistry.FirstOrDefault(it => it.GetId() == source.ID);
+            var client = clientRegistry.FirstOrDefault(it => it.id == source.ID);
 
             switch (message.MsgType)
             {
@@ -119,7 +137,6 @@ namespace noda.net
                         return;
                     }
 
-                    BroadCast(BroadcastType.Joined, client.name);
                     clientRegistry.Add(client);
           
                     // forward the event
@@ -142,10 +159,10 @@ namespace noda.net
                 return null;
             }
 
-            var client = new Client(source, hs.Guid, hs.Name);
+            var client = new Client(source, hs.Name, hs.Guid);
 
-            var ack = HandshakeAck.CreateHandshakeAck(fbb, (int)source.ID, GetClientCount());
-            return client.SendMessage(fbb, MsgType.HandshakeAck, ack) ? client : null;
+            return client.SendMessage(fbb, MsgType.HandshakeAck, HandshakeAck.CreateHandshakeAck(fbb, 
+                (int)source.ID, GetClientCount())) ? client : null;
         }
 
         private void TriggerEvents(Client client, Message message)

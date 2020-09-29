@@ -10,7 +10,7 @@ public enum MsgType : byte
   NONE = 0,
   HandshakeRequest = 1,
   HandshakeAck = 2,
-  Broadcast = 3,
+  Announcement = 3,
   ChatMessage = 4,
   LocalProject = 5,
   RemoteProject = 6,

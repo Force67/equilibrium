@@ -9,21 +9,17 @@ namespace noda
 {
     class Client
     {
+        public string name { get; }
+        public string guid { get; }
+        private ENet.Peer peer;
+        public uint id { get { return peer.ID; } }
+        public Project project { get; set; } = null;
+
         public Client(ENet.Peer peer, string name, string guid)
         {
             this.peer = peer;
             this.name = name;
             this.guid = guid;
-        }
-
-        public string name { get; set; }
-        public string guid { get; set; }
-
-        private ENet.Peer peer;
-
-        public uint GetId()
-        {
-            return peer.ID;
         }
 
         public void Kick(DisconnectReason reason)

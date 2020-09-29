@@ -4,6 +4,8 @@
 #pragma once
 
 #include <enet/enet.h>
+
+#include "protocol/Message_generated.h"
 #include "protocol/Constants_generated.h"
 
 namespace noda

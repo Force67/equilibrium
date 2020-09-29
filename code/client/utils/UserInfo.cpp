@@ -7,6 +7,8 @@
 #include <Windows.h>
 #endif
 
+#include <qregularexpression.h>
+
 namespace noda::utils
 {
 	const QString &GetDefaultUserName()
@@ -35,6 +37,7 @@ namespace noda::utils
 				return s_Hwid;
 
 			s_Hwid = hwProfileInfo.szHwProfileGuid;
+			s_Hwid.remove(QRegularExpression("[{}]"));
 #endif
 		}
 

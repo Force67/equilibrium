@@ -2,12 +2,12 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <map>
 #include <qobject.h>
+
 #include "net/NetClient.h"
 #include "utils/Storage.h"
 #include "utils/Logger.h"
-#include "net/protocol/Message_generated.h"
-#include <map>
 
 namespace QT
 {

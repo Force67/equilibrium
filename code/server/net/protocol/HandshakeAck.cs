@@ -20,20 +20,24 @@ public struct HandshakeAck : IFlatbufferObject
   public HandshakeAck __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int Index { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public int NumUsers { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int Rights { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int NumUsers { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
 
   public static Offset<protocol.HandshakeAck> CreateHandshakeAck(FlatBufferBuilder builder,
       int index = 0,
+      int rights = 0,
       int numUsers = 0) {
-    builder.StartTable(2);
+    builder.StartTable(3);
     HandshakeAck.AddNumUsers(builder, numUsers);
+    HandshakeAck.AddRights(builder, rights);
     HandshakeAck.AddIndex(builder, index);
     return HandshakeAck.EndHandshakeAck(builder);
   }
 
-  public static void StartHandshakeAck(FlatBufferBuilder builder) { builder.StartTable(2); }
+  public static void StartHandshakeAck(FlatBufferBuilder builder) { builder.StartTable(3); }
   public static void AddIndex(FlatBufferBuilder builder, int index) { builder.AddInt(0, index, 0); }
-  public static void AddNumUsers(FlatBufferBuilder builder, int numUsers) { builder.AddInt(1, numUsers, 0); }
+  public static void AddRights(FlatBufferBuilder builder, int rights) { builder.AddInt(1, rights, 0); }
+  public static void AddNumUsers(FlatBufferBuilder builder, int numUsers) { builder.AddInt(2, numUsers, 0); }
   public static Offset<protocol.HandshakeAck> EndHandshakeAck(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<protocol.HandshakeAck>(o);

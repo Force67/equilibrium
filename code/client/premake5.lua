@@ -29,7 +29,6 @@ project("Client")
     defines({
         -- idaq constants
         "__NT__",
-        "__UI__",
         "__QT__",
 
         -- qt symbol workaround, read more here:
