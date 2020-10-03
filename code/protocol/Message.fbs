@@ -5,7 +5,8 @@ include "Handshake.fbs";
 include "Announcement.fbs";
 include "ChatMessage.fbs";
 include "IdaSync.fbs";
-include "Project.fbs";
+include "Workspace.fbs";
+include "Transfer.fbs";
 
 namespace protocol;
 
@@ -15,10 +16,11 @@ union MsgType {
     HandshakeAck,
     Announcement,
     ChatMessage,
-
-    // sync:
-    LocalProject,
-    RemoteProject,
+    LocalProjectInfo,
+    RemoteProjectInfo,
+    WorkspaceList,
+    TransferBegin,
+    TransferChunk,
 
     // handlers:
     sync.NameEa,

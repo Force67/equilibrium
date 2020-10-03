@@ -3,91 +3,121 @@
 #pragma once
 
 #include <map>
+#include <QAtomicInt>
 #include <qobject.h>
 
 #include "net/NetClient.h"
+
 #include "utils/Storage.h"
 #include "utils/Logger.h"
+#include "utils/AtomicQueue.h"
 
-namespace QT
-{
-	class QTimer;
+namespace QT {
+  class QTimer;
 }
 
-namespace noda
-{
-	namespace net
-	{
-		class NetClient;
-	}
+namespace noda {
+  namespace net {
+	class NetClient;
+  }
 
-	namespace sync
-	{
-		struct SyncHandler;
+  namespace sync {
+	using namespace noda::utils;
 
-		class SyncController final : public QObject,
-		                             public net::NetDelegate
-		{
-			Q_OBJECT;
+	struct SyncHandler;
+	class SyncController;
 
-		  public:
-			SyncController();
-			SyncController(const SyncController &) = delete;
-			~SyncController();
+	struct RequestItem {
+	  std::unique_ptr<uint8_t[]> data;
+	  SyncHandler *handler;
 
-			bool ConnectServer();
-			void DisconnectServer();
+	  RequestItem() {
+		handler = nullptr;
+	  }
+	  explicit RequestItem(SyncHandler*, size_t bucketSize);
+	};
 
-			bool IsConnected();
+	struct RequestQueue final : exec_request_t {
+	  RequestQueue(SyncController &sc) :
+	      parent(sc)
+	  {
+	  }
 
-			// type safe wrapper to guarntee proper specifization
-			template <typename T>
-			inline bool SendFbsPacket(
-			    protocol::MsgType tt,
-			    const net::FbsOffset<T> ref)
-			{
-				return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
-			}
+	  int execute() override;
+	  void Queue(RequestItem *);
 
-			// Get the packet builder
-			auto &fbb()
-			{
-				return _fbb;
-			}
+	private:
+	  AtomicQueue<RequestItem> _queue;
+	  QAtomicInt _queueLength = 0;
+	  SyncController &parent;
+	};
 
-			// Get Net Stats
-			auto &stats() const
-			{
-				return netStats;
-			}
+	class SyncController final : public QObject,
+	                             public net::NetDelegate {
+	  Q_OBJECT;
 
-			// IDA
-			ssize_t HandleEvent(hook_type_t, int, va_list);
+	public:
+	  SyncController();
+	  SyncController(const SyncController &) = delete;
+	  ~SyncController();
 
-		  signals:
-			void Connected();
-			void Disconnected(uint32_t);
-			void Broadcasted(int);
-			void StatsUpdated(const net::NetStats &);
+	  bool ConnectServer();
+	  void DisconnectServer();
 
-		  private:
-			// network events
-			void OnConnected(int, int) override;
-			void OnDisconnect(uint32_t) override;
-			void ProcessPacket(const protocol::Message*) override;
+	  bool IsConnected();
 
-			utils::Storage _storage;
-			bool _active = false;
-			QScopedPointer<net::NetClient> _client;
+	  // type safe wrapper to guarantee proper specification
+	  template <typename T>
+	  inline bool SendFbsPacket(
+	      protocol::MsgType tt,
+	      const net::FbsOffset<T> ref)
+	  {
+		return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
+	  }
 
-			net::FbsBuilder _fbb;
-			uint32_t _heartBeatCount = 0;
+	  // Get the packet builder
+	  auto &fbb()
+	  {
+		return _fbb;
+	  }
 
-			using IdaEventType_t = std::pair<hook_type_t, int>;
-			std::map<IdaEventType_t, SyncHandler *> _idaEvents;
-			std::map<protocol::MsgType, SyncHandler *> _netEvents;
+	  // Get Net Stats
+	  auto &stats() const
+	  {
+		return netStats;
+	  }
 
-			QScopedPointer<QTimer> _statsTimer;
-		};
-	} // namespace sync
+	  // IDA
+	  ssize_t HandleEvent(hook_type_t, int, va_list);
+
+	signals:
+	  void Connected();
+	  void Disconnected(uint32_t);
+	  void Broadcasted(int);
+	  void StatsUpdated(const net::NetStats &);
+
+	private:
+	  void OnAnnouncement(const protocol::Message *);
+	  void OnProjectJoin(const protocol::Message *);
+
+	  // network events
+	  void OnConnected() override;
+	  void OnDisconnect(uint32_t) override;
+	  void ProcessPacket(const uint8_t *data, size_t size) override;
+
+	  utils::Storage _storage;
+	  bool _active = false;
+	  QScopedPointer<net::NetClient> _client;
+
+	  net::FbsBuilder _fbb;
+	  uint32_t _heartBeatCount = 0;
+
+	  using IdaEventType_t = std::pair<hook_type_t, int>;
+	  std::map<IdaEventType_t, SyncHandler *> _idaEvents;
+	  std::map<protocol::MsgType, SyncHandler *> _netEvents;
+
+	  QScopedPointer<QTimer> _statsTimer;
+	  RequestQueue _requestQueue;
+	};
+  } // namespace sync
 } // namespace noda

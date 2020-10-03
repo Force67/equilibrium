@@ -133,7 +133,7 @@ namespace noda.net
                     client = NegotiateHandshake(source, message);
                     if (client == null)
                     {
-                        source.Disconnect(1);
+                        source.Disconnect(1); // BUG: DISCONNECT CALLED TWICE if invalid protocol version
                         return;
                     }
 

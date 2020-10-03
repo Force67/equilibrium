@@ -9,38 +9,37 @@
 
 #include <qregularexpression.h>
 
-namespace noda::utils
-{
-	const QString &GetDefaultUserName()
-	{
-		static QString s_Name{};
-		if(s_Name.isEmpty()) {
-			wchar_t username[260]{};
+namespace noda::utils {
+  const QString &GetDefaultUserName()
+  {
+	static QString s_Name{};
+	if(s_Name.isEmpty()) {
+	  wchar_t username[260]{};
 #ifdef _WIN32
-			DWORD username_len = 260;
-			GetUserNameW(username, &username_len);
+	  DWORD username_len = 260;
+	  GetUserNameW(username, &username_len);
 #endif
 
-			s_Name = QString::fromWCharArray(username);
-		}
-
-		return s_Name;
+	  s_Name = QString::fromWCharArray(username);
 	}
 
-	const QString &GetUserGuid()
-	{
-		static QString s_Hwid{};
-		if(s_Hwid.isEmpty()) {
+	return s_Name;
+  }
+
+  const QString &GetUserGuid()
+  {
+	static QString s_Hwid{};
+	if(s_Hwid.isEmpty()) {
 #ifdef _WIN32
-			HW_PROFILE_INFOA hwProfileInfo;
-			if(!GetCurrentHwProfileA(&hwProfileInfo))
-				return s_Hwid;
-
-			s_Hwid = hwProfileInfo.szHwProfileGuid;
-			s_Hwid.remove(QRegularExpression("[{}]"));
-#endif
-		}
-
+	  HW_PROFILE_INFOA hwProfileInfo;
+	  if(!GetCurrentHwProfileA(&hwProfileInfo))
 		return s_Hwid;
+
+	  s_Hwid = hwProfileInfo.szHwProfileGuid;
+	  s_Hwid.remove(QRegularExpression("[{}]"));
+#endif
 	}
-} // namespace noda::sync::utils
+
+	return s_Hwid;
+  }
+} // namespace noda::utils

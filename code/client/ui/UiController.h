@@ -6,43 +6,39 @@
 #include <qobject.h>
 #include <qscopedpointer.h>
 
-namespace QT
-{
-	class QAction;
-	class QLabel;
+namespace QT {
+  class QAction;
+  class QLabel;
 } // namespace QT
 
-namespace noda
-{
-	namespace sync
-	{
-		class SyncController;
-	}
+namespace noda {
+  namespace sync {
+	class SyncController;
+  }
 
-	class UiController final : public QObject
-	{
-		Q_OBJECT;
+  class UiController final : public QObject {
+	Q_OBJECT;
 
-	  public:
-		UiController(sync::SyncController &);
-		~UiController();
+  public:
+	UiController(sync::SyncController &);
+	~UiController();
 
-	  private:
-		void BuildUi();
+  private:
+	void BuildUi();
 
-		static ssize_t idaapi OnUiEvent(void *, int, va_list);
+	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
-		QAction *_connectAct = nullptr;
+	QAction *_connectAct = nullptr;
 
-		sync::SyncController &_sync;
+	sync::SyncController &_sync;
 
-		bool _init = false;
-	  public slots:
-		void ToggleConnect();
+	bool _init = false;
+  public slots:
+	void ToggleConnect();
 
-	  private slots:
-		void OpenSyncMenu();
-		void OpenAboutDialog();
-		void OpenConfiguration();
-	};
+  private slots:
+	void OpenSyncMenu();
+	void OpenAboutDialog();
+	void OpenConfiguration();
+  };
 } // namespace noda

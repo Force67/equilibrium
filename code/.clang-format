@@ -10,7 +10,7 @@ AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: 'true'
 AlwaysBreakBeforeMultilineStrings: 'true'
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Stroustrup
 BreakBeforeTernaryOperators: 'true'
 BreakConstructorInitializers: AfterColon
 BreakStringLiterals: 'true'
@@ -23,7 +23,7 @@ ExperimentalAutoDetectBinPacking: 'false'
 FixNamespaceComments: 'true'
 IncludeBlocks: Regroup
 IndentCaseLabels: 'false'
-IndentWidth: '4'
+IndentWidth: '2'
 IndentWrappedFunctionNames: 'true'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp

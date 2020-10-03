@@ -12,191 +12,184 @@
 #undef GetMessage
 #endif
 
-namespace noda::net
-{
-	using namespace protocol;
+namespace noda::net {
+  using namespace protocol;
 
-	FbsStringRef MakeFbStringRef(FbsBuilder &msg, const QString &other)
-	{
-		const char *str = const_cast<const char *>(other.toUtf8().data());
-		size_t sz = static_cast<size_t>(other.size());
-		return msg.CreateString(str, sz);
+  FbsStringRef MakeFbStringRef(FbsBuilder &msg, const QString &other)
+  {
+	const char *str = const_cast<const char *>(other.toUtf8().data());
+	size_t sz = static_cast<size_t>(other.size());
+	return msg.CreateString(str, sz);
+  }
+
+  struct PacketRefCount {
+	bool managed = false;
+  };
+
+  NetClient::NetClient(NetDelegate &handler) :
+      _delegate(handler)
+  {
+	assert(enet_initialize() == 0);
+	_host = enet_host_create(
+	    nullptr,
+	    1, // max 1 peer
+	    2, // 2 channels
+	    0, // no rate limiting
+	    0);
+  }
+
+  NetClient::~NetClient()
+  {
+	if(!_updateNet)
+	  QThread::terminate();
+
+	if(_host)
+	  enet_host_destroy(_host);
+	enet_deinitialize();
+  }
+
+  bool NetClient::ConnectServer()
+  {
+	QSettings settings;
+	uint NdPort = settings.value("Nd_SyncPort", constants::kServerPort).toUInt();
+	auto NdAddress = settings.value("Nd_SyncIp", constants::kServerIp).toString();
+
+	_address.port = static_cast<uint16_t>(NdPort);
+	if(enet_address_set_host(&_address,
+	                         NdAddress.toUtf8().data()) < 0)
+	  return false;
+
+	_serverPeer = enet_host_connect(_host, &_address, 2, 0);
+	if(!_serverPeer) {
+	  return false;
 	}
 
-	NetClient::NetClient(NetDelegate &handler) :
-	    _delegate(handler)
-	{
-		assert(enet_initialize() == 0);
-		_host = enet_host_create(
-		    nullptr,
-		    1, // max 1 peer
-		    2, // 2 channels
-		    0, // no rate limiting
-		    0);
+	_updateNet = true;
+	QThread::start();
+	return true;
+  }
+
+  void NetClient::SendHandshake()
+  {
+	const QString &defaultName = utils::GetDefaultUserName();
+	const QString &guid = utils::GetUserGuid();
+
+	QSettings settings;
+	auto userName = settings.value("Nd_SyncUser", defaultName).toString();
+
+	FbsBuilder fbb(128);
+	auto pack = protocol::CreateHandshakeRequest(fbb,
+	                                             net::constants::kClientVersion,
+	                                             fbb.CreateString("NotAToken"),
+	                                             net::MakeFbStringRef(fbb, guid),
+	                                             net::MakeFbStringRef(fbb, userName));
+
+	SendFbsPacketReliable(fbb, protocol::MsgType_HandshakeRequest, pack.Union());
+  }
+
+  bool NetClient::SendReliable(uint8_t *ptr, size_t size)
+  {
+	auto *packet = enet_packet_create(
+	    static_cast<const void *>(ptr),
+	    size,
+	    ENET_PACKET_FLAG_RELIABLE);
+
+	if(packet) {
+	  return enet_peer_send(_serverPeer, 1, packet) == 0;
 	}
 
-	NetClient::~NetClient()
-	{
-		if(!_updateNet)
-			QThread::terminate();
+	return false;
+  }
 
-		if(_host)
-			enet_host_destroy(_host);
-		enet_deinitialize();
+  bool NetClient::SendFbsPacketReliable(
+      net::FbsBuilder &fbb,
+      protocol::MsgType type,
+      const net::FbsOffset<void> packetRef)
+  {
+	fbb.Finish(protocol::CreateMessage(
+	    fbb, type, packetRef));
+
+	bool result = SendReliable(
+	    fbb.GetBufferPointer(),
+	    fbb.GetSize());
+
+	// Idea: do we really need to clear the buffer, if the last packet had the same size?
+	fbb.Clear();
+	return result;
+  }
+
+  void NetClient::ProcessIncomingPacket(ENetPacket *packet)
+  {
+	// validate the packet is not corrupted
+	flatbuffers::Verifier verifier(packet->data, packet->dataLength);
+	if(!VerifyMessageBuffer(verifier))
+	  return;
+
+	const Message *message = GetMessage(static_cast<void *>(packet->data));
+	LOG_TRACE("Recieved message {}", EnumNameMsgType(message->msg_type()));
+
+	if(message->msg_type() == MsgType_HandshakeAck) {
+	  auto *pack = message->msg_as_HandshakeAck();
+	  _delegate.OnConnected();
+	  return;
 	}
 
-	bool NetClient::ConnectServer()
-	{
-		QSettings settings;
-		uint NdPort = settings.value("Nd_SyncPort", constants::kServerPort).toUInt();
-		auto NdAddress = settings.value("Nd_SyncIp", constants::kServerIp).toString();
+	_delegate.ProcessPacket(packet->data, packet->dataLength);
+  }
 
-		_address.port = static_cast<uint16_t>(NdPort);
-		if(enet_address_set_host(&_address,
-		                         NdAddress.toUtf8().data()) < 0)
-			return false;
+  void NetClient::Disconnect()
+  {
+	_delegate.OnDisconnect(protocol::DisconnectReason_Quit);
 
-		_serverPeer = enet_host_connect(_host, &_address, 2, 0);
-		if(!_serverPeer) {
-			return false;
+	_updateNet = false;
+	enet_peer_disconnect(_serverPeer, protocol::DisconnectReason_Quit);
+
+	while(enet_host_service(_host, &_netEvent, constants::kTimeout) > 0) {
+	  switch(_netEvent.type) {
+	  case ENET_EVENT_TYPE_RECEIVE:
+		// while the client dies, we drop every packet
+		enet_packet_destroy(_netEvent.packet);
+		break;
+	  case ENET_EVENT_TYPE_DISCONNECT:
+		_serverPeer = nullptr;
+		return;
+	  }
+	}
+
+	// kill it by force
+	enet_peer_reset(_serverPeer);
+	_serverPeer = nullptr;
+  }
+
+  void NetClient::run()
+  {
+	while(_updateNet) {
+	  if(enet_host_service(_host, &_netEvent, 0) > 0) {
+		// track stats
+		_delegate.netStats.bwDown = _serverPeer->incomingBandwidth;
+		_delegate.netStats.bwUp = _serverPeer->outgoingBandwidth;
+
+		switch(_netEvent.type) {
+		case ENET_EVENT_TYPE_CONNECT:
+		  SendHandshake();
+		  break;
+		case ENET_EVENT_TYPE_DISCONNECT: {
+		  _delegate.OnDisconnect(_netEvent.data);
+		  break;
 		}
+		case ENET_EVENT_TYPE_RECEIVE: {
+		  _delegate.netStats.totalData += _netEvent.packet->dataLength;
 
-		_updateNet = true;
-		QThread::start();
-		return true;
-	}
-
-	void NetClient::SendHandshake()
-	{
-		const QString& defaultName = utils::GetDefaultUserName();
-		const QString& guid = utils::GetUserGuid();
-
-		QSettings settings;
-		auto userName = settings.value("Nd_SyncUser", defaultName).toString();
-
-		FbsBuilder fbb(128);
-		auto pack = protocol::CreateHandshakeRequest(fbb,
-			net::constants::kClientVersion,
-			fbb.CreateString("NotAToken"),
-			net::MakeFbStringRef(fbb, guid),
-			net::MakeFbStringRef(fbb, userName));
-
-		SendFbsPacketReliable(fbb, protocol::MsgType_HandshakeRequest, pack.Union());
-	}
-
-	bool NetClient::SendReliable(uint8_t *ptr, size_t size)
-	{
-		auto *packet = enet_packet_create(
-		    static_cast<const void *>(ptr),
-		    size,
-		    ENET_PACKET_FLAG_RELIABLE);
-
-		if(packet) {
-			return enet_peer_send(_serverPeer, 1, packet) == 0;
-		}
-
-		return false;
-	}
-
-	bool NetClient::SendFbsPacketReliable(
-	    net::FbsBuilder &fbb,
-	    protocol::MsgType type,
-	    const net::FbsOffset<void> packetRef)
-	{
-		fbb.Finish(protocol::CreateMessage(
-		    fbb, type, packetRef));
-
-		bool result = SendReliable(
-		    fbb.GetBufferPointer(),
-		    fbb.GetSize());
-
-		// clear the used memory,
-		// but dont free the buffer
-		// Idea: do we really need to clear the buffer, if the last packet had the same size?
-		fbb.Clear();
-
-		return result;
-	}
-
-	void NetClient::ProcessIncomingPacket(uint8_t* data, size_t size)
-	{
-		const Message* message = GetMessage(static_cast<void*>(data));
-
-		LOG_TRACE("Recieved message {}", EnumNameMsgType(message->msg_type()));
-
-		switch (message->msg_type()) {
-		case MsgType_HandshakeAck: {
-			auto* pack = message->msg_as_HandshakeAck();
-			_delegate.OnConnected(pack->index(), pack->numUsers());
-			return;
+		  ProcessIncomingPacket(_netEvent.packet);
+		  enet_packet_destroy(_netEvent.packet);
+		  break;
 		}
 		default:
-			_delegate.ProcessPacket(message);
+		  break;
 		}
+	  }
+
+	  QThread::msleep(constants::kNetworkerThreadIdle);
 	}
-
-	void NetClient::Disconnect()
-	{
-		_delegate.OnDisconnect(protocol::DisconnectReason_Quit);
-
-		_updateNet = false;
-		enet_peer_disconnect(_serverPeer, protocol::DisconnectReason_Quit);
-
-		while(enet_host_service(_host, &_netEvent, constants::kTimeout) > 0) {
-			switch(_netEvent.type) {
-			case ENET_EVENT_TYPE_RECEIVE:
-				// while the client dies, we drop every packet
-				enet_packet_destroy(_netEvent.packet);
-				break;
-			case ENET_EVENT_TYPE_DISCONNECT:
-				_serverPeer = nullptr;
-				return;
-			}
-		}
-
-		// kill it by force
-		enet_peer_reset(_serverPeer);
-		_serverPeer = nullptr;
-	}
-
-	void NetClient::run()
-	{
-		while(_updateNet) {
-			if(enet_host_service(_host, &_netEvent, 0) > 0) {
-				// track stats
-				_delegate.netStats.bwDown = _serverPeer->incomingBandwidth;
-				_delegate.netStats.bwUp = _serverPeer->outgoingBandwidth;
-
-				switch(_netEvent.type) {
-				case ENET_EVENT_TYPE_CONNECT:
-					SendHandshake();
-					break;
-				case ENET_EVENT_TYPE_DISCONNECT: {
-					_delegate.OnDisconnect(_netEvent.data);
-					break;
-				}
-				case ENET_EVENT_TYPE_RECEIVE: {
-					_delegate.netStats.totalData += _netEvent.packet->dataLength;
-
-					flatbuffers::Verifier verifier(
-					    _netEvent.packet->data,
-					    _netEvent.packet->dataLength);
-
-					// validate the packet is not corrupted
-					if (VerifyMessageBuffer(verifier))
-						ProcessIncomingPacket(
-							_netEvent.packet->data, 
-							_netEvent.packet->dataLength);
-					
-					enet_packet_destroy(_netEvent.packet);
-					break;
-				}
-				default:
-					break;
-				}
-			}
-
-			QThread::msleep(constants::kNetworkerThreadIdle);
-		}
-	}
+  }
 } // namespace noda::net

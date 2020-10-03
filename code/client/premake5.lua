@@ -1,5 +1,8 @@
 -- Copyright (c) NOMAD Group<nomad-group.net>
 
+filter("configurations:Release")
+    defines("Q_DEBUG")
+
 project("Client")
     kind("SharedLib")
     targetname("Noda_72")

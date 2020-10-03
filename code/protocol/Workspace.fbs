@@ -3,13 +3,24 @@
 
 namespace protocol;
 
-table LocalProject {
-  md5:string;
-  name:string;
+table Project {
   version:int;
+  name:string;
+  md5Hash:string;
+  comments:string;
 }
 
-table RemoteProject {
+table LocalProjectInfo {
+  version:int;
+  name:string;
+  md5Hash:string;
+}
+
+table RemoteProjectInfo {
     version:int;
     name:string;
+}
+
+table WorkspaceList {
+  projects:[Project];
 }

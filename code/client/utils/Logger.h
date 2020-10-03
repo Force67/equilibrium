@@ -5,32 +5,30 @@
 #include <fmt/format.h>
 #include <string_view>
 
-namespace noda
-{
-	namespace utils
-	{
-		enum class LogLevel {
-			Trace,
-			Info,
-			Warning,
-			Error
-		};
+namespace noda {
+namespace utils {
+  enum class LogLevel {
+	Trace,
+	Info,
+	Warning,
+	Error
+  };
 
-		void PrintLogMessageImpl(LogLevel, const char *, const fmt::format_args &);
+  void PrintLogMessageImpl(LogLevel, const char *, const fmt::format_args &);
 
-		template <typename... Args>
-		void PrintLogMessage(LogLevel level, const char *format, const Args &... args)
-		{
-			PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
-		}
+  template <typename... Args>
+  void PrintLogMessage(LogLevel level, const char *format, const Args &... args)
+  {
+	PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
+  }
 
 #define LOG_TRACE(...) \
-	::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Trace, __VA_ARGS__)
+  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Trace, __VA_ARGS__)
 #define LOG_INFO(...) \
-	::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Info, __VA_ARGS__)
+  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Info, __VA_ARGS__)
 #define LOG_WARNING(...) \
-	::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Warning, __VA_ARGS__)
+  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Warning, __VA_ARGS__)
 #define LOG_ERROR(...) \
-	::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Error, __VA_ARGS__)
-	} // namespace utils
-} // namespace noda
+  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Error, __VA_ARGS__)
+}
+} // namespace noda::utils

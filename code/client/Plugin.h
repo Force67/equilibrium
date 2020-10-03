@@ -5,16 +5,14 @@
 #include <ui/UiController.h>
 #include <sync/SyncController.h>
 
-namespace noda
-{
-	class Plugin
-	{
-	  public:
-		Plugin();
-		~Plugin();
+namespace noda {
+  class Plugin {
+  public:
+	Plugin();
+	~Plugin();
 
-	  private:
-		UiController _uiController;
-		sync::SyncController _syncController;
-	};
+  private:
+	UiController _uiController;
+	sync::SyncController _syncController;
+  };
 } // namespace noda

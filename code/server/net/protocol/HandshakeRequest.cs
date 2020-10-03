@@ -41,13 +41,22 @@ public struct HandshakeRequest : IFlatbufferObject
   public ArraySegment<byte>? GetNameBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
   public byte[] GetNameArray() { return __p.__vector_as_array<byte>(10); }
+  public string Password { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetPasswordBytes() { return __p.__vector_as_span<byte>(12, 1); }
+#else
+  public ArraySegment<byte>? GetPasswordBytes() { return __p.__vector_as_arraysegment(12); }
+#endif
+  public byte[] GetPasswordArray() { return __p.__vector_as_array<byte>(12); }
 
   public static Offset<protocol.HandshakeRequest> CreateHandshakeRequest(FlatBufferBuilder builder,
       ushort protocolVersion = 0,
       StringOffset tokenOffset = default(StringOffset),
       StringOffset guidOffset = default(StringOffset),
-      StringOffset nameOffset = default(StringOffset)) {
-    builder.StartTable(4);
+      StringOffset nameOffset = default(StringOffset),
+      StringOffset passwordOffset = default(StringOffset)) {
+    builder.StartTable(5);
+    HandshakeRequest.AddPassword(builder, passwordOffset);
     HandshakeRequest.AddName(builder, nameOffset);
     HandshakeRequest.AddGuid(builder, guidOffset);
     HandshakeRequest.AddToken(builder, tokenOffset);
@@ -55,11 +64,12 @@ public struct HandshakeRequest : IFlatbufferObject
     return HandshakeRequest.EndHandshakeRequest(builder);
   }
 
-  public static void StartHandshakeRequest(FlatBufferBuilder builder) { builder.StartTable(4); }
+  public static void StartHandshakeRequest(FlatBufferBuilder builder) { builder.StartTable(5); }
   public static void AddProtocolVersion(FlatBufferBuilder builder, ushort protocolVersion) { builder.AddUshort(0, protocolVersion, 0); }
   public static void AddToken(FlatBufferBuilder builder, StringOffset tokenOffset) { builder.AddOffset(1, tokenOffset.Value, 0); }
   public static void AddGuid(FlatBufferBuilder builder, StringOffset guidOffset) { builder.AddOffset(2, guidOffset.Value, 0); }
   public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(3, nameOffset.Value, 0); }
+  public static void AddPassword(FlatBufferBuilder builder, StringOffset passwordOffset) { builder.AddOffset(4, passwordOffset.Value, 0); }
   public static Offset<protocol.HandshakeRequest> EndHandshakeRequest(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<protocol.HandshakeRequest>(o);

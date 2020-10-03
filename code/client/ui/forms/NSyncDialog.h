@@ -2,16 +2,16 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "ui/moc/ui_AboutDialog.h"
+#include "ui/moc/ui_NSyncDialog.h"
 
 namespace noda {
 namespace ui {
-  class AboutDialog final : public QDialog, public Ui::AboutDialog {
+  class NSyncDialog final : public QDialog, public Ui::NSyncDialog {
 	Q_OBJECT;
 
   public:
-	AboutDialog(QWidget *parent);
-	~AboutDialog() = default;
+	NSyncDialog(QWidget *parent);
+	~NSyncDialog() = default;
   };
 }
 } // namespace noda::ui

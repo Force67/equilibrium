@@ -3,16 +3,23 @@
 
 namespace protocol;
 
+enum UserPermissions : ubyte (bit_flags) {
+  Guest,
+  Reporter,
+  Developer,
+  Master
+}
+
 table HandshakeRequest {
   protocolVersion:ushort;
-
   token:string;
   guid:string;
   name:string;
+  password:string;
 }
 
 table HandshakeAck {
-  index:int;
-  rights:int; //<TODO: explore the concept of access rights..
+  perms:UserPermissions;
+  userIndex:uint;
   numUsers:int;
 }
