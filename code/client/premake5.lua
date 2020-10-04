@@ -11,7 +11,8 @@ project("Client")
         "**.cpp",
         "**.h",
         "**.ui",
-        "**.qrc"
+        "**.qrc",
+        "Noda.rc",
     })
     links({
         -- ida libraries

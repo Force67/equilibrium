@@ -34,6 +34,13 @@ namespace noda {
 
   Plugin::~Plugin()
   {
+	  //https://github.com/citra-emu/citra/blob/master/src/citra_qt/loading_screen.cpp
+  }
+
+  void Plugin::Run()
+  {
+	LOG_TRACE("Plugin::Run()");
+	_uiController.OpenRunDialog();
   }
 } // namespace noda
 
@@ -52,7 +59,7 @@ namespace {
 	return PLUGIN_KEEP;
   }
 
-  void idaapi PluginShutdown()
+  void idaapi PluginTerm()
   {
 	if(g_Plugin)
 	  delete g_Plugin;
@@ -60,15 +67,16 @@ namespace {
 
   bool idaapi PluginRun(size_t arg)
   {
+	g_Plugin->Run();
 	return true;
   }
 } // namespace
 
 plugin_t PLUGIN = {
   IDP_INTERFACE_VERSION,
-  PLUGIN_FIX, //< Load the plugin when ida starts
+  PLUGIN_FIX,
   PluginInit,
-  PluginShutdown,
+  PluginTerm,
   PluginRun,
   kPluginComment,
   kPluginComment,

@@ -11,6 +11,7 @@ namespace noda {
 	Plugin();
 	~Plugin();
 
+	void Run();
   private:
 	UiController _uiController;
 	sync::SyncController _syncController;

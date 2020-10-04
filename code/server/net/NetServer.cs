@@ -160,9 +160,11 @@ namespace noda.net
             }
 
             var client = new Client(source, hs.Name, hs.Guid);
+            var pack = HandshakeAck.CreateHandshakeAck(fbb, 
+                UserPermissions.Developer, 
+                source.ID, GetClientCount());
 
-            return client.SendMessage(fbb, MsgType.HandshakeAck, HandshakeAck.CreateHandshakeAck(fbb, 
-                (int)source.ID, GetClientCount())) ? client : null;
+            return client.SendMessage(fbb, MsgType.HandshakeAck,  pack) ? client : null;
         }
 
         private void TriggerEvents(Client client, Message message)

@@ -8,6 +8,7 @@
 #include "forms/AboutDialog.h"
 #include "forms/WelcomeDialog.h"
 #include "forms/NSyncDialog.h"
+#include "forms/RunDialog.h"
 #include "forms/StatusWidget.h"
 
 #include <qmainwindow.h>
@@ -73,6 +74,12 @@ namespace noda {
 	}
   }
 
+  void UiController::OpenRunDialog()
+  {
+	ui::RunDialog dialog(GetTopWindow());
+	dialog.exec();
+  }
+
   void UiController::OpenAboutDialog()
   {
 	ui::AboutDialog dialog(GetTopWindow());
@@ -110,25 +117,26 @@ namespace noda {
   ssize_t UiController::OnUiEvent(void *userp, int notificationCode,
                                   va_list va)
   {
-	auto *self = reinterpret_cast<UiController *>(userp);
+	auto &self = reinterpret_cast<UiController&>(userp);
 
 	if(notificationCode == ui_notification_t::ui_ready_to_run) {
-	  if(!self->_init) {
-		self->_init = true;
-		self->BuildUi();
+	  if(!self._init) {
+		self._init = true;
+		self.BuildUi();
 
 		if(ui::WelcomeDialog::ShouldShow()) {
 		  ui::WelcomeDialog dialog;
 		  dialog.exec();
 		}
+	  }
 
-		if(ui::ConnectDialog::ShouldShow()) {
-		  ui::ConnectDialog promt(*self);
-		  promt.exec();
-		}
+	  if(ui::ConnectDialog::ShouldShow()) {
+		ui::ConnectDialog promt(self);
+		promt.exec();
 	  }
 	}
 
+	//LOG_TRACE("UI EVENT : {}", notificationCode);
 	return 0;
   }
 } // namespace noda

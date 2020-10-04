@@ -6,6 +6,7 @@ project("Server")
     dotnetframework("netcoreapp3.1")
     targetname("NODAServer")
     kind("ConsoleApp")
+    icon("logo.ico")
     files({
         "**.cs"
     })

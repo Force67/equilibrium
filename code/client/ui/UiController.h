@@ -23,6 +23,7 @@ namespace noda {
 	UiController(sync::SyncController &);
 	~UiController();
 
+	void OpenRunDialog();
   private:
 	void BuildUi();
 

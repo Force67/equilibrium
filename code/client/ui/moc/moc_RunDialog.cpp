@@ -1,16 +1,16 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'ConnectDialog.h'
+** Meta object code from reading C++ file 'RunDialog.h'
 **
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.6.3)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "../forms/ConnectDialog.h"
+#include "../forms/RunDialog.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'ConnectDialog.h' doesn't include <QObject>."
+#error "The header file 'RunDialog.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.6.3. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -18,25 +18,25 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_noda__ui__ConnectDialog_t {
+struct qt_meta_stringdata_noda__ui__RunDialog_t {
     QByteArrayData data[1];
-    char stringdata0[24];
+    char stringdata0[20];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_noda__ui__ConnectDialog_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_noda__ui__RunDialog_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_noda__ui__ConnectDialog_t qt_meta_stringdata_noda__ui__ConnectDialog = {
+static const qt_meta_stringdata_noda__ui__RunDialog_t qt_meta_stringdata_noda__ui__RunDialog = {
     {
-QT_MOC_LITERAL(0, 0, 23) // "noda::ui::ConnectDialog"
+QT_MOC_LITERAL(0, 0, 19) // "noda::ui::RunDialog"
 
     },
-    "noda::ui::ConnectDialog"
+    "noda::ui::RunDialog"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_noda__ui__ConnectDialog[] = {
+static const uint qt_meta_data_noda__ui__RunDialog[] = {
 
  // content:
        7,       // revision
@@ -52,7 +52,7 @@ static const uint qt_meta_data_noda__ui__ConnectDialog[] = {
        0        // eod
 };
 
-void noda::ui::ConnectDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void noda::ui::RunDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -60,28 +60,28 @@ void noda::ui::ConnectDialog::qt_static_metacall(QObject *_o, QMetaObject::Call 
     Q_UNUSED(_a);
 }
 
-const QMetaObject noda::ui::ConnectDialog::staticMetaObject = {
-    { &QDialog::staticMetaObject, qt_meta_stringdata_noda__ui__ConnectDialog.data,
-      qt_meta_data_noda__ui__ConnectDialog,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject noda::ui::RunDialog::staticMetaObject = {
+    { &QDialog::staticMetaObject, qt_meta_stringdata_noda__ui__RunDialog.data,
+      qt_meta_data_noda__ui__RunDialog,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *noda::ui::ConnectDialog::metaObject() const
+const QMetaObject *noda::ui::RunDialog::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *noda::ui::ConnectDialog::qt_metacast(const char *_clname)
+void *noda::ui::RunDialog::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_noda__ui__ConnectDialog.stringdata0))
-        return static_cast<void*>(const_cast< ConnectDialog*>(this));
-    if (!strcmp(_clname, "Ui::ConnectPromt"))
-        return static_cast< Ui::ConnectPromt*>(const_cast< ConnectDialog*>(this));
+    if (!strcmp(_clname, qt_meta_stringdata_noda__ui__RunDialog.stringdata0))
+        return static_cast<void*>(const_cast< RunDialog*>(this));
+    if (!strcmp(_clname, "Ui::RunDialog"))
+        return static_cast< Ui::RunDialog*>(const_cast< RunDialog*>(this));
     return QDialog::qt_metacast(_clname);
 }
 
-int noda::ui::ConnectDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int noda::ui::RunDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QDialog::qt_metacall(_c, _id, _a);
     if (_id < 0)

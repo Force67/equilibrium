@@ -77,17 +77,17 @@ namespace noda
 
         public override void ProcessPacket(Client src, Message message)
         {
-            if (message.MsgType == MsgType.LocalProject)
+            if (message.MsgType == MsgType.LocalProjectInfo)
             {
-                var info = message.Msg<LocalProject>().Value;
+                var info = message.Msg<LocalProjectInfo>().Value;
 
                 // we are creating a new db
-                var project = projects.FirstOrDefault(it => it.md5 == info.Md5);
+                var project = projects.FirstOrDefault(it => it.md5 == info.Md5Hash);
                 if (project == null)
                 {
-                    Logger.Trace("IN: " + info.Md5);
+                    Logger.Trace("IN: " + info.Md5Hash);
 
-                    project = new Project(ndbPath, info.Name, info.Md5);
+                    project = new Project(ndbPath, info.Name, info.Md5Hash);
                     project.InitStorage();
 
                     Logger.Info(src.name + " created new project: " + project.name);
@@ -95,8 +95,8 @@ namespace noda
                     project.AddClient(src.name, src.guid);
 
                     // update version 0
-                    src.SendMessage(fbb, MsgType.RemoteProject,
-                        RemoteProject.CreateRemoteProject(fbb,
+                    src.SendMessage(fbb, MsgType.RemoteProjectInfo,
+                        RemoteProjectInfo.CreateRemoteProjectInfo(fbb,
                         0, fbb.CreateString(info.Name)));
 
                     projects.Add(project);
