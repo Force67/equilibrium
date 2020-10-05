@@ -54,19 +54,16 @@ namespace noda {
 	// pin additional NODA status bar information
 	QStatusBar *statusBar = mainWindow->statusBar();
 
-	_labelBuild = new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT);
-	statusBar->addPermanentWidget(_labelBuild);
-	statusBar->removeWidget(_labelBuild);
-	#if 0
-	auto *netStats = new StatusWidget(nullptr);
+	_labelBuild.reset(new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT));
+	statusBar->addPermanentWidget(_labelBuild.data());
 
-	connect(&_sync, &SyncController::Connected, netStats, &StatusWidget::OnConnected);
-	connect(&_sync, &SyncController::Disconnected, netStats, &StatusWidget::OnDisconnect);
-	connect(&_sync, &SyncController::Broadcasted, netStats, &StatusWidget::OnBroadcast);
-	connect(&_sync, &SyncController::StatsUpdated, netStats, &StatusWidget::OnStatsUpdate);
+	_netStatus.reset(new StatusWidget(statusBar));
+	connect(&_sync, &SyncController::Connected, _netStatus.data(), &StatusWidget::OnConnected);
+	connect(&_sync, &SyncController::Disconnected, _netStatus.data(), &StatusWidget::OnDisconnect);
+	connect(&_sync, &SyncController::Broadcasted, _netStatus.data(), &StatusWidget::OnBroadcast);
+	connect(&_sync, &SyncController::StatsUpdated, _netStatus.data(), &StatusWidget::OnStatsUpdate);
 
-	statusBar->addPermanentWidget(netStats);
-	#endif
+	statusBar->addPermanentWidget(_netStatus.data());
 
 	// create the top level menu entry*/
 	auto *mainBar = mainWindow->menuBar();
@@ -83,12 +80,10 @@ namespace noda {
 
   void UiController::DestroyUi()
   {
-	auto *statusBar = (QStatusBar*)_labelBuild->parentWidget();
-	//auto *statusBar = GetTopWindow()->statusBar();
-
-	if(_labelBuild)
-	  statusBar->removeWidget(_labelBuild);
-	__debugbreak();
+	  // takes the ownership of these widgets *away* from ida on purpose
+	  // so it cant release em
+	  _netStatus.reset();
+	  _labelBuild.reset();
   }
 
   void UiController::OpenRunDialog()
@@ -153,7 +148,7 @@ namespace noda {
 		break;
 	}
 	case ui_notification_t::ui_term: {
-	 // self->DestroyUi();
+	  self->DestroyUi();
 		break;
 	}
 	}

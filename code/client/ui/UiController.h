@@ -13,6 +13,7 @@ namespace QT {
 
 namespace noda {
   class SyncController;
+  class StatusWidget;
 
   class UiController final : public QObject {
 	Q_OBJECT;
@@ -29,7 +30,9 @@ namespace noda {
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
 	QAction *_connectAct = nullptr;
-	QLabel *_labelBuild = nullptr;
+
+	QScopedPointer<QLabel> _labelBuild;
+	QScopedPointer<StatusWidget> _netStatus;
 
 	SyncController &_sync;
 
