@@ -7,20 +7,16 @@
 #include "ui/moc/ui_Settings.h"
 
 namespace noda {
-  namespace sync {
-	class SyncController;
-  }
+  class SyncController;
 
-  namespace ui {
-	class Settings final : public QDialog, public Ui::SettingsDialog {
-	  Q_OBJECT;
+ class Settings final : public QDialog, public Ui::SettingsDialog {
+	Q_OBJECT;
 
-	public:
-	  Settings(bool, QWidget *);
-	  ~Settings() = default;
+  public:
+	Settings(bool, QWidget *);
+	~Settings() = default;
 
-	private:
-	  QSettings _settings;
-	};
-  } // namespace ui
+  private:
+	QSettings _settings;
+  };
 } // namespace noda

@@ -7,7 +7,6 @@
 namespace noda {
   class UiController;
 
-  namespace ui {
 	class ConnectDialog final : public QDialog, public Ui::ConnectPromt {
 	  Q_OBJECT;
 
@@ -21,5 +20,4 @@ namespace noda {
 
 	  UiController &_controller;
 	};
-  } // namespace ui
 } // namespace noda

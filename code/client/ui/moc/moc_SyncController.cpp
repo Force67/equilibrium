@@ -18,34 +18,34 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_noda__sync__SyncController_t {
+struct qt_meta_stringdata_noda__SyncController_t {
     QByteArrayData data[8];
-    char stringdata0[99];
+    char stringdata0[88];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_noda__sync__SyncController_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_noda__SyncController_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_noda__sync__SyncController_t qt_meta_stringdata_noda__sync__SyncController = {
+static const qt_meta_stringdata_noda__SyncController_t qt_meta_stringdata_noda__SyncController = {
     {
-QT_MOC_LITERAL(0, 0, 26), // "noda::sync::SyncController"
-QT_MOC_LITERAL(1, 27, 9), // "Connected"
-QT_MOC_LITERAL(2, 37, 0), // ""
-QT_MOC_LITERAL(3, 38, 12), // "Disconnected"
-QT_MOC_LITERAL(4, 51, 8), // "uint32_t"
-QT_MOC_LITERAL(5, 60, 11), // "Broadcasted"
-QT_MOC_LITERAL(6, 72, 12), // "StatsUpdated"
-QT_MOC_LITERAL(7, 85, 13) // "net::NetStats"
+QT_MOC_LITERAL(0, 0, 20), // "noda::SyncController"
+QT_MOC_LITERAL(1, 21, 9), // "Connected"
+QT_MOC_LITERAL(2, 31, 0), // ""
+QT_MOC_LITERAL(3, 32, 12), // "Disconnected"
+QT_MOC_LITERAL(4, 45, 8), // "uint32_t"
+QT_MOC_LITERAL(5, 54, 11), // "Broadcasted"
+QT_MOC_LITERAL(6, 66, 12), // "StatsUpdated"
+QT_MOC_LITERAL(7, 79, 8) // "NetStats"
 
     },
-    "noda::sync::SyncController\0Connected\0"
-    "\0Disconnected\0uint32_t\0Broadcasted\0"
-    "StatsUpdated\0net::NetStats"
+    "noda::SyncController\0Connected\0\0"
+    "Disconnected\0uint32_t\0Broadcasted\0"
+    "StatsUpdated\0NetStats"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_noda__sync__SyncController[] = {
+static const uint qt_meta_data_noda__SyncController[] = {
 
  // content:
        7,       // revision
@@ -73,7 +73,7 @@ static const uint qt_meta_data_noda__sync__SyncController[] = {
        0        // eod
 };
 
-void noda::sync::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void noda::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
         SyncController *_t = static_cast<SyncController *>(_o);
@@ -82,7 +82,7 @@ void noda::sync::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Ca
         case 0: _t->Connected(); break;
         case 1: _t->Disconnected((*reinterpret_cast< uint32_t(*)>(_a[1]))); break;
         case 2: _t->Broadcasted((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 3: _t->StatsUpdated((*reinterpret_cast< const net::NetStats(*)>(_a[1]))); break;
+        case 3: _t->StatsUpdated((*reinterpret_cast< const NetStats(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
@@ -110,7 +110,7 @@ void noda::sync::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Ca
             }
         }
         {
-            typedef void (SyncController::*_t)(const net::NetStats & );
+            typedef void (SyncController::*_t)(const NetStats & );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SyncController::StatsUpdated)) {
                 *result = 3;
                 return;
@@ -119,28 +119,28 @@ void noda::sync::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Ca
     }
 }
 
-const QMetaObject noda::sync::SyncController::staticMetaObject = {
-    { &QObject::staticMetaObject, qt_meta_stringdata_noda__sync__SyncController.data,
-      qt_meta_data_noda__sync__SyncController,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject noda::SyncController::staticMetaObject = {
+    { &QObject::staticMetaObject, qt_meta_stringdata_noda__SyncController.data,
+      qt_meta_data_noda__SyncController,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *noda::sync::SyncController::metaObject() const
+const QMetaObject *noda::SyncController::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *noda::sync::SyncController::qt_metacast(const char *_clname)
+void *noda::SyncController::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_noda__sync__SyncController.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_noda__SyncController.stringdata0))
         return static_cast<void*>(const_cast< SyncController*>(this));
-    if (!strcmp(_clname, "net::NetDelegate"))
-        return static_cast< net::NetDelegate*>(const_cast< SyncController*>(this));
+    if (!strcmp(_clname, "NetDelegate"))
+        return static_cast< NetDelegate*>(const_cast< SyncController*>(this));
     return QObject::qt_metacast(_clname);
 }
 
-int noda::sync::SyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int noda::SyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QObject::qt_metacall(_c, _id, _a);
     if (_id < 0)
@@ -158,27 +158,27 @@ int noda::sync::SyncController::qt_metacall(QMetaObject::Call _c, int _id, void 
 }
 
 // SIGNAL 0
-void noda::sync::SyncController::Connected()
+void noda::SyncController::Connected()
 {
     QMetaObject::activate(this, &staticMetaObject, 0, Q_NULLPTR);
 }
 
 // SIGNAL 1
-void noda::sync::SyncController::Disconnected(uint32_t _t1)
+void noda::SyncController::Disconnected(uint32_t _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 
 // SIGNAL 2
-void noda::sync::SyncController::Broadcasted(int _t1)
+void noda::SyncController::Broadcasted(int _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 2, _a);
 }
 
 // SIGNAL 3
-void noda::sync::SyncController::StatsUpdated(const net::NetStats & _t1)
+void noda::SyncController::StatsUpdated(const NetStats & _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 3, _a);

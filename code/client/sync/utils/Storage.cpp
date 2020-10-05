@@ -4,7 +4,7 @@
 #include "Storage.h"
 #include "utils/Logger.h"
 
-namespace noda::sync::utils {
+namespace noda {
   constexpr uint32_t kStorageVersion = 4;
   constexpr char kStorageName[] = "$ noda_data";
 
@@ -49,4 +49,4 @@ namespace noda::sync::utils {
 	return true;
   }
 
-} // namespace noda::sync::utils
+} // namespace noda

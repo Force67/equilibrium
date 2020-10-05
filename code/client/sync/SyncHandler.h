@@ -10,7 +10,7 @@
 
 #include "utils/Logger.h"
 
-namespace noda::sync {
+namespace noda {
   using namespace protocol::sync;
 
   class SyncController;
@@ -78,4 +78,4 @@ namespace noda::sync {
 
 	~SyncHandler() = default;
   };
-} // namespace noda::sync
+} // namespace noda

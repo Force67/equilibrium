@@ -4,7 +4,7 @@
 #include <memory>
 #include "FileTransfer.h"
 
-namespace noda::net {
+namespace noda {
   FileTransfer::FileTransfer()
   {
   }
@@ -23,4 +23,4 @@ namespace noda::net {
 
 	return false;
   }
-} // namespace noda::net
+} // namespace noda

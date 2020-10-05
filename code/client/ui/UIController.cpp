@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "UiController.h"
+#include "test.h"
 
 #include "forms/Settings.h"
 #include "forms/ConnectDialog.h"
@@ -21,11 +22,13 @@
 namespace noda {
   static QMainWindow *GetTopWindow()
   {
-	return qobject_cast<QMainWindow *>(
+	return qobject_cast<QMainWindow *>( 
 	    QApplication::activeWindow()->topLevelWidget());
   }
 
-  UiController::UiController(sync::SyncController &s) :
+  bool UiController::_s_init = false;
+
+  UiController::UiController(SyncController &s) :
       _sync(s)
   {
 	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
@@ -41,27 +44,31 @@ namespace noda {
 	auto *mainWindow = GetTopWindow();
 
 	// this needs to be done here, for some reason :D
-	connect(&_sync, &sync::SyncController::Connected, [&]() {
+	connect(&_sync, &SyncController::Connected, [&]() {
 	  _connectAct->setText("Disconnect");
 	});
-	connect(&_sync, &sync::SyncController::Disconnected, [&]() {
+	connect(&_sync, &SyncController::Disconnected, [&]() {
 	  _connectAct->setText("Connect");
 	});
 
 	// pin additional NODA status bar information
 	QStatusBar *statusBar = mainWindow->statusBar();
-	statusBar->addPermanentWidget(new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT));
 
-	auto *netStats = new ui::StatusWidget(statusBar);
+	_labelBuild = new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT);
+	statusBar->addPermanentWidget(_labelBuild);
+	statusBar->removeWidget(_labelBuild);
+	#if 0
+	auto *netStats = new StatusWidget(nullptr);
 
-	connect(&_sync, &sync::SyncController::Connected, netStats, &ui::StatusWidget::OnConnected);
-	connect(&_sync, &sync::SyncController::Disconnected, netStats, &ui::StatusWidget::OnDisconnect);
-	connect(&_sync, &sync::SyncController::Broadcasted, netStats, &ui::StatusWidget::OnBroadcast);
-	connect(&_sync, &sync::SyncController::StatsUpdated, netStats, &ui::StatusWidget::OnStatsUpdate);
+	connect(&_sync, &SyncController::Connected, netStats, &StatusWidget::OnConnected);
+	connect(&_sync, &SyncController::Disconnected, netStats, &StatusWidget::OnDisconnect);
+	connect(&_sync, &SyncController::Broadcasted, netStats, &StatusWidget::OnBroadcast);
+	connect(&_sync, &SyncController::StatsUpdated, netStats, &StatusWidget::OnStatsUpdate);
 
 	statusBar->addPermanentWidget(netStats);
+	#endif
 
-	// create the top level menu entry
+	// create the top level menu entry*/
 	auto *mainBar = mainWindow->menuBar();
 
 	if(auto *topMenu = mainBar->addMenu(QIcon(":/logo"), "NODA")) {
@@ -74,21 +81,31 @@ namespace noda {
 	}
   }
 
+  void UiController::DestroyUi()
+  {
+	auto *statusBar = (QStatusBar*)_labelBuild->parentWidget();
+	//auto *statusBar = GetTopWindow()->statusBar();
+
+	if(_labelBuild)
+	  statusBar->removeWidget(_labelBuild);
+	__debugbreak();
+  }
+
   void UiController::OpenRunDialog()
   {
-	ui::RunDialog dialog(GetTopWindow());
+	RunDialog dialog(GetTopWindow());
 	dialog.exec();
   }
 
   void UiController::OpenAboutDialog()
   {
-	ui::AboutDialog dialog(GetTopWindow());
+	AboutDialog dialog(GetTopWindow());
 	dialog.exec();
   }
 
   void UiController::OpenSyncMenu()
   {
-	ui::NSyncDialog dialog(GetTopWindow());
+	NSyncDialog dialog(GetTopWindow());
 	dialog.exec();
   }
 
@@ -110,33 +127,37 @@ namespace noda {
 
   void UiController::OpenConfiguration()
   {
-	ui::Settings settings(_sync.IsConnected(), GetTopWindow());
+	Settings settings(_sync.IsConnected(), GetTopWindow());
 	settings.exec();
   }
 
-  ssize_t UiController::OnUiEvent(void *userp, int notificationCode,
-                                  va_list va)
+  ssize_t UiController::OnUiEvent(void *userp, int status, va_list va)
   {
-	auto &self = reinterpret_cast<UiController&>(userp);
+	auto *self = reinterpret_cast<UiController*>(userp);
+	switch (status) {
+	case ui_notification_t::ui_ready_to_run: {
+	  if(!_s_init) {
+		_s_init = true;
+		self->BuildUi();
 
-	if(notificationCode == ui_notification_t::ui_ready_to_run) {
-	  if(!self._init) {
-		self._init = true;
-		self.BuildUi();
-
-		if(ui::WelcomeDialog::ShouldShow()) {
-		  ui::WelcomeDialog dialog;
+		if(WelcomeDialog::ShouldShow()) {
+		  WelcomeDialog dialog;
 		  dialog.exec();
 		}
 	  }
 
-	  if(ui::ConnectDialog::ShouldShow()) {
-		ui::ConnectDialog promt(self);
+	  if(ConnectDialog::ShouldShow()) {
+		ConnectDialog promt(*self);
 		promt.exec();
 	  }
+		break;
+	}
+	case ui_notification_t::ui_term: {
+	 // self->DestroyUi();
+		break;
+	}
 	}
 
-	//LOG_TRACE("UI EVENT : {}", notificationCode);
 	return 0;
   }
 } // namespace noda

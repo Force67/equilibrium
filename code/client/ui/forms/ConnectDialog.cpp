@@ -5,7 +5,7 @@
 #include "ConnectDialog.h"
 #include "ui/UiController.h"
 
-namespace noda::ui {
+namespace noda {
   ConnectDialog::ConnectDialog(UiController &controller) :
       QDialog(QApplication::activeWindow()), _controller(controller)
   {
@@ -32,4 +32,4 @@ namespace noda::ui {
 	QSettings settings;
 	return !settings.value("Nd_UiSkipConnect", true).toBool();
   }
-} // namespace noda::ui
+} // namespace noda

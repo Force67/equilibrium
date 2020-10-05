@@ -18,25 +18,25 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_noda__ui__RunDialog_t {
+struct qt_meta_stringdata_noda__RunDialog_t {
     QByteArrayData data[1];
-    char stringdata0[20];
+    char stringdata0[16];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_noda__ui__RunDialog_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_noda__RunDialog_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_noda__ui__RunDialog_t qt_meta_stringdata_noda__ui__RunDialog = {
+static const qt_meta_stringdata_noda__RunDialog_t qt_meta_stringdata_noda__RunDialog = {
     {
-QT_MOC_LITERAL(0, 0, 19) // "noda::ui::RunDialog"
+QT_MOC_LITERAL(0, 0, 15) // "noda::RunDialog"
 
     },
-    "noda::ui::RunDialog"
+    "noda::RunDialog"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_noda__ui__RunDialog[] = {
+static const uint qt_meta_data_noda__RunDialog[] = {
 
  // content:
        7,       // revision
@@ -52,7 +52,7 @@ static const uint qt_meta_data_noda__ui__RunDialog[] = {
        0        // eod
 };
 
-void noda::ui::RunDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void noda::RunDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -60,28 +60,28 @@ void noda::ui::RunDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
     Q_UNUSED(_a);
 }
 
-const QMetaObject noda::ui::RunDialog::staticMetaObject = {
-    { &QDialog::staticMetaObject, qt_meta_stringdata_noda__ui__RunDialog.data,
-      qt_meta_data_noda__ui__RunDialog,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject noda::RunDialog::staticMetaObject = {
+    { &QDialog::staticMetaObject, qt_meta_stringdata_noda__RunDialog.data,
+      qt_meta_data_noda__RunDialog,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *noda::ui::RunDialog::metaObject() const
+const QMetaObject *noda::RunDialog::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *noda::ui::RunDialog::qt_metacast(const char *_clname)
+void *noda::RunDialog::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_noda__ui__RunDialog.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_noda__RunDialog.stringdata0))
         return static_cast<void*>(const_cast< RunDialog*>(this));
     if (!strcmp(_clname, "Ui::RunDialog"))
         return static_cast< Ui::RunDialog*>(const_cast< RunDialog*>(this));
     return QDialog::qt_metacast(_clname);
 }
 
-int noda::ui::RunDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int noda::RunDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QDialog::qt_metacall(_c, _id, _a);
     if (_id < 0)

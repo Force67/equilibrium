@@ -4,7 +4,7 @@
 #include "IdaInc.h"
 #include "Logger.h"
 
-namespace noda::utils {
+namespace noda {
   static const char *GetLevelName(LogLevel log_level)
   {
 #define LVL(x)      \
@@ -33,4 +33,4 @@ namespace noda::utils {
 	auto fmt = fmt::format("[Noda] <{}>: {}\n", levelName, fmt::vformat(text, args));
 	callui(ui_msg, fmt.c_str());
   }
-} // namespace noda::utils
+} // namespace noda

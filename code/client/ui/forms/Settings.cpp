@@ -4,7 +4,7 @@
 #include "Settings.h"
 #include "utils/UserInfo.h"
 
-namespace noda::ui {
+namespace noda {
   Settings::Settings(bool connected, QWidget *pParent) :
       QDialog(pParent)
   {
@@ -32,12 +32,12 @@ namespace noda::ui {
 	  _settings.setValue("Nd_UiSkipConnect", !down);
 	});
 
-	editIP->setText(_settings.value("Nd_SyncIp", net::constants::kServerIp).toString());
-	editPort->setText(_settings.value("Nd_SyncPort", net::constants::kServerPort).toString());
+	editIP->setText(_settings.value("Nd_SyncIp", constants::kServerIp).toString());
+	editPort->setText(_settings.value("Nd_SyncPort", constants::kServerPort).toString());
 	editPass->setText(_settings.value("Nd_SyncPass", "").toString());
-	editUser->setText(_settings.value("Nd_SyncUser", utils::GetDefaultUserName()).toString());
+	editUser->setText(_settings.value("Nd_SyncUser", GetDefaultUserName()).toString());
 
-	editTimeout->setText(_settings.value("Nd_NetTimeout", net::constants::kTimeout).toString());
+	editTimeout->setText(_settings.value("Nd_NetTimeout", constants::kTimeout).toString());
 	cbShowWelcome->setChecked(!_settings.value("Nd_UiSkipWelcome").toBool());
 	cbShowAutoconnect->setChecked(!_settings.value("Nd_UiSkipConnect").toBool());
 
@@ -45,4 +45,4 @@ namespace noda::ui {
 	gbSyncConfig->setDisabled(connected);
 	gbNetConfig->setDisabled(connected);
   }
-} // namespace noda::ui
+} // namespace noda

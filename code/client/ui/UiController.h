@@ -12,28 +12,28 @@ namespace QT {
 } // namespace QT
 
 namespace noda {
-  namespace sync {
-	class SyncController;
-  }
+  class SyncController;
 
   class UiController final : public QObject {
 	Q_OBJECT;
 
   public:
-	UiController(sync::SyncController &);
+	UiController(SyncController &);
 	~UiController();
 
 	void OpenRunDialog();
   private:
 	void BuildUi();
+	void DestroyUi();
 
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
 	QAction *_connectAct = nullptr;
+	QLabel *_labelBuild = nullptr;
 
-	sync::SyncController &_sync;
+	SyncController &_sync;
 
-	bool _init = false;
+	static bool _s_init;
   public slots:
 	void ToggleConnect();
 

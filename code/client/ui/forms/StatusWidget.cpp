@@ -10,7 +10,7 @@
 #include "net/NetBase.h"
 #include "net/protocol/Announcement_generated.h"
 
-namespace noda::ui {
+namespace noda {
   constexpr int ksizeOffset = 3;
   constexpr int kseperatorOffset = 6;
 
@@ -112,7 +112,7 @@ namespace noda::ui {
 	_labelUserText->setText(QString::number(_userCount));
   }
 
-  void StatusWidget::OnStatsUpdate(const net::NetStats &stats)
+  void StatusWidget::OnStatsUpdate(const NetStats &stats)
   {
 	_labelDownText->setText(QString::number(stats.bwDown));
 	_labelUpText->setText(QString::number(stats.bwDown));
@@ -170,4 +170,4 @@ namespace noda::ui {
 	papst.drawPixmap(paintEvent->rect(), buffer, buffer.rect());
 	papst.end();
   }
-} // namespace noda::ui
+} // namespace noda

@@ -4,7 +4,7 @@
 #include <qsettings.h>
 #include "WelcomeDialog.h"
 
-namespace noda::ui {
+namespace noda {
   WelcomeDialog::WelcomeDialog() :
       QDialog(QApplication::activeWindow())
   {
@@ -22,4 +22,4 @@ namespace noda::ui {
 	QSettings settings;
 	return !settings.value("Nd_UiSkipWelcome", true).toBool();
   }
-} // namespace noda::ui
+} // namespace noda

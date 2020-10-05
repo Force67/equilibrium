@@ -17,107 +17,98 @@ namespace QT {
 }
 
 namespace noda {
-  namespace net {
-	class NetClient;
-  }
+  class NetClient;
+  struct SyncHandler;
+  class SyncController;
 
-  namespace sync {
-	using namespace noda::utils;
+  struct RequestItem {
+	std::unique_ptr<uint8_t[]> data;
+	SyncHandler *handler;
 
-	struct SyncHandler;
-	class SyncController;
+	RequestItem()
+	{
+	  handler = nullptr;
+	}
+	explicit RequestItem(SyncHandler *, size_t bucketSize);
+  };
 
-	struct RequestItem {
-	  std::unique_ptr<uint8_t[]> data;
-	  SyncHandler *handler;
+  struct RequestQueue final : exec_request_t {
+	RequestQueue(SyncController &sc) :
+	    parent(sc)
+	{
+	}
 
-	  RequestItem() {
-		handler = nullptr;
-	  }
-	  explicit RequestItem(SyncHandler*, size_t bucketSize);
-	};
+	int execute() override;
+	void Queue(RequestItem *);
 
-	struct RequestQueue final : exec_request_t {
-	  RequestQueue(SyncController &sc) :
-	      parent(sc)
-	  {
-	  }
+  private:
+	AtomicQueue<RequestItem> _queue;
+	QAtomicInt _queueLength = 0;
+	SyncController &parent;
+  };
 
-	  int execute() override;
-	  void Queue(RequestItem *);
+  class SyncController final : public QObject, public NetDelegate {
+	Q_OBJECT;
 
-	private:
-	  AtomicQueue<RequestItem> _queue;
-	  QAtomicInt _queueLength = 0;
-	  SyncController &parent;
-	};
+  public:
+	SyncController();
+	SyncController(const SyncController &) = delete;
+	~SyncController();
 
-	class SyncController final : public QObject,
-	                             public net::NetDelegate {
-	  Q_OBJECT;
+	bool ConnectServer();
+	void DisconnectServer();
 
-	public:
-	  SyncController();
-	  SyncController(const SyncController &) = delete;
-	  ~SyncController();
+	bool IsConnected();
 
-	  bool ConnectServer();
-	  void DisconnectServer();
+	// type safe wrapper to guarantee proper specification
+	template <typename T>
+	inline bool SendFbsPacket(protocol::MsgType tt, const FbsOffset<T> ref)
+	{
+	  return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
+	}
 
-	  bool IsConnected();
+	// Get the packet builder
+	auto &fbb()
+	{
+	  return _fbb;
+	}
 
-	  // type safe wrapper to guarantee proper specification
-	  template <typename T>
-	  inline bool SendFbsPacket(
-	      protocol::MsgType tt,
-	      const net::FbsOffset<T> ref)
-	  {
-		return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
-	  }
+	// Get Net Stats
+	auto &stats() const
+	{
+	  return netStats;
+	}
 
-	  // Get the packet builder
-	  auto &fbb()
-	  {
-		return _fbb;
-	  }
+	// IDA
+	ssize_t HandleEvent(hook_type_t, int, va_list);
 
-	  // Get Net Stats
-	  auto &stats() const
-	  {
-		return netStats;
-	  }
+  signals:
+	void Connected();
+	void Disconnected(uint32_t);
+	void Broadcasted(int);
+	void StatsUpdated(const NetStats &);
 
-	  // IDA
-	  ssize_t HandleEvent(hook_type_t, int, va_list);
+  private:
+	void OnAnnouncement(const protocol::Message *);
+	void OnProjectJoin(const protocol::Message *);
 
-	signals:
-	  void Connected();
-	  void Disconnected(uint32_t);
-	  void Broadcasted(int);
-	  void StatsUpdated(const net::NetStats &);
+	// network events
+	void OnConnected() override;
+	void OnDisconnect(uint32_t) override;
+	void ProcessPacket(const uint8_t *data, size_t size) override;
 
-	private:
-	  void OnAnnouncement(const protocol::Message *);
-	  void OnProjectJoin(const protocol::Message *);
+	Storage _storage;
+	bool _active = false;
+	QScopedPointer<NetClient> _client;
 
-	  // network events
-	  void OnConnected() override;
-	  void OnDisconnect(uint32_t) override;
-	  void ProcessPacket(const uint8_t *data, size_t size) override;
+	FbsBuilder _fbb;
+	uint32_t _heartBeatCount = 0;
 
-	  utils::Storage _storage;
-	  bool _active = false;
-	  QScopedPointer<net::NetClient> _client;
+	using IdaEventType_t = std::pair<hook_type_t, int>;
+	std::map<IdaEventType_t, SyncHandler *> _idaEvents;
+	std::map<protocol::MsgType, SyncHandler *> _netEvents;
 
-	  net::FbsBuilder _fbb;
-	  uint32_t _heartBeatCount = 0;
-
-	  using IdaEventType_t = std::pair<hook_type_t, int>;
-	  std::map<IdaEventType_t, SyncHandler *> _idaEvents;
-	  std::map<protocol::MsgType, SyncHandler *> _netEvents;
-
-	  QScopedPointer<QTimer> _statsTimer;
-	  RequestQueue _requestQueue;
-	};
-  } // namespace sync
+	QScopedPointer<QTimer> _statsTimer;
+	RequestQueue _requestQueue;
+  };
 } // namespace noda

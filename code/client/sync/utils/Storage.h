@@ -6,8 +6,6 @@
 #include <netnode.hpp>
 
 namespace noda {
-namespace sync {
-namespace utils {
   class Storage {
   public:
 	Storage();
@@ -22,7 +20,4 @@ namespace utils {
 
 	netnode _node;
   };
-
-}
-}
-} // namespace noda::sync::utils
+} // namespace noda

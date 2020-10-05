@@ -6,7 +6,6 @@
 #include <string_view>
 
 namespace noda {
-namespace utils {
   enum class LogLevel {
 	Trace,
 	Info,
@@ -23,12 +22,11 @@ namespace utils {
   }
 
 #define LOG_TRACE(...) \
-  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Trace, __VA_ARGS__)
+  ::noda::PrintLogMessage(::noda::LogLevel::Trace, __VA_ARGS__)
 #define LOG_INFO(...) \
-  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Info, __VA_ARGS__)
+  ::noda::PrintLogMessage(::noda::LogLevel::Info, __VA_ARGS__)
 #define LOG_WARNING(...) \
-  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Warning, __VA_ARGS__)
+  ::noda::PrintLogMessage(::noda::LogLevel::Warning, __VA_ARGS__)
 #define LOG_ERROR(...) \
-  ::noda::utils::PrintLogMessage(::noda::utils::LogLevel::Error, __VA_ARGS__)
-}
-} // namespace noda::utils
+  ::noda::PrintLogMessage(::noda::LogLevel::Error, __VA_ARGS__)
+} // namespace noda

@@ -4,7 +4,7 @@
 
 #include <qstring.h>
 
-namespace noda::utils {
+namespace noda {
   const QString &GetDefaultUserName();
   const QString &GetUserGuid();
 } // namespace noda::utils

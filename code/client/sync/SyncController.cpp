@@ -18,7 +18,7 @@
 
 #include "SyncHandler.h"
 
-namespace noda::sync {
+namespace noda {
   constexpr int kNetTrackRate = 1000;
 
   RequestItem::RequestItem(SyncHandler *handler, size_t bucketSize) :
@@ -69,7 +69,7 @@ namespace noda::sync {
 	hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 	hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
 
-	_client.reset(new net::NetClient(*this));
+	_client.reset(new NetClient(*this));
 
 	// post the net stats every second to the ui
 	_statsTimer.reset(new QTimer(this));
@@ -127,13 +127,14 @@ namespace noda::sync {
 		bool result = retrieve_input_file_md5(md5);
 		assert(result != false);
 
+		// +1 for null termination
 		char md5Str[32 + 1]{};
 
 		// convert bytes to str
-		constexpr char lookup[] = "0123456789abcdef";
+		constexpr char klookup[] = "0123456789abcdef";
 		for(int i = 0; i < 16; i++) {
-		  md5Str[i * 2] = lookup[(md5[i]) >> 4 & 0xF];
-		  md5Str[i * 2 + 1] = lookup[(md5[i]) & 0xF];
+		  md5Str[i * 2] = klookup[md5[i] / 16];
+		  md5Str[i * 2 + 1] = klookup[md5[i] % 16];
 		}
 
 		char fileName[128]{};

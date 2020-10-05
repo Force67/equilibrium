@@ -11,9 +11,11 @@ namespace noda {
 	Plugin();
 	~Plugin();
 
+	bool Init();
+
 	void Run();
   private:
 	UiController _uiController;
-	sync::SyncController _syncController;
+	SyncController _syncController;
   };
 } // namespace noda

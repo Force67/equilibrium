@@ -45,7 +45,7 @@ public:
     {
         if (AboutDialog->objectName().isEmpty())
             AboutDialog->setObjectName(QStringLiteral("AboutDialog"));
-        AboutDialog->resize(546, 314);
+        AboutDialog->resize(546, 320);
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);

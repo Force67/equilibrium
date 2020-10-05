@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>546</width>
-    <height>314</height>
+    <height>320</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,7 @@
    <string>About NODA</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../Resources.qrc">
+   <iconset>
     <normaloff>:/logo</normaloff>:/logo</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -94,7 +94,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../Resources.qrc">:/logo</pixmap>
+              <pixmap>:/logo</pixmap>
              </property>
              <property name="scaledContents">
               <bool>true</bool>

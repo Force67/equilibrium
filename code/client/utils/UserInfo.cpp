@@ -9,7 +9,8 @@
 
 #include <qregularexpression.h>
 
-namespace noda::utils {
+namespace noda {
+
   const QString &GetDefaultUserName()
   {
 	static QString s_Name{};
@@ -31,11 +32,11 @@ namespace noda::utils {
 	static QString s_Hwid{};
 	if(s_Hwid.isEmpty()) {
 #ifdef _WIN32
-	  HW_PROFILE_INFOA hwProfileInfo;
-	  if(!GetCurrentHwProfileA(&hwProfileInfo))
+	  HW_PROFILE_INFOW hwProfileInfo;
+	  if(!GetCurrentHwProfileW(&hwProfileInfo))
 		return s_Hwid;
 
-	  s_Hwid = hwProfileInfo.szHwProfileGuid;
+	  s_Hwid = QString::fromWCharArray(hwProfileInfo.szHwProfileGuid);
 	  s_Hwid.remove(QRegularExpression("[{}]"));
 #endif
 	}

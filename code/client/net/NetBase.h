@@ -9,7 +9,6 @@
 #include "protocol/Constants_generated.h"
 
 namespace noda {
-namespace net {
   template <typename T>
   using FbsOffset = flatbuffers::Offset<T>;
 
@@ -76,5 +75,4 @@ namespace net {
   public:
 	NetStats netStats;
   };
-}
-} // namespace noda::net
+} // namespace noda

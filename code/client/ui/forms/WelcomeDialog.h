@@ -5,7 +5,6 @@
 #include "ui/moc/ui_WelcomeDialog.h"
 
 namespace noda {
-namespace ui {
   class WelcomeDialog final : public QDialog, public Ui::WelcomeDialog {
 	Q_OBJECT;
 
@@ -15,5 +14,4 @@ namespace ui {
 
 	static bool ShouldShow();
   };
-}
-} // namespace noda::ui
+} // namespace noda

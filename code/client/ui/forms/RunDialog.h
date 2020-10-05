@@ -5,7 +5,6 @@
 #include "ui/moc/ui_RunDialog.h"
 
 namespace noda {
-namespace ui {
   class RunDialog final : public QDialog, public Ui::RunDialog {
 	Q_OBJECT;
 
@@ -13,5 +12,4 @@ namespace ui {
 	RunDialog(QWidget *parent);
 	~RunDialog() = default;
   };
-}
-} // namespace noda::ui
+} // namespace noda

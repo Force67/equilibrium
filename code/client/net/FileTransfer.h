@@ -6,7 +6,6 @@
 #include "IdaInc.h"
 
 namespace noda {
-namespace net {
   class FileTransfer {
   public:
 	FileTransfer();
@@ -16,5 +15,4 @@ namespace net {
   private:
 	std::unique_ptr<uint8_t[]> fileBuf;
   };
-}
-} // namespace noda::net
+} // namespace noda

@@ -4,7 +4,7 @@
 #include <QStandardItemModel>
 #include "NSyncDialog.h"
 
-namespace noda::ui {
+namespace noda {
   NSyncDialog::NSyncDialog(QWidget *parent)
   {
 	setupUi(this);
@@ -23,4 +23,4 @@ namespace noda::ui {
 	treeView->expandAll();
   }
 
-} // namespace noda::ui
+} // namespace noda

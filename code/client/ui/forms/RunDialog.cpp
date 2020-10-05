@@ -3,7 +3,7 @@
 
 #include "RunDialog.h"
 
-namespace noda::ui {
+namespace noda {
   RunDialog::RunDialog(QWidget *parent) :
       QDialog(parent)
   {

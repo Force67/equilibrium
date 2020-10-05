@@ -3,10 +3,10 @@
 
 #include "AboutDialog.h"
 
-namespace noda::ui {
+namespace noda {
   AboutDialog::AboutDialog(QWidget *pParent) :
       QDialog(pParent)
   {
 	setupUi(this);
   }
-} // namespace noda::ui
+} // namespace noda

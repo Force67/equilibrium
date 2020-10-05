@@ -11,25 +11,6 @@ namespace noda {
       _uiController(_syncController)
   {
 	LOG_INFO("Loaded NODA, version " GIT_BRANCH "@" GIT_COMMIT " Copyright(c) NOMAD Group <nomad-group.net>.");
-#if 0
-
-		std::string result;
-		result.reserve(32);
-
-		uchar md5[16];
-		retrieve_input_file_md5(md5);
-
-		for (int i = 0; i < 16; i++)
-		{
-			result += "0123456789ABCDEF"[md5[i] / 16];
-			result += "0123456789ABCDEF"[md5[i] % 16];
-		}
-
-		char buf[512]{};
-		get_root_filename(buf, 512);
-
-		LOG_TRACE("Input file md5 {} - {}", result, buf);
-#endif
   }
 
   Plugin::~Plugin()
@@ -37,9 +18,13 @@ namespace noda {
 	  //https://github.com/citra-emu/citra/blob/master/src/citra_qt/loading_screen.cpp
   }
 
+  bool Plugin::Init()
+  {
+	return true;
+  }
+
   void Plugin::Run()
   {
-	LOG_TRACE("Plugin::Run()");
 	_uiController.OpenRunDialog();
   }
 } // namespace noda
@@ -56,7 +41,8 @@ namespace {
   int idaapi PluginInit()
   {
 	g_Plugin = new Plugin();
-	return PLUGIN_KEEP;
+
+	return g_Plugin->Init() ? PLUGIN_KEEP : PLUGIN_SKIP;
   }
 
   void idaapi PluginTerm()

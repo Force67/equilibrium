@@ -6,17 +6,16 @@
 #include <QAtomicPointer>
 
 namespace noda {
-namespace utils {
   template <class T>
   class AtomicQueue {
 	struct QueueNode {
 	  QueueNode(T *value) :
-		  next(NULL), data(value) {}
+	      next(NULL), data(value) {}
 	  ~QueueNode()
 	  { /*if ( next ) delete next;*/
 	  }
 	  QueueNode *next;
-	  T* data;
+	  T *data;
 	};
 
   public:
@@ -51,7 +50,7 @@ namespace utils {
 	  }
 	}
 
-	bool peek(T *& result)
+	bool peek(T *&result)
 	{
 	  if(m_divider.load() != m_tail.load()) {
 		// Problem area
@@ -64,7 +63,7 @@ namespace utils {
 	  return false;
 	}
 
-	bool pop(T *& result)
+	bool pop(T *&result)
 	{
 	  bool res = this->peek(result);
 	  if(res) {
@@ -77,5 +76,4 @@ namespace utils {
 	QueueNode *m_front;
 	QAtomicPointer<QueueNode> m_divider, m_tail;
   };
-}
-} // namespace noda::utils
+} // namespace noda

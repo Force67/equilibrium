@@ -38,14 +38,13 @@ public:
     QTabWidget *tabWidget;
     QWidget *aboutTab;
     QVBoxLayout *verticalLayout_3;
-    QLabel *label_2;
-    QLabel *label_5;
     QSpacerItem *verticalSpacer_3;
-    QLabel *label_3;
-    QSpacerItem *verticalSpacer_2;
-    QLabel *label_8;
-    QLabel *maintainers;
-    QLabel *label_7;
+    QHBoxLayout *horizontalLayout_2;
+    QVBoxLayout *verticalLayout_6;
+    QLabel *labelFeatures;
+    QWidget *widget;
+    QVBoxLayout *verticalLayout_7;
+    QLabel *labelLogo;
     QSpacerItem *verticalSpacer;
     QWidget *contribTab;
     QVBoxLayout *verticalLayout;
@@ -59,7 +58,8 @@ public:
     QLabel *label;
     QPlainTextEdit *debugInfo;
     QPushButton *copyToClipboard;
-    QDialogButtonBox *buttonBox;
+    QLabel *labelCopyright;
+    QDialogButtonBox *btBox;
 
     void setupUi(QDialog *AboutDialog)
     {
@@ -86,7 +86,7 @@ public:
         nameLabel->setMargin(0);
         nameLabel->setIndent(11);
 
-        horizontalLayout->addWidget(nameLabel);
+        horizontalLayout->addWidget(nameLabel, 0, Qt::AlignHCenter);
 
         iconLabel = new QLabel(AboutDialog);
         iconLabel->setObjectName(QStringLiteral("iconLabel"));
@@ -109,70 +109,50 @@ public:
         aboutTab->setObjectName(QStringLiteral("aboutTab"));
         verticalLayout_3 = new QVBoxLayout(aboutTab);
         verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
-        label_2 = new QLabel(aboutTab);
-        label_2->setObjectName(QStringLiteral("label_2"));
-        QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Fixed);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
-        sizePolicy2.setHeightForWidth(label_2->sizePolicy().hasHeightForWidth());
-        label_2->setSizePolicy(sizePolicy2);
-        label_2->setText(QStringLiteral("Website: <a href=\"https://keepassxc.org/\" style=\"text-decoration: underline\">https://keepassxc.org</a>"));
-        label_2->setOpenExternalLinks(true);
-
-        verticalLayout_3->addWidget(label_2);
-
-        label_5 = new QLabel(aboutTab);
-        label_5->setObjectName(QStringLiteral("label_5"));
-        label_5->setOpenExternalLinks(true);
-
-        verticalLayout_3->addWidget(label_5);
-
         verticalSpacer_3 = new QSpacerItem(20, 5, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
         verticalLayout_3->addItem(verticalSpacer_3);
 
-        label_3 = new QLabel(aboutTab);
-        label_3->setObjectName(QStringLiteral("label_3"));
-        QSizePolicy sizePolicy3(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        sizePolicy3.setHorizontalStretch(0);
-        sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(label_3->sizePolicy().hasHeightForWidth());
-        label_3->setSizePolicy(sizePolicy3);
-        label_3->setWordWrap(true);
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+        verticalLayout_6 = new QVBoxLayout();
+        verticalLayout_6->setObjectName(QStringLiteral("verticalLayout_6"));
+        labelFeatures = new QLabel(aboutTab);
+        labelFeatures->setObjectName(QStringLiteral("labelFeatures"));
+        QSizePolicy sizePolicy2(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(labelFeatures->sizePolicy().hasHeightForWidth());
+        labelFeatures->setSizePolicy(sizePolicy2);
+        labelFeatures->setWordWrap(true);
 
-        verticalLayout_3->addWidget(label_3);
+        verticalLayout_6->addWidget(labelFeatures);
 
-        verticalSpacer_2 = new QSpacerItem(0, 5, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-        verticalLayout_3->addItem(verticalSpacer_2);
+        horizontalLayout_2->addLayout(verticalLayout_6);
 
-        label_8 = new QLabel(aboutTab);
-        label_8->setObjectName(QStringLiteral("label_8"));
+        widget = new QWidget(aboutTab);
+        widget->setObjectName(QStringLiteral("widget"));
+        verticalLayout_7 = new QVBoxLayout(widget);
+        verticalLayout_7->setObjectName(QStringLiteral("verticalLayout_7"));
+        labelLogo = new QLabel(widget);
+        labelLogo->setObjectName(QStringLiteral("labelLogo"));
+        labelLogo->setMaximumSize(QSize(80, 80));
+        labelLogo->setPixmap(QPixmap(QString::fromUtf8(":/logo")));
+        labelLogo->setScaledContents(true);
+        labelLogo->setAlignment(Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing);
 
-        verticalLayout_3->addWidget(label_8);
+        verticalLayout_7->addWidget(labelLogo);
 
-        maintainers = new QLabel(aboutTab);
-        maintainers->setObjectName(QStringLiteral("maintainers"));
-        sizePolicy2.setHeightForWidth(maintainers->sizePolicy().hasHeightForWidth());
-        maintainers->setSizePolicy(sizePolicy2);
-        maintainers->setText(QStringLiteral(""));
-        maintainers->setOpenExternalLinks(true);
-        maintainers->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse);
+        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        verticalLayout_3->addWidget(maintainers);
+        verticalLayout_7->addItem(verticalSpacer);
 
-        label_7 = new QLabel(aboutTab);
-        label_7->setObjectName(QStringLiteral("label_7"));
-        sizePolicy2.setHeightForWidth(label_7->sizePolicy().hasHeightForWidth());
-        label_7->setSizePolicy(sizePolicy2);
-        label_7->setWordWrap(true);
-        label_7->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse);
 
-        verticalLayout_3->addWidget(label_7);
+        horizontalLayout_2->addWidget(widget);
 
-        verticalSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        verticalLayout_3->addItem(verticalSpacer);
+        verticalLayout_3->addLayout(horizontalLayout_2);
 
         tabWidget->addTab(aboutTab, QString());
         contribTab = new QWidget();
@@ -184,16 +164,16 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QStringLiteral("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 532, 262));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 532, 234));
         verticalLayout_5 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
         contributors = new QLabel(scrollAreaWidgetContents);
         contributors->setObjectName(QStringLiteral("contributors"));
-        QSizePolicy sizePolicy4(QSizePolicy::Preferred, QSizePolicy::Expanding);
-        sizePolicy4.setHorizontalStretch(0);
-        sizePolicy4.setVerticalStretch(0);
-        sizePolicy4.setHeightForWidth(contributors->sizePolicy().hasHeightForWidth());
-        contributors->setSizePolicy(sizePolicy4);
+        QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Expanding);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(contributors->sizePolicy().hasHeightForWidth());
+        contributors->setSizePolicy(sizePolicy3);
         contributors->setCursor(QCursor(Qt::IBeamCursor));
         contributors->setText(QStringLiteral(""));
         contributors->setTextFormat(Qt::AutoText);
@@ -222,8 +202,11 @@ public:
         verticalLayout_4->setObjectName(QStringLiteral("verticalLayout_4"));
         label = new QLabel(debugTab);
         label->setObjectName(QStringLiteral("label"));
-        sizePolicy2.setHeightForWidth(label->sizePolicy().hasHeightForWidth());
-        label->setSizePolicy(sizePolicy2);
+        QSizePolicy sizePolicy4(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(label->sizePolicy().hasHeightForWidth());
+        label->setSizePolicy(sizePolicy4);
 
         verticalLayout_4->addWidget(label);
 
@@ -244,11 +227,16 @@ public:
 
         verticalLayout_2->addWidget(tabWidget);
 
-        buttonBox = new QDialogButtonBox(AboutDialog);
-        buttonBox->setObjectName(QStringLiteral("buttonBox"));
-        buttonBox->setStandardButtons(QDialogButtonBox::Close);
+        labelCopyright = new QLabel(AboutDialog);
+        labelCopyright->setObjectName(QStringLiteral("labelCopyright"));
 
-        verticalLayout_2->addWidget(buttonBox);
+        verticalLayout_2->addWidget(labelCopyright);
+
+        btBox = new QDialogButtonBox(AboutDialog);
+        btBox->setObjectName(QStringLiteral("btBox"));
+        btBox->setStandardButtons(QDialogButtonBox::Close);
+
+        verticalLayout_2->addWidget(btBox);
 
         verticalLayout_2->setStretch(1, 1);
         QWidget::setTabOrder(tabWidget, scrollArea);
@@ -257,7 +245,7 @@ public:
 
         retranslateUi(AboutDialog);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(AboutDialog);
@@ -266,16 +254,15 @@ public:
     void retranslateUi(QDialog *AboutDialog)
     {
         AboutDialog->setWindowTitle(QApplication::translate("AboutDialog", "About KeePassXC", Q_NULLPTR));
-        label_5->setText(QApplication::translate("AboutDialog", "Report bugs at: <a href=\"https://github.com/keepassxreboot/keepassxc/issues\" style=\"text-decoration: underline;\">https://github.com</a>", Q_NULLPTR));
-        label_3->setText(QApplication::translate("AboutDialog", "KeePassXC is distributed under the terms of the GNU General Public License (GPL) version 2 or (at your option) version 3.", Q_NULLPTR));
-        label_8->setText(QApplication::translate("AboutDialog", "Project Maintainers:", Q_NULLPTR));
-        label_7->setText(QApplication::translate("AboutDialog", "Special thanks from the KeePassXC team go to debfx for creating the original KeePassX.", Q_NULLPTR));
+        labelFeatures->setText(QApplication::translate("AboutDialog", "<html><head/><body><p><span style=\" font-size:9pt;\">NODA uses the following libraries/components:</span></p><p>- <a href=\"https://github.com/google/flatbuffers\"><span style=\" text-decoration: underline; color:#0000ff;\">Google Flatbuffers</span></a> for packet serilization</p><p>- A custom fork of <a href=\"https://github.com/lsalzman/enet\"><span style=\" text-decoration: underline; color:#0000ff;\">ENet</span></a> for networking</p><p>- The <a href=\"https://www.hex-rays.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">IDA Pro</span></a> SDK</p><p>- Icons by <a href=\"https://fontawesome.com/license\"><span style=\" text-decoration: underline; color:#0000ff;\">Font Awesome</span></a>, color customized<br/></p></body></html>", Q_NULLPTR));
+        labelLogo->setText(QString());
         tabWidget->setTabText(tabWidget->indexOf(aboutTab), QApplication::translate("AboutDialog", "About", Q_NULLPTR));
         seeContributions->setText(QApplication::translate("AboutDialog", "<a href=\"https://github.com/keepassxreboot/keepassxc/graphs/contributors\">See Contributions on GitHub</a>", Q_NULLPTR));
         tabWidget->setTabText(tabWidget->indexOf(contribTab), QApplication::translate("AboutDialog", "Contributors", Q_NULLPTR));
         label->setText(QApplication::translate("AboutDialog", "Include the following information whenever you report a bug:", Q_NULLPTR));
         copyToClipboard->setText(QApplication::translate("AboutDialog", "Copy to clipboard", Q_NULLPTR));
         tabWidget->setTabText(tabWidget->indexOf(debugTab), QApplication::translate("AboutDialog", "Debug Info", Q_NULLPTR));
+        labelCopyright->setText(QApplication::translate("AboutDialog", "<html><head/><body><p align=\"center\"><span style=\" font-weight:600;\">Copyright (C) NOMAD Group &lt;</span><a href=\"https://www.nomad-group.net/\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">nomad-group.ne</span></a><span style=\" font-weight:600;\">t&gt;</span></p></body></html>", Q_NULLPTR));
     } // retranslateUi
 
 };

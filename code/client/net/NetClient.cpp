@@ -12,7 +12,7 @@
 #undef GetMessage
 #endif
 
-namespace noda::net {
+namespace noda {
   using namespace protocol;
 
   FbsStringRef MakeFbStringRef(FbsBuilder &msg, const QString &other)
@@ -71,18 +71,18 @@ namespace noda::net {
 
   void NetClient::SendHandshake()
   {
-	const QString &defaultName = utils::GetDefaultUserName();
-	const QString &guid = utils::GetUserGuid();
+	const QString &defaultName = GetDefaultUserName();
+	const QString &guid = GetUserGuid();
 
 	QSettings settings;
 	auto userName = settings.value("Nd_SyncUser", defaultName).toString();
 
 	FbsBuilder fbb(128);
 	auto pack = protocol::CreateHandshakeRequest(fbb,
-	                                             net::constants::kClientVersion,
+	                                            constants::kClientVersion,
 	                                             fbb.CreateString("NotAToken"),
-	                                             net::MakeFbStringRef(fbb, guid),
-	                                             net::MakeFbStringRef(fbb, userName));
+	                                             MakeFbStringRef(fbb, guid),
+	                                             MakeFbStringRef(fbb, userName));
 
 	SendFbsPacketReliable(fbb, protocol::MsgType_HandshakeRequest, pack.Union());
   }
@@ -101,10 +101,7 @@ namespace noda::net {
 	return false;
   }
 
-  bool NetClient::SendFbsPacketReliable(
-      net::FbsBuilder &fbb,
-      protocol::MsgType type,
-      const net::FbsOffset<void> packetRef)
+  bool NetClient::SendFbsPacketReliable(FbsBuilder &fbb, protocol::MsgType type, const FbsOffset<void> packetRef)
   {
 	fbb.Finish(protocol::CreateMessage(
 	    fbb, type, packetRef));
@@ -192,4 +189,4 @@ namespace noda::net {
 	  QThread::msleep(constants::kNetworkerThreadIdle);
 	}
   }
-} // namespace noda::net
+} // namespace noda

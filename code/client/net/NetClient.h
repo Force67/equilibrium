@@ -14,7 +14,6 @@
 #endif
 
 namespace noda {
-namespace net {
   FbsStringRef MakeFbStringRef(FbsBuilder &msg, const QString &other);
 
   class NetClient : public QThread {
@@ -30,10 +29,7 @@ namespace net {
 	bool ConnectServer();
 
 	bool SendReliable(uint8_t *, size_t);
-	bool SendFbsPacketReliable(
-	    net::FbsBuilder &,
-	    protocol::MsgType,
-	    const net::FbsOffset<void>);
+	bool SendFbsPacketReliable(FbsBuilder &, protocol::MsgType, const FbsOffset<void>);
 
   private:
 	void SendHandshake();
@@ -52,5 +48,4 @@ namespace net {
   private:
 	NetDelegate &_delegate;
   };
-}
-} // namespace noda::net
+} // namespace noda

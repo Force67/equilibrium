@@ -18,34 +18,34 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_noda__ui__StatusWidget_t {
+struct qt_meta_stringdata_noda__StatusWidget_t {
     QByteArrayData data[8];
-    char stringdata0[98];
+    char stringdata0[89];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_noda__ui__StatusWidget_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_noda__StatusWidget_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_noda__ui__StatusWidget_t qt_meta_stringdata_noda__ui__StatusWidget = {
+static const qt_meta_stringdata_noda__StatusWidget_t qt_meta_stringdata_noda__StatusWidget = {
     {
-QT_MOC_LITERAL(0, 0, 22), // "noda::ui::StatusWidget"
-QT_MOC_LITERAL(1, 23, 11), // "OnConnected"
-QT_MOC_LITERAL(2, 35, 0), // ""
-QT_MOC_LITERAL(3, 36, 12), // "OnDisconnect"
-QT_MOC_LITERAL(4, 49, 8), // "uint32_t"
-QT_MOC_LITERAL(5, 58, 11), // "OnBroadcast"
-QT_MOC_LITERAL(6, 70, 13), // "OnStatsUpdate"
-QT_MOC_LITERAL(7, 84, 13) // "net::NetStats"
+QT_MOC_LITERAL(0, 0, 18), // "noda::StatusWidget"
+QT_MOC_LITERAL(1, 19, 11), // "OnConnected"
+QT_MOC_LITERAL(2, 31, 0), // ""
+QT_MOC_LITERAL(3, 32, 12), // "OnDisconnect"
+QT_MOC_LITERAL(4, 45, 8), // "uint32_t"
+QT_MOC_LITERAL(5, 54, 11), // "OnBroadcast"
+QT_MOC_LITERAL(6, 66, 13), // "OnStatsUpdate"
+QT_MOC_LITERAL(7, 80, 8) // "NetStats"
 
     },
-    "noda::ui::StatusWidget\0OnConnected\0\0"
+    "noda::StatusWidget\0OnConnected\0\0"
     "OnDisconnect\0uint32_t\0OnBroadcast\0"
-    "OnStatsUpdate\0net::NetStats"
+    "OnStatsUpdate\0NetStats"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_noda__ui__StatusWidget[] = {
+static const uint qt_meta_data_noda__StatusWidget[] = {
 
  // content:
        7,       // revision
@@ -73,7 +73,7 @@ static const uint qt_meta_data_noda__ui__StatusWidget[] = {
        0        // eod
 };
 
-void noda::ui::StatusWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void noda::StatusWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
         StatusWidget *_t = static_cast<StatusWidget *>(_o);
@@ -82,32 +82,32 @@ void noda::ui::StatusWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _
         case 0: _t->OnConnected(); break;
         case 1: _t->OnDisconnect((*reinterpret_cast< uint32_t(*)>(_a[1]))); break;
         case 2: _t->OnBroadcast((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 3: _t->OnStatsUpdate((*reinterpret_cast< const net::NetStats(*)>(_a[1]))); break;
+        case 3: _t->OnStatsUpdate((*reinterpret_cast< const NetStats(*)>(_a[1]))); break;
         default: ;
         }
     }
 }
 
-const QMetaObject noda::ui::StatusWidget::staticMetaObject = {
-    { &QWidget::staticMetaObject, qt_meta_stringdata_noda__ui__StatusWidget.data,
-      qt_meta_data_noda__ui__StatusWidget,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject noda::StatusWidget::staticMetaObject = {
+    { &QWidget::staticMetaObject, qt_meta_stringdata_noda__StatusWidget.data,
+      qt_meta_data_noda__StatusWidget,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *noda::ui::StatusWidget::metaObject() const
+const QMetaObject *noda::StatusWidget::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *noda::ui::StatusWidget::qt_metacast(const char *_clname)
+void *noda::StatusWidget::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_noda__ui__StatusWidget.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_noda__StatusWidget.stringdata0))
         return static_cast<void*>(const_cast< StatusWidget*>(this));
     return QWidget::qt_metacast(_clname);
 }
 
-int noda::ui::StatusWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int noda::StatusWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QWidget::qt_metacall(_c, _id, _a);
     if (_id < 0)

@@ -18,25 +18,25 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_noda__ui__Settings_t {
+struct qt_meta_stringdata_noda__Settings_t {
     QByteArrayData data[1];
-    char stringdata0[19];
+    char stringdata0[15];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_noda__ui__Settings_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_noda__Settings_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_noda__ui__Settings_t qt_meta_stringdata_noda__ui__Settings = {
+static const qt_meta_stringdata_noda__Settings_t qt_meta_stringdata_noda__Settings = {
     {
-QT_MOC_LITERAL(0, 0, 18) // "noda::ui::Settings"
+QT_MOC_LITERAL(0, 0, 14) // "noda::Settings"
 
     },
-    "noda::ui::Settings"
+    "noda::Settings"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_noda__ui__Settings[] = {
+static const uint qt_meta_data_noda__Settings[] = {
 
  // content:
        7,       // revision
@@ -52,7 +52,7 @@ static const uint qt_meta_data_noda__ui__Settings[] = {
        0        // eod
 };
 
-void noda::ui::Settings::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void noda::Settings::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -60,28 +60,28 @@ void noda::ui::Settings::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
     Q_UNUSED(_a);
 }
 
-const QMetaObject noda::ui::Settings::staticMetaObject = {
-    { &QDialog::staticMetaObject, qt_meta_stringdata_noda__ui__Settings.data,
-      qt_meta_data_noda__ui__Settings,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject noda::Settings::staticMetaObject = {
+    { &QDialog::staticMetaObject, qt_meta_stringdata_noda__Settings.data,
+      qt_meta_data_noda__Settings,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *noda::ui::Settings::metaObject() const
+const QMetaObject *noda::Settings::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *noda::ui::Settings::qt_metacast(const char *_clname)
+void *noda::Settings::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_noda__ui__Settings.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_noda__Settings.stringdata0))
         return static_cast<void*>(const_cast< Settings*>(this));
     if (!strcmp(_clname, "Ui::SettingsDialog"))
         return static_cast< Ui::SettingsDialog*>(const_cast< Settings*>(this));
     return QDialog::qt_metacast(_clname);
 }
 
-int noda::ui::Settings::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int noda::Settings::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QDialog::qt_metacall(_c, _id, _a);
     if (_id < 0)
