@@ -254,4 +254,4 @@ namespace noda {
 
 	return 0;
   }
-} // namespace noda::sync
+} // namespace noda

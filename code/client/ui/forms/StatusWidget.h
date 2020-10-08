@@ -7,37 +7,37 @@
 namespace noda {
   struct NetStats;
 
-class StatusWidget final : public QWidget {
-   Q_OBJECT;
+  class StatusWidget final : public QWidget {
+	Q_OBJECT;
 
- public:
-   StatusWidget(QWidget *parent);
-   ~StatusWidget() = default;
+  public:
+	StatusWidget(QWidget *parent);
+	~StatusWidget() = default;
 
- public slots:
-   void OnConnected();
-   void OnDisconnect(uint32_t);
-   void OnBroadcast(int);
-   void OnStatsUpdate(const NetStats &);
+  public slots:
+	void OnConnected();
+	void OnDisconnect(uint32_t);
+	void OnBroadcast(int);
+	void OnStatsUpdate(const NetStats &);
 
- private:
-   void paintEvent(QPaintEvent *) override;
-   QSize sizeHint() const override;
+  private:
+	void paintEvent(QPaintEvent *) override;
+	QSize sizeHint() const override;
 
-   void SetLabelIcon(QLabel &, const QString &);
+	void SetLabelIcon(QLabel &, const QString &);
 
- private:
-   QScopedPointer<QLabel> _labelConnectText;
-   QScopedPointer<QLabel> _labelConnectIcon;
+  private:
+	QScopedPointer<QLabel> _labelConnectText;
+	QScopedPointer<QLabel> _labelConnectIcon;
 
-   QScopedPointer<QLabel> _labelUserText;
-   QScopedPointer<QLabel> _labelUserIcon;
+	QScopedPointer<QLabel> _labelUserText;
+	QScopedPointer<QLabel> _labelUserIcon;
 
-   QScopedPointer<QLabel> _labelUpText;
-   QScopedPointer<QLabel> _labelDownText;
-   QScopedPointer<QLabel> _labelUpIcon;
-   QScopedPointer<QLabel> _labelDownIcon;
+	QScopedPointer<QLabel> _labelUpText;
+	QScopedPointer<QLabel> _labelDownText;
+	QScopedPointer<QLabel> _labelUpIcon;
+	QScopedPointer<QLabel> _labelDownIcon;
 
-   int _userCount = 1;
- };
+	int _userCount = 1;
+  };
 } // namespace noda

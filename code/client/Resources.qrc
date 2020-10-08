@@ -13,6 +13,7 @@
         <file alias="user">../../assets/icons/user-solid.png</file>
         <file alias="arrow_up">../../assets/icons/arrow-up-solid.png</file>
         <file alias="arrow_down">../../assets/icons/arrow-down-solid.png</file>
+        <file alias="cloud_download">../../assets/icons/cloud-download-alt-solid.png</file>
         <file alias="cloud_upload">../../assets/icons/cloud-upload-alt-solid.png</file>
     </qresource>
 </RCC>

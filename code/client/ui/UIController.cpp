@@ -13,6 +13,7 @@
 #include "forms/StatusWidget.h"
 
 #include <qmainwindow.h>
+#include <QToolButton>
 #include <qstatusbar.h>
 #include <qmenubar.h>
 #include <qerrormessage.h>
@@ -22,8 +23,23 @@
 namespace noda {
   static QMainWindow *GetTopWindow()
   {
-	return qobject_cast<QMainWindow *>( 
+	return qobject_cast<QMainWindow *>(
 	    QApplication::activeWindow()->topLevelWidget());
+  }
+
+  QMainWindow *UiController::GetMainWindow()
+  {
+	static QMainWindow *s_mainWindow{ nullptr };
+	if(!s_mainWindow) {
+	  for(auto *it : QApplication::topLevelWidgets()) {
+		if(auto *window = qobject_cast<QMainWindow *>(it)) {
+		  s_mainWindow = window;
+		  break;
+		}
+	  }
+	}
+
+	return s_mainWindow;
   }
 
   bool UiController::_s_init = false;
@@ -32,16 +48,52 @@ namespace noda {
       _sync(s)
   {
 	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
-  }
 
-  UiController::~UiController()
-  {
-	unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
-  }
+	auto *mainWindow = GetMainWindow();
+	assert(mainWindow != nullptr);
 
-  void UiController::BuildUi()
-  {
-	auto *mainWindow = GetTopWindow();
+	auto *menuBar = mainWindow->menuBar();
+
+	// look away!!!! this is a bit hacked together, but nevertheless it works
+	QMenu *fileMenu = reinterpret_cast<QMenu *>(menuBar->actions()[0]->parent());
+	for(auto *it : fileMenu->actions()) {
+	  // glue on the new open act
+	  if(it->text() == "&Load file") {
+		_cloudDlAct = new QAction(QIcon(":/cloud_download"), "Open from NODA Server", fileMenu);
+		connect(_cloudDlAct, &QAction::triggered, this, &UiController::OpenFromServer);
+
+		fileMenu->insertAction(it, _cloudDlAct);
+	  }
+	  if(it->text() == "Sa&ve as...") {
+		_cloudUpAct = new QAction(QIcon(":/cloud_upload"), "Save to NODA Server", fileMenu);
+		connect(_cloudUpAct, &QAction::triggered, this, &UiController::SaveToServer);
+
+		_cloudUpAct->setEnabled(false);
+		fileMenu->insertAction(it, _cloudUpAct);
+	  }
+	}
+
+	if(QMenu *nodaMenu = menuBar->addMenu(QIcon(":/logo"), "NODA")) {
+	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
+	  nodaMenu->addAction(QIcon(":/sync"), "NSync", this, &UiController::OpenSyncMenu);
+	  nodaMenu->addSeparator();
+	  nodaMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
+	  nodaMenu->addSeparator();
+	  nodaMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
+	}
+
+	auto *statusBar = mainWindow->statusBar();
+
+	_labelBuild.reset(new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT));
+	_netStatus.reset(new StatusWidget(statusBar));
+
+	statusBar->addPermanentWidget(_labelBuild.data());
+	statusBar->addPermanentWidget(_netStatus.data());
+
+	connect(&_sync, &SyncController::Connected, _netStatus.data(), &StatusWidget::OnConnected);
+	connect(&_sync, &SyncController::Disconnected, _netStatus.data(), &StatusWidget::OnDisconnect);
+	connect(&_sync, &SyncController::Broadcasted, _netStatus.data(), &StatusWidget::OnBroadcast);
+	connect(&_sync, &SyncController::StatsUpdated, _netStatus.data(), &StatusWidget::OnStatsUpdate);
 
 	// this needs to be done here, for some reason :D
 	connect(&_sync, &SyncController::Connected, [&]() {
@@ -50,40 +102,39 @@ namespace noda {
 	connect(&_sync, &SyncController::Disconnected, [&]() {
 	  _connectAct->setText("Connect");
 	});
+  }
 
-	// pin additional NODA status bar information
-	QStatusBar *statusBar = mainWindow->statusBar();
+  UiController::~UiController()
+  {
+	unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
+  }
 
-	_labelBuild.reset(new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT));
-	statusBar->addPermanentWidget(_labelBuild.data());
+  void UiController::OpenFromServer()
+  {
+	LOG_INFO("OpenFromServer");
+  }
 
-	_netStatus.reset(new StatusWidget(statusBar));
-	connect(&_sync, &SyncController::Connected, _netStatus.data(), &StatusWidget::OnConnected);
-	connect(&_sync, &SyncController::Disconnected, _netStatus.data(), &StatusWidget::OnDisconnect);
-	connect(&_sync, &SyncController::Broadcasted, _netStatus.data(), &StatusWidget::OnBroadcast);
-	connect(&_sync, &SyncController::StatsUpdated, _netStatus.data(), &StatusWidget::OnStatsUpdate);
+  void UiController::SaveToServer()
+  {
+	LOG_INFO("SaveToServer");
+  }
 
-	statusBar->addPermanentWidget(_netStatus.data());
+  void UiController::OnIdbLoad()
+  {
+	_cloudUpAct->setEnabled(true);
+  }
 
-	// create the top level menu entry*/
-	auto *mainBar = mainWindow->menuBar();
-
-	if(auto *topMenu = mainBar->addMenu(QIcon(":/logo"), "NODA")) {
-	  _connectAct = topMenu->addAction("Connect", this, &UiController::ToggleConnect);
-	  topMenu->addAction(QIcon(":/sync"), "NSync", this, &UiController::OpenSyncMenu);
-	  topMenu->addSeparator();
-	  topMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
-	  topMenu->addSeparator();
-	  topMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
-	}
+  void UiController::BuildUi()
+  {
+	
   }
 
   void UiController::DestroyUi()
   {
-	  // takes the ownership of these widgets *away* from ida on purpose
-	  // so it cant release em
-	  _netStatus.reset();
-	  _labelBuild.reset();
+	// takes the ownership of these widgets *away* from ida on purpose
+	// so it cant release em
+	_netStatus.reset();
+	_labelBuild.reset();
   }
 
   void UiController::OpenRunDialog()
@@ -128,12 +179,13 @@ namespace noda {
 
   ssize_t UiController::OnUiEvent(void *userp, int status, va_list va)
   {
-	auto *self = reinterpret_cast<UiController*>(userp);
-	switch (status) {
+	auto *self = reinterpret_cast<UiController *>(userp);
+	switch(status) {
 	case ui_notification_t::ui_ready_to_run: {
+	  self->OnIdbLoad();
+
 	  if(!_s_init) {
 		_s_init = true;
-		self->BuildUi();
 
 		if(WelcomeDialog::ShouldShow()) {
 		  WelcomeDialog dialog;
@@ -145,13 +197,28 @@ namespace noda {
 		ConnectDialog promt(*self);
 		promt.exec();
 	  }
-		break;
+	  break;
 	}
 	case ui_notification_t::ui_term: {
 	  self->DestroyUi();
-		break;
+	  break;
+	}
+	case ui_notification_t::ui_register_action: {
+	  break;
+	}
+
+	case ui_notification_t::ui_updating_actions: {
+	  auto *ctx = va_arg(va, action_update_ctx_t *);
+	  /*  char buf[512]{};
+	  QT::qsnprintf(buf, 512, "%s:%s:%d", ctx->action, ctx->widget_title.c_str(), ctx->widget_type);
+	  MessageBoxA(nullptr, buf, 0, 0);*/
+	  break;
 	}
 	}
+	//action_ctx_base_t
+	//char buf[512]{};
+	//QT::qsnprintf(buf, 512, "%s:%d", magic_enum::enum_name((ui_notification_t)status).data(), status);
+	//MessageBoxA(nullptr, buf, 0, 0);
 
 	return 0;
   }

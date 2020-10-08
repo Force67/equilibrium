@@ -43,4 +43,4 @@ namespace noda {
 
 	return s_Hwid;
   }
-} // namespace noda::utils
+} // namespace noda

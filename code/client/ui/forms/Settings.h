@@ -9,7 +9,7 @@
 namespace noda {
   class SyncController;
 
- class Settings final : public QDialog, public Ui::SettingsDialog {
+  class Settings final : public QDialog, public Ui::SettingsDialog {
 	Q_OBJECT;
 
   public:

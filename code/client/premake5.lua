@@ -7,6 +7,8 @@ project("Client")
     kind("SharedLib")
     targetname("Noda_72")
     include_meta()
+    debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.2")
+    debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.2\\ida64.exe")
     files({
         "**.cpp",
         "**.h",

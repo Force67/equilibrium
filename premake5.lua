@@ -20,6 +20,10 @@ workspace("NODA")
         "Debug",
         "Release"
     })
+    flags {
+        "MultiProcessorCompile"
+    }
+
     group("Dependencies")
     include("external")
 

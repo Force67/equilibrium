@@ -79,7 +79,7 @@ namespace noda {
 
 	FbsBuilder fbb(128);
 	auto pack = protocol::CreateHandshakeRequest(fbb,
-	                                            constants::kClientVersion,
+	                                             constants::kClientVersion,
 	                                             fbb.CreateString("NotAToken"),
 	                                             MakeFbStringRef(fbb, guid),
 	                                             MakeFbStringRef(fbb, userName));

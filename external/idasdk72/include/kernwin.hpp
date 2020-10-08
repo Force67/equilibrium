@@ -748,7 +748,8 @@ enum ui_notification_t
                         ///<
                         ///< Have a look at ui_finish_populating_widget_popup,
                         ///< if you want to augment the
-                        ///< context menu with your own actions after the menu
+                        ///< context menu with your o
+                        /// wn actions after the menu
                         ///< has had a chance to be properly populated by the
                         ///< owning component or plugin (which typically does it
                         ///< on ui_populating_widget_popup.)

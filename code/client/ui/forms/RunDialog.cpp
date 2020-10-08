@@ -9,4 +9,4 @@ namespace noda {
   {
 	setupUi(this);
   }
-}
+} // namespace noda

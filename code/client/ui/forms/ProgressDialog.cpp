@@ -5,17 +5,17 @@
 
 namespace noda {
 
-ProgressDialog::ProgressDialog(QWidget *parent, const QString &title, const QString &desc) :
+  ProgressDialog::ProgressDialog(QWidget *parent, const QString &title, const QString &desc) :
       QDialog(parent)
-{
-  setupUi(this);
-  setWindowTitle(title);
-  labelDesc->setText(desc);
-}
+  {
+	setupUi(this);
+	setWindowTitle(title);
+	labelDesc->setText(desc);
+  }
 
-void ProgressDialog::SetProgress(int value, const QString &status)
-{
-  barProgress->setValue(value);
-  labelStatus->setText(status);
-}
-}
+  void ProgressDialog::SetProgress(int value, const QString &status)
+  {
+	barProgress->setValue(value);
+	labelStatus->setText(status);
+  }
+} // namespace noda

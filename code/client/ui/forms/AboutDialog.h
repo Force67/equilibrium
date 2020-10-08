@@ -12,4 +12,4 @@ namespace noda {
 	AboutDialog(QWidget *parent);
 	~AboutDialog() = default;
   };
-} // namespace noda::ui
+} // namespace noda

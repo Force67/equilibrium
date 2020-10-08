@@ -7,17 +7,17 @@
 namespace noda {
   class UiController;
 
-	class ConnectDialog final : public QDialog, public Ui::ConnectPromt {
-	  Q_OBJECT;
+  class ConnectDialog final : public QDialog, public Ui::ConnectPromt {
+	Q_OBJECT;
 
-	public:
-	  ConnectDialog(UiController &);
+  public:
+	ConnectDialog(UiController &);
 
-	  static bool ShouldShow();
+	static bool ShouldShow();
 
-	private:
-	  void OnConnect();
+  private:
+	void OnConnect();
 
-	  UiController &_controller;
-	};
+	UiController &_controller;
+  };
 } // namespace noda

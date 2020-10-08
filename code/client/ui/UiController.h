@@ -9,6 +9,7 @@
 namespace QT {
   class QAction;
   class QLabel;
+  class QMainWindow;
 } // namespace QT
 
 namespace noda {
@@ -22,14 +23,24 @@ namespace noda {
 	UiController(SyncController &);
 	~UiController();
 
+	static QMainWindow *GetMainWindow();
+
 	void OpenRunDialog();
+
   private:
 	void BuildUi();
 	void DestroyUi();
 
+	void OpenFromServer();
+	void SaveToServer();
+
+	void OnIdbLoad();
+
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
 	QAction *_connectAct = nullptr;
+	QAction *_cloudDlAct = nullptr;
+	QAction *_cloudUpAct = nullptr;
 
 	QScopedPointer<QLabel> _labelBuild;
 	QScopedPointer<StatusWidget> _netStatus;

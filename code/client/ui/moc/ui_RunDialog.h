@@ -23,84 +23,80 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_RunDialog
-{
+class Ui_RunDialog {
 public:
-    QHBoxLayout *horizontalLayout;
-    QHBoxLayout *horizontalLayout_2;
-    QListWidget *optionList;
-    QVBoxLayout *verticalLayout;
-    QPushButton *btOk;
-    QPushButton *btQuit;
-    QSpacerItem *verticalSpacer;
+  QHBoxLayout *horizontalLayout;
+  QHBoxLayout *horizontalLayout_2;
+  QListWidget *optionList;
+  QVBoxLayout *verticalLayout;
+  QPushButton *btOk;
+  QPushButton *btQuit;
+  QSpacerItem *verticalSpacer;
 
-    void setupUi(QDialog *RunDialog)
-    {
-        if (RunDialog->objectName().isEmpty())
-            RunDialog->setObjectName(QStringLiteral("RunDialog"));
-        RunDialog->resize(306, 263);
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
-        RunDialog->setWindowIcon(icon);
-        horizontalLayout = new QHBoxLayout(RunDialog);
-        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
-        horizontalLayout_2 = new QHBoxLayout();
-        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
-        optionList = new QListWidget(RunDialog);
-        new QListWidgetItem(optionList);
-        new QListWidgetItem(optionList);
-        optionList->setObjectName(QStringLiteral("optionList"));
+  void setupUi(QDialog *RunDialog)
+  {
+	if(RunDialog->objectName().isEmpty())
+	  RunDialog->setObjectName(QStringLiteral("RunDialog"));
+	RunDialog->resize(306, 263);
+	QIcon icon;
+	icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
+	RunDialog->setWindowIcon(icon);
+	horizontalLayout = new QHBoxLayout(RunDialog);
+	horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+	horizontalLayout_2 = new QHBoxLayout();
+	horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+	optionList = new QListWidget(RunDialog);
+	new QListWidgetItem(optionList);
+	new QListWidgetItem(optionList);
+	optionList->setObjectName(QStringLiteral("optionList"));
 
-        horizontalLayout_2->addWidget(optionList);
+	horizontalLayout_2->addWidget(optionList);
 
-        verticalLayout = new QVBoxLayout();
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        btOk = new QPushButton(RunDialog);
-        btOk->setObjectName(QStringLiteral("btOk"));
+	verticalLayout = new QVBoxLayout();
+	verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+	btOk = new QPushButton(RunDialog);
+	btOk->setObjectName(QStringLiteral("btOk"));
 
-        verticalLayout->addWidget(btOk);
+	verticalLayout->addWidget(btOk);
 
-        btQuit = new QPushButton(RunDialog);
-        btQuit->setObjectName(QStringLiteral("btQuit"));
+	btQuit = new QPushButton(RunDialog);
+	btQuit->setObjectName(QStringLiteral("btQuit"));
 
-        verticalLayout->addWidget(btQuit);
+	verticalLayout->addWidget(btQuit);
 
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        verticalLayout->addItem(verticalSpacer);
+	verticalLayout->addItem(verticalSpacer);
 
+	horizontalLayout_2->addLayout(verticalLayout);
 
-        horizontalLayout_2->addLayout(verticalLayout);
+	horizontalLayout->addLayout(horizontalLayout_2);
 
+	retranslateUi(RunDialog);
 
-        horizontalLayout->addLayout(horizontalLayout_2);
+	QMetaObject::connectSlotsByName(RunDialog);
+  } // setupUi
 
+  void retranslateUi(QDialog *RunDialog)
+  {
+	RunDialog->setWindowTitle(QApplication::translate("RunDialog", "NODA - Run", Q_NULLPTR));
 
-        retranslateUi(RunDialog);
+	const bool __sortingEnabled = optionList->isSortingEnabled();
+	optionList->setSortingEnabled(false);
+	QListWidgetItem *___qlistwidgetitem = optionList->item(0);
+	___qlistwidgetitem->setText(QApplication::translate("RunDialog", "Connect", Q_NULLPTR));
+	QListWidgetItem *___qlistwidgetitem1 = optionList->item(1);
+	___qlistwidgetitem1->setText(QApplication::translate("RunDialog", "Request Updates", Q_NULLPTR));
+	optionList->setSortingEnabled(__sortingEnabled);
 
-        QMetaObject::connectSlotsByName(RunDialog);
-    } // setupUi
-
-    void retranslateUi(QDialog *RunDialog)
-    {
-        RunDialog->setWindowTitle(QApplication::translate("RunDialog", "NODA - Run", Q_NULLPTR));
-
-        const bool __sortingEnabled = optionList->isSortingEnabled();
-        optionList->setSortingEnabled(false);
-        QListWidgetItem *___qlistwidgetitem = optionList->item(0);
-        ___qlistwidgetitem->setText(QApplication::translate("RunDialog", "Connect", Q_NULLPTR));
-        QListWidgetItem *___qlistwidgetitem1 = optionList->item(1);
-        ___qlistwidgetitem1->setText(QApplication::translate("RunDialog", "Request Updates", Q_NULLPTR));
-        optionList->setSortingEnabled(__sortingEnabled);
-
-        btOk->setText(QApplication::translate("RunDialog", "OK", Q_NULLPTR));
-        btQuit->setText(QApplication::translate("RunDialog", "Cancel", Q_NULLPTR));
-    } // retranslateUi
-
+	btOk->setText(QApplication::translate("RunDialog", "OK", Q_NULLPTR));
+	btQuit->setText(QApplication::translate("RunDialog", "Cancel", Q_NULLPTR));
+  } // retranslateUi
 };
 
 namespace Ui {
-    class RunDialog: public Ui_RunDialog {};
+  class RunDialog : public Ui_RunDialog {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

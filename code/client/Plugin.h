@@ -14,8 +14,9 @@ namespace noda {
 	bool Init();
 
 	void Run();
+
   private:
-	UiController _uiController;
 	SyncController _syncController;
+	UiController _uiController;
   };
 } // namespace noda

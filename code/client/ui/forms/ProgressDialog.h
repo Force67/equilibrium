@@ -9,7 +9,7 @@ namespace noda {
 	Q_OBJECT;
 
   public:
-	explicit ProgressDialog(QWidget *parent,  const QString& title, const QString& desc);
+	explicit ProgressDialog(QWidget *parent, const QString &title, const QString &desc);
 	~ProgressDialog() = default;
 
 	void SetProgress(int value, const QString &status);
