@@ -28,5 +28,4 @@ workspace("NODA")
     include("external")
 
     group("Project")
-    include("./code/client")
-    include("./code/server")
+    include("./code")
