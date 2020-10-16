@@ -1,12 +1,13 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <Server.h>
+#include "Server.h"
 
-int main(int argc, char **argv)
-{
-  noda::Server server(argc, argv);
+namespace noda {
+
+Server::Server(int argc, char **) {
+
+}
 
 
-  return 0;
 }

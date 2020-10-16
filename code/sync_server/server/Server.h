@@ -1,12 +1,14 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
+#pragma once
 
-#include <Server.h>
+namespace noda {
 
-int main(int argc, char **argv)
-{
-  noda::Server server(argc, argv);
+class Server {
+public:
+  Server(int argc, char**);
 
+private:
 
-  return 0;
+};
 }

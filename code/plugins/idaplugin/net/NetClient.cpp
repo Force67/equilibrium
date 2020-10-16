@@ -106,9 +106,7 @@ namespace noda {
 	fbb.Finish(protocol::CreateMessage(
 	    fbb, type, packetRef));
 
-	bool result = SendReliable(
-	    fbb.GetBufferPointer(),
-	    fbb.GetSize());
+	bool result = SendReliable(fbb.GetBufferPointer(), fbb.GetSize());
 
 	// Idea: do we really need to clear the buffer, if the last packet had the same size?
 	fbb.Clear();

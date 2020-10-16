@@ -1,13 +1,11 @@
 -- Copyright (c) NOMAD Group<nomad-group.net>
 
-project("DedicatedMain")
+project("TestClient")
     kind("ConsoleApp")
-    targetname("Noda_CXX")
     include_meta()
     files({
         "**.cpp",
-        "**.h",
-        "Noda_Server.rc",
+        "**.h"
     })
     links({
         "enet",
@@ -15,7 +13,6 @@ project("DedicatedMain")
     })
     includedirs({
         ".",
-        "../server",
         blu.extdir .. "/idasdk72/include",
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",

@@ -11,8 +11,13 @@ for k,v in pairs(matches) do
 end
 
 -- Legacy component: include("legacy_server")
+group("Server")
 include("sync_server/dedicated_main")
 include("sync_server/server")
+
+group("Plugins")
+include("plugins/idaplugin")
+include("plugins/xdbgplugin")
+
+group("Shared")
 include("common")
-include("ida_plugin")
-include("x64dbg_plugin")

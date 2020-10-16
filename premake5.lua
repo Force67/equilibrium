@@ -27,5 +27,4 @@ workspace("NODA")
     group("Dependencies")
     include("external")
 
-    group("Project")
     include("./code")
