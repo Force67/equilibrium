@@ -2,7 +2,6 @@
 
 project("DedicatedMain")
     kind("ConsoleApp")
-    targetname("Noda_CXX")
     include_meta()
     files({
         "**.cpp",
@@ -10,14 +9,9 @@ project("DedicatedMain")
         "Noda_Server.rc",
     })
     links({
-        "enet",
-        "fmtlib"
+        "server",
     })
     includedirs({
         ".",
         "../server",
-        blu.extdir .. "/idasdk72/include",
-        blu.extdir .. "/enet/include",
-        blu.extdir .. "/flatbuffers/include",
-        blu.extdir .. "/fmt/include",
     })

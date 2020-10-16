@@ -2,8 +2,7 @@
 
 **Main project source tree.**
 
-* [**ida_plugin/**](./ida_plugin): Noda Plugin for IDA Pro.
-* [**x64dbg_plugin/**](./x64dbg_plugin): Noda Plugin for X64Dbg.
-* [**common/**](./common): code shared between `ida_plugin`, `x64dbg_plugin`, and `sync_server`.
-* [**sync_server/**](./cxx_server): New server stack, written in c++.
+* [**plugins/**](./plugins): Sources for Noda plugins.
+* [**common/**](./common): Common code shared between plugin and server implementations.
+* [**sync_server/**](./sync_server): New high performance oriented c++ based server stack.
 * [**legacy_server/**](./server): Old early c# based server. Now incompatible.

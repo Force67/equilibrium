@@ -1,6 +1,6 @@
 
 <p align="center"><img src="https://i.imgur.com/pwlmRZx.png" width="150" height="150"></p>
-<h2 align="center"><b>NODA - Supercharge your ida. ⚡</b></h2>
+<h2 align="center"><b>Noda - a collaborative reverse-engineering project</b></h2>
 
 ### NODA comes with batteries included. Features include:
 - IDA Sync: Synchronize your database.

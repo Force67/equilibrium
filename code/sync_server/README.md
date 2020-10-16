@@ -4,3 +4,4 @@
 
 * [**dedicated_main/**](./dedicated_main): Dedicated server application.
 * [**server/**](./server): Core server implementation.
+* [**tests/**](./tests): Various tests for the server stack.
