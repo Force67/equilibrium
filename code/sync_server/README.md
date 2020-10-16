@@ -2,5 +2,5 @@
 
 **Sync Server implementation modules.**
 
-* [**dedicated_server/**](./dedicated_server): Dedicated server application.
+* [**dedicated_main/**](./dedicated_main): Dedicated server application.
 * [**server/**](./server): Core server implementation.
