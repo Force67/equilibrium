@@ -113,7 +113,6 @@ namespace noda {
   {
 	LOG_INFO("DlFromServer");
 
-	
 	// select IDB
   }
 
@@ -131,7 +130,6 @@ namespace noda {
 
   void UiController::BuildUi()
   {
-	
   }
 
   void UiController::DestroyUi()

@@ -90,6 +90,8 @@ enet_address_set_host (ENetAddress * address, const char * name)
 {
     struct hostent * hostEntry;
 
+    //getaddrinfo();
+
     hostEntry = gethostbyname (name);
     if (hostEntry == NULL ||
         hostEntry -> h_addrtype != AF_INET)

@@ -9,10 +9,13 @@ project("TestClient")
     })
     links({
         "enet",
-        "fmtlib"
+        "fmtlib",
+        "netlib",
+        "database"
     })
     includedirs({
         ".",
+        "../../../common",
         blu.extdir .. "/idasdk72/include",
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",

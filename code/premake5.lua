@@ -10,10 +10,15 @@ for k,v in pairs(matches) do
     os.executef("%s --cpp -o common/moc_protocol %s", fb_dir .. "/flatc", v) 
 end
 
+function include_netlib()
+    
+end
+
 -- Legacy component: include("legacy_server")
 group("Server")
 include("sync_server/dedicated_main")
 include("sync_server/server")
+include("sync_server/tests/test_client")
 
 group("Plugins")
 include("plugins/idaplugin")

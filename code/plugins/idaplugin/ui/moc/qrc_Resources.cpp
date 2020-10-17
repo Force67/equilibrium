@@ -232775,9 +232775,15 @@ int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_Resources)()
 
 namespace {
   struct initializer {
-	initializer() { QT_RCC_MANGLE_NAMESPACE(qInitResources_Resources)
-	                (); }
-	~initializer() { QT_RCC_MANGLE_NAMESPACE(qCleanupResources_Resources)
-	                 (); }
+	initializer()
+	{
+	  QT_RCC_MANGLE_NAMESPACE(qInitResources_Resources)
+	  ();
+	}
+	~initializer()
+	{
+	  QT_RCC_MANGLE_NAMESPACE(qCleanupResources_Resources)
+	  ();
+	}
   } dummy;
 } // namespace

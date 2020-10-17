@@ -6,8 +6,7 @@
 
 namespace noda {
 
-struct Client {
+  struct Client {
 	ENetPeer *peer;
-
   };
-}
+} // namespace noda

@@ -74,8 +74,8 @@ namespace noda {
 	// post the net stats every second to the ui
 	_statsTimer.reset(new QTimer(this));
 	connect(_statsTimer.data(), &QTimer::timeout, ([&] {
-	   emit StatsUpdated(netStats);
-	}));
+	          emit StatsUpdated(netStats);
+	        }));
 
 	for(auto *i = SyncHandler::ROOT(); i;) {
 	  auto *it = i->handler;

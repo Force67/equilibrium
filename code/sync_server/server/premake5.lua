@@ -9,10 +9,12 @@ project("Server")
     })
     links({
         "enet",
-        "fmtlib"
+        "fmtlib",
+        "database"
     })
     includedirs({
         ".",
+        "../../common",
         blu.extdir .. "/idasdk72/include",
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",

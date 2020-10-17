@@ -9,13 +9,13 @@ int main(int argc, char **argv)
   std::puts("Initializing NODA");
 
   noda::Server server(argc, argv);
-  auto result = server.Initialize();
-  if (result != noda::Server::Status::Success) {
-	std::printf("Failed to initialize the server instance (status: %d)\n", 
-		static_cast<int>(result));
+  auto result = server.Initialize(true);
+  if(result != noda::Server::Status::Success) {
+	std::printf("Failed to initialize the server instance (status: %d)\n",
+	            static_cast<int>(result));
   }
 
-  while (server.IsListening()) {
+  while(server.IsListening()) {
 	server.Tick();
   }
 

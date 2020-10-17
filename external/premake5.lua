@@ -39,6 +39,17 @@ project("enet")
     language("C")
     enet_include()
 
+project("sqlite")
+    kind("StaticLib")
+    language("C")
+    includedirs({
+        "./sqlite"
+    })
+    files({
+        "sqlite/*.h",
+        "sqlite/*.c"
+    })
+
 project("fmtlib")
     language("C++")
     kind("StaticLib")
