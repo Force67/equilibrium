@@ -7,10 +7,10 @@
 
 namespace netlib {
 
-  class NetClientBase {
+  class ClientBase {
   public:
-	NetClientBase();
-	~NetClientBase();
+	ClientBase();
+	~ClientBase();
 
 	inline bool Good() const
 	{
@@ -27,6 +27,7 @@ namespace netlib {
 	bool Connect(const char *address, uint16_t port);
 
 	void Tick();
+
   private:
 	ENetHost *_host = nullptr;
 	ENetPeer *_serverPeer = nullptr;

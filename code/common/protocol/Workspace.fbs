@@ -3,6 +3,14 @@
 
 namespace protocol;
 
+table CreateWorkspace {
+  name:string;
+}
+
+table RemoveWorkspace {
+  name:string;
+}
+
 table Project {
   version:int;
   name:string;

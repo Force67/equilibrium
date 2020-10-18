@@ -15,7 +15,6 @@ table HandshakeRequest {
   token:string;
   guid:string;
   name:string;
-  password:string;
 }
 
 table HandshakeAck {

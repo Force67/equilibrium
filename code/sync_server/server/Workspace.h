@@ -9,8 +9,9 @@
 #include <database/Project.h>
 
 namespace noda {
-using workspace_t = std::vector<database::Project>;
+  using workspace_t = std::vector<database::Project>;
 
-
-  void MountProjects(workspace_t &);
-}
+  // workspace stores all projects in one file.
+  bool MountProjects(workspace_t &);
+  bool CreateWorkspace(workspace_t &, const std::string &name);
+} // namespace noda

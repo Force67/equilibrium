@@ -7,15 +7,16 @@
 
 namespace netlib {
 
-  class NetServerBase {
+  class ServerBase {
   public:
-	explicit NetServerBase(uint16_t port);
-	~NetServerBase();
+	~ServerBase();
 
 	inline bool Good() const
 	{
-	  return _host;
+	  return _host != nullptr;
 	}
+
+	bool Host(uint16_t port);
 
 	void Listen();
 
@@ -23,11 +24,13 @@ namespace netlib {
 	virtual bool OnDisconnection(ENetPeer *) = 0;
 	virtual void OnConsume(ENetPeer *, const uint8_t *data, const size_t len) = 0;
 
-	void BroadcastReliable(uint8_t *data, size_t len);
+	// warning: this function is thread unsafe... use as is
+	void BroadcastReliable(const uint8_t *data, size_t len, ENetPeer *ex = nullptr);
 
 	size_t GetPeerCount() const;
+
   private:
-	ENetHost *_host;
+	ENetHost *_host = nullptr;
 	ENetEvent _event{};
   };
 } // namespace netlib

@@ -2,42 +2,33 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <netlib/ServerBase.h>
-#include "Workspace.h"
+#include <memory>
 
 namespace noda {
 
-  class Server final : public netlib::NetServerBase {
+  class Server {
   public:
 	enum class Status {
 	  Success,
 	  NetError,
+	  FsError,
 	};
 
-	inline bool StatusOk(Status s)
+	inline bool StatusOk(Status s) const
 	{
 	  return s == Status::Success;
 	}
 
-	// ctor with command line options
-	explicit Server(int argc, char **);
-
-	// default ctor
-	Server();
+	Server(uint16_t port);
+	~Server();
 
 	Status Initialize(bool enableStorage);
 
+	bool IsListening() const;
 	void Tick();
 
-	bool IsListening() const;
-
-	virtual bool OnConnection(ENetPeer *);
-	virtual bool OnDisconnection(ENetPeer *);
-	virtual void OnConsume(ENetPeer *, const uint8_t *data, const size_t len);
   private:
-	Status InitializeNetThread();
-
-	bool _isListening = false;
-	workspace_t _workspace;
+	class Impl;
+	std::unique_ptr<Impl> _impl;
   };
 } // namespace noda

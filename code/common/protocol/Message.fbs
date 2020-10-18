@@ -19,6 +19,9 @@ union MsgType {
     LocalProjectInfo,
     RemoteProjectInfo,
     WorkspaceList,
+    CreateWorkspace,
+    RemoveWorkspace,
+
     TransferBegin,
     TransferChunk,
 

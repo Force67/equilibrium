@@ -10,8 +10,11 @@ project("DedicatedMain")
     })
     links({
         "server",
+        "netlib"
     })
     includedirs({
         ".",
+        "../../common",
         "../server",
+        blu.extdir .. "/enet/include"
     })
