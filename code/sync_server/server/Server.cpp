@@ -3,14 +3,15 @@
 
 #include <chrono>
 
+// stupid windows
+#undef GetMessage
+#undef GetMessageW
+
 #include <netlib/NetLib.h>
 #include <netlib/Server.h>
 
 #include "Server.h"
 #include "Workspace.h"
-
-// stupid windows
-#undef GetMessage
 
 #include "flatbuffers/flatbuffers.h"
 #include "moc_protocol/Message_generated.h"
@@ -23,11 +24,11 @@ namespace noda {
 	    _tickTime(std::chrono::high_resolution_clock::now())
 	{
 	  for(int i = 0; i < 10; i++) {
-		if(!ServerBase::Host(port))
-		  port++;
-	  }
+		if(ServerBase::Host(port))
+		  break;
 
-	  __debugbreak();
+		port++;
+	  }
 	}
 
 	Server::Status Initialize(bool enabledStorage)
@@ -40,6 +41,7 @@ namespace noda {
 		  return Status::FsError;
 	  }
 
+	  _isListening = true;
 	  return Status::Success;
 	}
 
@@ -72,7 +74,7 @@ namespace noda {
 	  if(!protocol::VerifyMessageBuffer(verifier))
 		return;
 
-	  const auto *message = protocol::GetMessageW(static_cast<const void *>(data));
+	  const auto *message = protocol::GetMessage(static_cast<const void *>(data));
 	  if(message->msg_type() == protocol::MsgType_HandshakeRequest)
 		return HandleAuth(message);
 
@@ -99,7 +101,9 @@ namespace noda {
 	  float deltaMs = std::chrono::duration_cast<std::chrono::duration<float>>(delta).count();
 
 	  _freeTime += deltaMs;
+	  //std::printf("%f\n", _freeTime);
 
+	  //__debugbreak();
 	  if(_freeTime > (1000 / 30)) {
 		std::printf("Net tick!\n");
 		// network tick

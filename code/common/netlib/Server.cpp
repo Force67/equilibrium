@@ -15,7 +15,6 @@ namespace netlib {
   {
 	ENetAddress address{ 0, port };
 	_host = enet_host_create(&address, 10, 0, 0, 0);
-
 	return _host != nullptr;
   }
 
