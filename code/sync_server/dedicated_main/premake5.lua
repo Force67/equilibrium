@@ -12,6 +12,7 @@ project("DedicatedMain")
         "server",
         "netlib"
     })
+    dependson("server")
     includedirs({
         ".",
         "../../common",

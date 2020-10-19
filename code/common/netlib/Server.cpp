@@ -18,14 +18,15 @@ namespace netlib {
 	return _host != nullptr;
   }
 
-  void ServerBase::BroadcastReliable(const uint8_t *data, size_t len, ENetPeer *ex)
+  void ServerBase::BroadcastReliable(const uint8_t *data, size_t len, PeerBase *ex)
   {
-	auto *packet = enet_packet_create(static_cast<const void *>(data), len, ENET_PACKET_FLAG_RELIABLE);
+	auto *packet = enet_packet_create(static_cast<const void *>(data), len,
+	                                  ENET_PACKET_FLAG_RELIABLE | ENET_PACKET_FLAG_NO_ALLOCATE);
 
 	ENetPeer *curPeer = _host->peers;
 
 	for(size_t i = 0; i < _host->peerCount; i++) {
-	  if(curPeer != ex)
+	  if(curPeer != ex->GetPeer())
 		enet_peer_send(curPeer, 1, packet);
 
 	  ++curPeer;
@@ -43,16 +44,21 @@ namespace netlib {
   {
 	if(enet_host_service(_host, &_event, 0) > 0) {
 	  switch(_event.type) {
-	  case ENET_EVENT_TYPE_CONNECT:
-		OnConnection(_event.peer);
+	  case ENET_EVENT_TYPE_CONNECT: {
+		PeerBase peer(_event.peer);
+		peer.SetId(_event.peer->connectID);
+		OnConnection(&peer);
 		break;
+	  }
 	  case ENET_EVENT_TYPE_DISCONNECT: {
-		OnDisconnection(_event.peer);
+		PeerBase peer(_event.peer);
+		OnDisconnection(&peer);
 		enet_peer_reset(_event.peer);
 		break;
 	  }
 	  case ENET_EVENT_TYPE_RECEIVE: {
-		OnConsume(_event.peer, _event.packet->data, _event.packet->dataLength);
+		PeerBase peer(_event.peer);
+		OnConsume(&peer, _event.packet->data, _event.packet->dataLength);
 		enet_packet_destroy(_event.packet);
 		break;
 	  }

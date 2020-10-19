@@ -2,8 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstdint>
-#include <enet/enet.h>
+#include "Peer.h"
 
 namespace netlib {
 
@@ -20,12 +19,12 @@ namespace netlib {
 
 	void Listen();
 
-	virtual bool OnConnection(ENetPeer *) = 0;
-	virtual bool OnDisconnection(ENetPeer *) = 0;
-	virtual void OnConsume(ENetPeer *, const uint8_t *data, const size_t len) = 0;
+	virtual void OnConnection(PeerBase *){};
+	virtual void OnDisconnection(PeerBase *) = 0;
+	virtual void OnConsume(PeerBase *, const uint8_t *data, const size_t len) = 0;
 
 	// warning: this function is thread unsafe... use as is
-	void BroadcastReliable(const uint8_t *data, size_t len, ENetPeer *ex = nullptr);
+	void BroadcastReliable(const uint8_t *data, size_t len, PeerBase *ex = nullptr);
 
 	size_t GetPeerCount() const;
 

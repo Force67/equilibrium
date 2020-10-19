@@ -2,11 +2,15 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <enet/enet.h>
+#include <string>
 
 namespace noda {
 
   struct Client {
-	ENetPeer *peer;
+	std::string name;
+	std::string guid;
+	uint32_t id;
   };
+
+  using clientPtr = std::shared_ptr<Client>;
 } // namespace noda

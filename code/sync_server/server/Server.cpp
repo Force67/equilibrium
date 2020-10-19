@@ -11,9 +11,12 @@
 #include <netlib/Server.h>
 
 #include "Server.h"
+#include "Client.h"
 #include "Workspace.h"
 
 #include "flatbuffers/flatbuffers.h"
+
+#include "moc_protocol/DisconnectReason_generated.h"
 #include "moc_protocol/Message_generated.h"
 
 namespace noda {
@@ -45,30 +48,49 @@ namespace noda {
 	  return Status::Success;
 	}
 
-	bool OnConnection(ENetPeer *peer) override
+	void OnDisconnection(netlib::PeerBase *peer) override
 	{
-	  return true;
+	  auto it = std::find_if(_clientRegistry.begin(), _clientRegistry.end(), [&](clientPtr &cl) {
+		return cl->id == peer->Id();
+	  });
+
+	  if(it == _clientRegistry.end())
+		return;
+
+	  _clientRegistry.erase(it);
 	}
 
-	bool OnDisconnection(ENetPeer *) override
-	{
-	  return true;
-	}
-
-	void HandleAuth(const protocol::Message *message)
+	void HandleAuth(netlib::PeerBase *source, const protocol::Message *message)
 	{
 	  auto *packet = message->msg_as_HandshakeRequest();
 
 	  if(packet->protocolVersion() < netlib::constants::kClientVersion) {
-		// kick...
+		source->Kick(protocol::DisconnectReason_BadConnection);
+		return;
 	  }
 
 	  if(packet->token()->str() != _token) {
-		// kick...
+		source->Kick(protocol::DisconnectReason_BadPassword);
+		return;
 	  }
+
+	  // allocate new user
+	  auto client = std::make_shared<Client>();
+	  client->guid = std::move(packet->guid()->str());
+	  client->name = std::move(packet->name()->str());
+	  client->id = source->Id();
+
+	  std::printf("Hello %s:%s:%d\n", client->name.c_str(), client->guid.c_str(), client->id);
+	  _clientRegistry.emplace_back(client);
+
+	  // TBD:
+	  auto pack = protocol::CreateHandshakeAck(_fbb, protocol::UserPermissions_NONE, 
+		  client->id, static_cast<int32_t>(_clientRegistry.size()));
+
+
 	}
 
-	void OnConsume(ENetPeer *source, const uint8_t *data, const size_t len) override
+	void OnConsume(netlib::PeerBase *source, const uint8_t *data, const size_t len) override
 	{
 	  flatbuffers::Verifier verifier(data, len);
 	  if(!protocol::VerifyMessageBuffer(verifier))
@@ -76,7 +98,7 @@ namespace noda {
 
 	  const auto *message = protocol::GetMessage(static_cast<const void *>(data));
 	  if(message->msg_type() == protocol::MsgType_HandshakeRequest)
-		return HandleAuth(message);
+		return HandleAuth(source, message);
 
 	  if(message->msg_type() == protocol::MsgType_CreateWorkspace) {
 		// lookup user permissions.
@@ -113,9 +135,14 @@ namespace noda {
 	  ServerBase::Listen();
 	}
 
+	clientPtr ClientByPeer(netlib::PeerBase *peer)
+	{
+	  //auto it =
+	}
+
   public:
 	bool _isListening = false;
-	std::string _token;
+	std::string _token = "";
 
 	workspace_t _workspace;
 	flatbuffers::FlatBufferBuilder _fbb;
@@ -123,12 +150,13 @@ namespace noda {
 	using timestamp_t = std::chrono::high_resolution_clock::time_point;
 	timestamp_t _tickTime;
 	float _freeTime = 0;
+
+	std::vector<clientPtr> _clientRegistry;
   };
 
   Server::Server(uint16_t port) :
       _impl{ std::make_unique<Impl>(port) }
-  {
-  }
+  {}
 
   Server::~Server() = default;
 
