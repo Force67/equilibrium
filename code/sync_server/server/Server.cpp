@@ -19,7 +19,24 @@
 #include "moc_protocol/DisconnectReason_generated.h"
 #include "moc_protocol/Message_generated.h"
 
+#include "utility/DetachedQueue.h"
+#include "utility/ObjectPool.h"
+
 namespace noda {
+
+  struct OutPacket {
+	netlib::connectid_t id;
+	flatbuffers::FlatBufferBuilder buffer;
+	utility::detached_queue_key<OutPacket> key;
+  };
+
+  struct InPacket {
+	netlib::connectid_t id;
+	utility::detached_queue_key<InPacket> key;
+  };
+
+  inline utility::object_pool<OutPacket> _outPool;
+  inline utility::object_pool<InPacket> _inPool;
 
   class Server::Impl final : public netlib::ServerBase {
   public:
@@ -74,20 +91,25 @@ namespace noda {
 		return;
 	  }
 
+	  const netlib::connectid_t id = source->Id();
+
 	  // allocate new user
 	  auto client = std::make_shared<Client>();
 	  client->guid = std::move(packet->guid()->str());
 	  client->name = std::move(packet->name()->str());
-	  client->id = source->Id();
+	  client->id = id;
 
-	  std::printf("Hello %s:%s:%d\n", client->name.c_str(), client->guid.c_str(), client->id);
 	  _clientRegistry.emplace_back(client);
 
+	  OutPacket *p = _outPool.construct();
+	  p->id = id;
+
 	  // TBD:
-	  auto pack = protocol::CreateHandshakeAck(_fbb, protocol::UserPermissions_NONE, 
-		  client->id, static_cast<int32_t>(_clientRegistry.size()));
+	  auto pack = protocol::CreateHandshakeAck(p->buffer, protocol::UserPermissions_NONE,
+	                                           id, static_cast<int32_t>(_clientRegistry.size()));
 
-
+	  p->buffer.Finish(protocol::CreateMessage(p->buffer, protocol::MsgType_HandshakeAck, pack.Union()));
+	  _outQueue.push(&p->key);
 	}
 
 	void OnConsume(netlib::PeerBase *source, const uint8_t *data, const size_t len) override
@@ -95,26 +117,22 @@ namespace noda {
 	  flatbuffers::Verifier verifier(data, len);
 	  if(!protocol::VerifyMessageBuffer(verifier))
 		return;
-
+	    
 	  const auto *message = protocol::GetMessage(static_cast<const void *>(data));
 	  if(message->msg_type() == protocol::MsgType_HandshakeRequest)
 		return HandleAuth(source, message);
 
-	  if(message->msg_type() == protocol::MsgType_CreateWorkspace) {
-		// lookup user permissions.
-		auto *packet = message->msg_as_CreateWorkspace();
-		CreateWorkspace(_workspace, packet->name()->c_str());
-	  }
-
-	  if(message->msg_type() == protocol::MsgType_RemoveWorkspace) {
-		// lookup user permissions...
-	  }
+	  // queue the packet for the data thread
+	  auto *packet = _inPool.construct();
+	  packet->id = source->Id();
+	  _inQueue.push(&packet->key);
 
 	  // relay message
 	  BroadcastReliable(data, len, source);
 	}
 
-	inline void DoUpdate()
+	// networking operations only
+	inline void ProcessNet()
 	{
 	  auto now = std::chrono::high_resolution_clock::now();
 	  auto delta = now - _tickTime;
@@ -123,21 +141,56 @@ namespace noda {
 	  float deltaMs = std::chrono::duration_cast<std::chrono::duration<float>>(delta).count();
 
 	  _freeTime += deltaMs;
-	  //std::printf("%f\n", _freeTime);
 
 	  //__debugbreak();
 	  if(_freeTime > (1000 / 30)) {
 		std::printf("Net tick!\n");
-		// network tick
 		_freeTime = 0;
+	  }
+
+	  // out queue
+	  while(auto *packet = _outQueue.pop(&OutPacket::key)) {
+		SendReliable(
+			packet->id, 
+			packet->buffer.GetBufferPointer(), 
+			packet->buffer.GetSize());
+
+		_outPool.destruct(packet);
 	  }
 
 	  ServerBase::Listen();
 	}
 
-	clientPtr ClientByPeer(netlib::PeerBase *peer)
+	// expensive operations operating on the database
+	inline void ProcessData()
 	{
-	  //auto it =
+	  while(auto *packet = _inQueue.pop(&InPacket::key)) {
+
+
+
+		  _inPool.destruct(packet);
+	  }
+	}
+
+  private:
+	void SendPacket(netlib::PeerBase *peer, protocol::MsgType type, const flatbuffers::Offset<void> packetRef)
+	{
+	  OutPacket *p = new OutPacket;
+	 
+
+	  _outQueue.push(&p->key);
+	}
+
+	clientPtr ClientById(netlib::connectid_t cid)
+	{
+	  auto it = std::find_if(_clientRegistry.begin(), _clientRegistry.end(), [&](clientPtr &cl) {
+		return cl->id == cid;
+	  });
+
+	  if(it == _clientRegistry.end())
+		return {};
+
+	  return *it;
 	}
 
   public:
@@ -152,11 +205,15 @@ namespace noda {
 	float _freeTime = 0;
 
 	std::vector<clientPtr> _clientRegistry;
+
+	utility::detached_mpsc_queue<OutPacket> _outQueue;
+	utility::detached_mpsc_queue<InPacket> _inQueue;
   };
 
   Server::Server(uint16_t port) :
       _impl{ std::make_unique<Impl>(port) }
-  {}
+  {
+  }
 
   Server::~Server() = default;
 
@@ -165,9 +222,14 @@ namespace noda {
 	return _impl->Initialize(enabledStorage);
   }
 
-  void Server::Tick()
+  void Server::ProcessNet()
   {
-	_impl->DoUpdate();
+	_impl->ProcessNet();
+  }
+
+  void Server::ProcessData()
+  {
+	_impl->ProcessData();
   }
 
   bool Server::IsListening() const

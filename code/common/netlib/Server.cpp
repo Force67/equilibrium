@@ -20,13 +20,13 @@ namespace netlib {
 
   void ServerBase::BroadcastReliable(const uint8_t *data, size_t len, PeerBase *ex)
   {
-	auto *packet = enet_packet_create(static_cast<const void *>(data), len,
-	                                  ENET_PACKET_FLAG_RELIABLE | ENET_PACKET_FLAG_NO_ALLOCATE);
+	const auto flags = ENET_PACKET_FLAG_RELIABLE | ENET_PACKET_FLAG_NO_ALLOCATE;
+	auto *packet = enet_packet_create(static_cast<const void *>(data), len, flags);
 
 	ENetPeer *curPeer = _host->peers;
 
 	for(size_t i = 0; i < _host->peerCount; i++) {
-	  if(curPeer != ex->GetPeer())
+	  if(curPeer != ex->GetPeer() && curPeer->state == ENET_PEER_STATE_CONNECTED)
 		enet_peer_send(curPeer, 1, packet);
 
 	  ++curPeer;
@@ -35,9 +35,39 @@ namespace netlib {
 	enet_packet_destroy(packet);
   }
 
+  bool ServerBase::SendReliable(connectid_t id, const uint8_t *data, size_t len)
+  {
+	ENetPeer *peer = PeerById(id);
+	if(!peer)
+	  return false;
+
+	const auto flags = ENET_PACKET_FLAG_RELIABLE | ENET_PACKET_FLAG_NO_ALLOCATE;
+	auto *packet = enet_packet_create(data, len, flags);
+
+	packet->freeCallback = [](ENetPacket *packet) {
+	  __debugbreak();
+	};
+
+	return enet_peer_send(peer, 1, packet) == 0;
+  }
+
   size_t ServerBase::GetPeerCount() const
   {
 	return _host->peerCount;
+  }
+
+  ENetPeer *ServerBase::PeerById(connectid_t id)
+  {
+	ENetPeer *curPeer = _host->peers;
+
+	for(size_t i = 0; i < _host->peerCount; i++) {
+	  if(curPeer->connectID == id)
+		return curPeer;
+
+	  ++curPeer;
+	}
+
+	return nullptr;
   }
 
   void ServerBase::Listen()

@@ -27,16 +27,36 @@ public:
 	    _fbb, 1337, "", "{1337-1337-1337}", "TestClient");
 
 	SendPacket(protocol::MsgType_HandshakeRequest, request);
-	std::puts("TestClient::OnConnection()");
+	std::puts("OnConnection()");
   }
 
   void OnDisconnected(int status)
   {
-	std::printf("TestClient::OnDisconnected(): %d\n", status);
+	std::printf("OnDisconnected(): %d\n", status);
+	//_signalQuit = true;
+  }
+
+  void HandleAuth(const protocol::Message *message)
+  {
+	auto *pack = message->msg_as_HandshakeAck();
+
+	std::printf("HandleAuth(): %d:%d\n", pack->userIndex(), pack->numUsers());
   }
 
   void OnConsume(const uint8_t *data, size_t length)
   {
+	std::printf("OnConsume(): %zd\n", length);
+
+	flatbuffers::Verifier verifier(data, length);
+	if (!protocol::VerifyMessageBuffer(verifier)) {
+	  std::puts("Received corrupt data!");
+	  return;
+	}
+
+	const auto *message = protocol::GetMessage(static_cast<const void *>(data));
+	if (message->msg_type() == protocol::MsgType_HandshakeAck) {
+	  return HandleAuth(message);
+	}
   }
 
   template <typename T>
@@ -48,8 +68,14 @@ public:
 	assert(result);
   }
 
+  bool ShouldRun() const
+  {
+	return !_signalQuit;
+  }
+
 private:
   flatbuffers::FlatBufferBuilder _fbb;
+  bool _signalQuit = false;
 };
 
 int main()
@@ -57,7 +83,7 @@ int main()
   netlib::ScopedNetContext context;
   TestClient client;
 
-  while(true) {
+  while(client.ShouldRun()) {
 	client.Tick();
 	std::this_thread::sleep_for(1ms);
   }

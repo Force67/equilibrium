@@ -19,4 +19,5 @@ project("Server")
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/xenium"
     })

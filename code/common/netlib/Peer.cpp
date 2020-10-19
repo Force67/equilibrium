@@ -5,13 +5,13 @@
 
 namespace netlib {
 
-  uint32_t PeerBase::Id()
+  connectid_t PeerBase::Id()
   {
-	return static_cast<uint32_t>(
+	return static_cast<connectid_t>(
 	    reinterpret_cast<uintptr_t>(_peer->data));
   }
 
-  void PeerBase::SetId(uint32_t id)
+  void PeerBase::SetId(connectid_t id)
   {
 	_peer->data = reinterpret_cast<void *>(
 	    static_cast<uintptr_t>(id));
@@ -28,6 +28,11 @@ namespace netlib {
 
 	enet_peer_send(_peer, 1, packet);
 	enet_packet_destroy(packet);
+  }
+
+  void PeerBase::SetManaged()
+  {
+	//_peer->
   }
 
   void PeerBase::Kick(int code)

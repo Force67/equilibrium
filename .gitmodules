@@ -4,3 +4,6 @@
 [submodule "external/fmt"]
 	path = external/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "external/xenium"]
+	path = external/xenium
+	url = https://github.com/mpoeter/xenium

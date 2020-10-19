@@ -25,7 +25,9 @@ namespace noda {
 	Status Initialize(bool enableStorage);
 
 	bool IsListening() const;
-	void Tick();
+
+	void ProcessNet();
+	void ProcessData();
 
   private:
 	class Impl;

@@ -7,6 +7,8 @@
 
 namespace netlib {
 
+	using connectid_t = uint32_t;
+
   class PeerBase {
   public:
 	explicit PeerBase(ENetPeer *p) :
@@ -16,7 +18,7 @@ namespace netlib {
 
 	void Kick(int code);
 
-	uint32_t Id();
+	connectid_t Id();
 	int GetPing();
 
 	inline ENetPeer *GetPeer()
@@ -24,7 +26,9 @@ namespace netlib {
 	  return _peer;
 	}
 
-	void SetId(uint32_t);
+	void SetId(connectid_t);
+	void SetManaged();
+
   private:
 	ENetPeer *_peer;
   };

@@ -26,9 +26,13 @@ namespace netlib {
 	// warning: this function is thread unsafe... use as is
 	void BroadcastReliable(const uint8_t *data, size_t len, PeerBase *ex = nullptr);
 
+	bool SendReliable(connectid_t, const uint8_t *data, size_t len);
+
 	size_t GetPeerCount() const;
 
   private:
+	ENetPeer *PeerById(connectid_t);
+
 	ENetHost *_host = nullptr;
 	ENetEvent _event{};
   };
