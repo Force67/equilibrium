@@ -6,12 +6,11 @@
 #include <enet/enet.h>
 
 namespace netlib {
+  using connectid_t = uint32_t;
 
-	using connectid_t = uint32_t;
-
-  class PeerBase {
+  class Peer {
   public:
-	explicit PeerBase(ENetPeer *p) :
+	explicit Peer(ENetPeer *p) :
 	    _peer(p) {}
 
 	void SendReliable(const uint8_t *data, size_t len);
@@ -33,5 +32,5 @@ namespace netlib {
 	ENetPeer *_peer;
   };
 
-  static_assert(sizeof(PeerBase) == sizeof(ENetPeer *));
+  static_assert(sizeof(Peer) == sizeof(ENetPeer *));
 } // namespace netlib

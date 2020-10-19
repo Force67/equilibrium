@@ -5,24 +5,24 @@
 
 namespace netlib {
 
-  connectid_t PeerBase::Id()
+  connectid_t Peer::Id()
   {
 	return static_cast<connectid_t>(
 	    reinterpret_cast<uintptr_t>(_peer->data));
   }
 
-  void PeerBase::SetId(connectid_t id)
+  void Peer::SetId(connectid_t id)
   {
 	_peer->data = reinterpret_cast<void *>(
 	    static_cast<uintptr_t>(id));
   }
 
-  int PeerBase::GetPing()
+  int Peer::GetPing()
   {
 	return _peer->roundTripTime;
   }
 
-  void PeerBase::SendReliable(const uint8_t *data, size_t len)
+  void Peer::SendReliable(const uint8_t *data, size_t len)
   {
 	auto *packet = enet_packet_create(static_cast<const void *>(data), len, ENET_PACKET_FLAG_RELIABLE);
 
@@ -30,12 +30,12 @@ namespace netlib {
 	enet_packet_destroy(packet);
   }
 
-  void PeerBase::SetManaged()
+  void Peer::SetManaged()
   {
 	//_peer->
   }
 
-  void PeerBase::Kick(int code)
+  void Peer::Kick(int code)
   {
 	enet_peer_disconnect(_peer, code);
 

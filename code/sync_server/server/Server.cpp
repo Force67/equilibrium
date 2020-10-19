@@ -13,50 +13,35 @@
 #include "Server.h"
 #include "Client.h"
 #include "Workspace.h"
-
-#include "flatbuffers/flatbuffers.h"
+#include "Packet.h"
 
 #include "moc_protocol/DisconnectReason_generated.h"
 #include "moc_protocol/Message_generated.h"
 
-#include "utility/DetachedQueue.h"
-#include "utility/ObjectPool.h"
-
 namespace noda {
-
-  struct OutPacket {
-	netlib::connectid_t id;
-	flatbuffers::FlatBufferBuilder buffer;
-	utility::detached_queue_key<OutPacket> key;
-  };
-
-  struct InPacket {
-	netlib::connectid_t id;
-	utility::detached_queue_key<InPacket> key;
-  };
 
   inline utility::object_pool<OutPacket> _outPool;
   inline utility::object_pool<InPacket> _inPool;
 
-  class Server::Impl final : public netlib::ServerBase {
+  class Server::Impl final : public netlib::Server {
   public:
 	explicit Impl(uint16_t port) :
 	    _tickTime(std::chrono::high_resolution_clock::now())
 	{
 	  for(int i = 0; i < 10; i++) {
-		if(ServerBase::Host(port))
+		if(Server::Host(port))
 		  break;
 
 		port++;
 	  }
 	}
 
-	Server::Status Initialize(bool enabledStorage)
+	noda::Server::Status Initialize(bool useStorage)
 	{
-	  if(!ServerBase::Good())
+	  if(!Server::Good())
 		return Status::NetError;
 
-	  if(enabledStorage) {
+	  if(useStorage) {
 		if(!MountProjects(_workspace))
 		  return Status::FsError;
 	  }
@@ -65,7 +50,7 @@ namespace noda {
 	  return Status::Success;
 	}
 
-	void OnDisconnection(netlib::PeerBase *peer) override
+	void OnDisconnection(netlib::Peer *peer) override
 	{
 	  auto it = std::find_if(_clientRegistry.begin(), _clientRegistry.end(), [&](clientPtr &cl) {
 		return cl->id == peer->Id();
@@ -77,7 +62,7 @@ namespace noda {
 	  _clientRegistry.erase(it);
 	}
 
-	void HandleAuth(netlib::PeerBase *source, const protocol::Message *message)
+	void HandleAuth(netlib::Peer *source, const protocol::Message *message)
 	{
 	  auto *packet = message->msg_as_HandshakeRequest();
 
@@ -112,23 +97,21 @@ namespace noda {
 	  _outQueue.push(&p->key);
 	}
 
-	void OnConsume(netlib::PeerBase *source, const uint8_t *data, const size_t len) override
+	void OnConsume(netlib::Peer *peer, netlib::Packet *packet) override
 	{
-	  flatbuffers::Verifier verifier(data, len);
+	  flatbuffers::Verifier verifier(packet->data(), packet->length());
 	  if(!protocol::VerifyMessageBuffer(verifier))
 		return;
-	    
-	  const auto *message = protocol::GetMessage(static_cast<const void *>(data));
+
+	  const auto *message = protocol::GetMessage(static_cast<const void *>(packet->data()));
 	  if(message->msg_type() == protocol::MsgType_HandshakeRequest)
-		return HandleAuth(source, message);
+		return HandleAuth(peer, message);
 
-	  // queue the packet for the data thread
-	  auto *packet = _inPool.construct();
-	  packet->id = source->Id();
-	  _inQueue.push(&packet->key);
+	  // queue for data thread
+	  auto *item = _inPool.construct(peer->Id(), packet);
+	  _inQueue.push(&item->key);
 
-	  // relay message
-	  BroadcastReliable(data, len, source);
+	  BroadcastReliable(packet, peer);
 	}
 
 	// networking operations only
@@ -142,7 +125,6 @@ namespace noda {
 
 	  _freeTime += deltaMs;
 
-	  //__debugbreak();
 	  if(_freeTime > (1000 / 30)) {
 		std::printf("Net tick!\n");
 		_freeTime = 0;
@@ -150,33 +132,30 @@ namespace noda {
 
 	  // out queue
 	  while(auto *packet = _outQueue.pop(&OutPacket::key)) {
-		SendReliable(
-			packet->id, 
-			packet->buffer.GetBufferPointer(), 
-			packet->buffer.GetSize());
+		SendReliable(packet->id,
+		             packet->buffer.GetBufferPointer(),
+		             packet->buffer.GetSize());
 
 		_outPool.destruct(packet);
 	  }
 
-	  ServerBase::Listen();
+	  Server::Listen();
 	}
 
 	// expensive operations operating on the database
 	inline void ProcessData()
 	{
 	  while(auto *packet = _inQueue.pop(&InPacket::key)) {
-
-
-
-		  _inPool.destruct(packet);
+		std::printf("Packet: valid? %d\n",
+		            packet->packet.length());
+		_inPool.destruct(packet);
 	  }
 	}
 
   private:
-	void SendPacket(netlib::PeerBase *peer, protocol::MsgType type, const flatbuffers::Offset<void> packetRef)
+	void SendPacket(netlib::Peer *peer, protocol::MsgType type, const flatbuffers::Offset<void> packetRef)
 	{
 	  OutPacket *p = new OutPacket;
-	 
 
 	  _outQueue.push(&p->key);
 	}

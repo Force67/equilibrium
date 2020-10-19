@@ -6,19 +6,19 @@
 
 namespace netlib {
 
-  ClientBase::ClientBase()
+  Client::Client()
   {
 	// create a new host with max 1 peer and 2 channels
 	_host = enet_host_create(nullptr, 1, 2, 0, 0);
   }
 
-  ClientBase::~ClientBase()
+  Client::~Client()
   {
 	if(_host)
 	  enet_host_destroy(_host);
   }
 
-  bool ClientBase::SendReliable(uint8_t *ptr, size_t size)
+  bool Client::SendReliable(uint8_t *ptr, size_t size)
   {
 	auto *packet = enet_packet_create(
 	    static_cast<const void *>(ptr),
@@ -32,7 +32,7 @@ namespace netlib {
 	return false;
   }
 
-  bool ClientBase::Connect(const char *address, uint16_t port)
+  bool Client::Connect(const char *address, uint16_t port)
   {
 	_address.port = port;
 	if(enet_address_set_host(&_address, address) < 0)
@@ -42,7 +42,7 @@ namespace netlib {
 	return _serverPeer;
   }
 
-  void ClientBase::Disconnect()
+  void Client::Disconnect()
   {
 	enet_peer_disconnect(_serverPeer, 0xFF);
 
@@ -63,7 +63,7 @@ namespace netlib {
 	_serverPeer = nullptr;
   }
 
-  void ClientBase::Tick()
+  void Client::Tick()
   {
 	if(enet_host_service(_host, &_event, 0) > 0) {
 	  switch(_event.type) {

@@ -1,30 +1,30 @@
 // Copyright (c) 2020 Can Boluk and contributors of the VTIL Project
 // Modified by DefCon42.
-// All rights reserved.   
-//    
-// Redistribution and use in source and binary forms, with or without   
-// modification, are permitted provided that the following conditions are met: 
-//    
-// 1. Redistributions of source code must retain the above copyright notice,   
-//    this list of conditions and the following disclaimer.   
-// 2. Redistributions in binary form must reproduce the above copyright   
-//    notice, this list of conditions and the following disclaimer in the   
-//    documentation and/or other materials provided with the distribution.   
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
 // 3. Neither the name of VTIL Project nor the names of its contributors
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.   
-//    
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE   
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE  
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE   
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR   
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF   
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS   
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN   
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)   
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE  
-// POSSIBILITY OF SUCH DAMAGE.        
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 #pragma once
@@ -36,59 +36,55 @@
 #include "ObjectPool.h"
 #include "TypeHelpers.h"
 
-namespace utility
-{
-namespace impl
-{
-	struct control_block
-	{
-		std::atomic<long> ref_counter;
-		std::atomic<long> weak_counter;
+namespace utility {
+  namespace impl {
+	struct control_block {
+	  std::atomic<long> ref_counter;
+	  std::atomic<long> weak_counter;
 
-		// Wrap atomic operations on reference counters.
-		//
-		bool inc_ref()
-		{
-			return ++ref_counter > 1;
-		}
-		bool dec_ref()
-		{
-			return --ref_counter == 0;
-		}
-		long get_ref()
-		{
-			return ref_counter.load();
-		}
+	  // Wrap atomic operations on reference counters.
+	  //
+	  bool inc_ref()
+	  {
+		return ++ref_counter > 1;
+	  }
+	  bool dec_ref()
+	  {
+		return --ref_counter == 0;
+	  }
+	  long get_ref()
+	  {
+		return ref_counter.load();
+	  }
 
-		void inc_weak()
-		{
-			weak_counter++;
-		}
-		bool dec_weak()
-		{
-			return --weak_counter == 0;
-		}
-		long get_weak()
-		{
-			return weak_counter.load();
-		}
+	  void inc_weak()
+	  {
+		weak_counter++;
+	  }
+	  bool dec_weak()
+	  {
+		return --weak_counter == 0;
+	  }
+	  long get_weak()
+	  {
+		return weak_counter.load();
+	  }
 	};
-}
+  } // namespace impl
 
-using control_block_pool = object_pool<impl::control_block>;
+  using control_block_pool = object_pool<impl::control_block>;
 
-// Pool of control blocks.
-//
-inline control_block_pool control_blocks;
+  // Pool of control blocks.
+  //
+  inline control_block_pool control_blocks;
 
-template<typename T>
-struct weak_reference;
+  template <typename T>
+  struct weak_reference;
 
-// Used to implement shared and weak references with the control block *not* tied to the original value.
-//
-template<typename T, auto Pool>
-struct shared_reference
-{
+  // Used to implement shared and weak references with the control block *not* tied to the original value.
+  //
+  template <typename T, auto Pool>
+  struct shared_reference {
 	friend struct weak_reference<shared_reference>;
 
 	using Type = T;
@@ -96,223 +92,216 @@ struct shared_reference
 
 	void reset()
 	{
-		if (value != nullptr)
-		{
-			if (block->dec_ref())
-			{
-				Pool->destruct(value);
+	  if(value != nullptr) {
+		if(block->dec_ref()) {
+		  Pool->destruct(value);
 
-				if (block->dec_weak())
-				{
-					control_blocks.destruct(block);
-				}
-			}
+		  if(block->dec_weak()) {
+			control_blocks.destruct(block);
+		  }
 		}
+	  }
 
-		value = nullptr;
+	  value = nullptr;
 	}
 
 	operator bool() const
 	{
-		return value != nullptr;
+	  return value != nullptr;
 	}
 
-	bool operator==(const shared_reference& other)
+	bool operator==(const shared_reference &other)
 	{
-		return value == other.value;
+	  return value == other.value;
 	}
 
-	T& operator*() const
+	T &operator*() const
 	{
-		return *value;
+	  return *value;
 	}
 
-	T* operator->() const
+	T *operator->() const
 	{
-		return value;
+	  return value;
 	}
 
-	T* get() const
+	T *get() const
 	{
-		return value;
+	  return value;
 	}
 
-	shared_reference(const shared_reference& other)
+	shared_reference(const shared_reference &other)
 	{
-		if (other.value != nullptr)
-			other.block->inc_ref();
+	  if(other.value != nullptr)
+		other.block->inc_ref();
 
-		value = other.value;
-		block = other.block;
+	  value = other.value;
+	  block = other.block;
 	}
 
-	shared_reference(shared_reference&& other) noexcept
+	shared_reference(shared_reference &&other) noexcept
 	{
-		value = other.value;
-		block = other.block;
+	  value = other.value;
+	  block = other.block;
 
-		other.value = nullptr;
+	  other.value = nullptr;
 	}
 
-	shared_reference& operator=(const shared_reference& other)
+	shared_reference &operator=(const shared_reference &other)
 	{
-		if (other.value != nullptr)
-			other.block->inc_ref();
+	  if(other.value != nullptr)
+		other.block->inc_ref();
 
-		reset();
+	  reset();
 
-		value = other.value;
-		block = other.block;
+	  value = other.value;
+	  block = other.block;
 
-		return *this;
+	  return *this;
 	}
 
-	shared_reference& operator=(shared_reference&& other) noexcept
+	shared_reference &operator=(shared_reference &&other) noexcept
 	{
-		reset();
+	  reset();
 
-		value = other.value;
-		block = other.block;
+	  value = other.value;
+	  block = other.block;
 
-		other.value = nullptr;
+	  other.value = nullptr;
 
-		return *this;
+	  return *this;
 	}
 
-	shared_reference()
-		: value(nullptr), block(nullptr)
+	shared_reference() :
+	    value(nullptr), block(nullptr)
 	{
 	}
 	~shared_reference()
 	{
-		reset();
+	  reset();
 	}
 
-	template<typename... A>
-	static shared_reference Construct(A&&... args)
+	template <typename... A>
+	static shared_reference Construct(A &&... args)
 	{
-		shared_reference return_val{};
+	  shared_reference return_val{};
 
-		return_val.block = control_blocks.construct();
-		return_val.block->inc_ref();
-		return_val.block->inc_weak();
-		return_val.value = Pool->construct(std::forward<A>(args)...);
+	  return_val.block = control_blocks.construct();
+	  return_val.block->inc_ref();
+	  return_val.block->inc_weak();
+	  return_val.value = Pool->construct(std::forward<A>(args)...);
 
-		return return_val;
+	  return return_val;
 	}
 
-private:
-	T* value;
-	impl::control_block* block;
-};
+  private:
+	T *value;
+	impl::control_block *block;
+  };
 
-template<typename SharedT>
-struct weak_reference
-{
+  template <typename SharedT>
+  struct weak_reference {
 	using Type = typename SharedT::Type;
 	constexpr static auto MPool = SharedT::MPool;
 
 	operator bool() const
 	{
-		return value != nullptr && block->get_ref() > 0;
+	  return value != nullptr && block->get_ref() > 0;
 	}
 
 	SharedT lock() const
 	{
-		SharedT return_val;
+	  SharedT return_val;
 
-		if (value != nullptr)
-		{
-			// this is here to keep NRVO
-			auto shared_value = value;
+	  if(value != nullptr) {
+		// this is here to keep NRVO
+		auto shared_value = value;
 
-			// unfortunately the best way i know of to do this is a CAS loop :(
-			// no wait-free locking for you!
-			long old_ref = block->get_ref();
-			do
-			{
-				if (old_ref <= 0)
-				{
-					shared_value = nullptr;
-					break;
-				}
-			} while (!block->ref_counter.compare_exchange_weak(old_ref, old_ref + 1));
+		// unfortunately the best way i know of to do this is a CAS loop :(
+		// no wait-free locking for you!
+		long old_ref = block->get_ref();
+		do {
+		  if(old_ref <= 0) {
+			shared_value = nullptr;
+			break;
+		  }
+		} while(!block->ref_counter.compare_exchange_weak(old_ref, old_ref + 1));
 
-			return_val.block = block;
-			return_val.value = shared_value;
-		}
+		return_val.block = block;
+		return_val.value = shared_value;
+	  }
 
-		return return_val;
+	  return return_val;
 	}
 
 	void reset()
 	{
-		if (value != nullptr && block->dec_weak())
-			control_blocks.destruct(block);
+	  if(value != nullptr && block->dec_weak())
+		control_blocks.destruct(block);
 
-		value = nullptr;
+	  value = nullptr;
 	}
 
-	weak_reference()
-		: value(nullptr), block(nullptr)
+	weak_reference() :
+	    value(nullptr), block(nullptr)
 	{
 	}
 
-	weak_reference(const SharedT& shared)
+	weak_reference(const SharedT &shared)
 	{
-		if (shared.value != nullptr)
-			shared.block->inc_weak();
+	  if(shared.value != nullptr)
+		shared.block->inc_weak();
 
-		value = shared.value;
-		block = shared.block;
+	  value = shared.value;
+	  block = shared.block;
 	}
 
-	weak_reference(const weak_reference& other)
+	weak_reference(const weak_reference &other)
 	{
-		if (other.value != nullptr)
-			other.block->inc_weak();
+	  if(other.value != nullptr)
+		other.block->inc_weak();
 
-		value = other.value;
-		block = other.block;
+	  value = other.value;
+	  block = other.block;
 	}
 
-	weak_reference& operator=(const weak_reference& other)
+	weak_reference &operator=(const weak_reference &other)
 	{
-		if (other.value != nullptr)
-			other.block->inc_weak();
+	  if(other.value != nullptr)
+		other.block->inc_weak();
 
-		reset();
+	  reset();
 
-		value = other.value;
-		block = other.block;
+	  value = other.value;
+	  block = other.block;
 
-		return *this;
+	  return *this;
 	}
 
-	weak_reference& operator=(weak_reference&& other)
+	weak_reference &operator=(weak_reference &&other)
 	{
-		reset();
+	  reset();
 
-		value = other.value;
-		block = other.block;
+	  value = other.value;
+	  block = other.block;
 
-		other.value = nullptr;
+	  other.value = nullptr;
 
-		return *this;
+	  return *this;
 	}
 
-	bool operator==(const weak_reference& other)
+	bool operator==(const weak_reference &other)
 	{
-		return value == other.value;
+	  return value == other.value;
 	}
 
 	~weak_reference()
 	{
-		reset();
+	  reset();
 	}
 
-private:
-	Type* value;
-	impl::control_block* block;
-};
-}
+  private:
+	Type *value;
+	impl::control_block *block;
+  };
+} // namespace utility

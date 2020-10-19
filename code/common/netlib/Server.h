@@ -3,12 +3,13 @@
 #pragma once
 
 #include "Peer.h"
+#include "Packet.h"
 
 namespace netlib {
 
-  class ServerBase {
+  class Server {
   public:
-	~ServerBase();
+	~Server();
 
 	inline bool Good() const
 	{
@@ -19,14 +20,12 @@ namespace netlib {
 
 	void Listen();
 
-	virtual void OnConnection(PeerBase *){};
-	virtual void OnDisconnection(PeerBase *) = 0;
-	virtual void OnConsume(PeerBase *, const uint8_t *data, const size_t len) = 0;
+	virtual void OnConnection(Peer *){};
+	virtual void OnDisconnection(Peer *) = 0;
+	virtual void OnConsume(Peer *, Packet *) = 0;
 
-	// warning: this function is thread unsafe... use as is
-	void BroadcastReliable(const uint8_t *data, size_t len, PeerBase *ex = nullptr);
-
-	bool SendReliable(connectid_t, const uint8_t *data, size_t len);
+	void BroadcastReliable(Packet *, Peer *ex = nullptr);
+	bool SendReliable(connectid_t id, const uint8_t *data, size_t len);
 
 	size_t GetPeerCount() const;
 

@@ -10,13 +10,15 @@
 #include "moc_protocol/Message_generated.h"
 #include "moc_protocol/Handshake_generated.h"
 
+#include "moc_protocol/IdaSync_generated.h"
+
 using namespace std::chrono_literals;
 
-class TestClient final : public netlib::ClientBase {
+class TestClient final : public netlib::Client {
 public:
   TestClient()
   {
-	ClientBase::Connect(
+	Client::Connect(
 	    netlib::constants::kServerIp,
 	    netlib::constants::kServerPort);
   }
@@ -41,20 +43,22 @@ public:
 	auto *pack = message->msg_as_HandshakeAck();
 
 	std::printf("HandleAuth(): %d:%d\n", pack->userIndex(), pack->numUsers());
+
+	// send a few fake messages
+	auto request = protocol::sync::CreateNameEaDirect(_fbb, 1337, "SomeFakeName");
+	SendPacket(protocol::MsgType_sync_NameEa, request);
   }
 
   void OnConsume(const uint8_t *data, size_t length)
   {
-	std::printf("OnConsume(): %zd\n", length);
-
 	flatbuffers::Verifier verifier(data, length);
-	if (!protocol::VerifyMessageBuffer(verifier)) {
+	if(!protocol::VerifyMessageBuffer(verifier)) {
 	  std::puts("Received corrupt data!");
 	  return;
 	}
 
 	const auto *message = protocol::GetMessage(static_cast<const void *>(data));
-	if (message->msg_type() == protocol::MsgType_HandshakeAck) {
+	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
 	  return HandleAuth(message);
 	}
   }

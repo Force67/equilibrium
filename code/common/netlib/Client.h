@@ -7,10 +7,10 @@
 
 namespace netlib {
 
-  class ClientBase {
+  class Client {
   public:
-	ClientBase();
-	~ClientBase();
+	Client();
+	~Client();
 
 	inline bool Good() const
 	{
