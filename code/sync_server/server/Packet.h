@@ -16,6 +16,9 @@ namespace noda {
   using FbsBuffer = flatbuffers::FlatBufferBuilder;
 
   struct OutPacket {
+	inline explicit OutPacket(netlib::connectid_t cid) :
+	    id(cid) {}
+
 	netlib::connectid_t id;
 	FbsBuffer buffer;
 	utility::detached_queue_key<OutPacket> key;

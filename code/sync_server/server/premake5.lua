@@ -10,7 +10,8 @@ project("Server")
     links({
         "enet",
         "fmtlib",
-        "database"
+        "database",
+        "utility"
     })
     includedirs({
         ".",

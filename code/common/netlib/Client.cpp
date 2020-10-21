@@ -77,8 +77,8 @@ namespace netlib {
 	  case ENET_EVENT_TYPE_RECEIVE: {
 		_dataRecieved += _event.packet->dataLength;
 
-		OnConsume(_event.packet->data, _event.packet->dataLength);
-		enet_packet_destroy(_event.packet);
+		Packet packet(_event.packet);
+		OnConsume(&packet);
 		break;
 	  }
 	  default:

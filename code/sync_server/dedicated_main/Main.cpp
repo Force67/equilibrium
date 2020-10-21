@@ -7,21 +7,6 @@
 
 #include <netlib/NetLib.h>
 
-void InitializeNetThread(noda::Server &server)
-{
-  std::thread([&] {
-	while(true) {
-	  server.ProcessNet();
-	}
-  }).detach();
-
-  std::thread([&] {
-	while(true) {
-	  server.ProcessData();
-	}
-  }).detach();
-}
-
 int main(int argc, char **argv)
 {
   netlib::ScopedNetContext context;
@@ -30,15 +15,14 @@ int main(int argc, char **argv)
 
   noda::Server server(4523);
   auto result = server.Initialize(true);
-  if(result != noda::Server::Status::Success) {
-	std::printf("Failed to initialize the server instance (status: %d)\n", static_cast<int>(result));
+  if(result != noda::ServerStatus::Success) {
+	std::printf("Failed to initialize the server instance (status: %d)\n",
+	            static_cast<int>(result));
+	return 0;
   }
 
-  InitializeNetThread(server);
-
-  while(true) {
-	if(getchar())
-	  break;
+  while(server.IsListening()) {
+	server.Update();
   }
 
   return 0;

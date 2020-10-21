@@ -26,6 +26,7 @@ namespace netlib {
 
 	for(size_t i = 0; i < _host->peerCount; i++) {
 	  if(curPeer != ex->GetPeer() && curPeer->state == ENET_PEER_STATE_CONNECTED)
+		// no need to worry here, enet already bumps the refcount
 		enet_peer_send(curPeer, 1, source->GetPacket());
 
 	  ++curPeer;

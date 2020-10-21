@@ -11,7 +11,8 @@ project("TestClient")
         "enet",
         "fmtlib",
         "netlib",
-        "database"
+        "database",
+        "utility"
     })
     includedirs({
         ".",
@@ -20,4 +21,5 @@ project("TestClient")
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/xenium"
     })

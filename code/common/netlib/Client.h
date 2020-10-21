@@ -2,8 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstdint>
-#include <enet/enet.h>
+#include "Packet.h"
 
 namespace netlib {
 
@@ -19,7 +18,7 @@ namespace netlib {
 
 	virtual void OnConnection() = 0;
 	virtual void OnDisconnected(int) = 0;
-	virtual void OnConsume(const uint8_t *, size_t) = 0;
+	virtual void OnConsume(Packet *) = 0;
 
 	bool SendReliable(uint8_t *ptr, size_t size);
 

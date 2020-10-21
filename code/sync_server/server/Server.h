@@ -6,31 +6,30 @@
 
 namespace noda {
 
+  enum class ServerStatus {
+	Success,
+	NetError,
+	FsError,
+  };
+
+  class ServerImpl;
+
   class Server {
   public:
-	enum class Status {
-	  Success,
-	  NetError,
-	  FsError,
-	};
-
-	inline bool StatusOk(Status s) const
+	inline bool StatusOk(ServerStatus s) const
 	{
-	  return s == Status::Success;
+	  return s == ServerStatus::Success;
 	}
 
 	Server(uint16_t port);
 	~Server();
 
-	Status Initialize(bool enableStorage);
+	ServerStatus Initialize(bool useStorage);
 
 	bool IsListening() const;
-
-	void ProcessNet();
-	void ProcessData();
+	void Update();
 
   private:
-	class Impl;
-	std::unique_ptr<Impl> _impl;
+	std::unique_ptr<ServerImpl> _impl;
   };
 } // namespace noda

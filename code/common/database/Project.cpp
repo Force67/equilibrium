@@ -22,8 +22,7 @@ namespace database {
 	// clang-format off
     static const char query[1024] =
 	  R"(CREATE TABLE info (
-            infoid INTEGER PRIMARY KEY AUTOINCREMENT, 
-            name TEXT NOT NULL, 
+            infoid INTEGER PRIMARY KEY AUTOINCREMENT,   
             value TEXT NOT NULL
         );
         CREATE TABLE updates (
