@@ -7,7 +7,7 @@
 #include "Packet.h"
 #include "moc_protocol/Message_generated.h"
 
-#include "database/SqliteDB.h"
+#include "Storage.h"
 
 namespace noda {
 
@@ -32,6 +32,7 @@ namespace noda {
 	void HandleMessage(const protocol::Message *);
 
 	void CreateWks(const protocol::Message *);
+	void DeleteWks(const protocol::Message *);
 
   private:
 	ServerImpl &_server;
@@ -40,6 +41,6 @@ namespace noda {
 	std::thread _workerThread;
 	utility::detached_mpsc_queue<InPacket> _packetQueue;
 
-	database::SqliteDB _db;
+	Storage _storage;
   };
 } // namespace noda

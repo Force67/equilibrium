@@ -66,11 +66,10 @@ namespace database {
 	const char *str = reinterpret_cast<const char *>(
 	    sqlite3_column_text(_st, col));
 	int len = sqlite3_column_bytes(_st, col);
-  
+
 	std::string result;
 	if(str && len > 0)
 	  result.assign(str, len);
-
 
 	return result;
   }
@@ -80,12 +79,12 @@ namespace database {
 	return sqlite3_column_blob(_st, col);
   }
 
-  int SqliteStatement::ColumnInt(int col) const 
+  int SqliteStatement::ColumnInt(int col) const
   {
 	return sqlite3_column_int(_st, col);
   }
 
-  int64_t SqliteStatement::ColumnBigInt(int col) const 
+  int64_t SqliteStatement::ColumnBigInt(int col) const
   {
 	return sqlite3_column_int64(_st, col);
   }

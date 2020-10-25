@@ -9,13 +9,13 @@
 
 namespace database {
 
-	void InstallErrorDebugPrint()
+  void InstallErrorDebugPrint()
   {
-	  auto cb = [](void *arg, int iErrCode, const char *zMsg) {
+	auto cb = [](void *arg, int iErrCode, const char *zMsg) {
 	  std::printf("SQL ERROR: (%d) %s\n", iErrCode, zMsg);
-	  };
+	};
 
-	  sqlite3_config(SQLITE_CONFIG_LOG, cb, nullptr);
+	sqlite3_config(SQLITE_CONFIG_LOG, cb, nullptr);
   }
 
   static bool IsASCIIWhiteSpace(uint8_t c)

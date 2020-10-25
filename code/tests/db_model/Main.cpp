@@ -45,7 +45,6 @@ const fs::path &GetStorageDir() noexcept
 
 void OpenHiveDB(database::SqliteDB &db)
 {
-
 }
 
 void CreateMainDb()
@@ -58,7 +57,7 @@ void CreateMainDb()
 
   db.ExecuteOnly(
       R"(CREATE TABLE workspaces(
-		id INTEGER PRIMARY KEY,
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
 		created TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 			
@@ -111,7 +110,7 @@ void CreateProject(database::SqliteDB &hiveDb, const std::string &name)
 
   // create database
   auto statement = fmt::format(
-  R"(CREATE TABLE {}.updates(
+      R"(CREATE TABLE {}.updates(
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	user_id TEXT NOT NULL,
 	msg_type BIGINT,
@@ -120,18 +119,19 @@ void CreateProject(database::SqliteDB &hiveDb, const std::string &name)
 	CREATE TABLE {}.users(
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	guid TEXT NOT NULL,
-	name TEXT NOT NULL);)", 
-	name, name);
+	name TEXT NOT NULL);)",
+      name, name);
 
   res = hiveDb.ExecuteOnly(statement.c_str());
   assert(res);
 
   // insert a few updates
   statement = fmt::format(
-	"INSERT INTO {}.updates(user_id, msg_type, data)" 
-		" VALUES(?, ?, ?);", name);
+      "INSERT INTO {}.updates(user_id, msg_type, data)"
+      " VALUES(?, ?, ?);",
+      name);
 
-  for (int i = 0; i < 1; i++) {
+  for(int i = 0; i < 1; i++) {
 	const uint8_t blob[8] = { 1, 3, 3, 7, 1, 3, 3, 7 };
 	database::SqliteStatement insertCommand(hiveDb, statement.c_str());
 	assert(insertCommand.Good());
@@ -171,7 +171,7 @@ void DumpAllUpdates(database::SqliteDB &hiveDB, const std::string &name)
 	data BLOB);
   */
 
-  while (dumpCommand.Step()) {
+  while(dumpCommand.Step()) {
 	auto string = fmt::format("{}:{}:{}:{}",
 	                          dumpCommand.ColumnInt(0),
 	                          dumpCommand.ColumnStr(1),
@@ -180,7 +180,6 @@ void DumpAllUpdates(database::SqliteDB &hiveDB, const std::string &name)
 
 	std::puts(string.c_str());
   }
-
 }
 
 int main(int argc, char **argv)
@@ -192,15 +191,16 @@ int main(int argc, char **argv)
   if(argc > 1 && std::strcmp(argv[1], "--check_for_leaks") == 0)
 	checkLeaks = true;
   else
-	std::puts("Run this program with --check_for_leaks to enable "
-	       "custom leak checking in the tests.");
+	std::puts(
+	    "Run this program with --check_for_leaks to enable "
+	    "custom leak checking in the tests.");
 
-  #if 0
+#if 0
   if (checkLeaks) {
 	auto &listeners = UnitTest::GetInstance()->listeners();
 	listeners.Append(new )
   }
-  #endif
+#endif
 
   fs::remove(MAIN_DB_NAME);
   fs::remove_all("test_storage");
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
 	  CreateProject(db, name);
 	}
 
-	for (int i = 0; i < 10; i++) {
+	for(int i = 0; i < 10; i++) {
 	  const auto name = fmt::format("project_{}", i);
 	  DumpAllUpdates(db, name);
 	}

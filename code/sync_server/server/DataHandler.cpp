@@ -10,15 +10,12 @@
 #undef GetMessage
 #undef GetMessageW
 
-#
-
 namespace noda {
 
   inline utility::object_pool<InPacket> packetPool;
 
   DataHandler::DataHandler(ServerImpl &server) :
-      _server(server),
-      _db("main.db")
+      _server(server)
   {
 	_workerThread = std::thread(&DataHandler::WorkerThread, this);
   }
@@ -37,7 +34,7 @@ namespace noda {
 
   DataHandler::Status DataHandler::Initialize()
   {
-	if(!InitializeMainDB(_db))
+	if(!_storage.Initialize())
 	  return Status::MainDbError;
 
 	return Status::Success;
@@ -66,19 +63,25 @@ namespace noda {
 	case protocol::MsgType_CreateWorkspace:
 	  CreateWks(message);
 	  break;
-	case protocol::MsgType_RemoveWorkspace: {
+	case protocol::MsgType_RemoveWorkspace:
+	  DeleteWks(message);
 	  break;
-	}
 	case protocol::MsgType_WorkspaceList: {
 	  break;
 	}
+	
 	}
   }
 
   void DataHandler::CreateWks(const protocol::Message *message)
   {
 	auto *msg = message->msg_as_CreateWorkspace();
+	_storage.AddWorkspace(msg->name()->str());
+  }
 
-	//_db.Execute("INSERT INTO wksinfo (name) VALUES(?)", msg->name()->str());
+  void DataHandler::DeleteWks(const protocol::Message *message)
+  {
+	auto *msg = message->msg_as_RemoveWorkspace();
+	_storage.RemoveWorkspace(msg->name()->str());
   }
 } // namespace noda

@@ -32,6 +32,7 @@ namespace database {
 	}
 
 	bool Step();
+
   private:
 	sqlite3_stmt *_st;
 	bool _good;

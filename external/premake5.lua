@@ -49,6 +49,10 @@ project("sqlite")
         "sqlite/*.h",
         "sqlite/*.c"
     })
+    defines({
+        "SQLITE_ENABLE_SQLLOG",
+    })
+
     filter ("configurations:Debug")
         defines("SQLITE_DEBUG")
 
