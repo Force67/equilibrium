@@ -18,7 +18,9 @@ end
 group("Server")
 include("sync_server/dedicated_main")
 include("sync_server/server")
-include("sync_server/tests/test_client")
+
+group("Tests")
+include("tests")
 
 group("Plugins")
 include("plugins/idaplugin")

@@ -16,7 +16,7 @@ project("TestClient")
     })
     includedirs({
         ".",
-        "../../../common",
+        "../../common",
         blu.extdir .. "/idasdk72/include",
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",

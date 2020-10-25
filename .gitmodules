@@ -7,3 +7,6 @@
 [submodule "external/xenium"]
 	path = external/xenium
 	url = https://github.com/mpoeter/xenium
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest

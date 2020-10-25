@@ -49,6 +49,8 @@ project("sqlite")
         "sqlite/*.h",
         "sqlite/*.c"
     })
+    filter ("configurations:Debug")
+        defines("SQLITE_DEBUG")
 
 project("fmtlib")
     language("C++")
@@ -61,15 +63,19 @@ project("fmtlib")
         "fmt/src/os.cc",
     })
 
-project("Flatbuffers")
-    language("C#")
-    kind("SharedLib")
-    dotnetframework("netcoreapp3.1")
-    location(blu.netout)
-    objdir(blu.netdir)
+project("GoogleMock")
+    language("C++")
+    kind("StaticLib")
     includedirs({
-        "flatbuffers/net"
+        "googletest/googlemock/include",
+        "googletest/googletest/include",
+        "googletest/googlemock",
+        --"googletest/googletest"
     })
     files({
-        "flatbuffers/net/Flatbuffers/*.cs"
+        "googletest/googlemock/src/gmock-all.cc",
+        --"googletest/googlemock/src/*.cc",
+        --"googletest/googletest/src/*.cc",
+        "googletest/googlemock/include/gmock/**.h",
+        --"googletest/googletest/include/gtes/**.h",
     })
