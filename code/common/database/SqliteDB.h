@@ -26,6 +26,8 @@ namespace database {
   }
 
   class SqliteDB {
+	friend class SqliteStatement;
+
   public:
 	// from file
 	explicit SqliteDB(const char *fileNameUtf8);
@@ -42,22 +44,12 @@ namespace database {
 
 	bool ExecuteOnly(const char *text);
 
-	/*template <typename... Args>
-	void Execute(std::string_view view, Args... args)
-	{
-	  auto str = fmt::format(view, args);
-	  ExecuteOnly(str.c_str());
-	}*/
-
 	SqliteStatus ExecuteAndNotifyError(const char *statement);
 
 	bool Attach(const std::string &utf8path, const char *alias);
 	bool Deatch(const char *alias);
 
-	inline sqlite3 *GetPrivateObject()
-	{
-	  return _db;
-	}
+	int64_t LastestRowId() const;
 
   private:
 	sqlite3 *_db;

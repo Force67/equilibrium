@@ -18,8 +18,8 @@ namespace noda {
 
 	bool Initialize();
 
-	void AddWorkspace(const std::string &);
-	void RemoveWorkspace(const std::string &);
+	bool AddWorkspace(const std::string &);
+	bool RemoveWorkspace(const std::string &);
 
 	static const fs::path &GetStorageDir() noexcept;
 

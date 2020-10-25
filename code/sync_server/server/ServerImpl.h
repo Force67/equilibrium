@@ -41,7 +41,6 @@ namespace noda {
 	std::string _token = "";
 	DataHandler _datahandler;
 
-	workspace_t _workspace;
 	flatbuffers::FlatBufferBuilder _fbb;
 
 	using timestamp_t = std::chrono::high_resolution_clock::time_point;

@@ -30,8 +30,14 @@ namespace noda {
 	  return ServerStatus::NetError;
 
 	if(useStorage) {
-	  if(!MountProjects(_workspace))
+		// TODO: more result codes
+	  const auto res = _datahandler.Initialize();
+	  switch(res) {
+	  case DataHandler::Status::MainDbError:
 		return ServerStatus::FsError;
+	  default:
+		break;
+	  }
 	}
 
 	_listening = true;

@@ -96,14 +96,14 @@ void RemoveWorkspace()
   db.close();
 }
 
-void CreateProject(database::SqliteDB &hiveDb, const std::string &name)
+void CreateProject(database::SqliteDB &db, const std::string &name)
 {
   assert(name.length() <= kMaxProjectNameSize);
 
   auto absPath = GetStorageDir() / name;
 
   // in this special case we use the name as alias too!
-  bool res = hiveDb.Attach(absPath.u8string(), name.c_str());
+  bool res = db.Attach(absPath.u8string(), name.c_str());
   assert(res);
 
   // to think about: file table...
@@ -122,7 +122,7 @@ void CreateProject(database::SqliteDB &hiveDb, const std::string &name)
 	name TEXT NOT NULL);)",
       name, name);
 
-  res = hiveDb.ExecuteOnly(statement.c_str());
+  res = db.ExecuteOnly(statement.c_str());
   assert(res);
 
   // insert a few updates
@@ -131,9 +131,9 @@ void CreateProject(database::SqliteDB &hiveDb, const std::string &name)
       " VALUES(?, ?, ?);",
       name);
 
-  for(int i = 0; i < 1; i++) {
+  for(int i = 0; i < 3; i++) {
 	const uint8_t blob[8] = { 1, 3, 3, 7, 1, 3, 3, 7 };
-	database::SqliteStatement insertCommand(hiveDb, statement.c_str());
+	database::SqliteStatement insertCommand(db, statement.c_str());
 	assert(insertCommand.Good());
 
 	res = insertCommand.Bind("{1337-1337-1337}");
@@ -144,6 +144,9 @@ void CreateProject(database::SqliteDB &hiveDb, const std::string &name)
 	res = insertCommand.Run();
 	assert(res);
   }
+
+  auto rid = db.LastestRowId();
+  //__debugbreak();
 }
 
 void DeleteProject(database::SqliteDB &hiveDb, const std::string &name)
@@ -156,12 +159,12 @@ void DeleteProject(database::SqliteDB &hiveDb, const std::string &name)
   fs::remove(GetStorageDir() / name);
 }
 
-void DumpAllUpdates(database::SqliteDB &hiveDB, const std::string &name)
+void DumpAllUpdates(database::SqliteDB &db, const std::string &name)
 {
   auto statement = fmt::format(
-      "SELECT * FROM {}.updates;", name);
+      "SELECT * FROM {}.updates", name);
 
-  database::SqliteStatement dumpCommand(hiveDB, statement.c_str());
+  database::SqliteStatement dumpCommand(db, statement.c_str());
   assert(dumpCommand.Good());
 
   /*
@@ -180,6 +183,11 @@ void DumpAllUpdates(database::SqliteDB &hiveDB, const std::string &name)
 
 	std::puts(string.c_str());
   }
+}
+
+void ListWorkspaces(database::SqliteDB &db)
+{
+
 }
 
 int main(int argc, char **argv)

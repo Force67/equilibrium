@@ -10,7 +10,7 @@ namespace database {
 
   SqliteStatement::SqliteStatement(SqliteDB &db, const char *sql)
   {
-	const int rc = sqlite3_prepare_v3(db.GetPrivateObject(), sql, -1, 0, &_st, nullptr);
+	const int rc = sqlite3_prepare_v3(db._db, sql, -1, 0, &_st, nullptr);
 	_good = rc == SQLITE_OK;
   }
 

@@ -33,38 +33,51 @@ namespace noda {
 
 	bool res = true;
 	if(create) {
-	  res = _db.ExecuteOnly(
-	      R"(CREATE TABLE workspaces(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL,
-		created TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+	  res = _db.ExecuteOnly("CREATE TABLE workspaces ("
+		"id INTEGER PRIMARY KEY AUTOINCREMENT,"
+		"name TEXT NOT NULL,"
+		"created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
 			
-		CREATE TABLE projects(
-		id PRIMARY KEY,
-		prj_name TEXT NOT NULL,
-		prj_guid TEXT NOT NULL);)");
+		"CREATE TABLE projects("
+		"id PRIMARY KEY,"
+		"prj_name TEXT NOT NULL,"
+		"prj_guid TEXT NOT NULL)");
 	}
 
 	return res;
   }
 
-  void Storage::AddWorkspace(const std::string &name)
+  bool Storage::AddWorkspace(const std::string &name)
   {
-	database::SqliteStatement command(_db, "INSERT INTO workspaces (name) VALUES(?);");
-	if(!command.Good()) {
-	  // TODO: report error
-	}
+	database::SqliteStatement command(_db, "INSERT INTO workspaces (name) VALUES(?)");
+	if(!command.Good())
+	  return false;
 
 	command.Bind(name);
-	if(!command.Run()) {
-	  // TODO: report
-	}
+	return command.Run();
   }
 
-  void Storage::RemoveWorkspace(const std::string &name)
+  // TODO: add flag for if all projects should be deleted too
+  bool Storage::RemoveWorkspace(const std::string &name)
   {
-	// TODO: delete all tables?
+	database::SqliteStatement wksQuery(_db, 
+		"SELECT id FROM workspaces WHERE name = ?");
+	wksQuery.Bind(name);
+	if(!wksQuery.Good())
+	  return false;
 
-	database::SqliteStatement command(_db, "DELETE FROM workspaces WHERE id = 1;");
+	wksQuery.Step();
+
+	const int wksId = wksQuery.ColumnInt(0);
+
+	// TODO: enumerate projects... and delete them tooo...
+
+	database::SqliteStatement command(_db,
+	    "DELETE FROM projects WHERE id = ?;"
+	    "DELETE FROM workspaces WHERE id = ?;");
+	command.Bind(wksId);
+	command.Bind(wksId);
+
+	return command.Run();
   }
 } // namespace noda

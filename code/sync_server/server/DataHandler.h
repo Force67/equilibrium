@@ -33,6 +33,7 @@ namespace noda {
 
 	void CreateWks(const protocol::Message *);
 	void DeleteWks(const protocol::Message *);
+	void ListWks(const protocol::Message *);
 
   private:
 	ServerImpl &_server;

@@ -141,4 +141,9 @@ namespace database {
 
 	return commend.Run();
   }
+
+  int64_t SqliteDB::LastestRowId() const
+  {
+	return sqlite3_last_insert_rowid(_db);
+  }
 } // namespace database

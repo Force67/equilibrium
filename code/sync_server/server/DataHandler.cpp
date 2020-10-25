@@ -75,13 +75,21 @@ namespace noda {
 
   void DataHandler::CreateWks(const protocol::Message *message)
   {
+	// TODO: confirm or deny message
+	// also verify user permissions...
 	auto *msg = message->msg_as_CreateWorkspace();
-	_storage.AddWorkspace(msg->name()->str());
+	bool res = _storage.AddWorkspace(msg->name()->str());
   }
 
   void DataHandler::DeleteWks(const protocol::Message *message)
   {
 	auto *msg = message->msg_as_RemoveWorkspace();
-	_storage.RemoveWorkspace(msg->name()->str());
+	bool res = _storage.RemoveWorkspace(msg->name()->str());
+  }
+
+  void DataHandler::ListWks(const protocol::Message *message)
+  {
+	  
+  
   }
 } // namespace noda
