@@ -9,6 +9,13 @@ table CreateWorkspace {
 
 table RemoveWorkspace {
   name:string;
+  withProjects:bool;
+}
+
+table OpenProject {
+  localVersion:int;
+  name:string;
+  md5Hash:string;
 }
 
 table Project {
@@ -16,12 +23,6 @@ table Project {
   name:string;
   md5Hash:string;
   comments:string;
-}
-
-table LocalProjectInfo {
-  version:int;
-  name:string;
-  md5Hash:string;
 }
 
 table RemoteProjectInfo {

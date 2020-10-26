@@ -3,9 +3,8 @@
 #pragma once
 
 #include "Server.h"
-#include "Client.h"
+#include "NdUser.h"
 
-#include "Workspace.h"
 #include "DataHandler.h"
 
 #include "netlib/Server.h"
@@ -23,7 +22,9 @@ namespace noda {
 
 	void Update();
 
-	clientPtr ClientById(netlib::connectid_t cid);
+	// thread safe due to the order of calls
+	// in the net thread
+	userptr_t UserById(netlib::connectid_t cid);
 
 	void CreatePacket(netlib::connectid_t cid,
 	                  protocol::MsgType type,
@@ -47,7 +48,7 @@ namespace noda {
 	timestamp_t _tickTime;
 	float _freeTime = 0;
 
-	std::vector<clientPtr> _clientRegistry;
+	std::vector<userptr_t> _userRegistry;
 	utility::detached_mpsc_queue<OutPacket> _packetQueue;
   };
 } // namespace noda

@@ -1,14 +1,14 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
+// stupid windows
+#undef GetMessage
+#undef GetMessageW
+
 #include "ServerImpl.h"
 #include "DataHandler.h"
 
 #include "utility/Thread.h"
-
-// stupid windows
-#undef GetMessage
-#undef GetMessageW
 
 namespace noda {
 
@@ -34,8 +34,9 @@ namespace noda {
 
   DataHandler::Status DataHandler::Initialize()
   {
-	if(!_storage.Initialize())
-	  return Status::MainDbError;
+	StorageConfig config;
+	if(!_storage.Initialize(config))
+	  return Status::HiveError;
 
 	return Status::Success;
   }
@@ -49,28 +50,28 @@ namespace noda {
 	  while(auto *item = _packetQueue.pop(&InPacket::key)) {
 		const netlib::Packet &packet = item->packet;
 
+		const auto sender = _server.UserById(item->id);
 		const auto *message = protocol::GetMessage(static_cast<const void *>(packet.data()));
 
-		HandleMessage(message);
+		switch(message->msg_type()) {
+		case protocol::MsgType_CreateWorkspace:
+		  CreateWks(message);
+		  break;
+		case protocol::MsgType_RemoveWorkspace:
+		  DeleteWks(message);
+		  break;
+		case protocol::MsgType_OpenProject:
+		  OpenProject(*sender, message);
+		  break;
+		}
+
 		packetPool.destruct(item);
 	  }
 	}
   }
 
-  void DataHandler::HandleMessage(const protocol::Message *message)
+  void DataHandler::SendActionResult(protocol::MsgType type, bool failed)
   {
-	switch(message->msg_type()) {
-	case protocol::MsgType_CreateWorkspace:
-	  CreateWks(message);
-	  break;
-	case protocol::MsgType_RemoveWorkspace:
-	  DeleteWks(message);
-	  break;
-	case protocol::MsgType_WorkspaceList: {
-	  break;
-	}
-	
-	}
   }
 
   void DataHandler::CreateWks(const protocol::Message *message)
@@ -84,12 +85,22 @@ namespace noda {
   void DataHandler::DeleteWks(const protocol::Message *message)
   {
 	auto *msg = message->msg_as_RemoveWorkspace();
-	bool res = _storage.RemoveWorkspace(msg->name()->str());
+	bool res = _storage.RemoveWorkspace(
+	    msg->name()->str(),
+	    msg->withProjects());
   }
 
-  void DataHandler::ListWks(const protocol::Message *message)
+  void DataHandler::OpenProject(const NdUser &sender, const protocol::Message *message)
   {
-	  
-  
+	// TODO: respond with a list of workspaces + projects
+	auto *msg = message->msg_as_OpenProject();
+
+	bool created = false;
+	bool res = _storage.MakeProject(msg->name()->str(), msg->md5Hash()->str(), created);
+
+	if(created) {
+	  //sender->perms = UserPerms::Admin;
+	}
   }
+
 } // namespace noda

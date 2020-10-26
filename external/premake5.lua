@@ -74,10 +74,11 @@ project("GoogleMock")
         "googletest/googlemock/include",
         "googletest/googletest/include",
         "googletest/googlemock",
-        --"googletest/googletest"
+        "googletest/googletest"
     })
     files({
         "googletest/googlemock/src/gmock-all.cc",
+        "googletest/googletest/src/gtest-all.cc",
         --"googletest/googlemock/src/*.cc",
         --"googletest/googletest/src/*.cc",
         "googletest/googlemock/include/gmock/**.h",

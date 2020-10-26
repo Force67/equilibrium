@@ -85,10 +85,14 @@ public:
 
 	std::printf("HandleAuth(): %d:%d\n", pack->userIndex(), pack->numUsers());
 
-	auto packet = protocol::CreateLocalProjectInfoDirect(_fbb, 1337,
-	                                                     "FakeProject", "48fac413577bee5e05429a1aeda48b52");
+	auto hello = protocol::CreateCreateWorkspaceDirect(_fbb, "TestWorkspace");
+	SendPacket(protocol::MsgType_CreateWorkspace, hello);
 
-	SendPacket(protocol::MsgType_LocalProjectInfo, packet);
+	// never opened this project before - version 0
+	auto packet = protocol::CreateOpenProjectDirect(_fbb, 0, 
+		"FakeProject", "48fac413577bee5e05429a1aeda48b52");
+
+	SendPacket(protocol::MsgType_OpenProject, packet);
   }
 
   void OnConsume(netlib::Packet *packet)

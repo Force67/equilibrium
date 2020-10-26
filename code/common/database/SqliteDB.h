@@ -42,7 +42,7 @@ namespace database {
 
 	void close();
 
-	bool ExecuteOnly(const char *text);
+	bool Execute(const char *sql);
 
 	SqliteStatus ExecuteAndNotifyError(const char *statement);
 

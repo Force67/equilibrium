@@ -17,7 +17,7 @@ namespace noda {
   public:
 	enum class Status {
 	  Success,
-	  MainDbError,
+	  HiveError,
 	};
 
 	DataHandler(ServerImpl &);
@@ -29,14 +29,15 @@ namespace noda {
 
   private:
 	void WorkerThread();
-	void HandleMessage(const protocol::Message *);
 
 	void CreateWks(const protocol::Message *);
 	void DeleteWks(const protocol::Message *);
-	void ListWks(const protocol::Message *);
+	void OpenProject(const NdUser &sender, const protocol::Message *);
 
   private:
 	ServerImpl &_server;
+
+	void SendActionResult(protocol::MsgType, bool failed);
 
 	bool _run = true;
 	std::thread _workerThread;

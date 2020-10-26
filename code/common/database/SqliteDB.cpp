@@ -61,12 +61,13 @@ namespace database {
 	  sqlite3_close(_db);
   }
 
-  bool SqliteDB::ExecuteOnly(const char *text)
+  bool SqliteDB::Execute(const char *sql)
   {
 	char *errMsg;
-	const int rc = sqlite3_exec(_db, text, nullptr, nullptr, &errMsg);
+	const int rc = sqlite3_exec(_db, sql, nullptr, nullptr, &errMsg);
 	if(rc != 0) {
 	  int ts = sqlite3_threadsafe();
+
 	  __debugbreak();
 	}
 

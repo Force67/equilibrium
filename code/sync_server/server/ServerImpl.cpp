@@ -1,12 +1,12 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "ServerImpl.h"
-#include "moc_protocol/DisconnectReason_generated.h"
-
 // stupid windows
 #undef GetMessage
 #undef GetMessageW
+
+#include "ServerImpl.h"
+#include "moc_protocol/DisconnectReason_generated.h"
 
 namespace noda {
 
@@ -30,10 +30,10 @@ namespace noda {
 	  return ServerStatus::NetError;
 
 	if(useStorage) {
-		// TODO: more result codes
+	  // TODO: more result codes
 	  const auto res = _datahandler.Initialize();
 	  switch(res) {
-	  case DataHandler::Status::MainDbError:
+	  case DataHandler::Status::HiveError:
 		return ServerStatus::FsError;
 	  default:
 		break;
@@ -46,23 +46,23 @@ namespace noda {
 
   void ServerImpl::OnDisconnection(netlib::Peer *peer)
   {
-	auto it = std::find_if(_clientRegistry.begin(), _clientRegistry.end(), [&](clientPtr &cl) {
-	  return cl->id == peer->Id();
+	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
+	  return user->Id() == peer->Id();
 	});
 
-	if(it == _clientRegistry.end())
+	if(it == _userRegistry.end())
 	  return;
 
-	_clientRegistry.erase(it);
+	_userRegistry.erase(it);
   }
 
-  clientPtr ServerImpl::ClientById(netlib::connectid_t cid)
+  userptr_t ServerImpl::UserById(netlib::connectid_t cid)
   {
-	auto it = std::find_if(_clientRegistry.begin(), _clientRegistry.end(), [&](clientPtr &cl) {
-	  return cl->id == cid;
+	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
+	  return user->Id() == cid;
 	});
 
-	if(it == _clientRegistry.end())
+	if(it == _userRegistry.end())
 	  return {};
 
 	return *it;
@@ -99,18 +99,16 @@ namespace noda {
 
 	const netlib::connectid_t id = source->Id();
 
-	// allocate new user
-	auto client = std::make_shared<Client>();
-	client->guid = std::move(packet->guid()->str());
-	client->name = std::move(packet->name()->str());
-	client->id = id;
+	auto user = std::make_shared<userptr_t>(id,
+	                                        packet->guid()->str(),
+	                                        packet->name()->str());
 
-	_clientRegistry.emplace_back(client);
+	_userRegistry.emplace_back(user);
 
 	FbsBuffer buffer;
 	auto pack = protocol::CreateHandshakeAck(
 	    buffer, protocol::UserPermissions_NONE,
-	    id, static_cast<int32_t>(_clientRegistry.size()));
+	    id, static_cast<int32_t>(_userRegistry.size()));
 
 	CreatePacket(id, protocol::MsgType_HandshakeAck, buffer, pack.Union());
   }
