@@ -5,7 +5,7 @@ include "Handshake.fbs";
 include "Announcement.fbs";
 include "ChatMessage.fbs";
 include "IdaSync.fbs";
-include "Workspace.fbs";
+include "Bucket.fbs";
 include "Transfer.fbs";
 
 namespace protocol;
@@ -17,10 +17,9 @@ union MsgType {
     Announcement,
     ChatMessage,
     RemoteProjectInfo,
-    WorkspaceList,
-    CreateWorkspace,
-    RemoveWorkspace,
-    OpenProject,
+    CreateBucket,
+    RemoveBucket,
+    OpenNodaDB,
 
     TransferBegin,
     TransferChunk,

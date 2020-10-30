@@ -59,14 +59,14 @@ namespace noda {
 	for(auto *it : fileMenu->actions()) {
 	  // glue on the new open act
 	  if(it->text() == "&Load file") {
-		_cloudDlAct = new QAction(QIcon(":/cloud_download"), "Open from NODA Server", fileMenu);
-		connect(_cloudDlAct, &QAction::triggered, this, &UiController::DlFromServer);
+		_cloudDlAct = new QAction(QIcon(":/cloud_download"), "Import NodaDB", fileMenu);
+		connect(_cloudDlAct, &QAction::triggered, this, &UiController::ImportNodaDB);
 
 		fileMenu->insertAction(it, _cloudDlAct);
 	  }
 	  if(it->text() == "Sa&ve as...") {
-		_cloudUpAct = new QAction(QIcon(":/cloud_upload"), "Save to NODA Server", fileMenu);
-		connect(_cloudUpAct, &QAction::triggered, this, &UiController::UpToServer);
+		_cloudUpAct = new QAction(QIcon(":/cloud_upload"), "Export NodaDB", fileMenu);
+		connect(_cloudUpAct, &QAction::triggered, this, &UiController::ExportNodaDB);
 
 		_cloudUpAct->setEnabled(false);
 		fileMenu->insertAction(it, _cloudUpAct);
@@ -93,7 +93,6 @@ namespace noda {
 	connect(&_sync, &SyncController::Connected, _netStatus.data(), &StatusWidget::OnConnected);
 	connect(&_sync, &SyncController::Disconnected, _netStatus.data(), &StatusWidget::OnDisconnect);
 	connect(&_sync, &SyncController::Broadcasted, _netStatus.data(), &StatusWidget::OnBroadcast);
-	connect(&_sync, &SyncController::StatsUpdated, _netStatus.data(), &StatusWidget::OnStatsUpdate);
 
 	// this needs to be done here, for some reason :D
 	connect(&_sync, &SyncController::Connected, [&]() {
@@ -109,14 +108,16 @@ namespace noda {
 	unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
   }
 
-  void UiController::DlFromServer()
+  void UiController::ImportNodaDB()
   {
 	LOG_INFO("DlFromServer");
+
+	// progress dialog.. and thread...
 
 	// select IDB
   }
 
-  void UiController::UpToServer()
+  void UiController::ExportNodaDB()
   {
 	LOG_INFO("SaveToServer");
 

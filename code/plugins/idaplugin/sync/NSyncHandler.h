@@ -5,15 +5,13 @@
 
 #include <ida.hpp>
 
-#include "sync/SyncController.h"
-#include "net/protocol/Message_generated.h"
-
+#include "sync/NSyncController.h"
+#include "moc_protocol/Message_generated.h"
 #include "utils/Logger.h"
 
 namespace noda {
   using namespace protocol::sync;
 
-  class SyncController;
   struct SyncHandler;
 
   struct SyncHandlerRegistry {
@@ -45,8 +43,8 @@ namespace noda {
 	// Networking
 	protocol::MsgType msgType = protocol::MsgType_NONE;
 
-	using apply_t = bool (*)(SyncController &, const void *);
-	using react_t = bool (*)(SyncController &, va_list);
+	using apply_t = bool (*)(NSyncController &, const void *);
+	using react_t = bool (*)(NSyncController &, va_list);
 
 	// Delegate
 	struct BaseHandler {
@@ -58,7 +56,7 @@ namespace noda {
 
 	template <typename T>
 	struct Handlers : BaseHandler {
-	  using apply_t = bool (*)(SyncController &, const T &);
+	  using apply_t = bool (*)(NSyncController &, const T &);
 
 	  explicit Handlers(apply_t apply_impl, react_t react_impl)
 	  {

@@ -42,9 +42,9 @@ namespace database {
 	close();
   }
 
-  bool SqliteDB::open(const char *fileNameUtf8)
+  bool SqliteDB::open(std::string_view view)
   {
-	_good = sqlite3_open_v2(fileNameUtf8, &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) == SQLITE_OK;
+	_good = sqlite3_open_v2(view.data(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) == SQLITE_OK;
 	return _good;
   }
 

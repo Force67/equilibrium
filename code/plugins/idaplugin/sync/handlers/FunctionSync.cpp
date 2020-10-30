@@ -1,7 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "sync/SyncHandler.h"
+#include "sync/NSyncHandler.h"
 
 #include "IdaInc.h"
 #include "name.hpp"
@@ -9,7 +9,7 @@
 using namespace protocol::sync;
 
 namespace noda::sync::add_function {
-  static bool Apply(SyncController &, const AddFunction &pack)
+  static bool Apply(NSyncController &, const AddFunction &pack)
   {
 	LOG_TRACE("Added function at {} with length {}",
 	          pack.startea(), pack.endea() - pack.startea());
@@ -17,7 +17,7 @@ namespace noda::sync::add_function {
 	return add_func(pack.startea(), pack.endea());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	func_t *func = va_arg(list, func_t *);
 	if(!func)
@@ -36,13 +36,13 @@ namespace noda::sync::add_function {
 } // namespace noda::sync::add_function
 
 namespace noda::sync::delete_function {
-  static bool Apply(SyncController &, const DeleteFunction &pack)
+  static bool Apply(NSyncController &, const DeleteFunction &pack)
   {
 	LOG_TRACE("Deleted function at {}", pack.ea());
 	return del_func(pack.ea());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	func_t *func = va_arg(list, func_t *);
 	if(!func)
@@ -61,14 +61,14 @@ namespace noda::sync::delete_function {
 } // namespace noda::sync::delete_function
 
 namespace noda::sync::set_function_start {
-  static bool Apply(SyncController &, const SetFunctionStart &pack)
+  static bool Apply(NSyncController &, const SetFunctionStart &pack)
   {
 	LOG_TRACE("Changed function start {}", pack.ea());
 
 	return set_func_start(pack.ea(), pack.newea());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	func_t *func = va_arg(list, func_t *);
 	if(!func)
@@ -89,13 +89,13 @@ namespace noda::sync::set_function_start {
 } // namespace noda::sync::set_function_start
 
 namespace noda::sync::set_function_end {
-  static bool Apply(SyncController &, const SetFunctionEnd &pack)
+  static bool Apply(NSyncController &, const SetFunctionEnd &pack)
   {
 	LOG_TRACE("Changed function end {}", pack.startea());
 	return set_func_end(pack.startea(), pack.endea());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	func_t *func = va_arg(list, func_t *);
 	if(!func)
@@ -116,7 +116,7 @@ namespace noda::sync::set_function_end {
 } // namespace noda::sync::set_function_end
 
 namespace noda::sync::append_function_tail {
-  static bool Apply(SyncController &, const AppendFunctionTail &pack)
+  static bool Apply(NSyncController &, const AppendFunctionTail &pack)
   {
 	func_t *func = get_func(pack.funcea());
 	if(!func)
@@ -126,7 +126,7 @@ namespace noda::sync::append_function_tail {
 	return append_func_tail(func, pack.tailEaStart(), pack.tailEaEnd());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	func_t *func = va_arg(list, func_t *);
 	func_t *tail = va_arg(list, func_t *);
@@ -148,7 +148,7 @@ namespace noda::sync::append_function_tail {
 } // namespace noda::sync::append_function_tail
 
 namespace noda::sync::delete_function_tail {
-  static bool Apply(SyncController &, const DeleteFunctionTail &pack)
+  static bool Apply(NSyncController &, const DeleteFunctionTail &pack)
   {
 	func_t *func = get_func(pack.funcea());
 	if(!func)
@@ -158,7 +158,7 @@ namespace noda::sync::delete_function_tail {
 	return remove_func_tail(func, pack.tailea());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	func_t *func = va_arg(list, func_t *);
 	ea_t tailEa = va_arg(list, ea_t);
@@ -180,7 +180,7 @@ namespace noda::sync::delete_function_tail {
 } // namespace noda::sync::delete_function_tail
 
 namespace noda::sync::change_function_tail_owner {
-  static bool Apply(SyncController &, const ChangeFunctionTailOwner &pack)
+  static bool Apply(NSyncController &, const ChangeFunctionTailOwner &pack)
   {
 	func_t *tail = get_fchunk(pack.tailea());
 	if(!tail)
@@ -190,7 +190,7 @@ namespace noda::sync::change_function_tail_owner {
 	return set_tail_owner(tail, pack.funcstart());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	func_t *tail = va_arg(list, func_t *);
 	ea_t ownerFunc = va_arg(list, ea_t);

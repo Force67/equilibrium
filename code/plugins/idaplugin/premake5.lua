@@ -30,7 +30,12 @@ project("Noda - IDA")
 
         -- network
         "enet",
-        "fmtlib"
+        "fmtlib",
+
+        -- common
+        "netlib",
+        "database",
+        "utility"
     })
     defines({
         -- idaq constants
@@ -43,10 +48,12 @@ project("Noda - IDA")
     })
     includedirs({
         ".",
+        "../../common",
         blu.extdir .. "/idasdk72/include",
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/xenium"
     })
     libdirs({
         blu.extdir .. "/idasdk72/lib/x64_win_vc_64",

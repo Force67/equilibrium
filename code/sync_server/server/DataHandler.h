@@ -30,10 +30,10 @@ namespace noda {
   private:
 	void WorkerThread();
 
-	void CreateWks(const protocol::Message *);
-	void DeleteWks(const protocol::Message *);
-	void OpenProject(const NdUser &sender, const protocol::Message *);
+	void CreateBucket(const protocol::Message *);
+	void DeleteBucket(const protocol::Message *);
 
+	void OpenNodaDb(const NdUser &sender, const protocol::Message *);
   private:
 	ServerImpl &_server;
 
@@ -44,5 +44,6 @@ namespace noda {
 	utility::detached_mpsc_queue<InPacket> _packetQueue;
 
 	Storage _storage;
+	std::vector< NodaDb> dbref_;
   };
 } // namespace noda

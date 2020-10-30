@@ -6,54 +6,28 @@
 #include <QAtomicInt>
 #include <qobject.h>
 
-#include "net/NetClient.h"
-
 #include "utils/Storage.h"
 #include "utils/Logger.h"
 #include "utils/AtomicQueue.h"
+
+#include "NSyncClient.h"
 
 namespace QT {
   class QTimer;
 }
 
 namespace noda {
-  class NetClient;
-  struct SyncHandler;
-  class SyncController;
 
-  struct RequestItem {
-	std::unique_ptr<uint8_t[]> data;
-	SyncHandler *handler;
-
-	RequestItem()
-	{
-	  handler = nullptr;
-	}
-	explicit RequestItem(SyncHandler *, size_t bucketSize);
-  };
-
-  struct RequestQueue final : exec_request_t {
-	RequestQueue(SyncController &sc) :
-	    parent(sc)
-	{
-	}
-
-	int execute() override;
-	void Queue(RequestItem *);
-
-  private:
-	AtomicQueue<RequestItem> _queue;
-	QAtomicInt _queueLength = 0;
-	SyncController &parent;
-  };
-
-  class SyncController final : public QObject, public NetDelegate {
+  class NSyncController final : 
+	  public NSyncDelegate, 
+	  public QObject 
+  {
 	Q_OBJECT;
 
   public:
-	SyncController();
-	SyncController(const SyncController &) = delete;
-	~SyncController();
+	NSyncController();
+	NSyncController(const SyncController &) = delete;
+	~NSyncController();
 
 	bool ConnectServer();
 	void DisconnectServer();
@@ -68,15 +42,9 @@ namespace noda {
 	}
 
 	// Get the packet builder
-	auto &fbb()
+	auto &fbb() const
 	{
 	  return _fbb;
-	}
-
-	// Get Net Stats
-	auto &stats() const
-	{
-	  return netStats;
 	}
 
 	// IDA
@@ -84,9 +52,8 @@ namespace noda {
 
   signals:
 	void Connected();
-	void Disconnected(uint32_t);
+	void Disconnected(int);
 	void Broadcasted(int);
-	void StatsUpdated(const NetStats &);
 
   private:
 	void OnAnnouncement(const protocol::Message *);
@@ -94,21 +61,16 @@ namespace noda {
 
 	// network events
 	void OnConnected() override;
-	void OnDisconnect(uint32_t) override;
+	void OnDisconnect(int) override;
 	void ProcessPacket(const uint8_t *data, size_t size) override;
 
 	Storage _storage;
 	bool _active = false;
-	QScopedPointer<NetClient> _client;
 
-	FbsBuilder _fbb;
-	uint32_t _heartBeatCount = 0;
+	NSyncClient _client;
 
 	using IdaEventType_t = std::pair<hook_type_t, int>;
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;
 	std::map<protocol::MsgType, SyncHandler *> _netEvents;
-
-	QScopedPointer<QTimer> _statsTimer;
-	RequestQueue _requestQueue;
   };
 } // namespace noda

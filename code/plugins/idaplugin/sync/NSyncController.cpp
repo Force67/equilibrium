@@ -1,85 +1,37 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "SyncController.h"
-#include "net/NetClient.h"
-
 #include <qtimer.h>
 #include <qglobal.h>
 #include <qsettings.h>
 
+#include "NSyncController.h"
 #include "utils/Storage.h"
 
-#include "net/protocol/Workspace_generated.h"
-#include "net/protocol/Message_generated.h"
+#include "moc_protocol/Message_generated.h"
 
-#include "net/NetBase.h"
 #include "IdaInc.h"
-
-#include "SyncHandler.h"
+#include "NSyncHandler.h"
 
 namespace noda {
   constexpr int kNetTrackRate = 1000;
 
-  RequestItem::RequestItem(SyncHandler *handler, size_t bucketSize) :
-      handler(handler)
-  {
-	data = std::make_unique<uint8_t[]>(bucketSize);
-  }
-
-  int RequestQueue::execute()
-  {
-	RequestItem *item;
-	while(_queue.pop(item)) {
-	  _queueLength--;
-
-	  // drain the queue
-	  item->handler->delegates.apply(
-	      parent,
-	      item->data.get());
-
-	  item->data.reset();
-	}
-
-	return 0;
-  }
-
-  void RequestQueue::Queue(RequestItem *data)
-  {
-	_queueLength++;
-	_queue.push(data);
-
-	if(_queueLength == 1) {
-	  execute_sync(*this, MFF_WRITE | MFF_NOWAIT);
-	}
-  }
-
   ssize_t SyncController_IdbEvent(void *userData, int code, va_list args)
   {
-	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
+	return static_cast<NSyncController*>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
   }
   ssize_t SyncController_IdpEvent(void *userData, int code, va_list args)
   {
-	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
+	return static_cast<NSyncController*>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
   }
 
-  SyncController::SyncController() :
-      _requestQueue(*this)
+  NSyncController::NSyncController() : _client(*this)
   {
 	hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 	hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
 
-	_client.reset(new NetClient(*this));
-
-	// post the net stats every second to the ui
-	_statsTimer.reset(new QTimer(this));
-	connect(_statsTimer.data(), &QTimer::timeout, ([&] {
-	          emit StatsUpdated(netStats);
-	        }));
-
 	for(auto *i = SyncHandler::ROOT(); i;) {
-	  auto *it = i->handler;
-	  if(it) {
+	  if(SyncHandler *it = i->handler) {
 		//LOG_TRACE("Registering handler {}",
 		//	protocol::EnumNameMsgType(it->msgType));
 
@@ -93,33 +45,33 @@ namespace noda {
 	}
   }
 
-  SyncController::~SyncController()
+  NSyncController::~NSyncController()
   {
 	unhook_from_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 	unhook_from_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
   }
 
-  bool SyncController::ConnectServer()
+  bool NSyncController::ConnectServer()
   {
 	// initialize storage?
-	return _client->ConnectServer();
+	return _client.ConnectServer();
   }
 
-  void SyncController::DisconnectServer()
+  void NSyncController::DisconnectServer()
   {
 	// flush storage?
-	_client->Disconnect();
+	_client.Disconnect();
   }
 
-  bool SyncController::IsConnected()
+  bool NSyncController::IsConnected()
   {
-	return _client->IsConnected() && _active;
+	return _client.Good() && _active;
   }
 
-  void SyncController::OnConnected()
+  void NSyncController::OnConnected()
   {
 	struct request : exec_request_t {
-	  SyncController &sc;
+	  NSyncController &sc;
 
 	  int execute() override
 	  {
@@ -158,16 +110,15 @@ namespace noda {
 	emit Connected();
   }
 
-  void SyncController::OnDisconnect(uint32_t reason)
+  void NSyncController::OnDisconnect(int reason)
   {
 	_active = false;
-	_statsTimer->stop();
 
 	// forward the event
 	emit Disconnected(reason);
   }
 
-  void SyncController::OnAnnouncement(const protocol::Message *message)
+  void NSyncController::OnAnnouncement(const protocol::Message *message)
   {
 	const auto *pack = message->msg_as_Announcement();
 	switch(pack->type()) {
@@ -188,7 +139,7 @@ namespace noda {
 	emit Broadcasted(pack->type());
   }
 
-  void SyncController::OnProjectJoin(const protocol::Message *message)
+  void NSyncController::OnProjectJoin(const protocol::Message *message)
   {
 	const auto *pack = message->msg_as_RemoteProjectInfo();
 
@@ -204,10 +155,9 @@ namespace noda {
 	}
 
 	_active = true;
-	_statsTimer->start(kNetTrackRate);
   }
 
-  void SyncController::ProcessPacket(const uint8_t *data, size_t size)
+  void NSyncController::ProcessPacket(const uint8_t *data, size_t size)
   {
 	const auto *message = protocol::GetMessage(data);
 
@@ -232,7 +182,7 @@ namespace noda {
 	_requestQueue.Queue(item);
   }
 
-  ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)
+  ssize_t NSyncController::HandleEvent(hook_type_t type, int code, va_list args)
   {
 	if(!_active)
 	  return 0;
@@ -242,7 +192,7 @@ namespace noda {
 
 	if(_active) {
 	  if(type == hook_type_t::HT_IDB && code == idb_event::closebase) {
-		_client->Disconnect();
+		_client.Disconnect();
 		return 0;
 	  }
 

@@ -31,8 +31,8 @@ namespace noda {
 	void BuildUi();
 	void DestroyUi();
 
-	void DlFromServer();
-	void UpToServer();
+	void ImportNodaDB();
+	void ExportNodaDB();
 
 	void OnIdbLoad();
 

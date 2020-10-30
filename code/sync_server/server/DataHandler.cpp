@@ -54,14 +54,14 @@ namespace noda {
 		const auto *message = protocol::GetMessage(static_cast<const void *>(packet.data()));
 
 		switch(message->msg_type()) {
-		case protocol::MsgType_CreateWorkspace:
-		  CreateWks(message);
+		case protocol::MsgType_CreateBucket:
+		  CreateBucket(message);
 		  break;
-		case protocol::MsgType_RemoveWorkspace:
-		  DeleteWks(message);
+		case protocol::MsgType_RemoveBucket:
+		  DeleteBucket(message);
 		  break;
-		case protocol::MsgType_OpenProject:
-		  OpenProject(*sender, message);
+		case protocol::MsgType_OpenNodaDB:
+		  OpenNodaDb(*sender, message);
 		  break;
 		}
 
@@ -74,33 +74,32 @@ namespace noda {
   {
   }
 
-  void DataHandler::CreateWks(const protocol::Message *message)
+  void DataHandler::CreateBucket(const protocol::Message *message)
   {
-	// TODO: confirm or deny message
-	// also verify user permissions...
-	auto *msg = message->msg_as_CreateWorkspace();
-	bool res = _storage.AddWorkspace(msg->name()->str());
+	// confirm or deny, perms:
+
+	auto *msg = message->msg_as_CreateBucket();
+	bool res = _storage.AddBucket(msg->name()->str());
   }
 
-  void DataHandler::DeleteWks(const protocol::Message *message)
+  void DataHandler::DeleteBucket(const protocol::Message *message)
   {
-	auto *msg = message->msg_as_RemoveWorkspace();
-	bool res = _storage.RemoveWorkspace(
-	    msg->name()->str(),
-	    msg->withProjects());
+	  // todo: report result:
+
+	auto *msg = message->msg_as_RemoveBucket();
+	bool res = _storage.RemBucket(msg->name()->str());
   }
 
-  void DataHandler::OpenProject(const NdUser &sender, const protocol::Message *message)
+  void DataHandler::OpenNodaDb(const NdUser &sender, const protocol::Message *message)
   {
 	// TODO: respond with a list of workspaces + projects
-	auto *msg = message->msg_as_OpenProject();
+	auto *msg = message->msg_as_OpenNodaDB();
+	
+	auto name = msg->name()->str();
 
-	bool created = false;
-	bool res = _storage.MakeProject(msg->name()->str(), msg->md5Hash()->str(), created);
-
-	if(created) {
-	  //sender->perms = UserPerms::Admin;
-	}
+	auto inst = dbref_.emplace_back(_storage, name);
+	inst.AddRef();
+	inst.Open();
   }
 
 } // namespace noda

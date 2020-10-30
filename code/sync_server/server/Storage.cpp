@@ -9,11 +9,7 @@ namespace noda {
 
   constexpr int kMaxProjectNameSize = 32;
 
-  Storage::Storage()
-  {
-  }
-
-  const fs::path &Storage::GetStorageDir() noexcept
+  static const fs::path &GetStorageDir() noexcept
   {
 	static fs::path s_path{};
 	if(s_path.empty()) {
@@ -25,84 +21,21 @@ namespace noda {
 	return s_path;
   }
 
-  bool Storage::Initialize(const StorageConfig &config)
+  NodaDb::NodaDb(Storage &st, std::string &name) :
+      _parent(st),
+      _name(name)
   {
-	auto path = GetStorageDir() / "hive";
-	bool create = !fs::exists(path);
-
-	const auto u8Str = path.u8string();
-	if(!_db.open(u8Str.c_str()))
-	  return false;
-
-	bool res = true;
-	if(create) {
-	  res = _db.Execute(
-	      "CREATE TABLE workspaces ("
-	      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-	      "name TEXT NOT NULL,"
-	      "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
-
-	      "CREATE TABLE projects("
-	      "id PRIMARY KEY,"
-	      "prj_name TEXT NOT NULL,"
-	      "prj_guid TEXT NOT NULL);");
-	}
-
-	return res;
   }
 
-  // TODO: with project?
-  bool Storage::AddWorkspace(const std::string &name)
+  bool NodaDb::Open()
   {
-	database::SqliteStatement command(_db, "INSERT INTO workspaces (name) VALUES(?)");
-	if(!command.Good())
+	auto fullPath = GetStorageDir() / _name;
+	bool notCreated = !fs::exists(fullPath);
+
+	if(!_parent._db.Attach(fullPath.u8string(), _name.c_str()))
 	  return false;
 
-	command.Bind(name);
-	return command.Run();
-  }
-
-  bool Storage::RemoveWorkspace(const std::string &name, bool withProjects)
-  {
-	database::SqliteStatement wksQuery(_db,
-	                                   "SELECT id FROM workspaces WHERE name = ?");
-	wksQuery.Bind(name);
-	if(!wksQuery.Good())
-	  return false;
-
-	// todo: handle > 0 results
-	wksQuery.Step();
-
-	const int wksId = wksQuery.ColumnInt(0);
-
-	// TODO: enumerate projects... and delete them tooo...
-	if(withProjects) {
-	}
-
-	database::SqliteStatement command(_db,
-	                                  "DELETE FROM projects WHERE id = ?;"
-	                                  "DELETE FROM workspaces WHERE id = ?;");
-	command.Bind(wksId);
-	command.Bind(wksId);
-
-	return command.Run();
-  }
-
-  bool Storage::MakeProject(
-      const std::string &name,
-      const std::string &md5,
-      bool &created)
-  {
-	if(name.length() > kMaxProjectNameSize)
-	  return false;
-
-	auto fullPath = GetStorageDir() / name;
-	created = !fs::exists(fullPath);
-
-	if(!_db.Attach(fullPath.u8string(), name.c_str()))
-	  return false;
-
-	if(created) {
+	if(notCreated) {
 	  auto statement = fmt::format(
 	      R"(CREATE TABLE {}.updates(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,10 +47,10 @@ namespace noda {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			guid TEXT NOT NULL,
 			name TEXT NOT NULL);)",
-	      name, name);
+	      _name, _name);
 
-	  if(!_db.ExecuteOnly(statement.c_str())) {
-		_db.Deatch(name.c_str());
+	  if(!_parent._db.Execute(statement.c_str())) {
+		_parent._db.Deatch(_name.c_str());
 		return false;
 	  }
 	}
@@ -125,8 +58,83 @@ namespace noda {
 	return true;
   }
 
-  bool Storage::AddUser(const std::string &, const NdUser &user)
+  bool NodaDb::AddUser(NdUser &user, Perms perms /*tbd*/)
   {
-	return false;
+	// what if user does exist already?
+	database::SqliteStatement s(_parent._db, "INSERT INTO users(guid, name) VALUES(?,?);");
+	if(!s.Good())
+	  return false;
+
+	s.Bind(user.Guid());
+	s.Bind(user.Name());
+	return s.Run();
+  }
+
+  Storage::Storage()
+  {
+  }
+
+  bool Storage::Initialize(const StorageConfig &config)
+  {
+	fs::path path = GetStorageDir() / "hive";
+	bool create = !fs::exists(path);
+
+	if(!_db.open(path.u8string()))
+	  return false;
+
+	if(create) {
+	  bool res = _db.Execute(
+	      "CREATE TABLE buckets("
+	      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+	      "name TEXT NOT NULL);"
+
+	      "CREATE TABLE file_root("
+	      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+	      "prj_id INTEGER,"
+	      "type INTEGER," // reserved for future use
+	      "name TEXT NOT NULL,"
+	      "path TEXT NOT NULL);"); // initial hive layout
+
+	  return res;
+	}
+
+	return true;
+  }
+
+  int Storage::BucketByName(const std::string &name)
+  {
+	database::SqliteStatement s(_db, "SELECT id FROM buckets WHERE name = ?");
+	if(s.Good()) {
+	  s.Bind(name);
+
+	  if(s.Step()) {
+		return s.ColumnInt(0);
+	  }
+	}
+
+	return -1;
+  }
+
+  bool Storage::AddBucket(const std::string &name)
+  {
+	database::SqliteStatement command(_db, "INSERT INTO buckets (name) VALUES(?)");
+	if(!command.Good())
+	  return false;
+
+	bool res = command.Bind(name);
+	return res && command.Run();
+  }
+
+  bool Storage::RemBucket(const std::string &name)
+  {
+	const int id = BucketByName(name);
+
+	database::SqliteStatement command(_db,
+	                                  "DELETE FROM buckets WHERE id = ?;"
+	                                  "DELETE FROM file_root WHERE prj_id = ?;");
+	command.Bind(id);
+	command.Bind(id);
+
+	return command.Run();
   }
 } // namespace noda

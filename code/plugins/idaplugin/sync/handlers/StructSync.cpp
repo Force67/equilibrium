@@ -1,7 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "sync/SyncHandler.h"
+#include "sync/NSyncHandler.h"
 
 #include "IdaInc.h"
 #include "struct.hpp"
@@ -9,14 +9,14 @@
 using namespace protocol::sync;
 
 namespace noda::sync::create_struct {
-  static bool Apply(SyncController &, const CreateStruct &pack)
+  static bool Apply(NSyncController &, const CreateStruct &pack)
   {
 	LOG_TRACE("Created struct {}", pack.name()->c_str());
 
 	return add_struc(BADADDR, pack.name()->c_str(), pack.isUnion()) != BADADDR;
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	tid_t sid = va_arg(list, tid_t);
 	struc_t *struc = get_struc(sid);
@@ -37,7 +37,7 @@ namespace noda::sync::create_struct {
 } // namespace noda::sync::create_struct
 
 namespace noda::sync::delete_struct {
-  static bool Apply(SyncController &, const DeleteStruct &pack)
+  static bool Apply(NSyncController &, const DeleteStruct &pack)
   {
 	LOG_TRACE("Struct {} was deleted ", pack.name()->c_str());
 
@@ -50,7 +50,7 @@ namespace noda::sync::delete_struct {
 	return false;
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	struc_t *struc = va_arg(list, struc_t *);
 	auto name = get_struc_name(struc->id);
@@ -68,7 +68,7 @@ namespace noda::sync::delete_struct {
 } // namespace noda::sync::delete_struct
 
 namespace noda::sync::rename_struct {
-  static bool Apply(SyncController &, const RenameStruct &pack)
+  static bool Apply(NSyncController &, const RenameStruct &pack)
   {
 	LOG_TRACE("Renamed Struct {} to {}",
 	          pack.oldName()->c_str(), pack.newName()->c_str());
@@ -80,7 +80,7 @@ namespace noda::sync::rename_struct {
 	return set_struc_name(sid, pack.newName()->c_str());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	tid_t sid = va_arg(list, tid_t);
 	auto *oldName = va_arg(list, const char *);
@@ -99,7 +99,7 @@ namespace noda::sync::rename_struct {
 } // namespace noda::sync::rename_struct
 
 namespace noda::sync::rename_struct_member {
-  static bool Apply(SyncController &, const RenameStructMember &pack)
+  static bool Apply(NSyncController &, const RenameStructMember &pack)
   {
 	tid_t sid = get_struc_id(pack.structName()->c_str());
 	if(sid == BADADDR)
@@ -108,7 +108,7 @@ namespace noda::sync::rename_struct_member {
 	return set_member_name(get_struc(sid), pack.offset(), pack.memberName()->c_str());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	struc_t *struc = va_arg(list, struc_t *);
 	member_t *oldName = va_arg(list, member_t *);
@@ -129,7 +129,7 @@ namespace noda::sync::rename_struct_member {
 } // namespace noda::sync::rename_struct_member
 
 namespace noda::sync::delete_struct_member {
-  static bool Apply(SyncController &, const DeleteStructMember &pack)
+  static bool Apply(NSyncController &, const DeleteStructMember &pack)
   {
 	tid_t sid = get_struc_id(pack.name()->c_str());
 	if(sid == BADADDR)
@@ -139,7 +139,7 @@ namespace noda::sync::delete_struct_member {
 	return del_struc_member(get_struc(sid), pack.ea());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	struc_t *struc = va_arg(list, struc_t *);
 	tid_t memberId = va_arg(list, tid_t);
@@ -160,7 +160,7 @@ namespace noda::sync::delete_struct_member {
 } // namespace noda::sync::delete_struct_member
 
 namespace noda::sync::change_struct_member {
-  static bool Apply(SyncController &, const ChangeStructMember &pack)
+  static bool Apply(NSyncController &, const ChangeStructMember &pack)
   {
 	tid_t sid = get_struc_id(pack.structName()->c_str());
 	if(sid == BADADDR)
@@ -181,7 +181,7 @@ namespace noda::sync::change_struct_member {
 	return true;
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	struc_t *struc = va_arg(list, ::struc_t *);
 	member_t *member = va_arg(list, ::member_t *);

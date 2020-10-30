@@ -37,7 +37,7 @@ namespace database {
 
 	~SqliteDB();
 
-	bool open(const char *fileNameUtf8);
+	bool open(std::string_view fileName);
 	bool create(const char *fileNameUtf8);
 
 	void close();

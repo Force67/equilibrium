@@ -1,7 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "sync/SyncHandler.h"
+#include "sync/NSyncHandler.h"
 
 #include "IdaInc.h"
 #include "struct.hpp"
@@ -9,13 +9,13 @@
 using namespace protocol::sync;
 
 namespace noda::sync::change_item_comment {
-  static bool Apply(SyncController &, const ChangeItemComment &pack)
+  static bool Apply(NSyncController &, const ChangeItemComment &pack)
   {
 	LOG_TRACE("Changed Item comment {}", pack.comment()->c_str());
 	return set_cmt(pack.ea(), pack.comment()->c_str(), pack.repeatable());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	ea_t ea = va_arg(list, ea_t);
 	bool rpt = va_arg(list, bool);
@@ -37,7 +37,7 @@ namespace noda::sync::change_item_comment {
 } // namespace noda::sync::change_item_comment
 
 namespace noda::sync::change_range_comment {
-  static bool Apply(SyncController &, const ChangeRangeComment &pack)
+  static bool Apply(NSyncController &, const ChangeRangeComment &pack)
   {
 	if(pack.kind() == RANGE_KIND_FUNC) {
 	  func_t *func = get_func(pack.ea());
@@ -58,7 +58,7 @@ namespace noda::sync::change_range_comment {
 	return false;
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	auto kind = va_arg(list, ::range_kind_t);
 	const range_t *range = va_arg(list, const range_t *);
@@ -83,7 +83,7 @@ namespace noda::sync::change_range_comment {
 } // namespace noda::sync::change_range_comment
 
 namespace noda::sync::change_extra_comment {
-  static bool Apply(SyncController &, const ChangeExtraComment &pack)
+  static bool Apply(NSyncController &, const ChangeExtraComment &pack)
   {
 	del_extra_cmt(pack.ea(), pack.line());
 
@@ -94,7 +94,7 @@ namespace noda::sync::change_extra_comment {
 	return add_extra_cmt(pack.ea(), isPrev, pack.comment()->c_str());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	ea_t ea = va_arg(list, ea_t);
 	int line = va_arg(list, int);

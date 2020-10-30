@@ -1,7 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "sync/SyncHandler.h"
+#include "sync/NSyncHandler.h"
 
 #include "IdaInc.h"
 
@@ -11,13 +11,13 @@
 using namespace protocol::sync;
 
 namespace noda::sync::make_code {
-  static bool Apply(SyncController &, const MakeCode &pack)
+  static bool Apply(NSyncController &, const MakeCode &pack)
   {
 	LOG_TRACE("MakeCode {:x}", pack.ea());
 	return create_insn(pack.ea());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	const insn_t *insn = va_arg(list, ::insn_t *);
 	if(!insn)
@@ -36,7 +36,7 @@ namespace noda::sync::make_code {
 } // namespace noda::sync::make_code
 
 namespace noda::sync::make_data {
-  static bool Apply(SyncController &, const MakeData &pack)
+  static bool Apply(NSyncController &, const MakeData &pack)
   {
 	LOG_TRACE("MakeData {:x}", pack.ea());
 
@@ -44,7 +44,7 @@ namespace noda::sync::make_data {
 	                   static_cast<asize_t>(pack.length()), pack.tid());
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	ea_t ea = va_arg(list, ea_t);
 	auto flags = va_arg(list, ::flags_t);
@@ -66,7 +66,7 @@ namespace noda::sync::make_data {
 namespace noda::sync::name_address {
   using namespace protocol::sync;
 
-  static bool Apply(SyncController &, const NameEa &pack)
+  static bool Apply(NSyncController &, const NameEa &pack)
   {
 	LOG_TRACE("{:x} was named {}", pack.ea(), pack.name()->c_str());
 
@@ -81,7 +81,7 @@ namespace noda::sync::name_address {
 	return false;
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(NSyncController &sc, va_list list)
   {
 	auto addr = static_cast<uint64_t>(__crt_va_arg(list, ea_t));
 	auto *name = va_arg(list, const char *);

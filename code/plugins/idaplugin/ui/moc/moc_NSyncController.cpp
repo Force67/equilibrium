@@ -1,16 +1,16 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'SyncController.h'
+** Meta object code from reading C++ file 'NSyncController.h'
 **
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.6.3)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "../../sync/SyncController.h"
+#include "../../sync/NSyncController.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'SyncController.h' doesn't include <QObject>."
+#error "The header file 'NSyncController.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.6.3. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -18,30 +18,30 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_noda__SyncController_t {
+struct qt_meta_stringdata_noda__NSyncController_t {
     QByteArrayData data[5];
-    char stringdata0[57];
+    char stringdata0[58];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_noda__SyncController_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_noda__NSyncController_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_noda__SyncController_t qt_meta_stringdata_noda__SyncController = {
+static const qt_meta_stringdata_noda__NSyncController_t qt_meta_stringdata_noda__NSyncController = {
     {
-QT_MOC_LITERAL(0, 0, 20), // "noda::SyncController"
-QT_MOC_LITERAL(1, 21, 9), // "Connected"
-QT_MOC_LITERAL(2, 31, 0), // ""
-QT_MOC_LITERAL(3, 32, 12), // "Disconnected"
-QT_MOC_LITERAL(4, 45, 11) // "Broadcasted"
+QT_MOC_LITERAL(0, 0, 21), // "noda::NSyncController"
+QT_MOC_LITERAL(1, 22, 9), // "Connected"
+QT_MOC_LITERAL(2, 32, 0), // ""
+QT_MOC_LITERAL(3, 33, 12), // "Disconnected"
+QT_MOC_LITERAL(4, 46, 11) // "Broadcasted"
 
     },
-    "noda::SyncController\0Connected\0\0"
+    "noda::NSyncController\0Connected\0\0"
     "Disconnected\0Broadcasted"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_noda__SyncController[] = {
+static const uint qt_meta_data_noda__NSyncController[] = {
 
  // content:
        7,       // revision
@@ -67,10 +67,10 @@ static const uint qt_meta_data_noda__SyncController[] = {
        0        // eod
 };
 
-void noda::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void noda::NSyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
-        SyncController *_t = static_cast<SyncController *>(_o);
+        NSyncController *_t = static_cast<NSyncController *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->Connected(); break;
@@ -82,22 +82,22 @@ void noda::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c,
         int *result = reinterpret_cast<int *>(_a[0]);
         void **func = reinterpret_cast<void **>(_a[1]);
         {
-            typedef void (SyncController::*_t)();
-            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SyncController::Connected)) {
+            typedef void (NSyncController::*_t)();
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&NSyncController::Connected)) {
                 *result = 0;
                 return;
             }
         }
         {
-            typedef void (SyncController::*_t)(int );
-            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SyncController::Disconnected)) {
+            typedef void (NSyncController::*_t)(int );
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&NSyncController::Disconnected)) {
                 *result = 1;
                 return;
             }
         }
         {
-            typedef void (SyncController::*_t)(int );
-            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SyncController::Broadcasted)) {
+            typedef void (NSyncController::*_t)(int );
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&NSyncController::Broadcasted)) {
                 *result = 2;
                 return;
             }
@@ -105,28 +105,28 @@ void noda::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c,
     }
 }
 
-const QMetaObject noda::SyncController::staticMetaObject = {
-    { &NSyncDelegate::staticMetaObject, qt_meta_stringdata_noda__SyncController.data,
-      qt_meta_data_noda__SyncController,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject noda::NSyncController::staticMetaObject = {
+    { &NSyncDelegate::staticMetaObject, qt_meta_stringdata_noda__NSyncController.data,
+      qt_meta_data_noda__NSyncController,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *noda::SyncController::metaObject() const
+const QMetaObject *noda::NSyncController::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *noda::SyncController::qt_metacast(const char *_clname)
+void *noda::NSyncController::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_noda__SyncController.stringdata0))
-        return static_cast<void*>(const_cast< SyncController*>(this));
+    if (!strcmp(_clname, qt_meta_stringdata_noda__NSyncController.stringdata0))
+        return static_cast<void*>(const_cast< NSyncController*>(this));
     if (!strcmp(_clname, "QObject"))
-        return static_cast< QObject*>(const_cast< SyncController*>(this));
+        return static_cast< QObject*>(const_cast< NSyncController*>(this));
     return NSyncDelegate::qt_metacast(_clname);
 }
 
-int noda::SyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int noda::NSyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = NSyncDelegate::qt_metacall(_c, _id, _a);
     if (_id < 0)
@@ -144,20 +144,20 @@ int noda::SyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void noda::SyncController::Connected()
+void noda::NSyncController::Connected()
 {
     QMetaObject::activate(this, &staticMetaObject, 0, Q_NULLPTR);
 }
 
 // SIGNAL 1
-void noda::SyncController::Disconnected(int _t1)
+void noda::NSyncController::Disconnected(int _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 
 // SIGNAL 2
-void noda::SyncController::Broadcasted(int _t1)
+void noda::NSyncController::Broadcasted(int _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 2, _a);

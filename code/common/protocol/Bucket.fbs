@@ -3,16 +3,15 @@
 
 namespace protocol;
 
-table CreateWorkspace {
+table CreateBucket {
   name:string;
 }
 
-table RemoveWorkspace {
+table RemoveBucket {
   name:string;
-  withProjects:bool;
 }
 
-table OpenProject {
+table OpenNodaDB {
   localVersion:int;
   name:string;
   md5Hash:string;
@@ -28,8 +27,4 @@ table Project {
 table RemoteProjectInfo {
     version:int;
     name:string;
-}
-
-table WorkspaceList {
-  projects:[Project];
 }
