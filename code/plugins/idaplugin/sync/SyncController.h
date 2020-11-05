@@ -10,43 +10,30 @@
 #include "utils/Logger.h"
 #include "utils/AtomicQueue.h"
 
-#include "NSyncClient.h"
+#include "SyncClient.h"
 
 namespace QT {
   class QTimer;
 }
 
 namespace noda {
+	struct SyncHandler;
 
-  class NSyncController final : 
-	  public NSyncDelegate, 
-	  public QObject 
+  class SyncController final :
+	  public QObject,
+	  public SyncDelegate 
   {
 	Q_OBJECT;
 
   public:
-	NSyncController();
-	NSyncController(const SyncController &) = delete;
-	~NSyncController();
+	SyncController();
+	SyncController(const SyncController &) = delete;
+	~SyncController();
 
 	bool ConnectServer();
 	void DisconnectServer();
 
 	bool IsConnected();
-
-	// type safe wrapper to guarantee proper specification
-	template <typename T>
-	inline bool SendFbsPacket(protocol::MsgType tt, const FbsOffset<T> ref)
-	{
-	  return _client->SendFbsPacketReliable(_fbb, tt, ref.Union());
-	}
-
-	// Get the packet builder
-	auto &fbb() const
-	{
-	  return _fbb;
-	}
-
 	// IDA
 	ssize_t HandleEvent(hook_type_t, int, va_list);
 
@@ -67,7 +54,7 @@ namespace noda {
 	Storage _storage;
 	bool _active = false;
 
-	NSyncClient _client;
+	SyncClient _client;
 
 	using IdaEventType_t = std::pair<hook_type_t, int>;
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;

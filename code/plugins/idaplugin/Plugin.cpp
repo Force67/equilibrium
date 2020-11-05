@@ -62,10 +62,10 @@ plugin_t PLUGIN = {
   IDP_INTERFACE_VERSION,
 
   // Note by Force 07/10/20:
-  // We mark the Plugin as FIX, so it only gets unloaded when IDA closes
-  // this is to prevent crashes, because auto generated QT code optimizes
-  // strings into the .rdata section of the DLL, so when the plugin gets unloaded improperly
-  // while IDA is still alive it brings down the entire application.
+  // We mark the Plugin with the 'FIX' attribute, so it only gets unloaded when IDA closes.
+  // This is done to prevent crashes caused by QT moc'd code optimizing string refs into the
+  // .rdata section of the DLL, so when the plugin gets unloaded while IDA is still running
+  // it brings down the entire application.
   PLUGIN_FIX,
   PluginInit,
   PluginTerm,

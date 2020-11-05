@@ -20,7 +20,7 @@ namespace noda {
 	Q_OBJECT;
 
   public:
-	UiController(SyncController &);
+	UiController(SyncController&);
 	~UiController();
 
 	static QMainWindow *GetMainWindow();

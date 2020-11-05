@@ -7,9 +7,6 @@
 #include <qpainter.h>
 #include <qpaintdevice.h>
 
-#include "net/NetBase.h"
-#include "net/protocol/Announcement_generated.h"
-
 namespace noda {
   constexpr int ksizeOffset = 3;
   constexpr int kseperatorOffset = 6;
@@ -97,7 +94,7 @@ namespace noda {
 
   void StatusWidget::OnBroadcast(int code)
   {
-	switch(code) {
+	/*switch(code) {
 	case protocol::AnnounceType_FirstJoin:
 	case protocol::AnnounceType_Joined:
 	  _userCount++;
@@ -108,14 +105,8 @@ namespace noda {
 	default:
 	  break;
 	}
-
+	*/
 	_labelUserText->setText(QString::number(_userCount));
-  }
-
-  void StatusWidget::OnStatsUpdate(const NetStats &stats)
-  {
-	_labelDownText->setText(QString::number(stats.bwDown));
-	_labelUpText->setText(QString::number(stats.bwDown));
   }
 
   void StatusWidget::paintEvent(QPaintEvent *paintEvent)

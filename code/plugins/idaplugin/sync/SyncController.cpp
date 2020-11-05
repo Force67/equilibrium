@@ -5,27 +5,27 @@
 #include <qglobal.h>
 #include <qsettings.h>
 
-#include "NSyncController.h"
+#include "SyncController.h"
 #include "utils/Storage.h"
 
 #include "moc_protocol/Message_generated.h"
 
 #include "IdaInc.h"
-#include "NSyncHandler.h"
+#include "SyncHandler.h"
 
 namespace noda {
   constexpr int kNetTrackRate = 1000;
 
   ssize_t SyncController_IdbEvent(void *userData, int code, va_list args)
   {
-	return static_cast<NSyncController*>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
+	return static_cast<SyncController*>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
   }
   ssize_t SyncController_IdpEvent(void *userData, int code, va_list args)
   {
-	return static_cast<NSyncController*>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
+	return static_cast<SyncController*>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
   }
 
-  NSyncController::NSyncController() : _client(*this)
+  SyncController::SyncController() : _client(*this)
   {
 	hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 	hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
@@ -45,33 +45,33 @@ namespace noda {
 	}
   }
 
-  NSyncController::~NSyncController()
+  SyncController::~SyncController()
   {
 	unhook_from_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 	unhook_from_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
   }
 
-  bool NSyncController::ConnectServer()
+  bool SyncController::ConnectServer()
   {
 	// initialize storage?
 	return _client.ConnectServer();
   }
 
-  void NSyncController::DisconnectServer()
+  void SyncController::DisconnectServer()
   {
 	// flush storage?
 	_client.Disconnect();
   }
 
-  bool NSyncController::IsConnected()
+  bool SyncController::IsConnected()
   {
 	return _client.Good() && _active;
   }
 
-  void NSyncController::OnConnected()
+  void SyncController::OnConnected()
   {
 	struct request : exec_request_t {
-	  NSyncController &sc;
+	  SyncController &sc;
 
 	  int execute() override
 	  {
@@ -92,10 +92,10 @@ namespace noda {
 		char fileName[128]{};
 		get_root_filename(fileName, sizeof(fileName) - 1);
 
-		sc.SendFbsPacket(protocol::MsgType_LocalProjectInfo,
+		/*sc.SendFbsPacket(protocol::MsgType_LocalProjectInfo,
 		                 protocol::CreateLocalProjectInfoDirect(
 		                     sc.fbb(), 1337,
-		                     md5Str, fileName));
+		                     md5Str, fileName));*/
 		return 0;
 	  }
 
@@ -110,7 +110,7 @@ namespace noda {
 	emit Connected();
   }
 
-  void NSyncController::OnDisconnect(int reason)
+  void SyncController::OnDisconnect(int reason)
   {
 	_active = false;
 
@@ -118,7 +118,7 @@ namespace noda {
 	emit Disconnected(reason);
   }
 
-  void NSyncController::OnAnnouncement(const protocol::Message *message)
+  void SyncController::OnAnnouncement(const protocol::Message *message)
   {
 	const auto *pack = message->msg_as_Announcement();
 	switch(pack->type()) {
@@ -139,7 +139,7 @@ namespace noda {
 	emit Broadcasted(pack->type());
   }
 
-  void NSyncController::OnProjectJoin(const protocol::Message *message)
+  void SyncController::OnProjectJoin(const protocol::Message *message)
   {
 	const auto *pack = message->msg_as_RemoteProjectInfo();
 
@@ -157,7 +157,7 @@ namespace noda {
 	_active = true;
   }
 
-  void NSyncController::ProcessPacket(const uint8_t *data, size_t size)
+  void SyncController::ProcessPacket(const uint8_t *data, size_t size)
   {
 	const auto *message = protocol::GetMessage(data);
 
@@ -177,12 +177,12 @@ namespace noda {
 	  return;
 
 	// this is kinda ugly for now :slight_smile:
-	auto *item = new RequestItem(it->second, size);
+	/*auto *item = new RequestItem(it->second, size);
 	std::memcpy(item->data.get(), data, size);
-	_requestQueue.Queue(item);
+	_requestQueue.Queue(item);*/
   }
 
-  ssize_t NSyncController::HandleEvent(hook_type_t type, int code, va_list args)
+  ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)
   {
 	if(!_active)
 	  return 0;

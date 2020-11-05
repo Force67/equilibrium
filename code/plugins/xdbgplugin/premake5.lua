@@ -3,7 +3,7 @@
 filter("configurations:Release")
     defines("Q_DEBUG")
 
-project("Noda - X64Dbg")
+project("64DbgPlugin")
     kind("SharedLib")
     targetname("Noda_x64Dbg_72")
     include_meta()

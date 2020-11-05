@@ -4,6 +4,8 @@
 #include "Settings.h"
 #include "utils/UserInfo.h"
 
+#include "netlib/NetLib.h"
+
 namespace noda {
   Settings::Settings(bool connected, QWidget *pParent) :
       QDialog(pParent)
@@ -32,12 +34,12 @@ namespace noda {
 	  _settings.setValue("Nd_UiSkipConnect", !down);
 	});
 
-	editIP->setText(_settings.value("Nd_SyncIp", constants::kServerIp).toString());
-	editPort->setText(_settings.value("Nd_SyncPort", constants::kServerPort).toString());
+	editIP->setText(_settings.value("Nd_SyncIp", netlib::constants::kServerIp).toString());
+	editPort->setText(_settings.value("Nd_SyncPort", netlib::constants::kServerPort).toString());
 	editPass->setText(_settings.value("Nd_SyncPass", "").toString());
 	editUser->setText(_settings.value("Nd_SyncUser", GetDefaultUserName()).toString());
 
-	editTimeout->setText(_settings.value("Nd_NetTimeout", constants::kTimeout).toString());
+	editTimeout->setText(_settings.value("Nd_NetTimeout", netlib::constants::kTimeout).toString());
 	cbShowWelcome->setChecked(!_settings.value("Nd_UiSkipWelcome").toBool());
 	cbShowAutoconnect->setChecked(!_settings.value("Nd_UiSkipConnect").toBool());
 

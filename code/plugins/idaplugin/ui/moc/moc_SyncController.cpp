@@ -106,7 +106,7 @@ void noda::SyncController::qt_static_metacall(QObject *_o, QMetaObject::Call _c,
 }
 
 const QMetaObject noda::SyncController::staticMetaObject = {
-    { &NSyncDelegate::staticMetaObject, qt_meta_stringdata_noda__SyncController.data,
+    { &QObject::staticMetaObject, qt_meta_stringdata_noda__SyncController.data,
       qt_meta_data_noda__SyncController,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
@@ -121,14 +121,14 @@ void *noda::SyncController::qt_metacast(const char *_clname)
     if (!_clname) return Q_NULLPTR;
     if (!strcmp(_clname, qt_meta_stringdata_noda__SyncController.stringdata0))
         return static_cast<void*>(const_cast< SyncController*>(this));
-    if (!strcmp(_clname, "QObject"))
-        return static_cast< QObject*>(const_cast< SyncController*>(this));
-    return NSyncDelegate::qt_metacast(_clname);
+    if (!strcmp(_clname, "SyncDelegate"))
+        return static_cast< SyncDelegate*>(const_cast< SyncController*>(this));
+    return QObject::qt_metacast(_clname);
 }
 
 int noda::SyncController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = NSyncDelegate::qt_metacall(_c, _id, _a);
+    _id = QObject::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {

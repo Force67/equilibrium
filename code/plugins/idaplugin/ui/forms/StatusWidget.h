@@ -18,7 +18,6 @@ namespace noda {
 	void OnConnected();
 	void OnDisconnect(uint32_t);
 	void OnBroadcast(int);
-	void OnStatsUpdate(const NetStats &);
 
   private:
 	void paintEvent(QPaintEvent *) override;

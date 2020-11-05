@@ -3,7 +3,7 @@
 
 #include <qsettings.h>
 
-#include "NSyncClient.h"
+#include "SyncClient.h"
 
 #include "utils/UserInfo.h"
 #include "utils/Logger.h"
@@ -16,15 +16,15 @@ namespace noda {
 
   constexpr uint32_t kNetworkerThreadIdle = 1;
 
-  inline utility::object_pool<NSyncClient::InPacket> s_inpacketPool;
+  inline utility::object_pool<SyncClient::InPacket> s_inpacketPool;
 
-  NSyncClient::NSyncClient(NSyncDelegate& nsd) : _delegate(nsd)
+  SyncClient::SyncClient(SyncDelegate& nsd) : _delegate(nsd)
   {
   }
 
-  NSyncClient::~NSyncClient() {}
+  SyncClient::~SyncClient() {}
 
-  bool NSyncClient::ConnectServer()
+  bool SyncClient::ConnectServer()
   {
 	QSettings settings;
 	uint port = settings.value("Nd_SyncPort", netlib::constants::kServerPort).toUInt();
@@ -40,7 +40,7 @@ namespace noda {
 	return result;
   }
 
-  void NSyncClient::OnConnection()
+  void SyncClient::OnConnection()
   {
 	QSettings settings;
 	flatbuffers::FlatBufferBuilder fbb;
@@ -60,12 +60,12 @@ namespace noda {
 	//SendPacket(protocol::MsgType_HandshakeRequest, request);
   }
 
-  void NSyncClient::OnDisconnected(int r)
+  void SyncClient::OnDisconnected(int r)
   {
 	  _delegate.OnDisconnect(r);
   }
 
-  void NSyncClient::run()
+  void SyncClient::run()
   {
 	while(_run) {
 	  Client::Tick();
@@ -73,7 +73,7 @@ namespace noda {
 	}
   }
 
-  void NSyncClient::OnConsume(netlib::Packet *packet)
+  void SyncClient::OnConsume(netlib::Packet *packet)
   {
 	flatbuffers::Verifier verifier(packet->data(), packet->length());
 	if(!protocol::VerifyMessageBuffer(verifier)) {
@@ -90,7 +90,7 @@ namespace noda {
 	_inQueue.push(&item->key);
   }
 
-  void NSyncClient::HandleAuth(const protocol::Message *message)
+  void SyncClient::HandleAuth(const protocol::Message *message)
   {
 	auto *pack = message->msg_as_HandshakeAck();
   }

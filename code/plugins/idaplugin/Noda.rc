@@ -20,7 +20,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "NomadGroup"
             VALUE "ProductName", "NODA"
-            VALUE "FileDescription", "Nomad IDA plugin"
+            VALUE "FileDescription", "NODA Plugin for IDA"
             VALUE "LegalCopyright", "Copyright (C) NOMAD Group <nomad-group.net>."
             VALUE "InternalName", "NODA"
             VALUE "OriginalFilename", "NODA.dll"

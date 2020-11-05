@@ -15,9 +15,9 @@
 
 namespace noda {
 
-	class NSyncDelegate {
+	class SyncDelegate {
   public:
-	virtual ~NSyncDelegate() = default;
+	virtual ~SyncDelegate() = default;
 
 	// this is triggered when a connection has been
 	// established
@@ -30,13 +30,11 @@ namespace noda {
 	virtual void ProcessPacket(const uint8_t *data, size_t size) = 0;
   };
 
-  class NSyncClient final : public netlib::Client,
+  class SyncClient final : public netlib::Client,
                             public QThread {
-	Q_OBJECT;
-
   public:
-	NSyncClient(NSyncDelegate&);
-	~NSyncClient();
+	SyncClient(SyncDelegate&);
+	~SyncClient();
 
 	bool ConnectServer();
 
@@ -54,7 +52,7 @@ namespace noda {
 	netlib::ScopedNetContext _context;
 
 	bool _run = false;
-	NSyncDelegate& _delegate;
+	SyncDelegate& _delegate;
 
   public:
 	struct InPacket {

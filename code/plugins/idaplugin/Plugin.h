@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <ui/UiController.h>
-#include <sync/SyncController.h>
+#include "ui/UiController.h"
+#include "sync/SyncController.h"
 
 namespace noda {
   class Plugin {

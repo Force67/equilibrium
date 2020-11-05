@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_noda__StatusWidget_t {
-    QByteArrayData data[8];
-    char stringdata0[89];
+    QByteArrayData data[6];
+    char stringdata0[66];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -34,14 +34,11 @@ QT_MOC_LITERAL(1, 19, 11), // "OnConnected"
 QT_MOC_LITERAL(2, 31, 0), // ""
 QT_MOC_LITERAL(3, 32, 12), // "OnDisconnect"
 QT_MOC_LITERAL(4, 45, 8), // "uint32_t"
-QT_MOC_LITERAL(5, 54, 11), // "OnBroadcast"
-QT_MOC_LITERAL(6, 66, 13), // "OnStatsUpdate"
-QT_MOC_LITERAL(7, 80, 8) // "NetStats"
+QT_MOC_LITERAL(5, 54, 11) // "OnBroadcast"
 
     },
     "noda::StatusWidget\0OnConnected\0\0"
-    "OnDisconnect\0uint32_t\0OnBroadcast\0"
-    "OnStatsUpdate\0NetStats"
+    "OnDisconnect\0uint32_t\0OnBroadcast"
 };
 #undef QT_MOC_LITERAL
 
@@ -51,7 +48,7 @@ static const uint qt_meta_data_noda__StatusWidget[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       4,   14, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -59,16 +56,14 @@ static const uint qt_meta_data_noda__StatusWidget[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   34,    2, 0x0a /* Public */,
-       3,    1,   35,    2, 0x0a /* Public */,
-       5,    1,   38,    2, 0x0a /* Public */,
-       6,    1,   41,    2, 0x0a /* Public */,
+       1,    0,   29,    2, 0x0a /* Public */,
+       3,    1,   30,    2, 0x0a /* Public */,
+       5,    1,   33,    2, 0x0a /* Public */,
 
  // slots: parameters
     QMetaType::Void,
     QMetaType::Void, 0x80000000 | 4,    2,
     QMetaType::Void, QMetaType::Int,    2,
-    QMetaType::Void, 0x80000000 | 7,    2,
 
        0        // eod
 };
@@ -82,7 +77,6 @@ void noda::StatusWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
         case 0: _t->OnConnected(); break;
         case 1: _t->OnDisconnect((*reinterpret_cast< uint32_t(*)>(_a[1]))); break;
         case 2: _t->OnBroadcast((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 3: _t->OnStatsUpdate((*reinterpret_cast< const NetStats(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -113,13 +107,13 @@ int noda::StatusWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 4)
+        if (_id < 3)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 4;
+        _id -= 3;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 4)
+        if (_id < 3)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 4;
+        _id -= 3;
     }
     return _id;
 }

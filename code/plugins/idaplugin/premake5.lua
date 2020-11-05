@@ -3,7 +3,7 @@
 filter("configurations:Release")
     defines("Q_DEBUG")
 
-project("Noda - IDA")
+project("IDAPlugin")
     kind("SharedLib")
     targetname("Noda_72")
     include_meta()
