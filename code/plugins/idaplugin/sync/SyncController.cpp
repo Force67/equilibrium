@@ -6,8 +6,6 @@
 #include <qsettings.h>
 
 #include "SyncController.h"
-#include "utils/Storage.h"
-
 #include "moc_protocol/Message_generated.h"
 
 #include "IdaInc.h"
@@ -16,26 +14,17 @@
 namespace noda {
   constexpr int kNetTrackRate = 1000;
 
-  ssize_t SyncController_IdbEvent(void *userData, int code, va_list args)
-  {
-	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
-  }
-  ssize_t SyncController_IdpEvent(void *userData, int code, va_list args)
-  {
-	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
-  }
+  constexpr uint32_t kStorageVersion = 4;
+  static const char kSyncNodeName[] = "$ nd_sync_data";
 
   SyncController::SyncController() :
       _client(*this)
   {
-	hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
-	hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
+	hook_to_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
+	hook_to_notification_point(hook_type_t::HT_IDP, IdpEvent, this);
 
 	for(auto *i = SyncHandler::ROOT(); i;) {
 	  if(SyncHandler *it = i->handler) {
-		//LOG_TRACE("Registering handler {}",
-		//	protocol::EnumNameMsgType(it->msgType));
-
 		_idaEvents[std::make_pair(it->hookType, it->hookEvent)] = it;
 		_netEvents[it->msgType] = it;
 	  }
@@ -44,21 +33,51 @@ namespace noda {
 	  i->next = nullptr;
 	  i = j;
 	}
+
+	//_node = NetNode(kSyncNodeName, true);
   }
 
   SyncController::~SyncController()
   {
-	unhook_from_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
-	unhook_from_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);
+	unhook_from_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
+	unhook_from_notification_point(hook_type_t::HT_IDP, IdpEvent, this);
   }
 
-  bool SyncController::ConnectServer()
+  ssize_t SyncController::IdbEvent(void *userData, int code, va_list args)
+  {
+	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
+  }
+  ssize_t SyncController::IdpEvent(void *userData, int code, va_list args)
+  {
+	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
+  }
+
+  // move thread here?:..
+
+  bool SyncController::CreateLocalHost()
+  {
+	_localServer = std::make_unique<Server>(4523);
+	auto result = _localServer->Initialize(false);
+	if(result != noda::ServerStatus::Success) {
+	  LOG_ERROR("Failed to initialize the server instance (status: %d)\n",
+	            static_cast<int>(result));
+	  return false;
+	}
+
+	return true;
+  }
+
+  void SyncController::DestroyLocalHost()
+  {
+  }
+
+  bool SyncController::Connect()
   {
 	// initialize storage?
 	return _client.ConnectServer();
   }
 
-  void SyncController::DisconnectServer()
+  void SyncController::Disconnect()
   {
 	// flush storage?
 	_client.Disconnect();
@@ -67,6 +86,11 @@ namespace noda {
   bool SyncController::IsConnected()
   {
 	return _client.Good() && _active;
+  }
+
+  bool SyncController::IsLocalHosting()
+  {
+	  return _localServer.get() != nullptr;
   }
 
   void SyncController::OnConnected()
@@ -176,11 +200,6 @@ namespace noda {
 	auto it = _netEvents.find(message->msg_type());
 	if(it == _netEvents.end())
 	  return;
-
-	// this is kinda ugly for now :slight_smile:
-	/*auto *item = new RequestItem(it->second, size);
-	std::memcpy(item->data.get(), data, size);
-	_requestQueue.Queue(item);*/
   }
 
   ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)
@@ -188,19 +207,14 @@ namespace noda {
 	if(!_active)
 	  return 0;
 
-	if(type == hook_type_t::HT_IDB) {
+	if(type == hook_type_t::HT_IDB && code == idb_event::closebase) {
+	  _client.Disconnect();
+	  return 0;
 	}
 
-	if(_active) {
-	  if(type == hook_type_t::HT_IDB && code == idb_event::closebase) {
-		_client.Disconnect();
-		return 0;
-	  }
-
-	  const auto it = _idaEvents.find(std::make_pair(type, code));
-	  if(it != _idaEvents.end()) {
-		it->second->delegates.react(*this, args);
-	  }
+	const auto it = _idaEvents.find(std::make_pair(type, code));
+	if(it != _idaEvents.end()) {
+	  it->second->delegates.react(*this, args);
 	}
 
 	return 0;

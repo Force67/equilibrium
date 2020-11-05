@@ -49,8 +49,6 @@ namespace noda {
 
 	void HandleAuth(const protocol::Message *message);
 
-	netlib::ScopedNetContext _context;
-
 	bool _run = false;
 	SyncDelegate &_delegate;
 

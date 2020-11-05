@@ -31,6 +31,7 @@ project("IDAPlugin")
         -- network
         "enet",
         "fmtlib",
+        "server",
 
         -- common
         "netlib",
@@ -49,6 +50,7 @@ project("IDAPlugin")
     includedirs({
         ".",
         "../../common",
+        "../../sync_server",
         blu.extdir .. "/idasdk72/include",
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",

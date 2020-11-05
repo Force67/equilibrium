@@ -6,11 +6,13 @@
 #include <QAtomicInt>
 #include <qobject.h>
 
-#include "utils/Storage.h"
 #include "utils/Logger.h"
 #include "utils/AtomicQueue.h"
 
 #include "SyncClient.h"
+#include "server/Server.h"
+
+#include "utils/NetNode.h"
 
 namespace QT {
   class QTimer;
@@ -28,12 +30,14 @@ namespace noda {
 	SyncController(const SyncController &) = delete;
 	~SyncController();
 
-	bool ConnectServer();
-	void DisconnectServer();
+	bool Connect();
+	void Disconnect();
+
+	bool CreateLocalHost();
+	void DestroyLocalHost();
 
 	bool IsConnected();
-	// IDA
-	ssize_t HandleEvent(hook_type_t, int, va_list);
+	bool IsLocalHosting();
 
   signals:
 	void Connected();
@@ -49,10 +53,18 @@ namespace noda {
 	void OnDisconnect(int) override;
 	void ProcessPacket(const uint8_t *data, size_t size) override;
 
-	Storage _storage;
+	// IDA
+	ssize_t HandleEvent(hook_type_t, int, va_list);
+
+	static ssize_t IdbEvent(void *userData, int code, va_list args);
+	static ssize_t IdpEvent(void *userData, int code, va_list args);
+
+	NetNode _node;
 	bool _active = false;
 
+	netlib::ScopedNetContext _context;
 	SyncClient _client;
+	std::unique_ptr<noda::Server> _localServer;
 
 	using IdaEventType_t = std::pair<hook_type_t, int>;
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;

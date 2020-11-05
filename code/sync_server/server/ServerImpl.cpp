@@ -63,7 +63,7 @@ namespace noda {
 	});
 
 	if(it == _userRegistry.end())
-	  return {};
+	  return nullptr;
 
 	return *it;
   }
@@ -99,9 +99,9 @@ namespace noda {
 
 	const netlib::connectid_t id = source->Id();
 
-	auto user = std::make_shared<userptr_t>(id,
-	                                        packet->guid()->str(),
-	                                        packet->name()->str());
+	userptr_t user = std::make_shared<NdUser>(id,
+	       packet->guid()->str(),
+	       packet->name()->str());
 
 	_userRegistry.emplace_back(user);
 

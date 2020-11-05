@@ -7,6 +7,7 @@
 #include "forms/Settings.h"
 #include "forms/ConnectDialog.h"
 #include "forms/AboutDialog.h"
+#include "forms/ProgressDialog.h"
 #include "forms/WelcomeDialog.h"
 #include "forms/NSyncDialog.h"
 #include "forms/RunDialog.h"
@@ -59,7 +60,6 @@ namespace noda {
 	// look away!!!! this is a bit hacked together, but nevertheless it works
 	QMenu *fileMenu = reinterpret_cast<QMenu *>(menuBar->actions()[0]->parent());
 	for(auto *it : fileMenu->actions()) {
-	  // glue on the new open act
 	  if(it->text() == "&Load file") {
 		_cloudDlAct = new QAction(QIcon(":/cloud_download"), "Import NodaDB", fileMenu);
 		connect(_cloudDlAct, &QAction::triggered, this, &UiController::ImportNodaDB);
@@ -77,12 +77,15 @@ namespace noda {
 
 	if(QMenu *nodaMenu = menuBar->addMenu(QIcon(":/logo"), "NODA")) {
 	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
-	  nodaMenu->addAction(QIcon(":/sync"), "NSync", this, &UiController::OpenSyncMenu);
+	  _localhAct = nodaMenu->addAction(QIcon(":/wired"), "Start Localhost", this, &UiController::ToggleLocalhost);
+	  _projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
 	}
+
+	//_projectAct->setEnabled(false);
 
 	auto *statusBar = mainWindow->statusBar();
 
@@ -119,7 +122,8 @@ namespace noda {
 
   void UiController::ImportNodaDB()
   {
-	LOG_INFO("DlFromServer");
+	  ProgressDialog dialog(GetTopWindow(), "Importing NodaDB", "Might take a while!");
+	  dialog.exec();
 
 	// progress dialog.. and thread...
 
@@ -154,6 +158,19 @@ namespace noda {
 	_timer->start(1000);
 	_labelCounter->show();
 	_timeCount = _node.LoadScalar(NodeIndex::Timer, 0u);
+
+	uint32_t uFlags = _node.LoadScalar(NodeIndex::Flags, 0u);
+
+	if(WelcomeDialog::ShouldShow()) {
+	  WelcomeDialog dialog;
+	  dialog.exec();
+	}
+
+	if(!(uFlags & UiFlags::SkipConnect) &&
+	   ConnectDialog::ShouldShow()) {
+	  ConnectDialog promt(*this);
+	  promt.exec();
+	}
   }
 
   void UiController::OnIdbSave()
@@ -172,7 +189,7 @@ namespace noda {
 
   void UiController::UpdateCounter()
   {
-	int hours = (_timeCount / (60 * 60)) % 24;
+	int hours = (_timeCount / 3600) % 24;
 	int minutes = (_timeCount / 60) % 60;
 	int seconds = _timeCount % 60;
 
@@ -188,12 +205,17 @@ namespace noda {
 
   void UiController::DestroyUi()
   {
+	_cloudUpAct->setEnabled(false);
+
 	// takes the ownership of these widgets *away* from ida on purpose
 	// so it cant release em
 	_netStatus.reset();
 	_labelBuild.reset();
 
 	_timer->stop();
+
+	// this causes a bug on manual close where netstatus and build label will never show up again <.<
+	//MessageBoxA(0, 0, 0, 0);
   }
 
   void UiController::OpenRunDialog()
@@ -216,15 +238,39 @@ namespace noda {
 
   void UiController::ToggleConnect()
   {
-	if(_sync.IsConnected())
-	  _sync.DisconnectServer();
+	bool connected = _sync.IsConnected();
+
+	_projectAct->setEnabled(!connected);
+	_localhAct->setEnabled(connected);
+
+	if(connected)
+	  _sync.Disconnect();
 	else {
-	  bool result = _sync.ConnectServer();
+	  bool result = _sync.Connect();
 	  if(!result) {
 		QErrorMessage error(QApplication::activeWindow());
 		error.showMessage(
 		    "Unable to connect to the NODA sync host.\n"
 		    "It is likely that the selected port is not available.");
+		error.exec();
+	  }
+
+	  // populate projects list
+	}
+  }
+
+  void UiController::ToggleLocalhost()
+  {
+	bool hosting = _sync.IsLocalHosting();
+
+	if(hosting)
+	  _sync.DestroyLocalHost();
+	else {
+	  bool result = _sync.CreateLocalHost();
+	  if(!result) {
+		QErrorMessage error(QApplication::activeWindow());
+		error.showMessage(
+		    "Unable to create a local host server");
 		error.exec();
 	  }
 	}
@@ -240,11 +286,11 @@ namespace noda {
   {
 	auto *self = reinterpret_cast<UiController *>(userp);
 	switch(status) {
-	case ui_notification_t::ui_ready_to_run:
-	  self->OnIdbLoad();
-	  break;
 	case ui_notification_t::ui_term:
 	  self->DestroyUi();
+	  break;
+	case ui_notification_t::ui_database_inited:
+	  self->OnIdbLoad();
 	  break;
 	case ui_notification_t::ui_saving:
 	  self->OnIdbSave();

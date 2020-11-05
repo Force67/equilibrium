@@ -44,6 +44,8 @@ namespace noda {
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
 	QAction *_connectAct = nullptr;
+	QAction *_localhAct = nullptr;
+	QAction *_projectAct = nullptr;
 	QAction *_cloudDlAct = nullptr;
 	QAction *_cloudUpAct = nullptr;
 
@@ -57,14 +59,20 @@ namespace noda {
 	SyncController &_sync;
 
 	enum NodeIndex : nodeidx_t {
-	  UiFlags,
+	  Flags,
 	  Timer,
+	};
+
+	enum UiFlags : uint32_t {
+	  None,
+	  SkipConnect = 1 << 0,
 	};
 
 	NetNode _node;
 
   public slots:
 	void ToggleConnect();
+	void ToggleLocalhost();
 
   private slots:
 	void OpenSyncMenu();
