@@ -29,420 +29,398 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_SettingsDialog
-{
+class Ui_SettingsDialog {
 public:
-    QVBoxLayout *settings_dialog_layout;
-    QTabWidget *tabBar;
-    QWidget *tabSync;
-    QVBoxLayout *networkTab_layout;
-    QHBoxLayout *layoutSync;
-    QGroupBox *gbSyncConfig;
-    QVBoxLayout *gb_network_status_layout;
-    QGroupBox *gbNetAddress;
-    QVBoxLayout *gb_netStatusBox_layout;
-    QHBoxLayout *horizontalLayout_5;
-    QLabel *labelIP;
-    QLabel *labelPort;
-    QHBoxLayout *horizontalLayout_2;
-    QLineEdit *editIP;
-    QLineEdit *editPort;
-    QGroupBox *gbEditSyncConfig;
-    QVBoxLayout *gb_edit_dns_layout;
-    QHBoxLayout *horizontalLayout_4;
-    QLabel *labelUser;
-    QLabel *labelPass;
-    QHBoxLayout *horizontalLayout_3;
-    QLineEdit *editUser;
-    QLineEdit *editPass;
-    QSpacerItem *networkTabSpacerLeft;
-    QGroupBox *gbNetConfig;
-    QVBoxLayout *gb_psn_config_layout;
-    QGroupBox *gbNetClient;
-    QVBoxLayout *gb_psnStatusBox_layout;
-    QLabel *labelTimeout;
-    QLineEdit *editTimeout;
-    QSpacerItem *networkTabSpacerRight;
-    QWidget *guiTab;
-    QVBoxLayout *guiTab_layout;
-    QHBoxLayout *guiTabLayout;
-    QVBoxLayout *guiTabLayoutLeft;
-    QGroupBox *gbStyleSheet;
-    QVBoxLayout *gb_stylesheets_layout;
-    QComboBox *comboStyles;
-    QPushButton *pbApplySheet;
-    QGroupBox *gb_colors;
-    QVBoxLayout *gb_colors_layout;
-    QCheckBox *cbCustomColors;
-    QSpacerItem *guiTabSpacerLeft;
-    QVBoxLayout *guiTabLayoutRight;
-    QGroupBox *gbUiOptions;
-    QVBoxLayout *gb_gui_options_layout;
-    QCheckBox *cbShowWelcome;
-    QCheckBox *cbShowAutoconnect;
-    QSpacerItem *guiTabSpacerRight;
-    QGroupBox *gb_updates;
-    QVBoxLayout *layout_gb_updates;
-    QComboBox *combo_updates;
-    QGroupBox *gbDiscord;
-    QVBoxLayout *gb_discord_layout;
-    QCheckBox *cbUseDiscordRPC;
-    QWidget *tabDebug;
-    QVBoxLayout *debugTab_layout;
-    QHBoxLayout *debugTabLayout;
-    QGroupBox *gb_debug_gpu;
-    QVBoxLayout *gb_debug_gpu_layout;
-    QCheckBox *debugOutput;
-    QGroupBox *dbDebugMain;
-    QVBoxLayout *gb_debug_core_layout;
-    QCheckBox *cbXPSDebug;
-    QSpacerItem *verticalSpacer;
-    QSpacerItem *debugTabSpacer;
-
-    void setupUi(QDialog *SettingsDialog)
-    {
-        if (SettingsDialog->objectName().isEmpty())
-            SettingsDialog->setObjectName(QStringLiteral("SettingsDialog"));
-        SettingsDialog->resize(635, 483);
-        QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(SettingsDialog->sizePolicy().hasHeightForWidth());
-        SettingsDialog->setSizePolicy(sizePolicy);
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
-        SettingsDialog->setWindowIcon(icon);
-        settings_dialog_layout = new QVBoxLayout(SettingsDialog);
-        settings_dialog_layout->setObjectName(QStringLiteral("settings_dialog_layout"));
-        tabBar = new QTabWidget(SettingsDialog);
-        tabBar->setObjectName(QStringLiteral("tabBar"));
-        tabBar->setEnabled(true);
-        sizePolicy.setHeightForWidth(tabBar->sizePolicy().hasHeightForWidth());
-        tabBar->setSizePolicy(sizePolicy);
-        tabSync = new QWidget();
-        tabSync->setObjectName(QStringLiteral("tabSync"));
-        networkTab_layout = new QVBoxLayout(tabSync);
-        networkTab_layout->setObjectName(QStringLiteral("networkTab_layout"));
-        layoutSync = new QHBoxLayout();
-        layoutSync->setObjectName(QStringLiteral("layoutSync"));
-        gbSyncConfig = new QGroupBox(tabSync);
-        gbSyncConfig->setObjectName(QStringLiteral("gbSyncConfig"));
-        gb_network_status_layout = new QVBoxLayout(gbSyncConfig);
-        gb_network_status_layout->setObjectName(QStringLiteral("gb_network_status_layout"));
-        gbNetAddress = new QGroupBox(gbSyncConfig);
-        gbNetAddress->setObjectName(QStringLiteral("gbNetAddress"));
-        gb_netStatusBox_layout = new QVBoxLayout(gbNetAddress);
-        gb_netStatusBox_layout->setObjectName(QStringLiteral("gb_netStatusBox_layout"));
-        horizontalLayout_5 = new QHBoxLayout();
-        horizontalLayout_5->setObjectName(QStringLiteral("horizontalLayout_5"));
-        labelIP = new QLabel(gbNetAddress);
-        labelIP->setObjectName(QStringLiteral("labelIP"));
+  QVBoxLayout *settings_dialog_layout;
+  QTabWidget *tabBar;
+  QWidget *tabSync;
+  QVBoxLayout *networkTab_layout;
+  QHBoxLayout *layoutSync;
+  QGroupBox *gbSyncConfig;
+  QVBoxLayout *gb_network_status_layout;
+  QGroupBox *gbNetAddress;
+  QVBoxLayout *gb_netStatusBox_layout;
+  QHBoxLayout *horizontalLayout_5;
+  QLabel *labelIP;
+  QLabel *labelPort;
+  QHBoxLayout *horizontalLayout_2;
+  QLineEdit *editIP;
+  QLineEdit *editPort;
+  QGroupBox *gbEditSyncConfig;
+  QVBoxLayout *gb_edit_dns_layout;
+  QHBoxLayout *horizontalLayout_4;
+  QLabel *labelUser;
+  QLabel *labelPass;
+  QHBoxLayout *horizontalLayout_3;
+  QLineEdit *editUser;
+  QLineEdit *editPass;
+  QSpacerItem *networkTabSpacerLeft;
+  QGroupBox *gbNetConfig;
+  QVBoxLayout *gb_psn_config_layout;
+  QGroupBox *gbNetClient;
+  QVBoxLayout *gb_psnStatusBox_layout;
+  QLabel *labelTimeout;
+  QLineEdit *editTimeout;
+  QSpacerItem *networkTabSpacerRight;
+  QWidget *guiTab;
+  QVBoxLayout *guiTab_layout;
+  QHBoxLayout *guiTabLayout;
+  QVBoxLayout *guiTabLayoutLeft;
+  QGroupBox *gbStyleSheet;
+  QVBoxLayout *gb_stylesheets_layout;
+  QComboBox *comboStyles;
+  QPushButton *pbApplySheet;
+  QGroupBox *gb_colors;
+  QVBoxLayout *gb_colors_layout;
+  QCheckBox *cbCustomColors;
+  QSpacerItem *guiTabSpacerLeft;
+  QVBoxLayout *guiTabLayoutRight;
+  QGroupBox *gbUiOptions;
+  QVBoxLayout *gb_gui_options_layout;
+  QCheckBox *cbShowWelcome;
+  QCheckBox *cbShowAutoconnect;
+  QSpacerItem *guiTabSpacerRight;
+  QGroupBox *gb_updates;
+  QVBoxLayout *layout_gb_updates;
+  QComboBox *combo_updates;
+  QGroupBox *gbDiscord;
+  QVBoxLayout *gb_discord_layout;
+  QCheckBox *cbUseDiscordRPC;
+  QWidget *tabDebug;
+  QVBoxLayout *debugTab_layout;
+  QHBoxLayout *debugTabLayout;
+  QGroupBox *gb_debug_gpu;
+  QVBoxLayout *gb_debug_gpu_layout;
+  QCheckBox *debugOutput;
+  QGroupBox *dbDebugMain;
+  QVBoxLayout *gb_debug_core_layout;
+  QCheckBox *cbXPSDebug;
+  QSpacerItem *verticalSpacer;
+  QSpacerItem *debugTabSpacer;
+
+  void setupUi(QDialog *SettingsDialog)
+  {
+	if(SettingsDialog->objectName().isEmpty())
+	  SettingsDialog->setObjectName(QStringLiteral("SettingsDialog"));
+	SettingsDialog->resize(635, 483);
+	QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+	sizePolicy.setHorizontalStretch(0);
+	sizePolicy.setVerticalStretch(0);
+	sizePolicy.setHeightForWidth(SettingsDialog->sizePolicy().hasHeightForWidth());
+	SettingsDialog->setSizePolicy(sizePolicy);
+	QIcon icon;
+	icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
+	SettingsDialog->setWindowIcon(icon);
+	settings_dialog_layout = new QVBoxLayout(SettingsDialog);
+	settings_dialog_layout->setObjectName(QStringLiteral("settings_dialog_layout"));
+	tabBar = new QTabWidget(SettingsDialog);
+	tabBar->setObjectName(QStringLiteral("tabBar"));
+	tabBar->setEnabled(true);
+	sizePolicy.setHeightForWidth(tabBar->sizePolicy().hasHeightForWidth());
+	tabBar->setSizePolicy(sizePolicy);
+	tabSync = new QWidget();
+	tabSync->setObjectName(QStringLiteral("tabSync"));
+	networkTab_layout = new QVBoxLayout(tabSync);
+	networkTab_layout->setObjectName(QStringLiteral("networkTab_layout"));
+	layoutSync = new QHBoxLayout();
+	layoutSync->setObjectName(QStringLiteral("layoutSync"));
+	gbSyncConfig = new QGroupBox(tabSync);
+	gbSyncConfig->setObjectName(QStringLiteral("gbSyncConfig"));
+	gb_network_status_layout = new QVBoxLayout(gbSyncConfig);
+	gb_network_status_layout->setObjectName(QStringLiteral("gb_network_status_layout"));
+	gbNetAddress = new QGroupBox(gbSyncConfig);
+	gbNetAddress->setObjectName(QStringLiteral("gbNetAddress"));
+	gb_netStatusBox_layout = new QVBoxLayout(gbNetAddress);
+	gb_netStatusBox_layout->setObjectName(QStringLiteral("gb_netStatusBox_layout"));
+	horizontalLayout_5 = new QHBoxLayout();
+	horizontalLayout_5->setObjectName(QStringLiteral("horizontalLayout_5"));
+	labelIP = new QLabel(gbNetAddress);
+	labelIP->setObjectName(QStringLiteral("labelIP"));
 
-        horizontalLayout_5->addWidget(labelIP);
+	horizontalLayout_5->addWidget(labelIP);
 
-        labelPort = new QLabel(gbNetAddress);
-        labelPort->setObjectName(QStringLiteral("labelPort"));
+	labelPort = new QLabel(gbNetAddress);
+	labelPort->setObjectName(QStringLiteral("labelPort"));
 
-        horizontalLayout_5->addWidget(labelPort);
+	horizontalLayout_5->addWidget(labelPort);
 
+	gb_netStatusBox_layout->addLayout(horizontalLayout_5);
 
-        gb_netStatusBox_layout->addLayout(horizontalLayout_5);
+	horizontalLayout_2 = new QHBoxLayout();
+	horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+	editIP = new QLineEdit(gbNetAddress);
+	editIP->setObjectName(QStringLiteral("editIP"));
 
-        horizontalLayout_2 = new QHBoxLayout();
-        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
-        editIP = new QLineEdit(gbNetAddress);
-        editIP->setObjectName(QStringLiteral("editIP"));
+	horizontalLayout_2->addWidget(editIP);
 
-        horizontalLayout_2->addWidget(editIP);
+	editPort = new QLineEdit(gbNetAddress);
+	editPort->setObjectName(QStringLiteral("editPort"));
 
-        editPort = new QLineEdit(gbNetAddress);
-        editPort->setObjectName(QStringLiteral("editPort"));
+	horizontalLayout_2->addWidget(editPort);
 
-        horizontalLayout_2->addWidget(editPort);
+	gb_netStatusBox_layout->addLayout(horizontalLayout_2);
 
+	gb_network_status_layout->addWidget(gbNetAddress);
 
-        gb_netStatusBox_layout->addLayout(horizontalLayout_2);
+	gbEditSyncConfig = new QGroupBox(gbSyncConfig);
+	gbEditSyncConfig->setObjectName(QStringLiteral("gbEditSyncConfig"));
+	gb_edit_dns_layout = new QVBoxLayout(gbEditSyncConfig);
+	gb_edit_dns_layout->setObjectName(QStringLiteral("gb_edit_dns_layout"));
+	horizontalLayout_4 = new QHBoxLayout();
+	horizontalLayout_4->setObjectName(QStringLiteral("horizontalLayout_4"));
+	labelUser = new QLabel(gbEditSyncConfig);
+	labelUser->setObjectName(QStringLiteral("labelUser"));
 
+	horizontalLayout_4->addWidget(labelUser);
 
-        gb_network_status_layout->addWidget(gbNetAddress);
+	labelPass = new QLabel(gbEditSyncConfig);
+	labelPass->setObjectName(QStringLiteral("labelPass"));
 
-        gbEditSyncConfig = new QGroupBox(gbSyncConfig);
-        gbEditSyncConfig->setObjectName(QStringLiteral("gbEditSyncConfig"));
-        gb_edit_dns_layout = new QVBoxLayout(gbEditSyncConfig);
-        gb_edit_dns_layout->setObjectName(QStringLiteral("gb_edit_dns_layout"));
-        horizontalLayout_4 = new QHBoxLayout();
-        horizontalLayout_4->setObjectName(QStringLiteral("horizontalLayout_4"));
-        labelUser = new QLabel(gbEditSyncConfig);
-        labelUser->setObjectName(QStringLiteral("labelUser"));
+	horizontalLayout_4->addWidget(labelPass);
 
-        horizontalLayout_4->addWidget(labelUser);
+	gb_edit_dns_layout->addLayout(horizontalLayout_4);
 
-        labelPass = new QLabel(gbEditSyncConfig);
-        labelPass->setObjectName(QStringLiteral("labelPass"));
+	horizontalLayout_3 = new QHBoxLayout();
+	horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
+	editUser = new QLineEdit(gbEditSyncConfig);
+	editUser->setObjectName(QStringLiteral("editUser"));
 
-        horizontalLayout_4->addWidget(labelPass);
+	horizontalLayout_3->addWidget(editUser);
 
+	editPass = new QLineEdit(gbEditSyncConfig);
+	editPass->setObjectName(QStringLiteral("editPass"));
 
-        gb_edit_dns_layout->addLayout(horizontalLayout_4);
+	horizontalLayout_3->addWidget(editPass);
 
-        horizontalLayout_3 = new QHBoxLayout();
-        horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
-        editUser = new QLineEdit(gbEditSyncConfig);
-        editUser->setObjectName(QStringLiteral("editUser"));
+	gb_edit_dns_layout->addLayout(horizontalLayout_3);
 
-        horizontalLayout_3->addWidget(editUser);
+	gb_network_status_layout->addWidget(gbEditSyncConfig);
 
-        editPass = new QLineEdit(gbEditSyncConfig);
-        editPass->setObjectName(QStringLiteral("editPass"));
+	networkTabSpacerLeft = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        horizontalLayout_3->addWidget(editPass);
+	gb_network_status_layout->addItem(networkTabSpacerLeft);
 
+	layoutSync->addWidget(gbSyncConfig);
 
-        gb_edit_dns_layout->addLayout(horizontalLayout_3);
+	gbNetConfig = new QGroupBox(tabSync);
+	gbNetConfig->setObjectName(QStringLiteral("gbNetConfig"));
+	gb_psn_config_layout = new QVBoxLayout(gbNetConfig);
+	gb_psn_config_layout->setObjectName(QStringLiteral("gb_psn_config_layout"));
+	gbNetClient = new QGroupBox(gbNetConfig);
+	gbNetClient->setObjectName(QStringLiteral("gbNetClient"));
+	gb_psnStatusBox_layout = new QVBoxLayout(gbNetClient);
+	gb_psnStatusBox_layout->setObjectName(QStringLiteral("gb_psnStatusBox_layout"));
+	labelTimeout = new QLabel(gbNetClient);
+	labelTimeout->setObjectName(QStringLiteral("labelTimeout"));
 
+	gb_psnStatusBox_layout->addWidget(labelTimeout);
 
-        gb_network_status_layout->addWidget(gbEditSyncConfig);
+	editTimeout = new QLineEdit(gbNetClient);
+	editTimeout->setObjectName(QStringLiteral("editTimeout"));
 
-        networkTabSpacerLeft = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	gb_psnStatusBox_layout->addWidget(editTimeout);
 
-        gb_network_status_layout->addItem(networkTabSpacerLeft);
+	gb_psn_config_layout->addWidget(gbNetClient);
 
+	networkTabSpacerRight = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        layoutSync->addWidget(gbSyncConfig);
+	gb_psn_config_layout->addItem(networkTabSpacerRight);
 
-        gbNetConfig = new QGroupBox(tabSync);
-        gbNetConfig->setObjectName(QStringLiteral("gbNetConfig"));
-        gb_psn_config_layout = new QVBoxLayout(gbNetConfig);
-        gb_psn_config_layout->setObjectName(QStringLiteral("gb_psn_config_layout"));
-        gbNetClient = new QGroupBox(gbNetConfig);
-        gbNetClient->setObjectName(QStringLiteral("gbNetClient"));
-        gb_psnStatusBox_layout = new QVBoxLayout(gbNetClient);
-        gb_psnStatusBox_layout->setObjectName(QStringLiteral("gb_psnStatusBox_layout"));
-        labelTimeout = new QLabel(gbNetClient);
-        labelTimeout->setObjectName(QStringLiteral("labelTimeout"));
+	layoutSync->addWidget(gbNetConfig);
 
-        gb_psnStatusBox_layout->addWidget(labelTimeout);
+	networkTab_layout->addLayout(layoutSync);
 
-        editTimeout = new QLineEdit(gbNetClient);
-        editTimeout->setObjectName(QStringLiteral("editTimeout"));
+	QIcon icon1;
+	icon1.addFile(QStringLiteral(":/sync"), QSize(), QIcon::Normal, QIcon::Off);
+	tabBar->addTab(tabSync, icon1, QString());
+	guiTab = new QWidget();
+	guiTab->setObjectName(QStringLiteral("guiTab"));
+	guiTab_layout = new QVBoxLayout(guiTab);
+	guiTab_layout->setObjectName(QStringLiteral("guiTab_layout"));
+	guiTabLayout = new QHBoxLayout();
+	guiTabLayout->setObjectName(QStringLiteral("guiTabLayout"));
+	guiTabLayoutLeft = new QVBoxLayout();
+	guiTabLayoutLeft->setObjectName(QStringLiteral("guiTabLayoutLeft"));
+	gbStyleSheet = new QGroupBox(guiTab);
+	gbStyleSheet->setObjectName(QStringLiteral("gbStyleSheet"));
+	gb_stylesheets_layout = new QVBoxLayout(gbStyleSheet);
+	gb_stylesheets_layout->setObjectName(QStringLiteral("gb_stylesheets_layout"));
+	comboStyles = new QComboBox(gbStyleSheet);
+	comboStyles->setObjectName(QStringLiteral("comboStyles"));
 
-        gb_psnStatusBox_layout->addWidget(editTimeout);
+	gb_stylesheets_layout->addWidget(comboStyles);
 
+	pbApplySheet = new QPushButton(gbStyleSheet);
+	pbApplySheet->setObjectName(QStringLiteral("pbApplySheet"));
 
-        gb_psn_config_layout->addWidget(gbNetClient);
+	gb_stylesheets_layout->addWidget(pbApplySheet);
 
-        networkTabSpacerRight = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	guiTabLayoutLeft->addWidget(gbStyleSheet);
 
-        gb_psn_config_layout->addItem(networkTabSpacerRight);
+	gb_colors = new QGroupBox(guiTab);
+	gb_colors->setObjectName(QStringLiteral("gb_colors"));
+	gb_colors_layout = new QVBoxLayout(gb_colors);
+	gb_colors_layout->setObjectName(QStringLiteral("gb_colors_layout"));
+	gb_colors_layout->setContentsMargins(9, 9, 9, 9);
+	cbCustomColors = new QCheckBox(gb_colors);
+	cbCustomColors->setObjectName(QStringLiteral("cbCustomColors"));
 
+	gb_colors_layout->addWidget(cbCustomColors);
 
-        layoutSync->addWidget(gbNetConfig);
+	guiTabSpacerLeft = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
 
+	gb_colors_layout->addItem(guiTabSpacerLeft);
 
-        networkTab_layout->addLayout(layoutSync);
+	guiTabLayoutLeft->addWidget(gb_colors);
 
-        QIcon icon1;
-        icon1.addFile(QStringLiteral(":/sync"), QSize(), QIcon::Normal, QIcon::Off);
-        tabBar->addTab(tabSync, icon1, QString());
-        guiTab = new QWidget();
-        guiTab->setObjectName(QStringLiteral("guiTab"));
-        guiTab_layout = new QVBoxLayout(guiTab);
-        guiTab_layout->setObjectName(QStringLiteral("guiTab_layout"));
-        guiTabLayout = new QHBoxLayout();
-        guiTabLayout->setObjectName(QStringLiteral("guiTabLayout"));
-        guiTabLayoutLeft = new QVBoxLayout();
-        guiTabLayoutLeft->setObjectName(QStringLiteral("guiTabLayoutLeft"));
-        gbStyleSheet = new QGroupBox(guiTab);
-        gbStyleSheet->setObjectName(QStringLiteral("gbStyleSheet"));
-        gb_stylesheets_layout = new QVBoxLayout(gbStyleSheet);
-        gb_stylesheets_layout->setObjectName(QStringLiteral("gb_stylesheets_layout"));
-        comboStyles = new QComboBox(gbStyleSheet);
-        comboStyles->setObjectName(QStringLiteral("comboStyles"));
+	guiTabLayout->addLayout(guiTabLayoutLeft);
 
-        gb_stylesheets_layout->addWidget(comboStyles);
+	guiTabLayoutRight = new QVBoxLayout();
+	guiTabLayoutRight->setObjectName(QStringLiteral("guiTabLayoutRight"));
+	gbUiOptions = new QGroupBox(guiTab);
+	gbUiOptions->setObjectName(QStringLiteral("gbUiOptions"));
+	gb_gui_options_layout = new QVBoxLayout(gbUiOptions);
+	gb_gui_options_layout->setObjectName(QStringLiteral("gb_gui_options_layout"));
+	cbShowWelcome = new QCheckBox(gbUiOptions);
+	cbShowWelcome->setObjectName(QStringLiteral("cbShowWelcome"));
 
-        pbApplySheet = new QPushButton(gbStyleSheet);
-        pbApplySheet->setObjectName(QStringLiteral("pbApplySheet"));
+	gb_gui_options_layout->addWidget(cbShowWelcome);
 
-        gb_stylesheets_layout->addWidget(pbApplySheet);
+	cbShowAutoconnect = new QCheckBox(gbUiOptions);
+	cbShowAutoconnect->setObjectName(QStringLiteral("cbShowAutoconnect"));
 
+	gb_gui_options_layout->addWidget(cbShowAutoconnect);
 
-        guiTabLayoutLeft->addWidget(gbStyleSheet);
+	guiTabSpacerRight = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
 
-        gb_colors = new QGroupBox(guiTab);
-        gb_colors->setObjectName(QStringLiteral("gb_colors"));
-        gb_colors_layout = new QVBoxLayout(gb_colors);
-        gb_colors_layout->setObjectName(QStringLiteral("gb_colors_layout"));
-        gb_colors_layout->setContentsMargins(9, 9, 9, 9);
-        cbCustomColors = new QCheckBox(gb_colors);
-        cbCustomColors->setObjectName(QStringLiteral("cbCustomColors"));
+	gb_gui_options_layout->addItem(guiTabSpacerRight);
 
-        gb_colors_layout->addWidget(cbCustomColors);
+	guiTabLayoutRight->addWidget(gbUiOptions);
 
-        guiTabSpacerLeft = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+	gb_updates = new QGroupBox(guiTab);
+	gb_updates->setObjectName(QStringLiteral("gb_updates"));
+	layout_gb_updates = new QVBoxLayout(gb_updates);
+	layout_gb_updates->setObjectName(QStringLiteral("layout_gb_updates"));
+	combo_updates = new QComboBox(gb_updates);
+	combo_updates->setObjectName(QStringLiteral("combo_updates"));
 
-        gb_colors_layout->addItem(guiTabSpacerLeft);
+	layout_gb_updates->addWidget(combo_updates);
 
+	guiTabLayoutRight->addWidget(gb_updates);
 
-        guiTabLayoutLeft->addWidget(gb_colors);
+	gbDiscord = new QGroupBox(guiTab);
+	gbDiscord->setObjectName(QStringLiteral("gbDiscord"));
+	gb_discord_layout = new QVBoxLayout(gbDiscord);
+	gb_discord_layout->setObjectName(QStringLiteral("gb_discord_layout"));
+	cbUseDiscordRPC = new QCheckBox(gbDiscord);
+	cbUseDiscordRPC->setObjectName(QStringLiteral("cbUseDiscordRPC"));
 
+	gb_discord_layout->addWidget(cbUseDiscordRPC);
 
-        guiTabLayout->addLayout(guiTabLayoutLeft);
+	guiTabLayoutRight->addWidget(gbDiscord);
 
-        guiTabLayoutRight = new QVBoxLayout();
-        guiTabLayoutRight->setObjectName(QStringLiteral("guiTabLayoutRight"));
-        gbUiOptions = new QGroupBox(guiTab);
-        gbUiOptions->setObjectName(QStringLiteral("gbUiOptions"));
-        gb_gui_options_layout = new QVBoxLayout(gbUiOptions);
-        gb_gui_options_layout->setObjectName(QStringLiteral("gb_gui_options_layout"));
-        cbShowWelcome = new QCheckBox(gbUiOptions);
-        cbShowWelcome->setObjectName(QStringLiteral("cbShowWelcome"));
+	guiTabLayout->addLayout(guiTabLayoutRight);
 
-        gb_gui_options_layout->addWidget(cbShowWelcome);
+	guiTabLayout->setStretch(0, 1);
+	guiTabLayout->setStretch(1, 1);
 
-        cbShowAutoconnect = new QCheckBox(gbUiOptions);
-        cbShowAutoconnect->setObjectName(QStringLiteral("cbShowAutoconnect"));
+	guiTab_layout->addLayout(guiTabLayout);
 
-        gb_gui_options_layout->addWidget(cbShowAutoconnect);
+	QIcon icon2;
+	icon2.addFile(QStringLiteral(":/uikit"), QSize(), QIcon::Normal, QIcon::Off);
+	tabBar->addTab(guiTab, icon2, QString());
+	tabDebug = new QWidget();
+	tabDebug->setObjectName(QStringLiteral("tabDebug"));
+	debugTab_layout = new QVBoxLayout(tabDebug);
+	debugTab_layout->setObjectName(QStringLiteral("debugTab_layout"));
+	debugTabLayout = new QHBoxLayout();
+	debugTabLayout->setObjectName(QStringLiteral("debugTabLayout"));
+	gb_debug_gpu = new QGroupBox(tabDebug);
+	gb_debug_gpu->setObjectName(QStringLiteral("gb_debug_gpu"));
+	gb_debug_gpu->setEnabled(true);
+	gb_debug_gpu->setAlignment(Qt::AlignLeading | Qt::AlignLeft | Qt::AlignTop);
+	gb_debug_gpu_layout = new QVBoxLayout(gb_debug_gpu);
+	gb_debug_gpu_layout->setObjectName(QStringLiteral("gb_debug_gpu_layout"));
+	debugOutput = new QCheckBox(gb_debug_gpu);
+	debugOutput->setObjectName(QStringLiteral("debugOutput"));
 
-        guiTabSpacerRight = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+	gb_debug_gpu_layout->addWidget(debugOutput, 0, Qt::AlignTop);
 
-        gb_gui_options_layout->addItem(guiTabSpacerRight);
+	debugTabLayout->addWidget(gb_debug_gpu);
 
+	dbDebugMain = new QGroupBox(tabDebug);
+	dbDebugMain->setObjectName(QStringLiteral("dbDebugMain"));
+	gb_debug_core_layout = new QVBoxLayout(dbDebugMain);
+	gb_debug_core_layout->setObjectName(QStringLiteral("gb_debug_core_layout"));
+	cbXPSDebug = new QCheckBox(dbDebugMain);
+	cbXPSDebug->setObjectName(QStringLiteral("cbXPSDebug"));
 
-        guiTabLayoutRight->addWidget(gbUiOptions);
+	gb_debug_core_layout->addWidget(cbXPSDebug);
 
-        gb_updates = new QGroupBox(guiTab);
-        gb_updates->setObjectName(QStringLiteral("gb_updates"));
-        layout_gb_updates = new QVBoxLayout(gb_updates);
-        layout_gb_updates->setObjectName(QStringLiteral("layout_gb_updates"));
-        combo_updates = new QComboBox(gb_updates);
-        combo_updates->setObjectName(QStringLiteral("combo_updates"));
+	verticalSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        layout_gb_updates->addWidget(combo_updates);
+	gb_debug_core_layout->addItem(verticalSpacer);
 
+	debugTabLayout->addWidget(dbDebugMain);
 
-        guiTabLayoutRight->addWidget(gb_updates);
+	debugTabLayout->setStretch(0, 1);
+	debugTabLayout->setStretch(1, 1);
 
-        gbDiscord = new QGroupBox(guiTab);
-        gbDiscord->setObjectName(QStringLiteral("gbDiscord"));
-        gb_discord_layout = new QVBoxLayout(gbDiscord);
-        gb_discord_layout->setObjectName(QStringLiteral("gb_discord_layout"));
-        cbUseDiscordRPC = new QCheckBox(gbDiscord);
-        cbUseDiscordRPC->setObjectName(QStringLiteral("cbUseDiscordRPC"));
+	debugTab_layout->addLayout(debugTabLayout);
 
-        gb_discord_layout->addWidget(cbUseDiscordRPC);
+	debugTabSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
+	debugTab_layout->addItem(debugTabSpacer);
 
-        guiTabLayoutRight->addWidget(gbDiscord);
+	QIcon icon3;
+	icon3.addFile(QStringLiteral(":/bug"), QSize(), QIcon::Normal, QIcon::Off);
+	tabBar->addTab(tabDebug, icon3, QString());
 
+	settings_dialog_layout->addWidget(tabBar);
 
-        guiTabLayout->addLayout(guiTabLayoutRight);
+	retranslateUi(SettingsDialog);
 
-        guiTabLayout->setStretch(0, 1);
-        guiTabLayout->setStretch(1, 1);
+	tabBar->setCurrentIndex(0);
 
-        guiTab_layout->addLayout(guiTabLayout);
+	QMetaObject::connectSlotsByName(SettingsDialog);
+  } // setupUi
 
-        QIcon icon2;
-        icon2.addFile(QStringLiteral(":/uikit"), QSize(), QIcon::Normal, QIcon::Off);
-        tabBar->addTab(guiTab, icon2, QString());
-        tabDebug = new QWidget();
-        tabDebug->setObjectName(QStringLiteral("tabDebug"));
-        debugTab_layout = new QVBoxLayout(tabDebug);
-        debugTab_layout->setObjectName(QStringLiteral("debugTab_layout"));
-        debugTabLayout = new QHBoxLayout();
-        debugTabLayout->setObjectName(QStringLiteral("debugTabLayout"));
-        gb_debug_gpu = new QGroupBox(tabDebug);
-        gb_debug_gpu->setObjectName(QStringLiteral("gb_debug_gpu"));
-        gb_debug_gpu->setEnabled(true);
-        gb_debug_gpu->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
-        gb_debug_gpu_layout = new QVBoxLayout(gb_debug_gpu);
-        gb_debug_gpu_layout->setObjectName(QStringLiteral("gb_debug_gpu_layout"));
-        debugOutput = new QCheckBox(gb_debug_gpu);
-        debugOutput->setObjectName(QStringLiteral("debugOutput"));
-
-        gb_debug_gpu_layout->addWidget(debugOutput, 0, Qt::AlignTop);
-
-
-        debugTabLayout->addWidget(gb_debug_gpu);
-
-        dbDebugMain = new QGroupBox(tabDebug);
-        dbDebugMain->setObjectName(QStringLiteral("dbDebugMain"));
-        gb_debug_core_layout = new QVBoxLayout(dbDebugMain);
-        gb_debug_core_layout->setObjectName(QStringLiteral("gb_debug_core_layout"));
-        cbXPSDebug = new QCheckBox(dbDebugMain);
-        cbXPSDebug->setObjectName(QStringLiteral("cbXPSDebug"));
-
-        gb_debug_core_layout->addWidget(cbXPSDebug);
-
-        verticalSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-        gb_debug_core_layout->addItem(verticalSpacer);
-
-
-        debugTabLayout->addWidget(dbDebugMain);
-
-        debugTabLayout->setStretch(0, 1);
-        debugTabLayout->setStretch(1, 1);
-
-        debugTab_layout->addLayout(debugTabLayout);
-
-        debugTabSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-        debugTab_layout->addItem(debugTabSpacer);
-
-        QIcon icon3;
-        icon3.addFile(QStringLiteral(":/bug"), QSize(), QIcon::Normal, QIcon::Off);
-        tabBar->addTab(tabDebug, icon3, QString());
-
-        settings_dialog_layout->addWidget(tabBar);
-
-
-        retranslateUi(SettingsDialog);
-
-        tabBar->setCurrentIndex(0);
-
-
-        QMetaObject::connectSlotsByName(SettingsDialog);
-    } // setupUi
-
-    void retranslateUi(QDialog *SettingsDialog)
-    {
-        SettingsDialog->setWindowTitle(QApplication::translate("SettingsDialog", "NODA Settings", Q_NULLPTR));
-        gbSyncConfig->setTitle(QApplication::translate("SettingsDialog", "Synchronium Server Configuration", Q_NULLPTR));
-        gbNetAddress->setTitle(QApplication::translate("SettingsDialog", "Network Address", Q_NULLPTR));
-        labelIP->setText(QApplication::translate("SettingsDialog", "IP Address", Q_NULLPTR));
-        labelPort->setText(QApplication::translate("SettingsDialog", "Port", Q_NULLPTR));
-        gbEditSyncConfig->setTitle(QApplication::translate("SettingsDialog", "User Configuration", Q_NULLPTR));
-        labelUser->setText(QApplication::translate("SettingsDialog", "Username", Q_NULLPTR));
-        labelPass->setText(QApplication::translate("SettingsDialog", "Password", Q_NULLPTR));
-        gbNetConfig->setTitle(QApplication::translate("SettingsDialog", "Network Configuration", Q_NULLPTR));
-        gbNetClient->setTitle(QApplication::translate("SettingsDialog", "Net Client", Q_NULLPTR));
-        labelTimeout->setText(QApplication::translate("SettingsDialog", "Timeout", Q_NULLPTR));
-        tabBar->setTabText(tabBar->indexOf(tabSync), QApplication::translate("SettingsDialog", "Sync", Q_NULLPTR));
-        gbStyleSheet->setTitle(QApplication::translate("SettingsDialog", "UI Stylesheets", Q_NULLPTR));
-        pbApplySheet->setText(QApplication::translate("SettingsDialog", "Apply", Q_NULLPTR));
-        gb_colors->setTitle(QApplication::translate("SettingsDialog", "UI Colors", Q_NULLPTR));
-        cbCustomColors->setText(QApplication::translate("SettingsDialog", "Use custom UI Colors", Q_NULLPTR));
-        gbUiOptions->setTitle(QApplication::translate("SettingsDialog", "UI Options", Q_NULLPTR));
-        cbShowWelcome->setText(QApplication::translate("SettingsDialog", "Show Welcome Screen", Q_NULLPTR));
-        cbShowAutoconnect->setText(QApplication::translate("SettingsDialog", "Show Auto Connect Promt", Q_NULLPTR));
-        gb_updates->setTitle(QApplication::translate("SettingsDialog", "Check for updates on startup", Q_NULLPTR));
-        gbDiscord->setTitle(QApplication::translate("SettingsDialog", "Discord", Q_NULLPTR));
-        cbUseDiscordRPC->setText(QApplication::translate("SettingsDialog", "Use Discord Rich Presence", Q_NULLPTR));
-        tabBar->setTabText(tabBar->indexOf(guiTab), QApplication::translate("SettingsDialog", "Ui", Q_NULLPTR));
-        gb_debug_gpu->setTitle(QApplication::translate("SettingsDialog", "Plugin", Q_NULLPTR));
-        debugOutput->setText(QApplication::translate("SettingsDialog", "Debug Output", Q_NULLPTR));
-        dbDebugMain->setTitle(QApplication::translate("SettingsDialog", "Main", Q_NULLPTR));
-        cbXPSDebug->setText(QApplication::translate("SettingsDialog", "XPS Debug", Q_NULLPTR));
-        tabBar->setTabText(tabBar->indexOf(tabDebug), QApplication::translate("SettingsDialog", "Debug", Q_NULLPTR));
-    } // retranslateUi
-
+  void retranslateUi(QDialog *SettingsDialog)
+  {
+	SettingsDialog->setWindowTitle(QApplication::translate("SettingsDialog", "NODA Settings", Q_NULLPTR));
+	gbSyncConfig->setTitle(QApplication::translate("SettingsDialog", "Synchronium Server Configuration", Q_NULLPTR));
+	gbNetAddress->setTitle(QApplication::translate("SettingsDialog", "Network Address", Q_NULLPTR));
+	labelIP->setText(QApplication::translate("SettingsDialog", "IP Address", Q_NULLPTR));
+	labelPort->setText(QApplication::translate("SettingsDialog", "Port", Q_NULLPTR));
+	gbEditSyncConfig->setTitle(QApplication::translate("SettingsDialog", "User Configuration", Q_NULLPTR));
+	labelUser->setText(QApplication::translate("SettingsDialog", "Username", Q_NULLPTR));
+	labelPass->setText(QApplication::translate("SettingsDialog", "Password", Q_NULLPTR));
+	gbNetConfig->setTitle(QApplication::translate("SettingsDialog", "Network Configuration", Q_NULLPTR));
+	gbNetClient->setTitle(QApplication::translate("SettingsDialog", "Net Client", Q_NULLPTR));
+	labelTimeout->setText(QApplication::translate("SettingsDialog", "Timeout", Q_NULLPTR));
+	tabBar->setTabText(tabBar->indexOf(tabSync), QApplication::translate("SettingsDialog", "Sync", Q_NULLPTR));
+	gbStyleSheet->setTitle(QApplication::translate("SettingsDialog", "UI Stylesheets", Q_NULLPTR));
+	pbApplySheet->setText(QApplication::translate("SettingsDialog", "Apply", Q_NULLPTR));
+	gb_colors->setTitle(QApplication::translate("SettingsDialog", "UI Colors", Q_NULLPTR));
+	cbCustomColors->setText(QApplication::translate("SettingsDialog", "Use custom UI Colors", Q_NULLPTR));
+	gbUiOptions->setTitle(QApplication::translate("SettingsDialog", "UI Options", Q_NULLPTR));
+	cbShowWelcome->setText(QApplication::translate("SettingsDialog", "Show Welcome Screen", Q_NULLPTR));
+	cbShowAutoconnect->setText(QApplication::translate("SettingsDialog", "Show Auto Connect Promt", Q_NULLPTR));
+	gb_updates->setTitle(QApplication::translate("SettingsDialog", "Check for updates on startup", Q_NULLPTR));
+	gbDiscord->setTitle(QApplication::translate("SettingsDialog", "Discord", Q_NULLPTR));
+	cbUseDiscordRPC->setText(QApplication::translate("SettingsDialog", "Use Discord Rich Presence", Q_NULLPTR));
+	tabBar->setTabText(tabBar->indexOf(guiTab), QApplication::translate("SettingsDialog", "Ui", Q_NULLPTR));
+	gb_debug_gpu->setTitle(QApplication::translate("SettingsDialog", "Plugin", Q_NULLPTR));
+	debugOutput->setText(QApplication::translate("SettingsDialog", "Debug Output", Q_NULLPTR));
+	dbDebugMain->setTitle(QApplication::translate("SettingsDialog", "Main", Q_NULLPTR));
+	cbXPSDebug->setText(QApplication::translate("SettingsDialog", "XPS Debug", Q_NULLPTR));
+	tabBar->setTabText(tabBar->indexOf(tabDebug), QApplication::translate("SettingsDialog", "Debug", Q_NULLPTR));
+  } // retranslateUi
 };
 
 namespace Ui {
-    class SettingsDialog: public Ui_SettingsDialog {};
+  class SettingsDialog : public Ui_SettingsDialog {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

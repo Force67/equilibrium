@@ -28,21 +28,11 @@ namespace noda {
 	_labelConnectIcon.reset(createLabel());
 	_labelUserText.reset(createLabel());
 	_labelUserIcon.reset(createLabel());
-	_labelUpText.reset(createLabel());
-	_labelDownText.reset(createLabel());
-	_labelUpIcon.reset(createLabel());
-	_labelDownIcon.reset(createLabel());
-
 	_labelUserText->setText("1");
-	_labelUpText->setText("0");
-	_labelDownText->setText("0");
 
 	SetLabelIcon(*_labelUserIcon, ":/user");
-	SetLabelIcon(*_labelUpIcon, ":/arrow_up");
-	SetLabelIcon(*_labelDownIcon, ":/arrow_down");
 
 	OnDisconnect(0);
-	//QWidget::updateGeometry();
   }
 
   void StatusWidget::SetLabelIcon(QLabel &labelIcon, const QString &iconName)
@@ -63,21 +53,15 @@ namespace noda {
 	width += ksizeOffset + _labelUserText->sizeHint().width();
 	width += ksizeOffset + _labelUserIcon->sizeHint().width();
 
-	// stats
-	width += ksizeOffset + _labelUpText->sizeHint().width();
-	width += ksizeOffset + _labelDownText->sizeHint().width();
-	width += ksizeOffset + _labelDownIcon->sizeHint().width();
-	width += ksizeOffset + _labelUpIcon->sizeHint().width();
-
 	// separator
-	width += (kseperatorOffset * 2);
+	width += (kseperatorOffset * 1 /*SpacerCount*/);
 
 	return QSize(width, _labelConnectText->sizeHint().height());
   }
 
   void StatusWidget::OnConnected()
   {
-	SetLabelIcon(*_labelConnectIcon, ":/check");
+	SetLabelIcon(*_labelConnectIcon, ":/globe_green");
 	_labelConnectText->setText("<font color='green'>Connected</font>");
 	updateGeometry();
   }
@@ -87,7 +71,7 @@ namespace noda {
 	_userCount = 1;
 	_labelUserText->setText("1");
 
-	SetLabelIcon(*_labelConnectIcon, ":/times");
+	SetLabelIcon(*_labelConnectIcon, ":/globe_red");
 	_labelConnectText->setText("<font color='red'>Disconnected</font>");
 	updateGeometry();
   }
@@ -137,23 +121,6 @@ namespace noda {
 	region = QRegion(QRect(QPoint(0, 0), _labelUserText->sizeHint()));
 	x += _labelUserIcon->sizeHint().width() + ksizeOffset;
 	_labelUserText->render(&peter, QPoint(x, 0), region);
-
-	//> Net Stats:
-	region = QRegion(QRect(QPoint(0, 0), _labelUpIcon->sizeHint()));
-	x += _labelUserText->sizeHint().width() + ksizeOffset + kseperatorOffset;
-	_labelUpIcon->render(&peter, QPoint(x, 0), region);
-
-	region = QRegion(QRect(QPoint(0, 0), _labelUpText->sizeHint()));
-	x += _labelUpIcon->sizeHint().width() + ksizeOffset;
-	_labelUpText->render(&peter, QPoint(x, 0), region);
-
-	region = QRegion(QRect(QPoint(0, 0), _labelDownIcon->sizeHint()));
-	x += _labelUpText->sizeHint().width() + ksizeOffset;
-	_labelDownIcon->render(&peter, QPoint(x, 0), region);
-
-	region = QRegion(QRect(QPoint(0, 0), _labelDownText->sizeHint()));
-	x += _labelDownIcon->sizeHint().width() + ksizeOffset;
-	_labelDownText->render(&peter, QPoint(x, 0), region);
 
 	peter.end();
 

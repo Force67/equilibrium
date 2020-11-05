@@ -15,12 +15,16 @@
 #include <qmainwindow.h>
 #include <QToolButton>
 #include <qstatusbar.h>
+#include <QTime>
+#include <QTimer>
 #include <qmenubar.h>
 #include <qerrormessage.h>
 
 #include "ColorConstants.h"
 
 namespace noda {
+  static const char kUiNodeName[] = "$ nd_ui_data";
+
   static QMainWindow *GetTopWindow()
   {
 	return qobject_cast<QMainWindow *>(
@@ -41,8 +45,6 @@ namespace noda {
 
 	return s_mainWindow;
   }
-
-  bool UiController::_s_init = false;
 
   UiController::UiController(SyncController &s) :
       _sync(s)
@@ -87,9 +89,16 @@ namespace noda {
 	_labelBuild.reset(new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT));
 	_netStatus.reset(new StatusWidget(statusBar));
 
+	_labelCounter.reset(new QLabel());
+	_timer.reset(new QTimer(this));
+
+	statusBar->addPermanentWidget(_labelCounter.data());
 	statusBar->addPermanentWidget(_labelBuild.data());
 	statusBar->addPermanentWidget(_netStatus.data());
 
+	_labelCounter->hide();
+
+	connect(_timer.data(), &QTimer::timeout, this, &UiController::UpdateCounter);
 	connect(&_sync, &SyncController::Connected, _netStatus.data(), &StatusWidget::OnConnected);
 	connect(&_sync, &SyncController::Disconnected, _netStatus.data(), &StatusWidget::OnDisconnect);
 	connect(&_sync, &SyncController::Broadcasted, _netStatus.data(), &StatusWidget::OnBroadcast);
@@ -127,10 +136,54 @@ namespace noda {
   void UiController::OnIdbLoad()
   {
 	_cloudUpAct->setEnabled(true);
+
+	// kill netnode if open before...
+	_node.clear();
+
+	// load the netnode
+	_node = NetNode(kUiNodeName);
+
+	if(!_node.good()) {
+	  QErrorMessage error(QApplication::activeWindow());
+	  error.showMessage("Unable to connect to ui storage node");
+	  error.exec();
+	  return;
+	}
+
+	// every sec we update the clock
+	_timer->start(1000);
+	_labelCounter->show();
+	_timeCount = _node.LoadScalar(NodeIndex::Timer, 0u);
   }
 
-  void UiController::BuildUi()
+  void UiController::OnIdbSave()
   {
+	assert(_node.good());
+
+	bool res;
+	res = _node.StoreScalar(NodeIndex::Timer, _timeCount);
+
+	if(!res) {
+	  QErrorMessage error(QApplication::activeWindow());
+	  error.showMessage("Unable to flush ui storage node");
+	  error.exec();
+	}
+  }
+
+  void UiController::UpdateCounter()
+  {
+	int hours = (_timeCount / (60 * 60)) % 24;
+	int minutes = (_timeCount / 60) % 60;
+	int seconds = _timeCount % 60;
+
+	// format time with leading zeros
+	QString text = tr("Time wasted: %1:%2:%3")
+	                   .arg(hours, 2, 10, QLatin1Char('0'))
+	                   .arg(minutes, 2, 10, QLatin1Char('0'))
+	                   .arg(seconds, 2, 10, QLatin1Char('0'));
+
+	_labelCounter->setText(text);
+	_timeCount++;
   }
 
   void UiController::DestroyUi()
@@ -139,6 +192,8 @@ namespace noda {
 	// so it cant release em
 	_netStatus.reset();
 	_labelBuild.reset();
+
+	_timer->stop();
   }
 
   void UiController::OpenRunDialog()
@@ -185,32 +240,15 @@ namespace noda {
   {
 	auto *self = reinterpret_cast<UiController *>(userp);
 	switch(status) {
-	case ui_notification_t::ui_ready_to_run: {
+	case ui_notification_t::ui_ready_to_run:
 	  self->OnIdbLoad();
-
-	  if(!_s_init) {
-		_s_init = true;
-
-		if(WelcomeDialog::ShouldShow()) {
-		  WelcomeDialog dialog;
-		  dialog.exec();
-		}
-	  }
-
-	  if(ConnectDialog::ShouldShow()) {
-		ConnectDialog promt(*self);
-		promt.exec();
-	  }
 	  break;
-	}
-	case ui_notification_t::ui_term: {
+	case ui_notification_t::ui_term:
 	  self->DestroyUi();
 	  break;
-	}
-	case ui_notification_t::ui_register_action: {
+	case ui_notification_t::ui_saving:
+	  self->OnIdbSave();
 	  break;
-	}
-
 	case ui_notification_t::ui_updating_actions: {
 	  auto *ctx = va_arg(va, action_update_ctx_t *);
 	  /*  char buf[512]{};
@@ -219,10 +257,6 @@ namespace noda {
 	  break;
 	}
 	}
-	//action_ctx_base_t
-	//char buf[512]{};
-	//QT::qsnprintf(buf, 512, "%s:%d", magic_enum::enum_name((ui_notification_t)status).data(), status);
-	//MessageBoxA(nullptr, buf, 0, 0);
 
 	return 0;
   }

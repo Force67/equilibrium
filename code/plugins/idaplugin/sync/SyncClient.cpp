@@ -18,7 +18,8 @@ namespace noda {
 
   inline utility::object_pool<SyncClient::InPacket> s_inpacketPool;
 
-  SyncClient::SyncClient(SyncDelegate& nsd) : _delegate(nsd)
+  SyncClient::SyncClient(SyncDelegate &nsd) :
+      _delegate(nsd)
   {
   }
 
@@ -62,7 +63,7 @@ namespace noda {
 
   void SyncClient::OnDisconnected(int r)
   {
-	  _delegate.OnDisconnect(r);
+	_delegate.OnDisconnect(r);
   }
 
   void SyncClient::run()

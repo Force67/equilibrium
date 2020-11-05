@@ -6,9 +6,12 @@
 #include <qobject.h>
 #include <qscopedpointer.h>
 
+#include "utils/NetNode.h"
+
 namespace QT {
   class QAction;
   class QLabel;
+  class QTimer;
   class QMainWindow;
 } // namespace QT
 
@@ -20,7 +23,7 @@ namespace noda {
 	Q_OBJECT;
 
   public:
-	UiController(SyncController&);
+	UiController(SyncController &);
 	~UiController();
 
 	static QMainWindow *GetMainWindow();
@@ -28,13 +31,15 @@ namespace noda {
 	void OpenRunDialog();
 
   private:
-	void BuildUi();
 	void DestroyUi();
 
 	void ImportNodaDB();
 	void ExportNodaDB();
 
 	void OnIdbLoad();
+	void OnIdbSave();
+
+	void UpdateCounter();
 
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
@@ -43,11 +48,21 @@ namespace noda {
 	QAction *_cloudUpAct = nullptr;
 
 	QScopedPointer<QLabel> _labelBuild;
+	QScopedPointer<QLabel> _labelCounter;
 	QScopedPointer<StatusWidget> _netStatus;
+
+	QScopedPointer<QTimer> _timer;
+	uint32_t _timeCount = 0;
 
 	SyncController &_sync;
 
-	static bool _s_init;
+	enum NodeIndex : nodeidx_t {
+	  UiFlags,
+	  Timer,
+	};
+
+	NetNode _node;
+
   public slots:
 	void ToggleConnect();
 

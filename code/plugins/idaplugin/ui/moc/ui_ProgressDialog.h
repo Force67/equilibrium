@@ -21,63 +21,61 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_ProgressDialog
-{
+class Ui_ProgressDialog {
 public:
-    QVBoxLayout *verticalLayout;
-    QLabel *labelDesc;
-    QProgressBar *barProgress;
-    QLabel *labelStatus;
+  QVBoxLayout *verticalLayout;
+  QLabel *labelDesc;
+  QProgressBar *barProgress;
+  QLabel *labelStatus;
 
-    void setupUi(QDialog *ProgressDialog)
-    {
-        if (ProgressDialog->objectName().isEmpty())
-            ProgressDialog->setObjectName(QStringLiteral("ProgressDialog"));
-        ProgressDialog->resize(431, 109);
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
-        ProgressDialog->setWindowIcon(icon);
-        verticalLayout = new QVBoxLayout(ProgressDialog);
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        labelDesc = new QLabel(ProgressDialog);
-        labelDesc->setObjectName(QStringLiteral("labelDesc"));
-        QFont font;
-        font.setBold(true);
-        font.setWeight(75);
-        labelDesc->setFont(font);
+  void setupUi(QDialog *ProgressDialog)
+  {
+	if(ProgressDialog->objectName().isEmpty())
+	  ProgressDialog->setObjectName(QStringLiteral("ProgressDialog"));
+	ProgressDialog->resize(431, 109);
+	QIcon icon;
+	icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
+	ProgressDialog->setWindowIcon(icon);
+	verticalLayout = new QVBoxLayout(ProgressDialog);
+	verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+	labelDesc = new QLabel(ProgressDialog);
+	labelDesc->setObjectName(QStringLiteral("labelDesc"));
+	QFont font;
+	font.setBold(true);
+	font.setWeight(75);
+	labelDesc->setFont(font);
 
-        verticalLayout->addWidget(labelDesc);
+	verticalLayout->addWidget(labelDesc);
 
-        barProgress = new QProgressBar(ProgressDialog);
-        barProgress->setObjectName(QStringLiteral("barProgress"));
-        barProgress->setValue(0);
-        barProgress->setTextVisible(false);
+	barProgress = new QProgressBar(ProgressDialog);
+	barProgress->setObjectName(QStringLiteral("barProgress"));
+	barProgress->setValue(0);
+	barProgress->setTextVisible(false);
 
-        verticalLayout->addWidget(barProgress);
+	verticalLayout->addWidget(barProgress);
 
-        labelStatus = new QLabel(ProgressDialog);
-        labelStatus->setObjectName(QStringLiteral("labelStatus"));
-        labelStatus->setAlignment(Qt::AlignCenter);
+	labelStatus = new QLabel(ProgressDialog);
+	labelStatus->setObjectName(QStringLiteral("labelStatus"));
+	labelStatus->setAlignment(Qt::AlignCenter);
 
-        verticalLayout->addWidget(labelStatus);
+	verticalLayout->addWidget(labelStatus);
 
+	retranslateUi(ProgressDialog);
 
-        retranslateUi(ProgressDialog);
+	QMetaObject::connectSlotsByName(ProgressDialog);
+  } // setupUi
 
-        QMetaObject::connectSlotsByName(ProgressDialog);
-    } // setupUi
-
-    void retranslateUi(QDialog *ProgressDialog)
-    {
-        ProgressDialog->setWindowTitle(QString());
-        labelDesc->setText(QString());
-        labelStatus->setText(QString());
-    } // retranslateUi
-
+  void retranslateUi(QDialog *ProgressDialog)
+  {
+	ProgressDialog->setWindowTitle(QString());
+	labelDesc->setText(QString());
+	labelStatus->setText(QString());
+  } // retranslateUi
 };
 
 namespace Ui {
-    class ProgressDialog: public Ui_ProgressDialog {};
+  class ProgressDialog : public Ui_ProgressDialog {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

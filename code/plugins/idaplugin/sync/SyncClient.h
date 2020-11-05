@@ -15,7 +15,7 @@
 
 namespace noda {
 
-	class SyncDelegate {
+  class SyncDelegate {
   public:
 	virtual ~SyncDelegate() = default;
 
@@ -31,9 +31,9 @@ namespace noda {
   };
 
   class SyncClient final : public netlib::Client,
-                            public QThread {
+                           public QThread {
   public:
-	SyncClient(SyncDelegate&);
+	SyncClient(SyncDelegate &);
 	~SyncClient();
 
 	bool ConnectServer();
@@ -52,7 +52,7 @@ namespace noda {
 	netlib::ScopedNetContext _context;
 
 	bool _run = false;
-	SyncDelegate& _delegate;
+	SyncDelegate &_delegate;
 
   public:
 	struct InPacket {

@@ -32,11 +32,6 @@ namespace noda {
 	QScopedPointer<QLabel> _labelUserText;
 	QScopedPointer<QLabel> _labelUserIcon;
 
-	QScopedPointer<QLabel> _labelUpText;
-	QScopedPointer<QLabel> _labelDownText;
-	QScopedPointer<QLabel> _labelUpIcon;
-	QScopedPointer<QLabel> _labelDownIcon;
-
 	int _userCount = 1;
   };
 } // namespace noda

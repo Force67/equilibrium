@@ -18,14 +18,15 @@ namespace noda {
 
   ssize_t SyncController_IdbEvent(void *userData, int code, va_list args)
   {
-	return static_cast<SyncController*>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
+	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
   }
   ssize_t SyncController_IdpEvent(void *userData, int code, va_list args)
   {
-	return static_cast<SyncController*>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
+	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
   }
 
-  SyncController::SyncController() : _client(*this)
+  SyncController::SyncController() :
+      _client(*this)
   {
 	hook_to_notification_point(hook_type_t::HT_IDB, SyncController_IdbEvent, this);
 	hook_to_notification_point(hook_type_t::HT_IDP, SyncController_IdpEvent, this);

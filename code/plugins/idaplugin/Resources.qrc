@@ -15,5 +15,7 @@
         <file alias="arrow_down">../resources/arrow-down-solid.png</file>
         <file alias="cloud_download">../resources/cloud-download-alt-solid.png</file>
         <file alias="cloud_upload">../resources/cloud-upload-alt-solid.png</file>
+        <file alias="globe_green">../resources/globe-solid-green.png</file>
+        <file alias="globe_red">../resources/globe-solid-red.png</file>
     </qresource>
 </RCC>

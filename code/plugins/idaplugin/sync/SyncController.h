@@ -17,12 +17,10 @@ namespace QT {
 }
 
 namespace noda {
-	struct SyncHandler;
+  struct SyncHandler;
 
-  class SyncController final :
-	  public QObject,
-	  public SyncDelegate 
-  {
+  class SyncController final : public QObject,
+                               public SyncDelegate {
 	Q_OBJECT;
 
   public:
