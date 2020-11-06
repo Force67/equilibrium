@@ -8,7 +8,7 @@
 
 namespace database {
 
-	static SqliteDB *g_debug;
+  static SqliteDB *g_debug;
 
   SqliteStatement::SqliteStatement(SqliteDB &db, const char *sql)
   {
@@ -29,7 +29,6 @@ namespace database {
   bool SqliteStatement::Run()
   {
 	const int rc = sqlite3_step(_st);
-
 
 	const char *code = sqlite3_errmsg(g_debug->_db);
 	return rc == SQLITE_DONE;

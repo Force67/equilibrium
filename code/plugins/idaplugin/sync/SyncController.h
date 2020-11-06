@@ -8,11 +8,10 @@
 
 #include "utils/Logger.h"
 #include "utils/AtomicQueue.h"
-
-#include "SyncClient.h"
-#include "server/Server.h"
-
 #include "utils/NetNode.h"
+
+#include "Client.h"
+#include "LocalServer.h"
 
 namespace QT {
   class QTimer;
@@ -63,8 +62,9 @@ namespace noda {
 	bool _active = false;
 
 	netlib::ScopedNetContext _context;
-	SyncClient _client;
-	std::unique_ptr<noda::Server> _localServer;
+
+	Client _client;
+	LocalServer _server;
 
 	using IdaEventType_t = std::pair<hook_type_t, int>;
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;

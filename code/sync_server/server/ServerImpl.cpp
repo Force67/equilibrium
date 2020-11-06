@@ -17,8 +17,10 @@ namespace noda {
       _tickTime(std::chrono::high_resolution_clock::now())
   {
 	for(int i = 0; i < 10; i++) {
-	  if(Server::Host(port))
+	  if(Server::Host(port)) {
+		_activePort = port;
 		break;
+	  }
 
 	  port++;
 	}
@@ -100,8 +102,8 @@ namespace noda {
 	const netlib::connectid_t id = source->Id();
 
 	userptr_t user = std::make_shared<NdUser>(id,
-	       packet->guid()->str(),
-	       packet->name()->str());
+	                                          packet->guid()->str(),
+	                                          packet->name()->str());
 
 	_userRegistry.emplace_back(user);
 

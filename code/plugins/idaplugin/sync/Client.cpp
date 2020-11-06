@@ -3,7 +3,7 @@
 
 #include <qsettings.h>
 
-#include "SyncClient.h"
+#include "Client.h"
 
 #include "utils/UserInfo.h"
 #include "utils/Logger.h"
@@ -16,24 +16,29 @@ namespace noda {
 
   constexpr uint32_t kNetworkerThreadIdle = 1;
 
-  inline utility::object_pool<SyncClient::InPacket> s_inpacketPool;
+  inline utility::object_pool<Client::InPacket> s_inpacketPool;
 
-  SyncClient::SyncClient(SyncDelegate &nsd) :
+  Client::Client(SyncDelegate &nsd) :
       _delegate(nsd)
   {
   }
 
-  SyncClient::~SyncClient() {}
+  Client::~Client()
+  {
+	_run = false;
+	QThread::wait();
+  }
 
-  bool SyncClient::ConnectServer()
+  bool Client::ConnectServer()
   {
 	QSettings settings;
 	uint port = settings.value("Nd_SyncPort", netlib::constants::kServerPort).toUInt();
 	auto addr = settings.value("Nd_SyncIp", netlib::constants::kServerIp).toString();
 
-	bool result = Client::Connect(addr.toUtf8(), static_cast<uint16_t>(port));
+	bool result = Client::Connect(addr.toUtf8().data(), static_cast<uint16_t>(port));
 	if(result) {
 	  // fire event
+	  LOG_INFO("Connected to {}:{}", addr.toUtf8().data(), port);
 	  _run = true;
 	  QThread::start();
 	}
@@ -41,7 +46,7 @@ namespace noda {
 	return result;
   }
 
-  void SyncClient::OnConnection()
+  void Client::OnConnection()
   {
 	QSettings settings;
 	flatbuffers::FlatBufferBuilder fbb;
@@ -61,12 +66,12 @@ namespace noda {
 	//SendPacket(protocol::MsgType_HandshakeRequest, request);
   }
 
-  void SyncClient::OnDisconnected(int r)
+  void Client::OnDisconnected(int r)
   {
 	_delegate.OnDisconnect(r);
   }
 
-  void SyncClient::run()
+  void Client::run()
   {
 	while(_run) {
 	  Client::Tick();
@@ -74,7 +79,7 @@ namespace noda {
 	}
   }
 
-  void SyncClient::OnConsume(netlib::Packet *packet)
+  void Client::OnConsume(netlib::Packet *packet)
   {
 	flatbuffers::Verifier verifier(packet->data(), packet->length());
 	if(!protocol::VerifyMessageBuffer(verifier)) {
@@ -91,7 +96,7 @@ namespace noda {
 	_inQueue.push(&item->key);
   }
 
-  void SyncClient::HandleAuth(const protocol::Message *message)
+  void Client::HandleAuth(const protocol::Message *message)
   {
 	auto *pack = message->msg_as_HandshakeAck();
   }

@@ -89,8 +89,8 @@ public:
 	SendPacket(protocol::MsgType_CreateWorkspace, hello);
 
 	// never opened this project before - version 0
-	auto packet = protocol::CreateOpenProjectDirect(_fbb, 0, 
-		"FakeProject", "48fac413577bee5e05429a1aeda48b52");
+	auto packet = protocol::CreateOpenProjectDirect(_fbb, 0,
+	                                                "FakeProject", "48fac413577bee5e05429a1aeda48b52");
 
 	SendPacket(protocol::MsgType_OpenProject, packet);
   }

@@ -51,8 +51,8 @@ namespace noda {
 		const netlib::Packet &packet = item->packet;
 
 		userptr_t sender = _server.UserById(item->id);
-		if (!sender)
-			return;
+		if(!sender)
+		  return;
 
 		const auto *message = protocol::GetMessage(static_cast<const void *>(packet.data()));
 
@@ -64,7 +64,7 @@ namespace noda {
 		  DeleteBucket(message);
 		  break;
 		case protocol::MsgType_OpenNodaDB:
-		 // OpenNodaDb(*sender, message);
+		  // OpenNodaDb(*sender, message);
 		  break;
 		}
 
@@ -87,7 +87,7 @@ namespace noda {
 
   void DataHandler::DeleteBucket(const protocol::Message *message)
   {
-	  // todo: report result:
+	// todo: report result:
 
 	auto *msg = message->msg_as_RemoveBucket();
 	bool res = _storage.RemBucket(msg->name()->str());
@@ -95,10 +95,9 @@ namespace noda {
 
   void DataHandler::OpenNodaDb(const NdUser &sender, const protocol::Message *message)
   {
-	 
 	// TODO: respond with a list of workspaces + projects
 	auto *msg = message->msg_as_OpenNodaDB();
-	
+
 	auto name = msg->name()->str();
 
 	auto inst = dbref_.emplace_back(_storage, name);

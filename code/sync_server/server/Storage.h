@@ -50,7 +50,6 @@ namespace noda {
 
 	//void AddUpdate();
   private:
-
 	// doesnt need to be atomic *currently*
 	int _rc = 0;
 

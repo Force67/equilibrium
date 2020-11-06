@@ -30,11 +30,11 @@ namespace noda {
 	virtual void ProcessPacket(const uint8_t *data, size_t size) = 0;
   };
 
-  class SyncClient final : public netlib::Client,
-                           public QThread {
+  class Client final : public netlib::Client,
+                       public QThread {
   public:
-	SyncClient(SyncDelegate &);
-	~SyncClient();
+	Client(SyncDelegate &);
+	~Client();
 
 	bool ConnectServer();
 

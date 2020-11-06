@@ -34,6 +34,7 @@ namespace noda {
 	void DeleteBucket(const protocol::Message *);
 
 	void OpenNodaDb(const NdUser &sender, const protocol::Message *);
+
   private:
 	ServerImpl &_server;
 
@@ -44,6 +45,6 @@ namespace noda {
 	utility::detached_mpsc_queue<InPacket> _packetQueue;
 
 	Storage _storage;
-	std::vector< NodaDb> dbref_;
+	std::vector<NodaDb> dbref_;
   };
 } // namespace noda

@@ -106,7 +106,6 @@ namespace noda {
 	connect(&_sync, &SyncController::Disconnected, _netStatus.data(), &StatusWidget::OnDisconnect);
 	connect(&_sync, &SyncController::Broadcasted, _netStatus.data(), &StatusWidget::OnBroadcast);
 
-	// this needs to be done here, for some reason :D
 	connect(&_sync, &SyncController::Connected, [&]() {
 	  _connectAct->setText("Disconnect");
 	});
@@ -122,8 +121,8 @@ namespace noda {
 
   void UiController::ImportNodaDB()
   {
-	  ProgressDialog dialog(GetTopWindow(), "Importing NodaDB", "Might take a while!");
-	  dialog.exec();
+	ProgressDialog dialog(GetTopWindow(), "Importing NodaDB", "Might take a while!");
+	dialog.exec();
 
 	// progress dialog.. and thread...
 
@@ -241,7 +240,6 @@ namespace noda {
 	bool connected = _sync.IsConnected();
 
 	_projectAct->setEnabled(!connected);
-	_localhAct->setEnabled(connected);
 
 	if(connected)
 	  _sync.Disconnect();
@@ -255,25 +253,28 @@ namespace noda {
 		error.exec();
 	  }
 
-	  // populate projects list
+	  _localhAct->setEnabled(result);
 	}
   }
 
   void UiController::ToggleLocalhost()
   {
-	bool hosting = _sync.IsLocalHosting();
+	bool result = _sync.IsLocalHosting();
 
-	if(hosting)
+	if(result)
 	  _sync.DestroyLocalHost();
 	else {
-	  bool result = _sync.CreateLocalHost();
-	  if(!result) {
+	  bool rr = _sync.CreateLocalHost();
+	  if(!rr) {
 		QErrorMessage error(QApplication::activeWindow());
 		error.showMessage(
 		    "Unable to create a local host server");
 		error.exec();
+		return;
 	  }
 	}
+
+	_localhAct->setText(result ? "Start Localhost" : "Stop Localhost");
   }
 
   void UiController::OpenConfiguration()

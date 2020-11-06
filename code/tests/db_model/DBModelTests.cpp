@@ -29,7 +29,6 @@ Storage
 │   └───MyProject
 */
 
-
 // Example:
 /*
 Storage
@@ -50,23 +49,22 @@ void CreateHive(database::SqliteDB &db)
 {
   bool res = db.Execute(
       "CREATE TABLE projects("
-	  "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-	  "name TEXT NOT NULL);"
-	  
-	  // simple list of all files related to projects
-	  "CREATE TABLE file_root("
       "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-	  "prj_id INTEGER,"
-	  "type INTEGER," // reserved for future use
+      "name TEXT NOT NULL);"
+
+      // simple list of all files related to projects
+      "CREATE TABLE file_root("
+      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+      "prj_id INTEGER,"
+      "type INTEGER," // reserved for future use
       "name TEXT NOT NULL,"
-	  "path TEXT NOT NULL);"
-  ); // initial hive layout
+      "path TEXT NOT NULL);"); // initial hive layout
 
   // workspace id
   assert(res);
 }
 
-void CreateProject(database::SqliteDB& db, const fs::path &path, const std::string &name)
+void CreateProject(database::SqliteDB &db, const fs::path &path, const std::string &name)
 {
   assert(name.length() <= kMaxProjectNameSize);
 
@@ -79,14 +77,14 @@ void CreateProject(database::SqliteDB& db, const fs::path &path, const std::stri
   assert(s.Run());
 }
 
-int GetProjectId(database::SqliteDB& db, const std::string &name)
+int GetProjectId(database::SqliteDB &db, const std::string &name)
 {
   database::SqliteStatement s(db, "SELECT id FROM projects WHERE name = ?");
   assert(s.Good());
 
   s.Bind(name);
 
-  if (s.Step()) {
+  if(s.Step()) {
 	return s.ColumnInt(0);
   }
 
@@ -95,10 +93,10 @@ int GetProjectId(database::SqliteDB& db, const std::string &name)
 
 // project = IDB Snapshot
 void CreateNodaDB(
-	database::SqliteDB &db,
-	const std::string &wksName, 
-	const fs::path &path, 
-	const std::string &name)
+    database::SqliteDB &db,
+    const std::string &wksName,
+    const fs::path &path,
+    const std::string &name)
 {
   int wksId = GetProjectId(db, wksName);
   assert(wksId != -1);
@@ -134,7 +132,6 @@ void CreateNodaDB(
 	name TEXT NOT NULL);)",
       name, name);
 
-
   // to think about: file table...
   // TODO: think about user permission storage...
   // Workspace creator should have access to _everything_
@@ -154,7 +151,7 @@ void CreateNodaDB(
 
   flatbuffers::FlatBufferBuilder fbb;
   auto packet = protocol::CreateMessage(
-	  fbb, protocol::MsgType_sync_MakeCode,
+      fbb, protocol::MsgType_sync_MakeCode,
       protocol::sync::CreateMakeCode(fbb, 0x133713371337).Union());
   fbb.Finish(packet);
 

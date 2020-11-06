@@ -25,4 +25,9 @@ namespace noda {
   {
 	return _impl->_listening;
   }
+
+  uint16_t Server::GetPort() const
+  {
+	return _impl->_activePort;
+  }
 } // namespace noda

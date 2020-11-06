@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	    "custom leak checking in the tests.");
 
   auto path = GetStorageDir();
-  if (fs::exists(path)) {
+  if(fs::exists(path)) {
 	fs::remove_all(path);
   }
 

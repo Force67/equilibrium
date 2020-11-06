@@ -52,23 +52,21 @@ namespace noda {
 	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
   }
 
-  // move thread here?:..
-
   bool SyncController::CreateLocalHost()
   {
-	_localServer = std::make_unique<Server>(4523);
-	auto result = _localServer->Initialize(false);
-	if(result != noda::ServerStatus::Success) {
-	  LOG_ERROR("Failed to initialize the server instance (status: %d)\n",
-	            static_cast<int>(result));
-	  return false;
+	bool result = _server.Start();
+	if(result) {
+	  LOG_INFO("Local server listening on port {}",
+	           _server.GetPort());
 	}
 
-	return true;
+	return result;
   }
 
   void SyncController::DestroyLocalHost()
   {
+	_server.Stop();
+	LOG_INFO("Stopped Localhost");
   }
 
   bool SyncController::Connect()
@@ -90,7 +88,7 @@ namespace noda {
 
   bool SyncController::IsLocalHosting()
   {
-	  return _localServer.get() != nullptr;
+	return _server.Active();
   }
 
   void SyncController::OnConnected()

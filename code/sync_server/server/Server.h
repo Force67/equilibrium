@@ -26,8 +26,10 @@ namespace noda {
 
 	ServerStatus Initialize(bool useStorage);
 
-	bool IsListening() const;
 	void Update();
+
+	bool IsListening() const;
+	uint16_t GetPort() const;
 
   private:
 	std::unique_ptr<ServerImpl> _impl;

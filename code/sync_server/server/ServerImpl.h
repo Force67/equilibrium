@@ -39,6 +39,8 @@ namespace noda {
 
   private:
 	bool _listening = false;
+	uint16_t _activePort = 0;
+
 	std::string _token = "";
 	DataHandler _datahandler;
 
