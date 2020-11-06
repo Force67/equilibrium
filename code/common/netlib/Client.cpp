@@ -44,6 +44,9 @@ namespace netlib {
 
   void Client::Disconnect()
   {
+	if(!_serverPeer)
+	  return;
+
 	enet_peer_disconnect(_serverPeer, 0xFF);
 
 	while(enet_host_service(_host, &_event, constants::kTimeout) > 0) {

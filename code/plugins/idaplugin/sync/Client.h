@@ -9,6 +9,7 @@
 #include "moc_protocol/Handshake_generated.h"
 #include "moc_protocol/IdaSync_generated.h"
 
+#include "Packet.h"
 #include "utility/DetachedQueue.h"
 
 #include <qthread.h>
@@ -27,7 +28,7 @@ namespace noda {
 	virtual void OnDisconnect(int reason) = 0;
 
 	// Handle a new message
-	virtual void ProcessPacket(const uint8_t *data, size_t size) = 0;
+	virtual void ProcessPacket(netlib::Packet *) = 0;
   };
 
   class Client final : public netlib::Client,
@@ -36,7 +37,13 @@ namespace noda {
 	Client(SyncDelegate &);
 	~Client();
 
-	bool ConnectServer();
+	bool Start();
+	void Stop();
+
+	void CreatePacket(
+	    protocol::MsgType type,
+	    FbsBuffer &buffer,
+	    FbsRef<void> packet);
 
   private:
 	//netlib::Client:
@@ -52,21 +59,12 @@ namespace noda {
 	bool _run = false;
 	SyncDelegate &_delegate;
 
-  public:
-	struct InPacket {
-	  inline explicit InPacket(netlib::Packet *p) :
-	      packet(*p) {}
-
-	  netlib::Packet packet;
-	  utility::detached_queue_key<InPacket> key;
-	};
-
   private:
-	utility::detached_mpsc_queue<InPacket> _inQueue;
+	utility::detached_mpsc_queue<OutPacket> _outQueue;
   };
 
   inline flatbuffers::Offset<flatbuffers::String>
-      MakeFbStringRef(flatbuffers::FlatBufferBuilder &msg, const QString &other)
+      MakeFbStringRef(FbsBuffer &msg, const QString &other)
   {
 	const char *str = const_cast<const char *>(other.toUtf8().data());
 	size_t sz = static_cast<size_t>(other.size());

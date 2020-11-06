@@ -11,6 +11,7 @@
 #include "utils/NetNode.h"
 
 #include "Client.h"
+#include "Packet.h"
 #include "LocalServer.h"
 
 namespace QT {
@@ -20,7 +21,7 @@ namespace QT {
 namespace noda {
   struct SyncHandler;
 
-  class SyncController final : public QObject,
+  class SyncController final : public QThread,
                                public SyncDelegate {
 	Q_OBJECT;
 
@@ -50,7 +51,7 @@ namespace noda {
 	// network events
 	void OnConnected() override;
 	void OnDisconnect(int) override;
-	void ProcessPacket(const uint8_t *data, size_t size) override;
+	void ProcessPacket(netlib::Packet *) override;
 
 	// IDA
 	ssize_t HandleEvent(hook_type_t, int, va_list);
@@ -69,5 +70,10 @@ namespace noda {
 	using IdaEventType_t = std::pair<hook_type_t, int>;
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;
 	std::map<protocol::MsgType, SyncHandler *> _netEvents;
+
+  private:
+	void run() override;
+
+	utility::detached_mpsc_queue<InPacket> _packetQueue;
   };
 } // namespace noda

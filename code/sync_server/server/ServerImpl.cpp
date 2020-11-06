@@ -154,5 +154,4 @@ namespace noda {
 
 	_packetQueue.push(&item->key);
   }
-
 } // namespace noda

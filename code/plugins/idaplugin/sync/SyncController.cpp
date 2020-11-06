@@ -11,11 +11,15 @@
 #include "IdaInc.h"
 #include "SyncHandler.h"
 
+#include "utility/ObjectPool.h"
+
 namespace noda {
   constexpr int kNetTrackRate = 1000;
 
   constexpr uint32_t kStorageVersion = 4;
   static const char kSyncNodeName[] = "$ nd_sync_data";
+
+  static inline utility::object_pool<InPacket> s_packetPool;
 
   SyncController::SyncController() :
       _client(*this)
@@ -72,13 +76,13 @@ namespace noda {
   bool SyncController::Connect()
   {
 	// initialize storage?
-	return _client.ConnectServer();
+	return _client.Start();
   }
 
   void SyncController::Disconnect()
   {
 	// flush storage?
-	_client.Disconnect();
+	_client.Stop();
   }
 
   bool SyncController::IsConnected()
@@ -93,7 +97,7 @@ namespace noda {
 
   void SyncController::OnConnected()
   {
-	struct request : exec_request_t {
+	/*struct request : exec_request_t {
 	  SyncController &sc;
 
 	  int execute() override
@@ -115,10 +119,6 @@ namespace noda {
 		char fileName[128]{};
 		get_root_filename(fileName, sizeof(fileName) - 1);
 
-		/*sc.SendFbsPacket(protocol::MsgType_LocalProjectInfo,
-		                 protocol::CreateLocalProjectInfoDirect(
-		                     sc.fbb(), 1337,
-		                     md5Str, fileName));*/
 		return 0;
 	  }
 
@@ -128,7 +128,7 @@ namespace noda {
 
 	// until this completes, the server wont respond anyway
 	request req(*this);
-	execute_sync(req, MFF_READ);
+	execute_sync(req, MFF_READ);*/
 
 	emit Connected();
   }
@@ -180,24 +180,34 @@ namespace noda {
 	_active = true;
   }
 
-  void SyncController::ProcessPacket(const uint8_t *data, size_t size)
+  void SyncController::run()
   {
-	const auto *message = protocol::GetMessage(data);
+	while(auto *packet = _packetQueue.pop(&InPacket::key)) {
+	  /*	const auto *message = protocol::GetMessage(packet->packet->data());
 
-	switch(message->msg_type()) {
-	case protocol::MsgType_RemoteProjectInfo:
-	  OnProjectJoin(message);
-	  return;
-	case protocol::MsgType_Announcement:
-	  OnAnnouncement(message);
-	  return;
-	default:
-	  break;
+	  switch(message->msg_type()) {
+	  case protocol::MsgType_RemoteProjectInfo:
+		OnProjectJoin(message);
+		return;
+	  case protocol::MsgType_Announcement:
+		OnAnnouncement(message);
+		return;
+	  default:
+		break;
+	  }
+
+	  auto it = _netEvents.find(message->msg_type());
+	  if(it == _netEvents.end())
+		return;
+		*/
+	  s_packetPool.destruct(packet);
 	}
+  }
 
-	auto it = _netEvents.find(message->msg_type());
-	if(it == _netEvents.end())
-	  return;
+  void SyncController::ProcessPacket(netlib::Packet *packet)
+  {
+	InPacket *item = s_packetPool.construct(packet);
+	_packetQueue.push(&item->key);
   }
 
   ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)

@@ -85,14 +85,14 @@ public:
 
 	std::printf("HandleAuth(): %d:%d\n", pack->userIndex(), pack->numUsers());
 
-	auto hello = protocol::CreateCreateWorkspaceDirect(_fbb, "TestWorkspace");
+	/*auto hello = protocol::CreateCreateWorkspaceDirect(_fbb, "TestWorkspace");
 	SendPacket(protocol::MsgType_CreateWorkspace, hello);
 
 	// never opened this project before - version 0
 	auto packet = protocol::CreateOpenProjectDirect(_fbb, 0,
 	                                                "FakeProject", "48fac413577bee5e05429a1aeda48b52");
 
-	SendPacket(protocol::MsgType_OpenProject, packet);
+	SendPacket(protocol::MsgType_OpenProject, packet);*/
   }
 
   void OnConsume(netlib::Packet *packet)

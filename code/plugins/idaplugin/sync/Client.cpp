@@ -16,7 +16,7 @@ namespace noda {
 
   constexpr uint32_t kNetworkerThreadIdle = 1;
 
-  inline utility::object_pool<Client::InPacket> s_inpacketPool;
+  inline utility::object_pool<OutPacket> s_packetPool;
 
   Client::Client(SyncDelegate &nsd) :
       _delegate(nsd)
@@ -25,11 +25,11 @@ namespace noda {
 
   Client::~Client()
   {
-	_run = false;
-	QThread::wait();
+	if(_run)
+	  Stop();
   }
 
-  bool Client::ConnectServer()
+  bool Client::Start()
   {
 	QSettings settings;
 	uint port = settings.value("Nd_SyncPort", netlib::constants::kServerPort).toUInt();
@@ -40,30 +40,51 @@ namespace noda {
 	  // fire event
 	  LOG_INFO("Connected to {}:{}", addr.toUtf8().data(), port);
 	  _run = true;
+
+	  QThread::setObjectName("[NetThread]");
 	  QThread::start();
 	}
 
 	return result;
   }
 
+  void Client::Stop()
+  {
+	Disconnect();
+
+	_run = false;
+	QThread::wait();
+  }
+
+  void Client::CreatePacket(protocol::MsgType type,
+                            FbsBuffer &buffer,
+                            FbsRef<void> packet)
+  {
+	buffer.Finish(protocol::CreateMessage(buffer, type, packet));
+
+	OutPacket *item = s_packetPool.construct();
+	item->buffer = std::move(buffer);
+
+	_outQueue.push(&item->key);
+  }
+
   void Client::OnConnection()
   {
-	QSettings settings;
-	flatbuffers::FlatBufferBuilder fbb;
-
 	const QString &guid = GetUserGuid();
 
+	QSettings settings;
 	auto name = settings.value("Nd_SyncUser",
 	                           GetDefaultUserName())
 	                .toString();
 
+	FbsBuffer buffer;
 	auto request = protocol::CreateHandshakeRequest(
-	    fbb, protocol::constants::ProtocolVersion_Current,
-	    fbb.CreateString(""),
-	    MakeFbStringRef(fbb, guid),
-	    MakeFbStringRef(fbb, name));
+	    buffer, protocol::constants::ProtocolVersion_Current,
+	    buffer.CreateString(""),
+	    MakeFbStringRef(buffer, guid),
+	    MakeFbStringRef(buffer, name));
 
-	//SendPacket(protocol::MsgType_HandshakeRequest, request);
+	CreatePacket(protocol::MsgType_HandshakeRequest, buffer, request.Union());
   }
 
   void Client::OnDisconnected(int r)
@@ -74,6 +95,17 @@ namespace noda {
   void Client::run()
   {
 	while(_run) {
+	  while(auto *packet = _outQueue.pop(&OutPacket::key)) {
+		bool result = SendReliable(
+		    packet->buffer.GetBufferPointer(),
+		    packet->buffer.GetSize());
+
+		if(!result)
+		  LOG_TRACE("Failed to send packet! ({})", packet->buffer.GetSize());
+
+		s_packetPool.destruct(packet);
+	  }
+
 	  Client::Tick();
 	  QThread::msleep(kNetworkerThreadIdle);
 	}
@@ -83,7 +115,7 @@ namespace noda {
   {
 	flatbuffers::Verifier verifier(packet->data(), packet->length());
 	if(!protocol::VerifyMessageBuffer(verifier)) {
-	  LOG_ERROR("Received corrupt data ({})", packet->length());
+	  LOG_ERROR("Received corrupt packet ({})", packet->length());
 	  return;
 	}
 
@@ -92,13 +124,16 @@ namespace noda {
 	  return HandleAuth(message);
 	}
 
-	InPacket *item = s_inpacketPool.construct(packet);
-	_inQueue.push(&item->key);
+	_delegate.ProcessPacket(packet);
   }
 
   void Client::HandleAuth(const protocol::Message *message)
   {
 	auto *pack = message->msg_as_HandshakeAck();
+
+	LOG_INFO("Authenticated: {}/{}", pack->userIndex(), pack->numUsers());
+
+	_delegate.OnConnected();
   }
 
 } // namespace noda
