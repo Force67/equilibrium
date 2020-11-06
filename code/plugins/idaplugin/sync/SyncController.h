@@ -9,6 +9,7 @@
 #include "utils/Logger.h"
 #include "utils/AtomicQueue.h"
 #include "utils/NetNode.h"
+#include "utils/JobQueue.h"
 
 #include "Client.h"
 #include "Packet.h"
@@ -24,6 +25,7 @@ namespace noda {
   class SyncController final : public QThread,
                                public SyncDelegate {
 	Q_OBJECT;
+	JobQueue _jobQueue;
 
   public:
 	SyncController();
@@ -52,6 +54,7 @@ namespace noda {
 	void OnConnected() override;
 	void OnDisconnect(int) override;
 	void ProcessPacket(netlib::Packet *) override;
+	void ProcessPacket_MainThread(InPacket *);
 
 	// IDA
 	ssize_t HandleEvent(hook_type_t, int, va_list);
@@ -70,10 +73,5 @@ namespace noda {
 	using IdaEventType_t = std::pair<hook_type_t, int>;
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;
 	std::map<protocol::MsgType, SyncHandler *> _netEvents;
-
-  private:
-	void run() override;
-
-	utility::detached_mpsc_queue<InPacket> _packetQueue;
   };
 } // namespace noda

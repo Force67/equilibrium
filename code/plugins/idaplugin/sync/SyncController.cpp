@@ -97,39 +97,6 @@ namespace noda {
 
   void SyncController::OnConnected()
   {
-	/*struct request : exec_request_t {
-	  SyncController &sc;
-
-	  int execute() override
-	  {
-		uchar md5[16]{};
-		bool result = retrieve_input_file_md5(md5);
-		assert(result != false);
-
-		// +1 for null termination
-		char md5Str[32 + 1]{};
-
-		// convert bytes to str
-		constexpr char klookup[] = "0123456789abcdef";
-		for(int i = 0; i < 16; i++) {
-		  md5Str[i * 2] = klookup[md5[i] / 16];
-		  md5Str[i * 2 + 1] = klookup[md5[i] % 16];
-		}
-
-		char fileName[128]{};
-		get_root_filename(fileName, sizeof(fileName) - 1);
-
-		return 0;
-	  }
-
-	  request(SyncController &sc) :
-	      sc(sc) {}
-	};
-
-	// until this completes, the server wont respond anyway
-	request req(*this);
-	execute_sync(req, MFF_READ);*/
-
 	emit Connected();
   }
 
@@ -180,10 +147,9 @@ namespace noda {
 	_active = true;
   }
 
-  void SyncController::run()
+  void SyncController::ProcessPacket_MainThread(InPacket *packet)
   {
-	while(auto *packet = _packetQueue.pop(&InPacket::key)) {
-	  /*	const auto *message = protocol::GetMessage(packet->packet->data());
+	const auto *message = protocol::GetMessage(packet->packet.data());
 
 	  switch(message->msg_type()) {
 	  case protocol::MsgType_RemoteProjectInfo:
@@ -199,15 +165,12 @@ namespace noda {
 	  auto it = _netEvents.find(message->msg_type());
 	  if(it == _netEvents.end())
 		return;
-		*/
-	  s_packetPool.destruct(packet);
-	}
   }
 
   void SyncController::ProcessPacket(netlib::Packet *packet)
   {
 	InPacket *item = s_packetPool.construct(packet);
-	_packetQueue.push(&item->key);
+	_jobQueue.ScheduleJob(std::bind(&SyncController::ProcessPacket_MainThread, this, item));
   }
 
   ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)
