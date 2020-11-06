@@ -4,12 +4,13 @@
 
 #include "Peer.h"
 #include "Packet.h"
+#include "NetLib.h"
 
 namespace netlib {
 
-  class Server {
+  class NetServer {
   public:
-	~Server();
+	~NetServer();
 
 	inline bool Good() const
 	{
@@ -25,9 +26,15 @@ namespace netlib {
 	virtual void OnConsume(Peer *, Packet *) = 0;
 
 	void BroadcastReliable(Packet *, Peer *ex = nullptr);
-	bool SendReliable(connectid_t id, const uint8_t *data, size_t len);
+
+	bool SendReliableUnsafe(connectid_t id,
+	                        const uint8_t *data,
+	                        size_t len,
+	                        void *userp);
 
 	size_t GetPeerCount() const;
+
+	static void SetDeleter(packetdeleter_t);
 
   private:
 	ENetPeer *PeerById(connectid_t);

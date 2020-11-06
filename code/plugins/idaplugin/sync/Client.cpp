@@ -7,7 +7,6 @@
 
 #include "utils/UserInfo.h"
 #include "utils/Logger.h"
-
 #include "utility/ObjectPool.h"
 
 #include "moc_protocol/Constants_generated.h"
@@ -21,6 +20,10 @@ namespace noda {
   Client::Client(SyncDelegate &nsd) :
       _delegate(nsd)
   {
+	NetClient::SetDeleter([](void *userp) {
+	  OutPacket *out = static_cast<OutPacket *>(userp);
+	  s_packetPool.destruct(out);
+	});
   }
 
   Client::~Client()
@@ -35,10 +38,10 @@ namespace noda {
 	uint port = settings.value("Nd_SyncPort", netlib::constants::kServerPort).toUInt();
 	auto addr = settings.value("Nd_SyncIp", netlib::constants::kServerIp).toString();
 
-	bool result = Client::Connect(addr.toUtf8().data(), static_cast<uint16_t>(port));
+	bool result = NetClient::Connect(addr.toUtf8().data(), static_cast<uint16_t>(port));
 	if(result) {
 	  // fire event
-	  LOG_INFO("Connected to {}:{}", addr.toUtf8().data(), port);
+	  LOG_INFO("Connecting to {}:{}", addr.toUtf8().data(), port);
 	  _run = true;
 
 	  QThread::setObjectName("[NetThread]");
@@ -50,10 +53,10 @@ namespace noda {
 
   void Client::Stop()
   {
-	Disconnect();
-
 	_run = false;
 	QThread::wait();
+
+	Disconnect();
   }
 
   void Client::CreatePacket(protocol::MsgType type,
@@ -95,18 +98,18 @@ namespace noda {
   void Client::run()
   {
 	while(_run) {
+	  NetClient::Tick();
+
 	  while(auto *packet = _outQueue.pop(&OutPacket::key)) {
-		bool result = SendReliable(
+		bool result = NetClient::SendReliableUnsafe(
 		    packet->buffer.GetBufferPointer(),
-		    packet->buffer.GetSize());
+		    packet->buffer.GetSize(),
+		    static_cast<void *>(packet));
 
 		if(!result)
 		  LOG_TRACE("Failed to send packet! ({})", packet->buffer.GetSize());
-
-		s_packetPool.destruct(packet);
 	  }
 
-	  Client::Tick();
 	  QThread::msleep(kNetworkerThreadIdle);
 	}
   }

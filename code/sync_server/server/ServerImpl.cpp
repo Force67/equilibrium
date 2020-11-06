@@ -10,25 +10,30 @@
 
 namespace noda {
 
-  inline utility::object_pool<OutPacket> packetPool;
+  inline utility::object_pool<OutPacket> s_packetPool;
 
   ServerImpl::ServerImpl(uint16_t port) :
       _datahandler(*this),
       _tickTime(std::chrono::high_resolution_clock::now())
   {
 	for(int i = 0; i < 10; i++) {
-	  if(Server::Host(port)) {
+	  if(NetServer::Host(port)) {
 		_activePort = port;
 		break;
 	  }
 
 	  port++;
 	}
+
+	NetServer::SetDeleter([](void *data) {
+	  OutPacket *packet = static_cast<OutPacket *>(data);
+	  s_packetPool.destruct(packet);
+	});
   }
 
   ServerStatus ServerImpl::Initialize(bool useStorage)
   {
-	if(!Server::Good())
+	if(!NetServer::Good())
 	  return ServerStatus::NetError;
 
 	if(useStorage) {
@@ -44,6 +49,10 @@ namespace noda {
 
 	_listening = true;
 	return ServerStatus::Success;
+  }
+
+  void ServerImpl::OnConnection(netlib::Peer *peer)
+  {
   }
 
   void ServerImpl::OnDisconnection(netlib::Peer *peer)
@@ -130,16 +139,21 @@ namespace noda {
 	  _freeTime = 0;
 	}
 
+	NetServer::Listen();
+
 	// out queue
 	while(auto *packet = _packetQueue.pop(&OutPacket::key)) {
-	  SendReliable(packet->id,
-	               packet->buffer.GetBufferPointer(),
-	               packet->buffer.GetSize());
+	  bool result = SendReliableUnsafe(packet->id,
+	                                   packet->buffer.GetBufferPointer(),
+	                                   packet->buffer.GetSize(),
+	                                   static_cast<void *>(packet));
 
-	  packetPool.destruct(packet);
+#if 1
+	  if(!result)
+		__debugbreak();
+#endif
+	  // for deletion: visit SetDeleter([](void* data)
 	}
-
-	Server::Listen();
   }
 
   void ServerImpl::CreatePacket(netlib::connectid_t cid,
@@ -149,7 +163,7 @@ namespace noda {
   {
 	buffer.Finish(protocol::CreateMessage(buffer, type, packet));
 
-	OutPacket *item = packetPool.construct(cid);
+	OutPacket *item = s_packetPool.construct(cid);
 	item->buffer = std::move(buffer);
 
 	_packetQueue.push(&item->key);

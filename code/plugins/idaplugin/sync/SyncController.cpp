@@ -22,7 +22,8 @@ namespace noda {
   static inline utility::object_pool<InPacket> s_packetPool;
 
   SyncController::SyncController() :
-      _client(*this)
+      _client(*this),
+      _dispatcher(*this)
   {
 	hook_to_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
 	hook_to_notification_point(hook_type_t::HT_IDP, IdpEvent, this);
@@ -58,18 +59,20 @@ namespace noda {
 
   bool SyncController::CreateLocalHost()
   {
-	bool result = _server.Start();
+	/*bool result = _server.Start();
 	if(result) {
 	  LOG_INFO("Local server listening on port {}",
 	           _server.GetPort());
 	}
 
-	return result;
+	return result;*/
+
+	return false;
   }
 
   void SyncController::DestroyLocalHost()
   {
-	_server.Stop();
+	//_server.Stop();
 	LOG_INFO("Stopped Localhost");
   }
 
@@ -92,7 +95,8 @@ namespace noda {
 
   bool SyncController::IsLocalHosting()
   {
-	return _server.Active();
+	//return _server.Active();
+	return false;
   }
 
   void SyncController::OnConnected()
@@ -102,6 +106,8 @@ namespace noda {
 
   void SyncController::OnDisconnect(int reason)
   {
+	LOG_INFO("Disconnected with reason {}", reason);
+
 	_active = false;
 
 	// forward the event
@@ -151,26 +157,60 @@ namespace noda {
   {
 	const auto *message = protocol::GetMessage(packet->packet.data());
 
+	switch(message->msg_type()) {
+	case protocol::MsgType_RemoteProjectInfo:
+	  OnProjectJoin(message);
+	  return;
+	case protocol::MsgType_Announcement:
+	  OnAnnouncement(message);
+	  return;
+	default:
+	  break;
+	}
+
+	auto it = _netEvents.find(message->msg_type());
+	if(it == _netEvents.end())
+	  return;
+  }
+
+  int SyncController::Dispatcher::execute()
+  {
+	while(InPacket *item = sc._queue.pop(&InPacket::key)) {
+	  sc._eventSize--;
+
+	  const protocol::Message *message =
+	      protocol::GetMessage(item->packet.data());
+
 	  switch(message->msg_type()) {
 	  case protocol::MsgType_RemoteProjectInfo:
-		OnProjectJoin(message);
-		return;
+		sc.OnProjectJoin(message);
+		return 0;
 	  case protocol::MsgType_Announcement:
-		OnAnnouncement(message);
-		return;
+		sc.OnAnnouncement(message);
+		return 0;
 	  default:
 		break;
 	  }
 
-	  auto it = _netEvents.find(message->msg_type());
-	  if(it == _netEvents.end())
-		return;
+	  auto it = sc._netEvents.find(message->msg_type());
+	  if(it == sc._netEvents.end())
+		return 0;
+
+	  it->second->delegates.apply(sc, message->msg());
+	  s_packetPool.destruct(item);
+	}
+
+	return 0;
   }
 
   void SyncController::ProcessPacket(netlib::Packet *packet)
   {
 	InPacket *item = s_packetPool.construct(packet);
-	_jobQueue.ScheduleJob(std::bind(&SyncController::ProcessPacket_MainThread, this, item));
+	_queue.push(&item->key);
+	_eventSize++;
+
+	if(_eventSize == 1)
+	  execute_sync(_dispatcher, MFF_WRITE | MFF_NOWAIT);
   }
 
   ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)

@@ -31,7 +31,7 @@ namespace noda {
 	virtual void ProcessPacket(netlib::Packet *) = 0;
   };
 
-  class Client final : public netlib::Client,
+  class Client final : public netlib::NetClient,
                        public QThread {
   public:
 	Client(SyncDelegate &);

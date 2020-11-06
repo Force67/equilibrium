@@ -77,7 +77,9 @@ namespace noda {
 
 	if(QMenu *nodaMenu = menuBar->addMenu(QIcon(":/logo"), "NODA")) {
 	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
-	  _localhAct = nodaMenu->addAction(QIcon(":/wired"), "Start Localhost", this, &UiController::ToggleLocalhost);
+
+	  //
+	  //_localhAct = nodaMenu->addAction(QIcon(":/wired"), "Start Localhost", this, &UiController::ToggleLocalhost);
 	  _projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
@@ -253,7 +255,7 @@ namespace noda {
 		error.exec();
 	  }
 
-	  _localhAct->setEnabled(result);
+	  //_localhAct->setEnabled(result);
 	}
   }
 

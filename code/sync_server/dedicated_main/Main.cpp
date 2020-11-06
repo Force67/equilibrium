@@ -3,9 +3,12 @@
 
 #include <cstdio>
 #include <thread>
+#include <chrono>
 #include <Server.h>
 
 #include <netlib/NetLib.h>
+
+using namespace std::chrono_literals;
 
 int main(int argc, char **argv)
 {
@@ -23,6 +26,8 @@ int main(int argc, char **argv)
 
   while(server.IsListening()) {
 	server.Update();
+
+	std::this_thread::sleep_for(1ms);
   }
 
   return 0;

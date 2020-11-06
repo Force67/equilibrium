@@ -6,6 +6,8 @@
 
 namespace netlib {
 
+  using packetdeleter_t = void (*)(void *);
+
   namespace constants {
 	// default values
 	constexpr char kServerIp[] = "127.0.0.1";

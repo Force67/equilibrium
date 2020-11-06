@@ -9,7 +9,6 @@
 #include "utils/Logger.h"
 #include "utils/AtomicQueue.h"
 #include "utils/NetNode.h"
-#include "utils/JobQueue.h"
 
 #include "Client.h"
 #include "Packet.h"
@@ -25,7 +24,6 @@ namespace noda {
   class SyncController final : public QThread,
                                public SyncDelegate {
 	Q_OBJECT;
-	JobQueue _jobQueue;
 
   public:
 	SyncController();
@@ -68,10 +66,21 @@ namespace noda {
 	netlib::ScopedNetContext _context;
 
 	Client _client;
-	LocalServer _server;
+	//LocalServer _server;
 
 	using IdaEventType_t = std::pair<hook_type_t, int>;
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;
 	std::map<protocol::MsgType, SyncHandler *> _netEvents;
+
+	struct Dispatcher : exec_request_t {
+	  Dispatcher(SyncController &sc) :
+	      sc(sc) {}
+
+	  SyncController &sc;
+	  int idaapi execute() override;
+	} _dispatcher;
+
+	std::atomic_int _eventSize = 0;
+	utility::detached_mpsc_queue<InPacket> _queue;
   };
 } // namespace noda

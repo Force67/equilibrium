@@ -10,6 +10,8 @@
 
 #include "utility/Thread.h"
 
+using namespace std::chrono_literals;
+
 namespace noda {
 
   inline utility::object_pool<InPacket> packetPool;
@@ -71,7 +73,7 @@ namespace noda {
 		packetPool.destruct(item);
 	  }
 
-	  std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });
+	  std::this_thread::sleep_for(1ms);
 	}
   }
 

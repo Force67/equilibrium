@@ -24,11 +24,11 @@ using namespace std::chrono_literals;
 
 inline utility::object_pool<InPacket> packetPool;
 
-class TestClient final : public netlib::Client {
+class TestClient final : public netlib::NetClient {
 public:
   TestClient()
   {
-	_run = Client::Connect(
+	_run = NetClient::Connect(
 	    netlib::constants::kServerIp,
 	    netlib::constants::kServerPort);
 
@@ -117,7 +117,7 @@ public:
   {
 	_fbb.Finish(protocol::CreateMessage(_fbb, tt, ref.Union()));
 
-	bool result = SendReliable(_fbb.GetBufferPointer(), _fbb.GetSize());
+	bool result = SendReliableUnsafe(_fbb.GetBufferPointer(), _fbb.GetSize());
 	assert(result);
   }
 

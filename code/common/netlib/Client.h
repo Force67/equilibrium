@@ -3,13 +3,13 @@
 #pragma once
 
 #include "Packet.h"
+#include "NetLib.h"
 
 namespace netlib {
 
-  class Client {
+  class NetClient {
   public:
-	Client();
-	~Client();
+	~NetClient();
 
 	inline bool Good() const
 	{
@@ -20,12 +20,14 @@ namespace netlib {
 	virtual void OnDisconnected(int) = 0;
 	virtual void OnConsume(Packet *) = 0;
 
-	bool SendReliable(uint8_t *ptr, size_t size);
+	bool SendReliableUnsafe(uint8_t *ptr, size_t size, void *userp = nullptr);
 
 	void Disconnect();
 	bool Connect(const char *address, uint16_t port);
 
 	void Tick();
+
+	static void SetDeleter(packetdeleter_t);
 
   private:
 	ENetHost *_host = nullptr;

@@ -6,13 +6,15 @@
 
 namespace netlib {
 
-  Server::~Server()
+  static packetdeleter_t s_deleter = nullptr;
+
+  NetServer::~NetServer()
   {
 	if(_host)
 	  enet_host_destroy(_host);
   }
 
-  bool Server::Host(uint16_t port)
+  bool NetServer::Host(uint16_t port)
   {
 	ENetAddress address{ 0, port };
 	_host = enet_host_create(&address, 10, 0, 0, 0);
@@ -20,41 +22,50 @@ namespace netlib {
   }
 
   // "optimized" by reusing a previous packet...
-  void Server::BroadcastReliable(Packet *source, Peer *ex)
+  void NetServer::BroadcastReliable(Packet *source, Peer *ex)
   {
 	ENetPeer *curPeer = _host->peers;
 
 	for(size_t i = 0; i < _host->peerCount; i++) {
 	  if(curPeer != ex->GetPeer() && curPeer->state == ENET_PEER_STATE_CONNECTED)
-		// no need to worry here, enet already bumps the refcount
+		// no need to worry here, ENet already bumps the refcount
 		enet_peer_send(curPeer, 1, source->GetPacket());
 
 	  ++curPeer;
 	}
   }
 
-  bool Server::SendReliable(connectid_t id, const uint8_t *data, size_t len)
+  void NetServer::SetDeleter(packetdeleter_t deleter)
+  {
+	s_deleter = deleter;
+  }
+
+  bool NetServer::SendReliableUnsafe(connectid_t id, const uint8_t *data, size_t len, void *userp)
   {
 	ENetPeer *peer = PeerById(id);
 	if(!peer)
 	  return false;
 
-	const auto flags = ENET_PACKET_FLAG_RELIABLE | ENET_PACKET_FLAG_NO_ALLOCATE;
-	auto *packet = enet_packet_create(data, len, flags);
+	const enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE | ENET_PACKET_FLAG_NO_ALLOCATE;
 
-	/*	packet->freeCallback = [](ENetPacket *packet) {
-	  __debugbreak();
-	};*/
+	ENetPacket *packet = enet_packet_create(data, len, flags);
+	packet->userData = userp;
+
+	if(s_deleter) {
+	  packet->freeCallback = [](ENetPacket *packet) {
+		s_deleter(packet->userData);
+	  };
+	}
 
 	return enet_peer_send(peer, 1, packet) == 0;
   }
 
-  size_t Server::GetPeerCount() const
+  size_t NetServer::GetPeerCount() const
   {
 	return _host->peerCount;
   }
 
-  ENetPeer *Server::PeerById(connectid_t id)
+  ENetPeer *NetServer::PeerById(connectid_t id)
   {
 	ENetPeer *curPeer = _host->peers;
 
@@ -68,7 +79,7 @@ namespace netlib {
 	return nullptr;
   }
 
-  void Server::Listen()
+  void NetServer::Listen()
   {
 	if(enet_host_service(_host, &_event, 0) > 0) {
 	  switch(_event.type) {

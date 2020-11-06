@@ -11,7 +11,7 @@
 
 namespace noda {
 
-  class ServerImpl final : public netlib::Server {
+  class ServerImpl final : public netlib::NetServer {
 	friend class noda::Server;
 
   public:
@@ -32,6 +32,7 @@ namespace noda {
 	                  flatbuffers::Offset<void> packet);
 
   private:
+	void OnConnection(netlib::Peer *) override;
 	void OnDisconnection(netlib::Peer *peer) override;
 	void OnConsume(netlib::Peer *peer, netlib::Packet *packet) override;
 
