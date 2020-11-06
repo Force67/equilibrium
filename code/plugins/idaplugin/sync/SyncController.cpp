@@ -99,13 +99,6 @@ namespace noda {
 	return false;
   }
 
-  void SyncController::OnConnected()
-  {
-	_active = true;
-
-	emit Connected();
-  }
-
   void SyncController::OnDisconnect(int reason)
   {
 	LOG_INFO("Disconnected with reason {}", reason);
@@ -114,27 +107,6 @@ namespace noda {
 
 	// forward the event
 	emit Disconnected(reason);
-  }
-
-  void SyncController::OnAnnouncement(const protocol::Message *message)
-  {
-	const auto *pack = message->msg_as_Announcement();
-	switch(pack->type()) {
-	case protocol::AnnounceType_FirstJoin:
-	  LOG_INFO("{} joined this project!", pack->name()->c_str());
-	  break;
-	case protocol::AnnounceType_Joined:
-	  LOG_INFO("{} connected.", pack->name()->c_str());
-	  break;
-	case protocol::AnnounceType_Disconnect:
-	  LOG_INFO("{} disconnected.", pack->name()->c_str());
-	  break;
-	default:
-	  LOG_WARNING("Unknown broadcast announced");
-	  break;
-	}
-
-	emit Broadcasted(pack->type());
   }
 
   void SyncController::OnProjectJoin(const protocol::Message *message)
@@ -153,6 +125,38 @@ namespace noda {
 	}
 
 	_active = true;
+  }
+
+  void SyncController::HandleAuth(const protocol::Message *message)
+  {
+	auto *pack = message->msg_as_HandshakeAck();
+
+	LOG_INFO("Authenticated: {}/{}", pack->userIndex(), pack->numUsers());
+
+	_active = true;
+	_userCount = pack->numUsers();
+
+	emit Connected();
+	emit Announce(_userCount);
+  }
+
+  void SyncController::OnAnnouncement(const protocol::Message *message)
+  {
+	const auto *pack = message->msg_as_Announcement();
+	switch(pack->type()) {
+	case protocol::AnnounceType_Joined:
+		_userCount++;
+	  LOG_INFO("{} connected.", pack->name()->c_str());
+	  break;
+	case protocol::AnnounceType_Disconnect:
+		_userCount--;
+	  LOG_INFO("{} disconnected.", pack->name()->c_str());
+	  break;
+	default:
+	  break;
+	}
+
+	emit Announce(_userCount);
   }
 
   int SyncController::Dispatcher::execute()
@@ -187,6 +191,11 @@ namespace noda {
 
   void SyncController::ProcessPacket(netlib::Packet *packet)
   {
+	const auto *message = protocol::GetMessage(static_cast<const void *>(packet->data()));
+	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
+	  return HandleAuth(message);
+	}
+
 	InPacket *item = s_packetPool.construct(packet);
 	_queue.push(&item->key);
 	_eventSize++;

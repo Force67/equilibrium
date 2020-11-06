@@ -20,10 +20,6 @@ namespace noda {
   public:
 	virtual ~SyncDelegate() = default;
 
-	// this is triggered when a connection has been
-	// established
-	virtual void OnConnected() = 0;
-
 	// We have been dropped
 	virtual void OnDisconnect(int reason) = 0;
 
@@ -53,8 +49,6 @@ namespace noda {
 
 	//QThread:
 	void run() override;
-
-	void HandleAuth(const protocol::Message *message);
 
 	bool _run = false;
 	SyncDelegate &_delegate;

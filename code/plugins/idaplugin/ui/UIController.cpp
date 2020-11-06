@@ -104,7 +104,7 @@ namespace noda {
 	connect(_timer.data(), &QTimer::timeout, this, &UiController::UpdateCounter);
 	connect(&_sync, &SyncController::Connected, _netStatus.data(), &StatusWidget::OnConnected);
 	connect(&_sync, &SyncController::Disconnected, _netStatus.data(), &StatusWidget::OnDisconnect);
-	connect(&_sync, &SyncController::Broadcasted, _netStatus.data(), &StatusWidget::OnBroadcast);
+	connect(&_sync, &SyncController::Announce, _netStatus.data(), &StatusWidget::OnAnnounce);
 
 	connect(&_sync, &SyncController::Connected, [&]() {
 	  _connectAct->setText("Disconnect");

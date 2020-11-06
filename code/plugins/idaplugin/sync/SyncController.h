@@ -42,14 +42,14 @@ namespace noda {
   signals:
 	void Connected();
 	void Disconnected(int);
-	void Broadcasted(int);
+	void Announce(int);
 
   private:
 	void OnAnnouncement(const protocol::Message *);
 	void OnProjectJoin(const protocol::Message *);
+	void HandleAuth(const protocol::Message*);
 
 	// network events
-	void OnConnected() override;
 	void OnDisconnect(int) override;
 	void ProcessPacket(netlib::Packet *) override;
 
@@ -65,6 +65,7 @@ namespace noda {
 	netlib::ScopedNetContext _context;
 
 	Client _client;
+	int _userCount = 0;
 	//LocalServer _server;
 
 	using IdaEventType_t = std::pair<hook_type_t, int>;

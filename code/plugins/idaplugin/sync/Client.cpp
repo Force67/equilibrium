@@ -126,21 +126,7 @@ namespace noda {
 	  return;
 	}
 
-	const auto *message = protocol::GetMessage(static_cast<const void *>(packet->data()));
-	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
-	  return HandleAuth(message);
-	}
-
 	_delegate.ProcessPacket(packet);
-  }
-
-  void Client::HandleAuth(const protocol::Message *message)
-  {
-	auto *pack = message->msg_as_HandshakeAck();
-
-	LOG_INFO("Authenticated: {}/{}", pack->userIndex(), pack->numUsers());
-
-	_delegate.OnConnected();
   }
 
 } // namespace noda

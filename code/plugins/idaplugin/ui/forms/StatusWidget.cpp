@@ -7,6 +7,8 @@
 #include <qpainter.h>
 #include <qpaintdevice.h>
 
+#include "moc_protocol/Announcement_generated.h"
+
 namespace noda {
   constexpr int ksizeOffset = 3;
   constexpr int kseperatorOffset = 6;
@@ -68,7 +70,6 @@ namespace noda {
 
   void StatusWidget::OnDisconnect(uint32_t r)
   {
-	_userCount = 1;
 	_labelUserText->setText("1");
 
 	SetLabelIcon(*_labelConnectIcon, ":/globe_red");
@@ -76,21 +77,9 @@ namespace noda {
 	updateGeometry();
   }
 
-  void StatusWidget::OnBroadcast(int code)
+  void StatusWidget::OnAnnounce(int count)
   {
-	/*switch(code) {
-	case protocol::AnnounceType_FirstJoin:
-	case protocol::AnnounceType_Joined:
-	  _userCount++;
-	  break;
-	case protocol::AnnounceType_Disconnect:
-	  _userCount--;
-	  break;
-	default:
-	  break;
-	}
-	*/
-	_labelUserText->setText(QString::number(_userCount));
+	_labelUserText->setText(QString::number(count));
   }
 
   void StatusWidget::paintEvent(QPaintEvent *paintEvent)

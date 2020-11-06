@@ -55,18 +55,6 @@ namespace noda {
   {
   }
 
-  void ServerImpl::OnDisconnection(netlib::Peer *peer)
-  {
-	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
-	  return user->Id() == peer->Id();
-	});
-
-	if(it == _userRegistry.end())
-	  return;
-
-	_userRegistry.erase(it);
-  }
-
   userptr_t ServerImpl::UserById(netlib::connectid_t cid)
   {
 	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
@@ -108,11 +96,19 @@ namespace noda {
 	  return;
 	}
 
+	for(auto &it : _userRegistry) {
+	  FbsBuffer buffer;
+	  auto pack = protocol::CreateAnnouncement(buffer, protocol::AnnounceType_Joined,
+	                                           buffer.CreateString(packet->name()->str()));
+
+	  CreatePacket(it->Id(), protocol::MsgType_Announcement, buffer, pack.Union());
+	}
+
 	const netlib::connectid_t id = source->Id();
 
 	userptr_t user = std::make_shared<NdUser>(id,
-	                                          packet->guid()->str(),
-	                                          packet->name()->str());
+	                                          packet->name()->str(),
+	                                          packet->guid()->str());
 
 	_userRegistry.emplace_back(user);
 
@@ -122,6 +118,29 @@ namespace noda {
 	    id, static_cast<int32_t>(_userRegistry.size()));
 
 	CreatePacket(id, protocol::MsgType_HandshakeAck, buffer, pack.Union());
+  }
+
+  void ServerImpl::OnDisconnection(netlib::Peer *peer)
+  {
+	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
+	  return user->Id() == peer->Id();
+	});
+
+	if(it == _userRegistry.end())
+	  return;
+
+	std::string name = (*it)->Name();
+
+	_userRegistry.erase(it);
+
+	for(auto &it : _userRegistry) {
+	  // yes this sucks, and buffers should be *refcounted* instead
+	  FbsBuffer buffer;
+	  auto pack = protocol::CreateAnnouncement(buffer,
+	                                           protocol::AnnounceType_Disconnect, buffer.CreateString(name));
+
+	  CreatePacket(it->Id(), protocol::MsgType_Announcement, buffer, pack.Union());
+	}
   }
 
   void ServerImpl::Update()

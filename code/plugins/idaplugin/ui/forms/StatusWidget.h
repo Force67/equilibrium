@@ -17,7 +17,7 @@ namespace noda {
   public slots:
 	void OnConnected();
 	void OnDisconnect(uint32_t);
-	void OnBroadcast(int);
+	void OnAnnounce(int);
 
   private:
 	void paintEvent(QPaintEvent *) override;
@@ -31,7 +31,5 @@ namespace noda {
 
 	QScopedPointer<QLabel> _labelUserText;
 	QScopedPointer<QLabel> _labelUserIcon;
-
-	int _userCount = 1;
   };
 } // namespace noda

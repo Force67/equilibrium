@@ -108,6 +108,15 @@ public:
 	  return HandleAuth(message);
 	}
 
+	if (message->msg_type() == protocol::MsgType_Announcement) {
+		const auto* m = message->msg_as_Announcement();
+
+		std::printf("User %s %s the server\n", m->name()->str().c_str(), 
+			m->type() == protocol::AnnounceType_Disconnect ? "left" : "joined");
+
+		return;
+	}
+
 	InPacket *item = packetPool.construct(packet);
 	_packetQueue.push(&item->key);
   }
