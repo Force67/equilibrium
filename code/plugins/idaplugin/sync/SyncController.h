@@ -52,7 +52,6 @@ namespace noda {
 	void OnConnected() override;
 	void OnDisconnect(int) override;
 	void ProcessPacket(netlib::Packet *) override;
-	void ProcessPacket_MainThread(InPacket *);
 
 	// IDA
 	ssize_t HandleEvent(hook_type_t, int, va_list);
@@ -72,6 +71,7 @@ namespace noda {
 	std::map<IdaEventType_t, SyncHandler *> _idaEvents;
 	std::map<protocol::MsgType, SyncHandler *> _netEvents;
 
+	// dispatch events on ida thread
 	struct Dispatcher : exec_request_t {
 	  Dispatcher(SyncController &sc) :
 	      sc(sc) {}

@@ -77,8 +77,6 @@ namespace noda {
 
 	if(QMenu *nodaMenu = menuBar->addMenu(QIcon(":/logo"), "NODA")) {
 	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
-
-	  //
 	  //_localhAct = nodaMenu->addAction(QIcon(":/wired"), "Start Localhost", this, &UiController::ToggleLocalhost);
 	  _projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
 	  nodaMenu->addSeparator();
@@ -254,29 +252,9 @@ namespace noda {
 		    "It is likely that the selected port is not available.");
 		error.exec();
 	  }
-
-	  //_localhAct->setEnabled(result);
-	}
-  }
-
-  void UiController::ToggleLocalhost()
-  {
-	bool result = _sync.IsLocalHosting();
-
-	if(result)
-	  _sync.DestroyLocalHost();
-	else {
-	  bool rr = _sync.CreateLocalHost();
-	  if(!rr) {
-		QErrorMessage error(QApplication::activeWindow());
-		error.showMessage(
-		    "Unable to create a local host server");
-		error.exec();
-		return;
-	  }
 	}
 
-	_localhAct->setText(result ? "Start Localhost" : "Stop Localhost");
+	LOG_INFO("ToggleConnect(): {}", connected);
   }
 
   void UiController::OpenConfiguration()

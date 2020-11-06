@@ -28,8 +28,11 @@ namespace noda {
 
   Client::~Client()
   {
-	if(_run)
-	  Stop();
+	if(_run) {
+	  _run = false;
+	  QThread::wait();
+	  Disconnect();
+	}
   }
 
   bool Client::Start()
@@ -56,6 +59,7 @@ namespace noda {
 	_run = false;
 	QThread::wait();
 
+	OnDisconnected(0);
 	Disconnect();
   }
 

@@ -101,6 +101,8 @@ namespace noda {
 
   void SyncController::OnConnected()
   {
+	_active = true;
+
 	emit Connected();
   }
 
@@ -151,26 +153,6 @@ namespace noda {
 	}
 
 	_active = true;
-  }
-
-  void SyncController::ProcessPacket_MainThread(InPacket *packet)
-  {
-	const auto *message = protocol::GetMessage(packet->packet.data());
-
-	switch(message->msg_type()) {
-	case protocol::MsgType_RemoteProjectInfo:
-	  OnProjectJoin(message);
-	  return;
-	case protocol::MsgType_Announcement:
-	  OnAnnouncement(message);
-	  return;
-	default:
-	  break;
-	}
-
-	auto it = _netEvents.find(message->msg_type());
-	if(it == _netEvents.end())
-	  return;
   }
 
   int SyncController::Dispatcher::execute()

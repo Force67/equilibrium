@@ -44,7 +44,6 @@ namespace noda {
 	static ssize_t idaapi OnUiEvent(void *, int, va_list);
 
 	QAction *_connectAct = nullptr;
-	QAction *_localhAct = nullptr;
 	QAction *_projectAct = nullptr;
 	QAction *_cloudDlAct = nullptr;
 	QAction *_cloudUpAct = nullptr;
@@ -72,7 +71,6 @@ namespace noda {
 
   public slots:
 	void ToggleConnect();
-	void ToggleLocalhost();
 
   private slots:
 	void OpenSyncMenu();

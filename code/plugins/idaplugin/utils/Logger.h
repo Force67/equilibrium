@@ -21,8 +21,12 @@ namespace noda {
 	PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
   }
 
+#if _DEBUG
 #define LOG_TRACE(...) \
   ::noda::PrintLogMessage(::noda::LogLevel::Trace, __VA_ARGS__)
+#else
+#define LOG_TRACE(...)
+#endif
 #define LOG_INFO(...) \
   ::noda::PrintLogMessage(::noda::LogLevel::Info, __VA_ARGS__)
 #define LOG_WARNING(...) \

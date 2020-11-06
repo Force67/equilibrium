@@ -13,7 +13,7 @@ namespace netlib {
 
 	inline bool Good() const
 	{
-	  return _host;
+	  return _serverPeer;
 	}
 
 	virtual void OnConnection() = 0;
