@@ -33,12 +33,7 @@ namespace noda {
 	bool Connect();
 	void Disconnect();
 
-	bool CreateLocalHost();
-	void DestroyLocalHost();
-
 	bool IsConnected();
-	bool IsLocalHosting();
-
   signals:
 	void Connected();
 	void Disconnected(int);

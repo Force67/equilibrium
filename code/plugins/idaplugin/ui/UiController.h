@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <IdaInc.h>
+#include "Pch.h"
 #include <qobject.h>
 #include <qscopedpointer.h>
 
@@ -48,7 +48,6 @@ namespace noda {
 	QAction *_cloudDlAct = nullptr;
 	QAction *_cloudUpAct = nullptr;
 
-	QScopedPointer<QLabel> _labelBuild;
 	QScopedPointer<QLabel> _labelCounter;
 	QScopedPointer<StatusWidget> _netStatus;
 

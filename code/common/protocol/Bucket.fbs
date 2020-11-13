@@ -24,6 +24,10 @@ table Project {
   comments:string;
 }
 
+table ListProjectsQuery {
+  
+}
+
 table RemoteProjectInfo {
     version:int;
     name:string;

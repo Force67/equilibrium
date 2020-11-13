@@ -12,10 +12,13 @@ project("IDAPlugin")
     files({
         "**.cpp",
         "**.h",
-        "**.ui",
-        "**.qrc",
+        "ui/**.ui",
+        "Resources.qrc",
         "Noda.rc",
+        "premake5.lua"
     })
+    pchheader("Pch.h")
+    pchsource("Pch.cpp")
     links({
         -- ida libraries
         "ida",

@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Entry point of the sync plugin
 
+#include "Pch.h"
 #include "Plugin.h"
 #include "utils/Logger.h"
 
@@ -25,6 +26,11 @@ namespace noda {
 
   void Plugin::Run()
   {
+	  if (!auto_is_ok()) {
+		  LOG_ERROR("Must wait for Autoanalysis to finish before running.");
+		  return;
+	  }
+
 	_uiController.OpenRunDialog();
   }
 } // namespace noda

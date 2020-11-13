@@ -8,7 +8,7 @@
 #include "SyncController.h"
 #include "moc_protocol/Message_generated.h"
 
-#include "IdaInc.h"
+#include "Pch.h"
 #include "SyncHandler.h"
 
 #include "utility/ObjectPool.h"
@@ -57,25 +57,6 @@ namespace noda {
 	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
   }
 
-  bool SyncController::CreateLocalHost()
-  {
-	/*bool result = _server.Start();
-	if(result) {
-	  LOG_INFO("Local server listening on port {}",
-	           _server.GetPort());
-	}
-
-	return result;*/
-
-	return false;
-  }
-
-  void SyncController::DestroyLocalHost()
-  {
-	//_server.Stop();
-	LOG_INFO("Stopped Localhost");
-  }
-
   bool SyncController::Connect()
   {
 	// initialize storage?
@@ -91,12 +72,6 @@ namespace noda {
   bool SyncController::IsConnected()
   {
 	return _client.Good() && _active;
-  }
-
-  bool SyncController::IsLocalHosting()
-  {
-	//return _server.Active();
-	return false;
   }
 
   void SyncController::OnDisconnect(int reason)

@@ -2,11 +2,3 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "Pch.h"
-#include "NdbUtils.h"
-
-namespace noda {
-
-  void ImportNodaDB()
-  {
-  }
-} // namespace noda

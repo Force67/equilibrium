@@ -3,7 +3,7 @@
 
 #include "sync/SyncHandler.h"
 
-#include "IdaInc.h"
+#include "Pch.h"
 #include "struct.hpp"
 #if 0
 using namespace protocol::sync;

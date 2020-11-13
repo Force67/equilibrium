@@ -3,8 +3,7 @@
 
 #include "sync/SyncHandler.h"
 
-#include "IdaInc.h"
-
+#include "Pch.h"
 #include "name.hpp"
 #include "enum.hpp"
 

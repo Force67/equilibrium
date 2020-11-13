@@ -6,6 +6,7 @@
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
+#include "Pch.h"
 #include "../forms/Settings.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>

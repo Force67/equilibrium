@@ -1,6 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include "Pch.h"
 #include "UiController.h"
 #include "test.h"
 
@@ -88,15 +89,12 @@ namespace noda {
 	//_projectAct->setEnabled(false);
 
 	auto *statusBar = mainWindow->statusBar();
-
-	_labelBuild.reset(new QLabel("NODA - " GIT_BRANCH "@" GIT_COMMIT));
 	_netStatus.reset(new StatusWidget(statusBar));
 
 	_labelCounter.reset(new QLabel());
 	_timer.reset(new QTimer(this));
 
 	statusBar->addPermanentWidget(_labelCounter.data());
-	statusBar->addPermanentWidget(_labelBuild.data());
 	statusBar->addPermanentWidget(_netStatus.data());
 
 	_labelCounter->hide();
@@ -165,8 +163,9 @@ namespace noda {
 	  dialog.exec();
 	}
 
-	if(!(uFlags & UiFlags::SkipConnect) &&
-	   ConnectDialog::ShouldShow()) {
+	bool skipConnect = uFlags & UiFlags::SkipConnect;
+
+	if(!skipConnect && ConnectDialog::ShouldShow()) {
 	  ConnectDialog promt(*this);
 	  promt.exec();
 	}
@@ -209,7 +208,6 @@ namespace noda {
 	// takes the ownership of these widgets *away* from ida on purpose
 	// so it cant release em
 	_netStatus.reset();
-	_labelBuild.reset();
 
 	_timer->stop();
 
