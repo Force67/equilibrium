@@ -38,8 +38,6 @@ namespace noda {
 	  i->next = nullptr;
 	  i = j;
 	}
-
-	//_node = NetNode(kSyncNodeName, true);
   }
 
   SyncController::~SyncController()
@@ -99,6 +97,8 @@ namespace noda {
 	      pack->version());
 	}
 
+	// send local IDB info
+
 	_active = true;
   }
 
@@ -120,11 +120,11 @@ namespace noda {
 	const auto *pack = message->msg_as_Announcement();
 	switch(pack->type()) {
 	case protocol::AnnounceType_Joined:
-		_userCount++;
+	  _userCount++;
 	  LOG_INFO("{} connected.", pack->name()->c_str());
 	  break;
 	case protocol::AnnounceType_Disconnect:
-		_userCount--;
+	  _userCount--;
 	  LOG_INFO("{} disconnected.", pack->name()->c_str());
 	  break;
 	default:
@@ -188,6 +188,15 @@ namespace noda {
 	  _client.Disconnect();
 	  return 0;
 	}
+
+	if(code == idb_event::auto_empty_finally) {
+	}
+
+	/*
+	closebase
+	*/
+
+	processor_t::event_t;
 
 	const auto it = _idaEvents.find(std::make_pair(type, code));
 	if(it != _idaEvents.end()) {

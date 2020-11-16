@@ -42,7 +42,7 @@ namespace noda {
   private:
 	void OnAnnouncement(const protocol::Message *);
 	void OnProjectJoin(const protocol::Message *);
-	void HandleAuth(const protocol::Message*);
+	void HandleAuth(const protocol::Message *);
 
 	// network events
 	void OnDisconnect(int) override;

@@ -26,22 +26,24 @@ namespace noda {
 	UiController(SyncController &);
 	~UiController();
 
+	static QWidget *GetTopWidget();
 	static QMainWindow *GetMainWindow();
 
 	void OpenRunDialog();
 
+	static void ShowError(const char* text);
   private:
 	void DestroyUi();
 
-	void ImportNodaDB();
-	void ExportNodaDB();
-
 	void OnIdbLoad();
 	void OnIdbSave();
+	void OnIdbClose();
+	void OnIdbFinishAu();
 
 	void UpdateCounter();
 
-	static ssize_t idaapi OnUiEvent(void *, int, va_list);
+	static ssize_t idaapi UiEvent(void *, int, va_list);
+	static ssize_t idaapi IdbEvent(void *, int, va_list);
 
 	QAction *_connectAct = nullptr;
 	QAction *_projectAct = nullptr;
@@ -56,24 +58,26 @@ namespace noda {
 
 	SyncController &_sync;
 
+	// ui storage:
 	enum NodeIndex : nodeidx_t {
+	  Version,
 	  Flags,
 	  Timer,
 	};
 
 	enum UiFlags : uint32_t {
 	  None,
-	  SkipConnect = 1 << 0,
-	};
+	  EverJoined = 1 << 1,
+	} _flags;
 
+	static const uint32_t kUiVersion = 1;
 	NetNode _node;
-
   public slots:
 	void ToggleConnect();
 
   private slots:
 	void OpenSyncMenu();
 	void OpenAboutDialog();
-	void OpenConfiguration();
+	void OpenSettings();
   };
 } // namespace noda

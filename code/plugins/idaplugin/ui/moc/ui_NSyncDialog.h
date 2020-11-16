@@ -22,61 +22,58 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_NSyncDialog
-{
+class Ui_NSyncDialog {
 public:
-    QVBoxLayout *verticalLayout_3;
-    QHBoxLayout *horizontalLayout;
-    QTreeView *treeView;
-    QLabel *labelWks;
+  QVBoxLayout *verticalLayout_3;
+  QHBoxLayout *horizontalLayout;
+  QTreeView *treeView;
+  QLabel *labelWks;
 
-    void setupUi(QDialog *NSyncDialog)
-    {
-        if (NSyncDialog->objectName().isEmpty())
-            NSyncDialog->setObjectName(QStringLiteral("NSyncDialog"));
-        NSyncDialog->resize(2039, 921);
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(NSyncDialog->sizePolicy().hasHeightForWidth());
-        NSyncDialog->setSizePolicy(sizePolicy);
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
-        NSyncDialog->setWindowIcon(icon);
-        verticalLayout_3 = new QVBoxLayout(NSyncDialog);
-        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
-        verticalLayout_3->setContentsMargins(0, 0, 0, 0);
-        horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
-        treeView = new QTreeView(NSyncDialog);
-        treeView->setObjectName(QStringLiteral("treeView"));
+  void setupUi(QDialog *NSyncDialog)
+  {
+	if(NSyncDialog->objectName().isEmpty())
+	  NSyncDialog->setObjectName(QStringLiteral("NSyncDialog"));
+	NSyncDialog->resize(2039, 921);
+	QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	sizePolicy.setHorizontalStretch(0);
+	sizePolicy.setVerticalStretch(0);
+	sizePolicy.setHeightForWidth(NSyncDialog->sizePolicy().hasHeightForWidth());
+	NSyncDialog->setSizePolicy(sizePolicy);
+	QIcon icon;
+	icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
+	NSyncDialog->setWindowIcon(icon);
+	verticalLayout_3 = new QVBoxLayout(NSyncDialog);
+	verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
+	verticalLayout_3->setContentsMargins(0, 0, 0, 0);
+	horizontalLayout = new QHBoxLayout();
+	horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+	treeView = new QTreeView(NSyncDialog);
+	treeView->setObjectName(QStringLiteral("treeView"));
 
-        horizontalLayout->addWidget(treeView);
+	horizontalLayout->addWidget(treeView);
 
-        labelWks = new QLabel(NSyncDialog);
-        labelWks->setObjectName(QStringLiteral("labelWks"));
+	labelWks = new QLabel(NSyncDialog);
+	labelWks->setObjectName(QStringLiteral("labelWks"));
 
-        horizontalLayout->addWidget(labelWks, 0, Qt::AlignTop);
+	horizontalLayout->addWidget(labelWks, 0, Qt::AlignTop);
 
+	verticalLayout_3->addLayout(horizontalLayout);
 
-        verticalLayout_3->addLayout(horizontalLayout);
+	retranslateUi(NSyncDialog);
 
+	QMetaObject::connectSlotsByName(NSyncDialog);
+  } // setupUi
 
-        retranslateUi(NSyncDialog);
-
-        QMetaObject::connectSlotsByName(NSyncDialog);
-    } // setupUi
-
-    void retranslateUi(QDialog *NSyncDialog)
-    {
-        NSyncDialog->setWindowTitle(QApplication::translate("NSyncDialog", "NSync - Manage Projects", Q_NULLPTR));
-        labelWks->setText(QApplication::translate("NSyncDialog", "TextLabel", Q_NULLPTR));
-    } // retranslateUi
-
+  void retranslateUi(QDialog *NSyncDialog)
+  {
+	NSyncDialog->setWindowTitle(QApplication::translate("NSyncDialog", "NSync - Manage Projects", Q_NULLPTR));
+	labelWks->setText(QApplication::translate("NSyncDialog", "TextLabel", Q_NULLPTR));
+  } // retranslateUi
 };
 
 namespace Ui {
-    class NSyncDialog: public Ui_NSyncDialog {};
+  class NSyncDialog : public Ui_NSyncDialog {
+  };
 } // namespace Ui
 
 QT_END_NAMESPACE

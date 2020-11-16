@@ -7,6 +7,10 @@
 #include "utils/Logger.h"
 
 namespace noda {
+  const char Plugin::kPluginComment[] = "Nomad Ida Plugin";
+  const char Plugin::kPluginName[] = "NODAForIDA";
+  const char Plugin::kPluginHotkey[] = "Alt-L";
+
   Plugin::Plugin() :
       _syncController(),
       _uiController(_syncController)
@@ -26,10 +30,10 @@ namespace noda {
 
   void Plugin::Run()
   {
-	  if (!auto_is_ok()) {
-		  LOG_ERROR("Must wait for Autoanalysis to finish before running.");
-		  return;
-	  }
+	if(!auto_is_ok()) {
+	  LOG_ERROR("Must wait for Autoanalysis to finish before running.");
+	  return;
+	}
 
 	_uiController.OpenRunDialog();
   }
@@ -39,10 +43,6 @@ namespace {
   using namespace noda;
 
   Plugin *g_Plugin = nullptr;
-
-  const char kPluginComment[] = "Nomad Ida Plugin";
-  const char kPluginName[] = "NODA";
-  const char kPluginHotkey[] = "Alt-L";
 
   int idaapi PluginInit()
   {
@@ -76,8 +76,8 @@ plugin_t PLUGIN = {
   PluginInit,
   PluginTerm,
   PluginRun,
-  kPluginComment,
-  kPluginComment,
-  kPluginName,
-  kPluginHotkey
+  Plugin::kPluginComment,
+  Plugin::kPluginComment,
+  Plugin::kPluginName,
+  Plugin::kPluginHotkey
 };

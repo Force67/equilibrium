@@ -115,5 +115,4 @@ namespace noda::sync::change_extra_comment {
   };
 } // namespace noda::sync::change_extra_comment
 
-
 #endif

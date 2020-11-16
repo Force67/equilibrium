@@ -3,7 +3,6 @@
 
 #include "Pch.h"
 #include "UiController.h"
-#include "test.h"
 
 #include "forms/Settings.h"
 #include "forms/ConnectDialog.h"
@@ -22,12 +21,12 @@
 #include <qmenubar.h>
 #include <qerrormessage.h>
 
-#include "ColorConstants.h"
+extern plugin_t PLUGIN;
 
 namespace noda {
   static const char kUiNodeName[] = "$ nd_ui_data";
 
-  static QMainWindow *GetTopWindow()
+  QWidget *UiController::GetTopWidget()
   {
 	return qobject_cast<QMainWindow *>(
 	    QApplication::activeWindow()->topLevelWidget());
@@ -48,44 +47,59 @@ namespace noda {
 	return s_mainWindow;
   }
 
+  void UiController::ShowError(const char* text)
+  {
+	QErrorMessage error(GetTopWidget());
+	error.showMessage(text);
+	error.exec();
+  }
+
   UiController::UiController(SyncController &s) :
       _sync(s)
   {
-	hook_to_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
+	hook_to_notification_point(hook_type_t::HT_UI, UiEvent, this);
+	hook_to_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
 
 	auto *mainWindow = GetMainWindow();
 	assert(mainWindow != nullptr);
 
 	auto *menuBar = mainWindow->menuBar();
 
-	// look away!!!! this is a bit hacked together, but nevertheless it works
+	// this is a bit hacked together since we want to determine our own
+	// menu position, and this is only possible via QT
+	QAction *boltOnPoint = nullptr;
+
 	QMenu *fileMenu = reinterpret_cast<QMenu *>(menuBar->actions()[0]->parent());
 	for(auto *it : fileMenu->actions()) {
-	  if(it->text() == "&Load file") {
-		_cloudDlAct = new QAction(QIcon(":/cloud_download"), "Import NodaDB", fileMenu);
-		connect(_cloudDlAct, &QAction::triggered, this, &UiController::ImportNodaDB);
-
-		fileMenu->insertAction(it, _cloudDlAct);
-	  }
-	  if(it->text() == "Sa&ve as...") {
-		_cloudUpAct = new QAction(QIcon(":/cloud_upload"), "Export NodaDB", fileMenu);
-		connect(_cloudUpAct, &QAction::triggered, this, &UiController::ExportNodaDB);
-
-		_cloudUpAct->setEnabled(false);
-		fileMenu->insertAction(it, _cloudUpAct);
+	  if(it->text() == "&Close") {
+		boltOnPoint = it;
+		break;
 	  }
 	}
 
-	if(QMenu *nodaMenu = menuBar->addMenu(QIcon(":/logo"), "NODA")) {
+	/*if(boltOnPoint) {
+	  _cloudDlAct = new QAction(QIcon(":/cloud_download"), "Open Noda Project", fileMenu);
+	  _cloudUpAct = new QAction(QIcon(":/cloud_upload"), "Create Noda Project", fileMenu);
+
+	  connect(_cloudDlAct, &QAction::triggered, this, &UiController::OpenProject);
+	  connect(_cloudUpAct, &QAction::triggered, this, &UiController::MakeProject);
+
+	  QAction *before = fileMenu->insertSeparator(boltOnPoint);
+	  fileMenu->insertAction(before, _cloudDlAct);
+	  fileMenu->insertAction(before, _cloudUpAct);
+	}*/
+
+	if(QMenu *nodaMenu = menuBar->addMenu("Noda")) {
 	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
 	  //_localhAct = nodaMenu->addAction(QIcon(":/wired"), "Start Localhost", this, &UiController::ToggleLocalhost);
 	  _projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
 	  nodaMenu->addSeparator();
-	  nodaMenu->addAction(QIcon(":/cog"), "Configure", this, &UiController::OpenConfiguration);
+	  nodaMenu->addAction(QIcon(":/cog"), "Settings", this, &UiController::OpenSettings);
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
 	}
 
+	_cloudUpAct->setEnabled(false);
 	//_projectAct->setEnabled(false);
 
 	auto *statusBar = mainWindow->statusBar();
@@ -114,58 +128,38 @@ namespace noda {
 
   UiController::~UiController()
   {
-	unhook_from_notification_point(hook_type_t::HT_UI, OnUiEvent, this);
-  }
-
-  void UiController::ImportNodaDB()
-  {
-	ProgressDialog dialog(GetTopWindow(), "Importing NodaDB", "Might take a while!");
-	dialog.exec();
-
-	// progress dialog.. and thread...
-
-	// select IDB
-  }
-
-  void UiController::ExportNodaDB()
-  {
-	LOG_INFO("SaveToServer");
-
-	// this file...
+	unhook_from_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
+	unhook_from_notification_point(hook_type_t::HT_UI, UiEvent, this);
   }
 
   void UiController::OnIdbLoad()
   {
-	_cloudUpAct->setEnabled(true);
+	if(auto_is_ok())
+	  OnIdbFinishAu();
+	else
+	  LOG_INFO("Waiting for autoanalysis to finish...");
 
-	// kill netnode if open before...
 	_node.clear();
-
-	// load the netnode
 	_node = NetNode(kUiNodeName);
 
 	if(!_node.good()) {
-	  QErrorMessage error(QApplication::activeWindow());
-	  error.showMessage("Unable to connect to ui storage node");
-	  error.exec();
+		ShowError("Unable to connect to ui storage node.");
 	  return;
+	}
+
+	uint32_t version = _node.LoadScalar(NodeIndex::Version, UINT_MAX);
+	if(version == UINT_MAX) {
+	  _node.StoreScalar(NodeIndex::Version, kUiVersion);
 	}
 
 	// every sec we update the clock
 	_timer->start(1000);
 	_labelCounter->show();
+
 	_timeCount = _node.LoadScalar(NodeIndex::Timer, 0u);
+	_flags = _node.LoadScalar(NodeIndex::Flags, UiFlags::None);
 
-	uint32_t uFlags = _node.LoadScalar(NodeIndex::Flags, 0u);
-
-	if(WelcomeDialog::ShouldShow()) {
-	  WelcomeDialog dialog;
-	  dialog.exec();
-	}
-
-	bool skipConnect = uFlags & UiFlags::SkipConnect;
-
-	if(!skipConnect && ConnectDialog::ShouldShow()) {
+	if(ConnectDialog::ShouldShow()) {
 	  ConnectDialog promt(*this);
 	  promt.exec();
 	}
@@ -177,12 +171,25 @@ namespace noda {
 
 	bool res;
 	res = _node.StoreScalar(NodeIndex::Timer, _timeCount);
+	res = _node.StoreScalar(NodeIndex::Flags, _flags);
 
 	if(!res) {
 	  QErrorMessage error(QApplication::activeWindow());
 	  error.showMessage("Unable to flush ui storage node");
 	  error.exec();
 	}
+  }
+
+  void UiController::OnIdbClose()
+  {
+	// note that closing the idb doesnt mean the closure of IDA
+	_cloudUpAct->setEnabled(false);
+	_timer->stop();
+  }
+
+  void UiController::OnIdbFinishAu()
+  {
+	_cloudUpAct->setEnabled(true);
   }
 
   void UiController::UpdateCounter()
@@ -203,84 +210,91 @@ namespace noda {
 
   void UiController::DestroyUi()
   {
-	_cloudUpAct->setEnabled(false);
+	// release the ownership of statusbar resources here early so ida cant release them
+	// after our plugin is already unloaded
 
-	// takes the ownership of these widgets *away* from ida on purpose
-	// so it cant release em
 	_netStatus.reset();
-
-	_timer->stop();
-
-	// this causes a bug on manual close where netstatus and build label will never show up again <.<
-	//MessageBoxA(0, 0, 0, 0);
   }
 
   void UiController::OpenRunDialog()
   {
-	RunDialog dialog(GetTopWindow());
+	RunDialog dialog(GetTopWidget());
 	dialog.exec();
   }
 
   void UiController::OpenAboutDialog()
   {
-	AboutDialog dialog(GetTopWindow());
+	AboutDialog dialog(GetTopWidget());
 	dialog.exec();
   }
 
   void UiController::OpenSyncMenu()
   {
-	NSyncDialog dialog(GetTopWindow());
+	NSyncDialog dialog(GetTopWidget());
 	dialog.exec();
   }
 
   void UiController::ToggleConnect()
   {
 	bool connected = _sync.IsConnected();
-
-	_projectAct->setEnabled(!connected);
-
-	if(connected)
+	if (connected) {
 	  _sync.Disconnect();
-	else {
-	  bool result = _sync.Connect();
-	  if(!result) {
-		QErrorMessage error(QApplication::activeWindow());
-		error.showMessage(
-		    "Unable to connect to the NODA sync host.\n"
-		    "It is likely that the selected port is not available.");
-		error.exec();
-	  }
+
+	  _projectAct->setEnabled(false);
+	  return;
 	}
 
+	bool result = _sync.Connect();
+	if (!result) {
+	  ShowError(
+	      "Unable to connect to the NODA sync host.\n"
+	      "It is likely that the selected port is not available.");
+	  return;
+	}
+
+	_projectAct->setEnabled(result);
 	LOG_INFO("ToggleConnect(): {}", connected);
   }
 
-  void UiController::OpenConfiguration()
+  void UiController::OpenSettings()
   {
-	Settings settings(_sync.IsConnected(), GetTopWindow());
+	Settings settings(_sync.IsConnected(), GetTopWidget());
 	settings.exec();
   }
 
-  ssize_t UiController::OnUiEvent(void *userp, int status, va_list va)
+  ssize_t UiController::UiEvent(void *userp, int status, va_list va)
   {
 	auto *self = reinterpret_cast<UiController *>(userp);
 	switch(status) {
 	case ui_notification_t::ui_term:
-	  self->DestroyUi();
-	  break;
-	case ui_notification_t::ui_database_inited:
-	  self->OnIdbLoad();
+	  self->OnIdbClose();
 	  break;
 	case ui_notification_t::ui_saving:
 	  self->OnIdbSave();
 	  break;
-	case ui_notification_t::ui_updating_actions: {
-	  auto *ctx = va_arg(va, action_update_ctx_t *);
-	  /*  char buf[512]{};
-	  QT::qsnprintf(buf, 512, "%s:%s:%d", ctx->action, ctx->widget_title.c_str(), ctx->widget_type);
-	  MessageBoxA(nullptr, buf, 0, 0);*/
+	case ui_notification_t::ui_database_inited:
+	  self->OnIdbLoad();
+	  break;
+	case ui_notification_t::ui_plugin_unloading: {
+	  const plugin_info_t *pinfo = va_arg(va, plugin_info_t *);
+	  if(pinfo && pinfo->entry) {
+		if(pinfo->entry == &PLUGIN) {
+		  self->DestroyUi();
+		}
+	  }
+
 	  break;
 	}
+	}
+
+	return 0;
+  }
+
+  ssize_t UiController::IdbEvent(void *userp, int status, va_list)
+  {
+	auto *self = reinterpret_cast<UiController *>(userp);
+	if(status == idb_event::auto_empty_finally) {
+	  self->OnIdbFinishAu();
 	}
 
 	return 0;

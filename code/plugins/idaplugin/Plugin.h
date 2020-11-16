@@ -15,6 +15,10 @@ namespace noda {
 
 	void Run();
 
+	static const char kPluginComment[];
+	static const char kPluginName[];
+	static const char kPluginHotkey[];
+
   private:
 	SyncController _syncController;
 	UiController _uiController;

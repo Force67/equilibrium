@@ -20,102 +20,101 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_noda__StatusWidget_t {
-    QByteArrayData data[6];
-    char stringdata0[65];
+  QByteArrayData data[6];
+  char stringdata0[65];
 };
-#define QT_MOC_LITERAL(idx, ofs, len) \
-    Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_noda__StatusWidget_t, stringdata0) + ofs \
-        - idx * sizeof(QByteArrayData)) \
-    )
+#define QT_MOC_LITERAL(idx, ofs, len)                          \
+  Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
+                                                          qptrdiff(offsetof(qt_meta_stringdata_noda__StatusWidget_t, stringdata0) + ofs - idx * sizeof(QByteArrayData)))
 static const qt_meta_stringdata_noda__StatusWidget_t qt_meta_stringdata_noda__StatusWidget = {
-    {
-QT_MOC_LITERAL(0, 0, 18), // "noda::StatusWidget"
-QT_MOC_LITERAL(1, 19, 11), // "OnConnected"
-QT_MOC_LITERAL(2, 31, 0), // ""
-QT_MOC_LITERAL(3, 32, 12), // "OnDisconnect"
-QT_MOC_LITERAL(4, 45, 8), // "uint32_t"
-QT_MOC_LITERAL(5, 54, 10) // "OnAnnounce"
+  {
+      QT_MOC_LITERAL(0, 0, 18),  // "noda::StatusWidget"
+      QT_MOC_LITERAL(1, 19, 11), // "OnConnected"
+      QT_MOC_LITERAL(2, 31, 0),  // ""
+      QT_MOC_LITERAL(3, 32, 12), // "OnDisconnect"
+      QT_MOC_LITERAL(4, 45, 8),  // "uint32_t"
+      QT_MOC_LITERAL(5, 54, 10)  // "OnAnnounce"
 
-    },
-    "noda::StatusWidget\0OnConnected\0\0"
-    "OnDisconnect\0uint32_t\0OnAnnounce"
+  },
+  "noda::StatusWidget\0OnConnected\0\0"
+  "OnDisconnect\0uint32_t\0OnAnnounce"
 };
 #undef QT_MOC_LITERAL
 
 static const uint qt_meta_data_noda__StatusWidget[] = {
 
- // content:
-       7,       // revision
-       0,       // classname
-       0,    0, // classinfo
-       3,   14, // methods
-       0,    0, // properties
-       0,    0, // enums/sets
-       0,    0, // constructors
-       0,       // flags
-       0,       // signalCount
+  // content:
+  7,     // revision
+  0,     // classname
+  0, 0,  // classinfo
+  3, 14, // methods
+  0, 0,  // properties
+  0, 0,  // enums/sets
+  0, 0,  // constructors
+  0,     // flags
+  0,     // signalCount
 
- // slots: name, argc, parameters, tag, flags
-       1,    0,   29,    2, 0x0a /* Public */,
-       3,    1,   30,    2, 0x0a /* Public */,
-       5,    1,   33,    2, 0x0a /* Public */,
+  // slots: name, argc, parameters, tag, flags
+  1, 0, 29, 2, 0x0a /* Public */,
+  3, 1, 30, 2, 0x0a /* Public */,
+  5, 1, 33, 2, 0x0a /* Public */,
 
- // slots: parameters
-    QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 4,    2,
-    QMetaType::Void, QMetaType::Int,    2,
+  // slots: parameters
+  QMetaType::Void,
+  QMetaType::Void, 0x80000000 | 4, 2,
+  QMetaType::Void, QMetaType::Int, 2,
 
-       0        // eod
+  0 // eod
 };
 
 void noda::StatusWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        StatusWidget *_t = static_cast<StatusWidget *>(_o);
-        Q_UNUSED(_t)
-        switch (_id) {
-        case 0: _t->OnConnected(); break;
-        case 1: _t->OnDisconnect((*reinterpret_cast< uint32_t(*)>(_a[1]))); break;
-        case 2: _t->OnAnnounce((*reinterpret_cast< int(*)>(_a[1]))); break;
-        default: ;
-        }
-    }
+  if(_c == QMetaObject::InvokeMetaMethod) {
+	StatusWidget *_t = static_cast<StatusWidget *>(_o);
+	Q_UNUSED(_t)
+	switch(_id) {
+	case 0: _t->OnConnected(); break;
+	case 1: _t->OnDisconnect((*reinterpret_cast<uint32_t(*)>(_a[1]))); break;
+	case 2: _t->OnAnnounce((*reinterpret_cast<int(*)>(_a[1]))); break;
+	default:;
+	}
+  }
 }
 
 const QMetaObject noda::StatusWidget::staticMetaObject = {
-    { &QWidget::staticMetaObject, qt_meta_stringdata_noda__StatusWidget.data,
-      qt_meta_data_noda__StatusWidget,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+  { &QWidget::staticMetaObject, qt_meta_stringdata_noda__StatusWidget.data,
+    qt_meta_data_noda__StatusWidget, qt_static_metacall, Q_NULLPTR, Q_NULLPTR }
 };
-
 
 const QMetaObject *noda::StatusWidget::metaObject() const
 {
-    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
+  return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
 void *noda::StatusWidget::qt_metacast(const char *_clname)
 {
-    if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_noda__StatusWidget.stringdata0))
-        return static_cast<void*>(const_cast< StatusWidget*>(this));
-    return QWidget::qt_metacast(_clname);
+  if(!_clname)
+	return Q_NULLPTR;
+  if(!strcmp(_clname, qt_meta_stringdata_noda__StatusWidget.stringdata0))
+	return static_cast<void *>(const_cast<StatusWidget *>(this));
+  return QWidget::qt_metacast(_clname);
 }
 
 int noda::StatusWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = QWidget::qt_metacall(_c, _id, _a);
-    if (_id < 0)
-        return _id;
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 3)
-            qt_static_metacall(this, _c, _id, _a);
-        _id -= 3;
-    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 3)
-            *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 3;
-    }
-    return _id;
+  _id = QWidget::qt_metacall(_c, _id, _a);
+  if(_id < 0)
+	return _id;
+  if(_c == QMetaObject::InvokeMetaMethod) {
+	if(_id < 3)
+	  qt_static_metacall(this, _c, _id, _a);
+	_id -= 3;
+  }
+  else if(_c == QMetaObject::RegisterMethodArgumentMetaType) {
+	if(_id < 3)
+	  *reinterpret_cast<int *>(_a[0]) = -1;
+	_id -= 3;
+  }
+  return _id;
 }
 QT_END_MOC_NAMESPACE
