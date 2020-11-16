@@ -47,8 +47,8 @@ namespace noda {
 
 	QAction *_connectAct = nullptr;
 	QAction *_projectAct = nullptr;
-	QAction *_cloudDlAct = nullptr;
-	QAction *_cloudUpAct = nullptr;
+	QAction* _saveToServerAct = nullptr;
+	QAction* _openFromServerAct = nullptr;
 
 	QScopedPointer<QLabel> _labelCounter;
 	QScopedPointer<StatusWidget> _netStatus;
@@ -79,5 +79,8 @@ namespace noda {
 	void OpenSyncMenu();
 	void OpenAboutDialog();
 	void OpenSettings();
+
+	void OpenFromServer();
+	void SaveToServer();
   };
 } // namespace noda

@@ -65,41 +65,30 @@ namespace noda {
 
 	auto *menuBar = mainWindow->menuBar();
 
-	// this is a bit hacked together since we want to determine our own
-	// menu position, and this is only possible via QT
-	QAction *boltOnPoint = nullptr;
+	QMenu* fileMenu = reinterpret_cast<QMenu*>(menuBar->actions()[0]->parent());
+	QAction* boltOnPoint = fileMenu->actions()[10];
 
-	QMenu *fileMenu = reinterpret_cast<QMenu *>(menuBar->actions()[0]->parent());
-	for(auto *it : fileMenu->actions()) {
-	  if(it->text() == "&Close") {
-		boltOnPoint = it;
-		break;
-	  }
-	}
+	_openFromServerAct = new QAction(QIcon(":/cloud_download"), "Open from Server", fileMenu);
+	_saveToServerAct = new QAction(QIcon(":/cloud_upload"), "Save to server", fileMenu);
+	connect(_openFromServerAct, &QAction::triggered, this, &UiController::OpenFromServer);
+	connect(_saveToServerAct, &QAction::triggered, this, &UiController::SaveToServer);
 
-	/*if(boltOnPoint) {
-	  _cloudDlAct = new QAction(QIcon(":/cloud_download"), "Open Noda Project", fileMenu);
-	  _cloudUpAct = new QAction(QIcon(":/cloud_upload"), "Create Noda Project", fileMenu);
-
-	  connect(_cloudDlAct, &QAction::triggered, this, &UiController::OpenProject);
-	  connect(_cloudUpAct, &QAction::triggered, this, &UiController::MakeProject);
-
-	  QAction *before = fileMenu->insertSeparator(boltOnPoint);
-	  fileMenu->insertAction(before, _cloudDlAct);
-	  fileMenu->insertAction(before, _cloudUpAct);
-	}*/
+	QAction *before = fileMenu->insertSeparator(boltOnPoint);
+	fileMenu->insertAction(before, _openFromServerAct);
+	fileMenu->insertAction(before, _saveToServerAct);
 
 	if(QMenu *nodaMenu = menuBar->addMenu("Noda")) {
+
 	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
-	  //_localhAct = nodaMenu->addAction(QIcon(":/wired"), "Start Localhost", this, &UiController::ToggleLocalhost);
-	  _projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
+	  //_projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/cog"), "Settings", this, &UiController::OpenSettings);
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
 	}
 
-	_cloudUpAct->setEnabled(false);
+	// those only become available when opening an idb
+	_connectAct->setEnabled(false);
 	//_projectAct->setEnabled(false);
 
 	auto *statusBar = mainWindow->statusBar();
@@ -130,6 +119,46 @@ namespace noda {
   {
 	unhook_from_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
 	unhook_from_notification_point(hook_type_t::HT_UI, UiEvent, this);
+  }
+
+  void UiController::OpenFromServer()
+  {
+	  // list remote projects..
+	  LOG_INFO("TODO: OpenFromServer()");
+  }
+
+  void UiController::SaveToServer()
+  {
+	  LOG_INFO("TODO: SaveToServer()");
+  }
+
+  void UiController::OnIdbSave()
+  {
+	assert(_node.good());
+
+	bool res;
+	res = _node.StoreScalar(NodeIndex::Timer, _timeCount);
+	res = _node.StoreScalar(NodeIndex::Flags, _flags);
+
+	if(!res) {
+	  QErrorMessage error(QApplication::activeWindow());
+	  error.showMessage("Unable to flush ui storage node");
+	  error.exec();
+	}
+  }
+
+  void UiController::OnIdbClose()
+  {
+	// note that closing the idb doesnt mean the closure of IDA
+	_connectAct->setEnabled(false);
+	//_projectAct->setEnabled(false);
+	_timer->stop();
+  }
+
+  void UiController::OnIdbFinishAu()
+  {
+	_connectAct->setEnabled(true);
+	//_cloudUpAct->setEnabled(true);
   }
 
   void UiController::OnIdbLoad()
@@ -163,33 +192,6 @@ namespace noda {
 	  ConnectDialog promt(*this);
 	  promt.exec();
 	}
-  }
-
-  void UiController::OnIdbSave()
-  {
-	assert(_node.good());
-
-	bool res;
-	res = _node.StoreScalar(NodeIndex::Timer, _timeCount);
-	res = _node.StoreScalar(NodeIndex::Flags, _flags);
-
-	if(!res) {
-	  QErrorMessage error(QApplication::activeWindow());
-	  error.showMessage("Unable to flush ui storage node");
-	  error.exec();
-	}
-  }
-
-  void UiController::OnIdbClose()
-  {
-	// note that closing the idb doesnt mean the closure of IDA
-	_cloudUpAct->setEnabled(false);
-	_timer->stop();
-  }
-
-  void UiController::OnIdbFinishAu()
-  {
-	_cloudUpAct->setEnabled(true);
   }
 
   void UiController::UpdateCounter()

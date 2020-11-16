@@ -196,7 +196,6 @@ namespace noda {
 	closebase
 	*/
 
-	processor_t::event_t;
 
 	const auto it = _idaEvents.find(std::make_pair(type, code));
 	if(it != _idaEvents.end()) {
