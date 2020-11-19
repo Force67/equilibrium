@@ -6,7 +6,7 @@
 build/
 .vscode
 
-code/common/moc_protocol
+code/common/protocol/generated
 
 !tools/build
 

@@ -16,10 +16,6 @@ namespace noda {
   template <typename T>
   using FbsRef = flatbuffers::Offset<T>;
 
-  struct OutPacket {
-	FbsBuffer buffer;
-	utility::detached_queue_key<OutPacket> key;
-  };
 
   struct InPacket {
 	inline explicit InPacket(netlib::Packet *p) :

@@ -1,13 +1,13 @@
 -- Copyright (c) NOMAD Group<nomad-group.net>
 
 -- mock flatbuffer files
-os.rmdir("common/moc_protocol")
-os.mkdir("common/moc_protocol")
+os.rmdir("common/protocol/generated")
+os.mkdir("common/protocol/generated")
 matches = os.matchfiles("common/protocol/**.fbs")
 for k,v in pairs(matches) do 
     local fb_dir = path.getabsolute("../tools/build")
     print(v)
-    os.executef("%s --cpp -o common/moc_protocol %s", fb_dir .. "/flatc", v) 
+    os.executef("%s --cpp -o common/protocol/generated %s", fb_dir .. "/flatc", v) 
 end
 
 function include_netlib()
@@ -18,9 +18,6 @@ end
 group("Server")
 include("sync_server/dedicated_main")
 include("sync_server/server")
-
-group("Tests")
-include("tests")
 
 group("Plugins")
 include("plugins/idaplugin")

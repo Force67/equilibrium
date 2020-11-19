@@ -3,41 +3,19 @@
 require("premake-idaqt/qt")
 qt = premake.modules.qt
 
-function enet_include()
+project("sockpp")
+    kind("StaticLib")
+    language("C++")
     includedirs({
-        "enet/include"
+        "sockpp/include"
     })
     files({
-        "enet/include/*.h",
-        "enet/*.c"
-    })
-	removefiles({
-		"enet/unix.c",
-		"include/enet/unix.h"
+        "sockpp/include/sockpp/*.h",
+        "sockpp/src/*.cpp"
     })
     filter("system:windows")
-        links({
-            "Ws2_32", 
-            "winmm"
-        })
-end
-
--- enet built with extra functions for
--- seemless interop
-local p = project("ENetNative")
-    kind("SharedLib")
-    language("C")
-    defines({
-        "ENET_DLL",
-        "ENET_BUILDING_LIB",
-        "ENET_BUILD_MANAGED"
-    })
-    enet_include()
-
-project("enet")
-    kind("StaticLib")
-    language("C")
-    enet_include()
+        links("Ws2_32")
+        removefiles("sockpp/include/sockpp/unix_*")
 
 project("sqlite")
     kind("StaticLib")

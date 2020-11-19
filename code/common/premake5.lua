@@ -1,5 +1,5 @@
 -- Copyright (c) NOMAD Group<nomad-group.net>
 
-include("netlib")
+include("network")
 include("database")
 include("utility")

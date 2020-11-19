@@ -60,7 +60,7 @@ namespace noda {
 
 	// ui storage:
 	enum NodeIndex : nodeidx_t {
-	  Version,
+	  Reserved,
 	  Flags,
 	  Timer,
 	};
