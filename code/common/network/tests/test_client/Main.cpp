@@ -37,7 +37,7 @@ public:
 	  _client.Disconnect();
   }
 
-  void ConsumeMessage() override
+  void ConsumeMessage(const uint8_t *data, size_t len) override
   {
   }
 
@@ -52,9 +52,14 @@ public:
 
   void Tick()
   {
-	_client.Tick();
+	network::FbsBuffer buffer;
 
-	std::puts("Tick3!");
+	auto request = protocol::CreateHandshakeRequestDirect(
+	    buffer, 1337, "", "{1337-1337-1337}", "TestClient");
+
+	_client.SendPacket(protocol::MsgType_HandshakeRequest, buffer, request.Union());
+
+	_client.Tick();
   }
 
 private:

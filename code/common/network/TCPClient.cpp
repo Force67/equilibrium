@@ -10,7 +10,6 @@ namespace network {
   TCPClient::TCPClient(TCPClientConsumer &consumer) :
       _consumer(consumer)
   {
-	_conn.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
   }
 
   bool TCPClient::Connect(const char *addr, int16_t port)
@@ -20,6 +19,12 @@ namespace network {
 
 	if(!_conn.connect(sockpp::inet_address(addr, port)))
 	  return false;
+
+	if(!_conn.set_non_blocking())
+	  return false;
+
+	_conn.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
+	//_conn.set_option(IPPROTO_TCP, )
 
 	// TODO: think about timeout..
 	//_conn.read_timeout();
@@ -50,15 +55,20 @@ namespace network {
 
   void TCPClient::Tick()
   {
+	if(!_conn.is_connected())
+	  return;
+
 	ssize_t n = 0;
 	while((n = _conn.read(buf, sizeof(buf))) > 0) {
-	  _consumer.ConsumeMessage();
+	  _consumer.ConsumeMessage(buf, n);
 	}
 
 	while(auto *packet = _outQueue.pop(&OutPacket::key)) {
 	  _conn.write_n(
 	      packet->buffer.GetBufferPointer(),
 	      packet->buffer.GetSize());
+
+	  s_packetPool.destruct(packet);
 	}
   }
 } // namespace network

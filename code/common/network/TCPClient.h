@@ -16,7 +16,7 @@ namespace network {
 	virtual void OnDisconnect(int reason) = 0;
 
 	// Handle a new message
-	virtual void ConsumeMessage() = 0;
+	virtual void ConsumeMessage(const uint8_t *ptr, size_t len) = 0;
   };
 
   struct OutPacket {

@@ -31,8 +31,19 @@ public:
   {
   }
 
-  void ConsumeMessage() override
+  void ConsumeMessage(const uint8_t *ptr, size_t size) override
   {
+	std::printf("Consume(): %p: %d\n", ptr, size);
+  }
+
+  void OnConnection(const network::TCPPeer& peer) override
+  {
+	std::puts("OnConnection()");
+  }
+
+  void OnDisconnection(const network::TCPPeer& peer) override
+  {
+	std::puts("OnDisconnection()");
   }
 
   bool ShouldRun() const
@@ -43,8 +54,6 @@ public:
   void Tick()
   {
 	_server.Tick();
-
-	std::puts("Tick3!");
   }
 
 private:
