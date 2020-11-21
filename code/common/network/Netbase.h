@@ -24,5 +24,6 @@ namespace network {
 
 	constexpr char kServerIp[] = "127.0.0.1";
 	constexpr int16_t kServerPort = 4523;
+	constexpr int32_t kServerDiscoveryPortRange = 10;
   } // namespace constants
 } // namespace network

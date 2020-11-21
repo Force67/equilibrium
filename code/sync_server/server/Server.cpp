@@ -4,7 +4,7 @@
 #include "ServerImpl.h"
 
 namespace noda {
-  Server::Server(uint16_t port) :
+  Server::Server(int16_t port) :
       _impl{ std::make_unique<ServerImpl>(port) }
   {
   }
@@ -26,8 +26,8 @@ namespace noda {
 	return _impl->_listening;
   }
 
-  uint16_t Server::GetPort() const
+  int16_t Server::GetPort() const
   {
-	return _impl->_activePort;
+	return _impl->_server.Port();
   }
 } // namespace noda

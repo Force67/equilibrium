@@ -6,34 +6,20 @@
 #undef GetMessageW
 
 #include "ServerImpl.h"
-#include "moc_protocol/DisconnectReason_generated.h"
 
 namespace noda {
 
-  inline utility::object_pool<OutPacket> s_packetPool;
-
-  ServerImpl::ServerImpl(uint16_t port) :
+  ServerImpl::ServerImpl(int16_t port) :
+	  _server(*this),
       _datahandler(*this),
       _tickTime(std::chrono::high_resolution_clock::now())
   {
-	for(int i = 0; i < 10; i++) {
-	  if(NetServer::Host(port)) {
-		_activePort = port;
-		break;
-	  }
-
-	  port++;
-	}
-
-	NetServer::SetDeleter([](void *data) {
-	  OutPacket *packet = static_cast<OutPacket *>(data);
-	  s_packetPool.destruct(packet);
-	});
+	  _server.Host(port);
   }
 
   ServerStatus ServerImpl::Initialize(bool useStorage)
   {
-	if(!NetServer::Good())
+	if(_server.Port() == -1)
 	  return ServerStatus::NetError;
 
 	if(useStorage) {
@@ -51,8 +37,23 @@ namespace noda {
 	return ServerStatus::Success;
   }
 
-  void ServerImpl::OnConnection(netlib::Peer *peer)
+  void ServerImpl::OnConnection(const network::TCPPeer& peer)
   {
+  }
+
+  void ServerImpl::ConsumeMessage(network::TCPPeer& source, const uint8_t* ptr, size_t size)
+  {
+	flatbuffers::Verifier verifier(ptr, size);
+	if(!protocol::VerifyMessageBuffer(verifier))
+	  return;
+
+	const auto *message = protocol::GetMessage(static_cast<const void *>(ptr));
+	if(message->msg_type() == protocol::MsgType_HandshakeRequest)
+	  return HandleAuth(peer, message);
+
+	_datahandler.Queue(peer->Id(), packet);
+
+	BroadcastReliable(packet, peer);
   }
 
   userptr_t ServerImpl::UserById(netlib::connectid_t cid)
@@ -65,21 +66,6 @@ namespace noda {
 	  return nullptr;
 
 	return *it;
-  }
-
-  void ServerImpl::OnConsume(netlib::Peer *peer, netlib::Packet *packet)
-  {
-	flatbuffers::Verifier verifier(packet->data(), packet->length());
-	if(!protocol::VerifyMessageBuffer(verifier))
-	  return;
-
-	const auto *message = protocol::GetMessage(static_cast<const void *>(packet->data()));
-	if(message->msg_type() == protocol::MsgType_HandshakeRequest)
-	  return HandleAuth(peer, message);
-
-	_datahandler.Queue(peer->Id(), packet);
-
-	BroadcastReliable(packet, peer);
   }
 
   void ServerImpl::HandleAuth(netlib::Peer *source, const protocol::Message *message)
@@ -120,7 +106,7 @@ namespace noda {
 	CreatePacket(id, protocol::MsgType_HandshakeAck, buffer, pack.Union());
   }
 
-  void ServerImpl::OnDisconnection(netlib::Peer *peer)
+  void ServerImpl::OnDisconnection(const network::TCPPeer& peer)
   {
 	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
 	  return user->Id() == peer->Id();
@@ -158,33 +144,6 @@ namespace noda {
 	  _freeTime = 0;
 	}
 
-	NetServer::Listen();
-
-	// out queue
-	while(auto *packet = _packetQueue.pop(&OutPacket::key)) {
-	  bool result = SendReliableUnsafe(packet->id,
-	                                   packet->buffer.GetBufferPointer(),
-	                                   packet->buffer.GetSize(),
-	                                   static_cast<void *>(packet));
-
-#if 1
-	  if(!result)
-		__debugbreak();
-#endif
-	  // for deletion: visit SetDeleter([](void* data)
-	}
-  }
-
-  void ServerImpl::CreatePacket(netlib::connectid_t cid,
-                                protocol::MsgType type,
-                                FbsBuffer &buffer,
-                                flatbuffers::Offset<void> packet)
-  {
-	buffer.Finish(protocol::CreateMessage(buffer, type, packet));
-
-	OutPacket *item = s_packetPool.construct(cid);
-	item->buffer = std::move(buffer);
-
-	_packetQueue.push(&item->key);
+	_server.Tick();
   }
 } // namespace noda

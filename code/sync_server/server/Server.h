@@ -21,7 +21,7 @@ namespace noda {
 	  return s == ServerStatus::Success;
 	}
 
-	Server(uint16_t port);
+	Server(int16_t port);
 	~Server();
 
 	ServerStatus Initialize(bool useStorage);
@@ -29,7 +29,7 @@ namespace noda {
 	void Update();
 
 	bool IsListening() const;
-	uint16_t GetPort() const;
+	int16_t GetPort() const;
 
   private:
 	std::unique_ptr<ServerImpl> _impl;

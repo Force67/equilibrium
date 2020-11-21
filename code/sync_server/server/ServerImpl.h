@@ -7,15 +7,15 @@
 
 #include "DataHandler.h"
 
-#include "netlib/Server.h"
+#include "network/TCPServer.h"
 
 namespace noda {
 
-  class ServerImpl final : public netlib::NetServer {
+  class ServerImpl final : public network::TCPServerConsumer {
 	friend class noda::Server;
 
   public:
-	ServerImpl(uint16_t port);
+	ServerImpl(int16_t port);
 	~ServerImpl() = default;
 
 	ServerStatus Initialize(bool useStorage);
@@ -26,21 +26,17 @@ namespace noda {
 	// in the net thread
 	userptr_t UserById(netlib::connectid_t cid);
 
-	void CreatePacket(netlib::connectid_t cid,
-	                  protocol::MsgType type,
-	                  FbsBuffer &buffer,
-	                  flatbuffers::Offset<void> packet);
-
   private:
-	void OnConnection(netlib::Peer *) override;
-	void OnDisconnection(netlib::Peer *peer) override;
-	void OnConsume(netlib::Peer *peer, netlib::Packet *packet) override;
+	void OnConnection(const network::TCPPeer& peer) override;
+	void OnDisconnection(const network::TCPPeer& peer) override;
+	void ConsumeMessage(network::TCPPeer& source, const uint8_t* ptr, size_t size) override;
 
 	void HandleAuth(netlib::Peer *source, const protocol::Message *message);
 
   private:
+
 	bool _listening = false;
-	uint16_t _activePort = 0;
+	network::TCPServer _server;
 
 	std::string _token = "";
 	DataHandler _datahandler;

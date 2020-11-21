@@ -17,14 +17,16 @@ namespace network {
 	virtual void OnConnection(const TCPPeer &) = 0;
 	virtual void OnDisconnection(const TCPPeer &) = 0;
 
-	virtual void ConsumeMessage(const uint8_t *, size_t size) = 0;
+	virtual void ConsumeMessage(TCPPeer &, const uint8_t *, size_t size) = 0;
   };
 
   class TCPServer {
   public:
 	explicit TCPServer(TCPServerConsumer &consumer);
 
-	bool Host(int16_t port);
+	// range describes how much the port may shift if it cant host
+	// on a particular port.
+	int16_t Host(int16_t port);
 
 	void Tick();
 
@@ -36,6 +38,11 @@ namespace network {
 	                FbsRef<void> packet);
 
 	TCPPeer *PeerById(connectionid_t);
+
+	int16_t Port() const
+	{
+	  return _port;
+	}
 
   private:
 	// named after martin who discovered
@@ -49,6 +56,8 @@ namespace network {
 	TCPServerConsumer &_consumer;
 
 	uint8_t _workbuf[1024]{};
+
+	int16_t _port = 0;
 	uint32_t _seed;
 
 	struct Packet {

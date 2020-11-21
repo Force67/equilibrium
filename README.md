@@ -15,13 +15,12 @@
 
 - **Noda-Sync**: Synchronize your reverse engineering among IDA-Pro and X64Dbg instances in real time.
 - **Snapshots**: Noda allows you to save and load different snapshots.
-- **Inbuilt Tools**: Noda enhances the reverse engineering experience by adding tools such as PetternTool.
+- **Inbuilt Tools**: Noda enhances the reverse engineering experience by adding tools such as PatternTool.
 
 # Setup
-The noda server requires no configuration. TODO
+Copy Noda_72.dll into your IDA plugin directory.
 
 # Building
-
 First, [install Qt 5.6.3](https://download.qt.io/new_archive/qt/5.6/5.6.3/), which is required for the IDA plugin. Then clone the repo, like below:
 ```
 git clone https://github.com/NomadGroup/NODA.git
@@ -29,7 +28,10 @@ cd NODA
 git submodule update --init
 ```
 #### Building the project
-
 Execute pmake.cmd in order to generate the project solution. 
 
 Afterwards you can open `build/NODA.sln`. The recommended build configuration is `Release` for all purposes.
+
+# Credits
+* [Freeeaky](https://github.com/Freeeaky) for his original [sync plugin](https://github.com/Nomad-Group/IDASync), which inspired me to create NODA.
+* [Fontawesome](https://fontawesome.com) for icons used in the IDA plugin.

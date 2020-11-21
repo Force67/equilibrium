@@ -3,6 +3,7 @@
 
 #include <thread>
 
+#include <fmt/format.h>
 #include <TCPServer.h>
 
 // stupid windows
@@ -31,19 +32,19 @@ public:
   {
   }
 
-  void ConsumeMessage(const uint8_t *ptr, size_t size) override
+  void ConsumeMessage(network::TCPPeer &source, const uint8_t *ptr, size_t size) override
   {
-	std::printf("Consume(): %p: %d\n", ptr, size);
+	fmt::print("Consume(): {}: {}\n", static_cast<const void *>(ptr), size);
   }
 
-  void OnConnection(const network::TCPPeer& peer) override
+  void OnConnection(const network::TCPPeer &peer) override
   {
-	std::puts("OnConnection()");
+	fmt::print("OnConnection(): -> {}", peer.id);
   }
 
-  void OnDisconnection(const network::TCPPeer& peer) override
+  void OnDisconnection(const network::TCPPeer &peer) override
   {
-	std::puts("OnDisconnection()");
+	fmt::print("OnDisconnection()");
   }
 
   bool ShouldRun() const
@@ -65,7 +66,7 @@ int main()
 {
   network::ScopedSocket sockInit;
 
-  std::puts("Initializing test_server");
+  fmt::print("Initializing test_server");
   TestServer2 server;
 
   while(server.ShouldRun()) {
@@ -73,6 +74,6 @@ int main()
 	std::this_thread::sleep_for(1ms);
   }
 
-  std::puts("Exiting test_server");
+  fmt::print("Exiting test_server");
   return 0;
 }

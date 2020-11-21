@@ -12,21 +12,32 @@ namespace network {
 
   uint32_t TCPServer::GetMartinsRandomSeed()
   {
-	uint32_t addr = (uint32_t)(void *)&_consumer;
-	addr += 0xBADBABE;
+	uintptr_t address = reinterpret_cast<uintptr_t>(&_consumer);
+	uint32_t lower = static_cast<uint32_t>(address);
 
-	return (addr << 16) | (addr >> 16);
+	lower += 0xBADBABE;
+	return (lower << 16) | (lower >> 16);
   }
 
-  bool TCPServer::Host(int16_t port)
+  int16_t TCPServer::Host(int16_t port)
   {
-	if(_acc.open(port)) {
-	  _acc.set_non_blocking();
-	  _acc.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
-	  return true;
+	_port = -1;
+
+	for(int32_t i = 0; i < constants::kServerDiscoveryPortRange; i++) {
+	  if(_acc.open(port)) {
+		_port = port;
+		break;
+	  }
+
+	  port++;
 	}
 
-	return false;
+	if(_port != -1) {
+	  _acc.set_non_blocking();
+	  _acc.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
+	}
+
+	return port;
   }
 
   bool TCPServer::Drop(connectionid_t cid)
@@ -85,15 +96,13 @@ namespace network {
 		ssize_t n;
 
 		while((n = it->sock.read(_workbuf, sizeof(_workbuf))) > 0) {
-		  _consumer.ConsumeMessage(_workbuf, n);
+		  _consumer.ConsumeMessage(*it, _workbuf, n);
 		}
 	  }
 	}
 
 	while(auto *packet = _queue.pop(&Packet::key)) {
-
-	  if(TCPPeer* peer = PeerById(packet->cid)) {
-
+	  if(TCPPeer *peer = PeerById(packet->cid)) {
 		peer->sock.write_n(
 		    packet->buffer.GetBufferPointer(),
 		    packet->buffer.GetSize());
