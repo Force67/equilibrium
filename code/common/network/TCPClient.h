@@ -38,6 +38,9 @@ namespace network {
 
 	std::string LastError() const;
 
+	bool Connected() const {
+		return _conn.is_connected();
+	}
   private:
 	sockpp::tcp_connector _conn;
 

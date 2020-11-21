@@ -3,26 +3,23 @@
 #pragma once
 
 #include <map>
-#include <QAtomicInt>
-#include <qobject.h>
+#include <QThread>
 
 #include "utils/Logger.h"
-#include "utils/AtomicQueue.h"
 #include "utils/NetNode.h"
 
-#include "Client.h"
-#include "Packet.h"
-#include "LocalServer.h"
+#include "TaskDispatcher.h"
+#include "network/TCPClient.h"
 
 namespace QT {
   class QTimer;
 }
 
 namespace noda {
-  struct SyncHandler;
+  struct TaskHandler;
 
   class SyncController final : public QThread,
-                               public SyncDelegate {
+                               public network::TCPClientConsumer {
 	Q_OBJECT;
 
   public:
@@ -34,6 +31,10 @@ namespace noda {
 	void Disconnect();
 
 	bool IsConnected();
+
+	TaskHandler *HanderByNetType(protocol::MsgType);
+
+	void InitializeForIdb();
   signals:
 	void Connected();
 	void Disconnected(int);
@@ -46,7 +47,7 @@ namespace noda {
 
 	// network events
 	void OnDisconnect(int) override;
-	void ProcessPacket(netlib::Packet *) override;
+	void ConsumeMessage(const uint8_t *data, size_t size) override;
 
 	// IDA
 	ssize_t HandleEvent(hook_type_t, int, va_list);
@@ -54,29 +55,24 @@ namespace noda {
 	static ssize_t IdbEvent(void *userData, int code, va_list args);
 	static ssize_t IdpEvent(void *userData, int code, va_list args);
 
+	enum NodeIndex : nodeidx_t {
+		UpdateVersion,
+	};
+
 	NetNode _node;
+
 	bool _active = false;
 
-	netlib::ScopedNetContext _context;
+	network::ScopedSocket _sock;
+	network::TCPClient _client;
 
-	Client _client;
+	TaskDispatcher _dispatcher;
+	int _localVersion = 0;
+
 	int _userCount = 0;
-	//LocalServer _server;
 
 	using IdaEventType_t = std::pair<hook_type_t, int>;
-	std::map<IdaEventType_t, SyncHandler *> _idaEvents;
-	std::map<protocol::MsgType, SyncHandler *> _netEvents;
-
-	// dispatch events on ida thread
-	struct Dispatcher : exec_request_t {
-	  Dispatcher(SyncController &sc) :
-	      sc(sc) {}
-
-	  SyncController &sc;
-	  int idaapi execute() override;
-	} _dispatcher;
-
-	std::atomic_int _eventSize = 0;
-	utility::detached_mpsc_queue<InPacket> _queue;
+	std::map<IdaEventType_t, TaskHandler *> _idaEvents;
+	std::map<protocol::MsgType, TaskHandler *> _netEvents;
   };
 } // namespace noda

@@ -31,7 +31,8 @@ namespace noda {
 
 	void OpenRunDialog();
 
-	static void ShowError(const char* text);
+	static void ShowError(const char *text);
+
   private:
 	void DestroyUi();
 
@@ -47,8 +48,8 @@ namespace noda {
 
 	QAction *_connectAct = nullptr;
 	QAction *_projectAct = nullptr;
-	QAction* _saveToServerAct = nullptr;
-	QAction* _openFromServerAct = nullptr;
+	QAction *_saveToServerAct = nullptr;
+	QAction *_openFromServerAct = nullptr;
 
 	QScopedPointer<QLabel> _labelCounter;
 	QScopedPointer<StatusWidget> _netStatus;
@@ -70,8 +71,8 @@ namespace noda {
 	  EverJoined = 1 << 1,
 	} _flags;
 
-	static const uint32_t kUiVersion = 1;
 	NetNode _node;
+
   public slots:
 	void ToggleConnect();
 

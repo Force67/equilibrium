@@ -23,6 +23,8 @@ namespace network {
 	if(!_conn.set_non_blocking())
 	  return false;
 
+	//_conn.read_timeout();
+
 	_conn.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
 	//_conn.set_option(IPPROTO_TCP, )
 

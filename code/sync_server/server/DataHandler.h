@@ -37,8 +37,9 @@ namespace noda {
 	void WorkerThread();
 	void ProcessTask(Task &);
 
-	void CreateBucket(const protocol::Message *);
-	void DeleteBucket(const protocol::Message *);
+	// tasks
+	void CreateWorkspace(const protocol::Message*);
+	void CreateProject(const protocol::Message*);
 
 	//void OpenNodaDb(const NdUser &sender, const protocol::Message *);
 

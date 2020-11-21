@@ -97,7 +97,7 @@ namespace noda {
 
 	userptr_t user = _userRegistry.AddUser(cid, packet->name()->str(), packet->guid()->str());
 
-	LOG_INFO("User {} joined", user->Name());
+	LOG_INFO("User {} joined with id {}", user->Name(), cid);
 
 	network::FbsBuffer buffer;
 	auto pack = protocol::CreateHandshakeAck(

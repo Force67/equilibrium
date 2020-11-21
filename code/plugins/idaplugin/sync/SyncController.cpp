@@ -1,17 +1,16 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <qtimer.h>
-#include <qglobal.h>
-#include <qsettings.h>
-
-#include "SyncController.h"
-#include "moc_protocol/Message_generated.h"
-
 #include "Pch.h"
-#include "SyncHandler.h"
+#include "TaskHandler.h"
+#include "SyncController.h"
 
-#include "utility/ObjectPool.h"
+#include <QTimer>
+#include <QSettings>
+#include <qglobal.h>
+
+#include "utils/UserInfo.h"
+#include "protocol/generated/StorageModel_generated.h"
 
 namespace noda {
   constexpr int kNetTrackRate = 1000;
@@ -19,7 +18,12 @@ namespace noda {
   constexpr uint32_t kStorageVersion = 4;
   static const char kSyncNodeName[] = "$ nd_sync_data";
 
-  static inline utility::object_pool<InPacket> s_packetPool;
+  static network::FbsStringRef MakeFbStringRef(network::FbsBuffer &msg, const QString &other)
+  {
+	const char *str = const_cast<const char *>(other.toUtf8().data());
+	size_t sz = static_cast<size_t>(other.size());
+	return msg.CreateString(str, sz);
+  }
 
   SyncController::SyncController() :
       _client(*this),
@@ -28,8 +32,8 @@ namespace noda {
 	hook_to_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
 	hook_to_notification_point(hook_type_t::HT_IDP, IdpEvent, this);
 
-	for(auto *i = SyncHandler::ROOT(); i;) {
-	  if(SyncHandler *it = i->handler) {
+	for(auto *i = TaskHandler::ROOT(); i;) {
+	  if(TaskHandler *it = i->handler) {
 		_idaEvents[std::make_pair(it->hookType, it->hookEvent)] = it;
 		_netEvents[it->msgType] = it;
 	  }
@@ -50,26 +54,95 @@ namespace noda {
   {
 	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDB, code, args);
   }
+
   ssize_t SyncController::IdpEvent(void *userData, int code, va_list args)
   {
 	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
   }
 
+  TaskHandler *SyncController::HanderByNetType(protocol::MsgType type)
+  {
+	auto it = _netEvents.find(type);
+	if(it == _netEvents.end())
+	  return nullptr;
+
+	return it->second;
+  }
+
   bool SyncController::Connect()
   {
-	// initialize storage?
-	return _client.Start();
+	QSettings settings;
+	int port = settings.value("Nd_SyncPort", network::constants::kServerPort).toInt();
+	auto addr = settings.value("Nd_SyncIp", network::constants::kServerIp).toString();
+
+	if(_client.Connect(
+	       addr.toUtf8().data(),
+	       static_cast<int16_t>(port))) {
+
+	  LOG_INFO("Connected to {}:{}", addr.toUtf8().data(), port);
+
+	  auto name = settings.value("Nd_SyncUser", GetDefaultUserName()).toString();
+	  auto guid = GetUserGuid();
+
+	  network::FbsBuffer buffer;
+	  auto request = protocol::CreateHandshakeRequest(
+	      buffer, network::constants::kClientVersion, 
+		  buffer.CreateSharedString(""), 
+		  MakeFbStringRef(buffer, guid), 
+		  MakeFbStringRef(buffer, name));
+
+	  _client.SendPacket(protocol::MsgType_HandshakeRequest, buffer, request.Union());
+	  return true;
+	}
+
+	LOG_ERROR("Failed to connect to {}:{}", addr.toUtf8().data(), port);
+	return false;
+  }
+
+  void SyncController::InitializeForIdb()
+  {
+	  // Note that this is not invoked from net thread..
+	  _node = NetNode(kSyncNodeName);
+	  if (!_node.good()) {
+		  LOG_ERROR("Bad node {}", kSyncNodeName);
+		  return;
+	  }
+
+	  _localVersion = _node.LoadScalar(NodeIndex::UpdateVersion, 0);
+
+	  uchar md5[16]{};
+	  bool result = retrieve_input_file_md5(md5);
+	  assert(result != false);
+
+	  char md5Str[32 + 1]{};
+
+	  // convert bytes to str
+	  constexpr char lookup[] = "0123456789abcdef";
+	  for(int i = 0; i < 16; i++) {
+	    md5Str[i * 2] = lookup[(md5[i]) >> 4 & 0xF];
+	    md5Str[i * 2 + 1] = lookup[(md5[i]) & 0xF];
+	  }
+
+	  char fileName[128]{};
+	  get_root_filename(fileName, sizeof(fileName) - 1);
+
+	  network::FbsBuffer buffer;
+	  auto request = protocol::CreateLocalProjectInfoDirect(
+		  buffer, md5Str, fileName, _localVersion);
+
+	  _client.SendPacket(protocol::MsgType_LocalProjectInfo, buffer, request.Union());
   }
 
   void SyncController::Disconnect()
   {
 	// flush storage?
-	_client.Stop();
+	_client.Disconnect();
   }
 
   bool SyncController::IsConnected()
   {
-	return _client.Good() && _active;
+	return _client.Connected();
+	//return _client.Good() && _active;
   }
 
   void SyncController::OnDisconnect(int reason)
@@ -84,7 +157,7 @@ namespace noda {
 
   void SyncController::OnProjectJoin(const protocol::Message *message)
   {
-	const auto *pack = message->msg_as_RemoteProjectInfo();
+	/*const auto *pack = message->msg_as_RemoteProjectInfo();
 
 	if(pack->version() == 0)
 	  LOG_INFO("Successfully joined {} for the first time", pack->name()->c_str());
@@ -98,6 +171,7 @@ namespace noda {
 	}
 
 	// send local IDB info
+	*/
 
 	_active = true;
   }
@@ -134,49 +208,14 @@ namespace noda {
 	emit Announce(_userCount);
   }
 
-  int SyncController::Dispatcher::execute()
+  void SyncController::ConsumeMessage(const uint8_t *data, size_t size)
   {
-	while(InPacket *item = sc._queue.pop(&InPacket::key)) {
-	  sc._eventSize--;
-
-	  const protocol::Message *message =
-	      protocol::GetMessage(item->packet.data());
-
-	  switch(message->msg_type()) {
-	  case protocol::MsgType_RemoteProjectInfo:
-		sc.OnProjectJoin(message);
-		return 0;
-	  case protocol::MsgType_Announcement:
-		sc.OnAnnouncement(message);
-		return 0;
-	  default:
-		break;
-	  }
-
-	  auto it = sc._netEvents.find(message->msg_type());
-	  if(it == sc._netEvents.end())
-		return 0;
-
-	  it->second->delegates.apply(sc, message->msg());
-	  s_packetPool.destruct(item);
-	}
-
-	return 0;
-  }
-
-  void SyncController::ProcessPacket(netlib::Packet *packet)
-  {
-	const auto *message = protocol::GetMessage(static_cast<const void *>(packet->data()));
+	const auto *message = protocol::GetMessage(static_cast<const void *>(data));
 	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
 	  return HandleAuth(message);
 	}
 
-	InPacket *item = s_packetPool.construct(packet);
-	_queue.push(&item->key);
-	_eventSize++;
-
-	if(_eventSize == 1)
-	  execute_sync(_dispatcher, MFF_WRITE | MFF_NOWAIT);
+	_dispatcher.QueueTask(data, size);
   }
 
   ssize_t SyncController::HandleEvent(hook_type_t type, int code, va_list args)
@@ -191,11 +230,6 @@ namespace noda {
 
 	if(code == idb_event::auto_empty_finally) {
 	}
-
-	/*
-	closebase
-	*/
-
 
 	const auto it = _idaEvents.find(std::make_pair(type, code));
 	if(it != _idaEvents.end()) {

@@ -1,6 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <ctime>
 #include "TCPServer.h"
 
 namespace network {
@@ -15,7 +16,7 @@ namespace network {
 	uintptr_t address = reinterpret_cast<uintptr_t>(this);
 	uint32_t lower = static_cast<uint32_t>(address);
 
-	lower += 0xBADBABE;
+	lower += static_cast<uint32_t>(std::time(nullptr));
 	return (lower << 16) | (lower >> 16);
   }
 

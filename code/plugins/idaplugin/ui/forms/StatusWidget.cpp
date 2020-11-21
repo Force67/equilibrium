@@ -8,7 +8,7 @@
 #include <qpainter.h>
 #include <qpaintdevice.h>
 
-#include "moc_protocol/Announcement_generated.h"
+#include "protocol/generated/Announcement_generated.h"
 
 namespace noda {
   constexpr int ksizeOffset = 3;

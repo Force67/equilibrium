@@ -47,7 +47,7 @@ namespace noda {
 	return s_mainWindow;
   }
 
-  void UiController::ShowError(const char* text)
+  void UiController::ShowError(const char *text)
   {
 	QErrorMessage error(GetTopWidget());
 	error.showMessage(text);
@@ -65,8 +65,8 @@ namespace noda {
 
 	auto *menuBar = mainWindow->menuBar();
 
-	QMenu* fileMenu = reinterpret_cast<QMenu*>(menuBar->actions()[0]->parent());
-	QAction* boltOnPoint = fileMenu->actions()[10];
+	QMenu *fileMenu = reinterpret_cast<QMenu *>(menuBar->actions()[0]->parent());
+	QAction *boltOnPoint = fileMenu->actions()[10];
 
 	_openFromServerAct = new QAction(QIcon(":/cloud_download"), "Open from Server", fileMenu);
 	_saveToServerAct = new QAction(QIcon(":/cloud_upload"), "Save to server", fileMenu);
@@ -78,7 +78,6 @@ namespace noda {
 	fileMenu->insertAction(before, _saveToServerAct);
 
 	if(QMenu *nodaMenu = menuBar->addMenu("Noda")) {
-
 	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
 	  //_projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
 	  nodaMenu->addSeparator();
@@ -86,10 +85,6 @@ namespace noda {
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
 	}
-
-	// those only become available when opening an idb
-	_connectAct->setEnabled(false);
-	//_projectAct->setEnabled(false);
 
 	auto *statusBar = mainWindow->statusBar();
 	_netStatus.reset(new StatusWidget(statusBar));
@@ -123,13 +118,13 @@ namespace noda {
 
   void UiController::OpenFromServer()
   {
-	  // list remote projects..
-	  LOG_INFO("TODO: OpenFromServer()");
+	// list remote projects..
+	LOG_INFO("TODO: OpenFromServer()");
   }
 
   void UiController::SaveToServer()
   {
-	  LOG_INFO("TODO: SaveToServer()");
+	LOG_INFO("TODO: SaveToServer()");
   }
 
   void UiController::OnIdbSave()
@@ -159,6 +154,8 @@ namespace noda {
   {
 	_connectAct->setEnabled(true);
 	//_cloudUpAct->setEnabled(true);
+
+	_sync.InitializeForIdb();
   }
 
   void UiController::OnIdbLoad()
@@ -172,13 +169,13 @@ namespace noda {
 	_node = NetNode(kUiNodeName);
 
 	if(!_node.good()) {
-		ShowError("Unable to connect to ui storage node.");
+	  ShowError("Unable to connect to ui storage node.");
 	  return;
 	}
 
-	uint32_t version = _node.LoadScalar(NodeIndex::Version, UINT_MAX);
+	uint32_t version = _node.LoadScalar(NodeIndex::Reserved, UINT_MAX);
 	if(version == UINT_MAX) {
-	  _node.StoreScalar(NodeIndex::Version, kUiVersion);
+	  _node.StoreScalar(NodeIndex::Reserved, 1);
 	}
 
 	// every sec we update the clock
@@ -239,22 +236,18 @@ namespace noda {
   void UiController::ToggleConnect()
   {
 	bool connected = _sync.IsConnected();
-	if (connected) {
+	if(connected) {
 	  _sync.Disconnect();
 
-	  _projectAct->setEnabled(false);
+	  //_projectAct->setEnabled(false);
 	  return;
 	}
 
 	bool result = _sync.Connect();
-	if (!result) {
-	  ShowError(
-	      "Unable to connect to the NODA sync host.\n"
-	      "It is likely that the selected port is not available.");
+	if(!result)
 	  return;
-	}
 
-	_projectAct->setEnabled(result);
+	//_projectAct->setEnabled(result);
 	LOG_INFO("ToggleConnect(): {}", connected);
   }
 

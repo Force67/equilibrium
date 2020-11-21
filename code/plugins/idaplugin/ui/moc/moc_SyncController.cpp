@@ -121,8 +121,8 @@ void *noda::SyncController::qt_metacast(const char *_clname)
 	return Q_NULLPTR;
   if(!strcmp(_clname, qt_meta_stringdata_noda__SyncController.stringdata0))
 	return static_cast<void *>(const_cast<SyncController *>(this));
-  if(!strcmp(_clname, "SyncDelegate"))
-	return static_cast<SyncDelegate *>(const_cast<SyncController *>(this));
+  if(!strcmp(_clname, "network::TCPClientConsumer"))
+	return static_cast<network::TCPClientConsumer *>(const_cast<SyncController *>(this));
   return QThread::qt_metacast(_clname);
 }
 

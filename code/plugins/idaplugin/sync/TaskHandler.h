@@ -3,39 +3,35 @@
 
 #pragma once
 
-#include "Pch.h"
-
-#include "sync/SyncController.h"
-#include "moc_protocol/Message_generated.h"
+#include "SyncController.h"
 #include "utils/Logger.h"
+#include "protocol/generated/Message_generated.h"
 
 namespace noda {
   using namespace protocol::sync;
 
-  //struct SyncHandler;
+  struct TaskHandlerRegistry {
+	TaskHandlerRegistry() = default;
+	~TaskHandlerRegistry() = default;
 
-  struct SyncHandlerRegistry {
-	SyncHandlerRegistry() = default;
-	~SyncHandlerRegistry() = default;
-
-	SyncHandlerRegistry(SyncHandler *hndlr) :
+	TaskHandlerRegistry(TaskHandler *hndlr) :
 	    next(ROOT()),
 	    handler(hndlr)
 	{
 	  ROOT() = this;
 	}
 
-	SyncHandlerRegistry *next = nullptr;
-	SyncHandler *handler = nullptr;
+	TaskHandlerRegistry *next = nullptr;
+	TaskHandler *handler = nullptr;
 
-	static SyncHandlerRegistry *&ROOT()
+	static TaskHandlerRegistry *&ROOT()
 	{
-	  static SyncHandlerRegistry *root{ nullptr };
+	  static TaskHandlerRegistry *root{ nullptr };
 	  return root;
 	}
   };
 
-  struct SyncHandler : SyncHandlerRegistry {
+  struct TaskHandler : TaskHandlerRegistry {
 	// IDA Event
 	hook_type_t hookType = hook_type_t::HT_LAST;
 	int hookEvent = -1;
@@ -60,20 +56,20 @@ namespace noda {
 
 	  explicit Handlers(apply_t apply_impl, react_t react_impl)
 	  {
-		apply = reinterpret_cast<SyncHandler::apply_t>(reinterpret_cast<void *>(apply_impl));
+		apply = reinterpret_cast<TaskHandler::apply_t>(reinterpret_cast<void *>(apply_impl));
 		react = react_impl;
 	  }
 	};
 
-	explicit SyncHandler(hook_type_t type, int evt, protocol::MsgType msg, BaseHandler &&methods) :
+	explicit TaskHandler(hook_type_t type, int evt, protocol::MsgType msg, BaseHandler &&methods) :
 	    hookType(type),
 	    hookEvent(evt),
 	    msgType(msg),
 	    delegates(std::forward<BaseHandler>(methods)),
-	    SyncHandlerRegistry(this)
+	    TaskHandlerRegistry(this)
 	{
 	}
 
-	~SyncHandler() = default;
+	~TaskHandler() = default;
   };
 } // namespace noda

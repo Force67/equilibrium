@@ -30,9 +30,8 @@ project("IDAPlugin")
         "Qt5Gui.lib",
         "Qt5PrintSupport.lib",
         "Qt5Widgets.lib",
-
-        -- network
-        "enet",
+        
+        "network",
         "fmtlib",
         "server",
 
@@ -55,7 +54,7 @@ project("IDAPlugin")
         "../../common",
         "../../sync_server",
         blu.extdir .. "/idasdk72/include",
-        blu.extdir .. "/enet/include",
+        blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
         blu.extdir .. "/xenium"

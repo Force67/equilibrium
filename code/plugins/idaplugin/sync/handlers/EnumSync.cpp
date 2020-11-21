@@ -1,7 +1,7 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "sync/SyncHandler.h"
+#include "sync/TaskHandler.h"
 
 #include "Pch.h"
 #include "enum.hpp"

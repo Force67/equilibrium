@@ -60,6 +60,7 @@ namespace noda {
 	Task *item = _taskPool.allocate();
 	item->data = std::make_unique<uint8_t[]>(size);
 	item->id = cid;
+	item->key.next = nullptr;
 
 	std::memcpy(item->data.get(), data, size);
 
@@ -71,16 +72,15 @@ namespace noda {
 	const auto *message = protocol::GetMessage(static_cast<const void *>(task.data.get()));
 
 	switch(message->msg_type()) {
-	case protocol::MsgType_CreateBucket:
-	  CreateBucket(message);
+	case protocol::MsgType_CreateWorkspace:
+	  CreateWorkspace(message);
 	  break;
-	case protocol::MsgType_RemoveBucket:
-	  DeleteBucket(message);
-	  break;
-	case protocol::MsgType_OpenNodaDB:
-	  // OpenNodaDb(*sender, message);
+	case protocol::MsgType_CreateProject:
+	  CreateProject(message);
 	  break;
 	}
+
+
   }
 
   void DataHandler::WorkerThread()
@@ -107,32 +107,15 @@ namespace noda {
   {
   }
 
-  void DataHandler::CreateBucket(const protocol::Message *message)
+  void DataHandler::CreateProject(const protocol::Message* msg)
   {
-	// confirm or deny, perms:
-
-	auto *msg = message->msg_as_CreateBucket();
-	//bool res = _storage.AddBucket(msg->name()->str());
+	  auto* m = msg->msg_as_CreateProject();
+	  //_mainDb.CreateProject();
   }
 
-  void DataHandler::DeleteBucket(const protocol::Message *message)
+  void DataHandler::CreateWorkspace(const protocol::Message* msg)
   {
-	// todo: report result:
-
-	auto *msg = message->msg_as_RemoveBucket();
-	//bool res = _storage.RemBucket(msg->name()->str());
+	  auto* m = msg->msg_as_CreateWorkspace();
+	  _mainDb.CreateWorkspace(m->name()->str(), m->desc()->str());
   }
-
-  /*void DataHandler::OpenNodaDb(const NdUser &sender, const protocol::Message *message)
-  {
-	// TODO: respond with a list of workspaces + projects
-	auto *msg = message->msg_as_OpenNodaDB();
-
-	auto name = msg->name()->str();
-
-	auto inst = dbref_.emplace_back(_storage, name);
-	inst.AddRef();
-	inst.Open();
-  }*/
-
 } // namespace noda

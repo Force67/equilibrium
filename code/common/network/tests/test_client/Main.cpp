@@ -1,14 +1,14 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
+// stupid windows
+#undef GetMessage
+#undef GetMessageW
+
 #include <thread>
 
 #include <fmt/format.h>
 #include <TCPClient.h>
-
-// stupid windows
-#undef GetMessage
-#undef GetMessageW
 
 #include "flatbuffers/flatbuffers.h"
 
@@ -29,8 +29,11 @@ public:
 
 	if (!_run)
 		fmt::print("Oh no! connect() failed with '{}'\n", _client.LastError());
-	else
+	else {
 		fmt::print("Connection: OK!\n");
+
+		Hello();
+	}
   }
 
   ~TestClient2()
@@ -39,8 +42,31 @@ public:
 	  _client.Disconnect();
   }
 
+  void Hello()
+  {
+	network::FbsBuffer buffer;
+
+	auto request = protocol::CreateHandshakeRequestDirect(
+	    buffer, 1337, "", "{1337-1337-1337}", "TestClient");
+
+	_client.SendPacket(protocol::MsgType_HandshakeRequest, buffer, request.Union());
+  }
+
   void ConsumeMessage(const uint8_t *data, size_t len) override
   {
+	flatbuffers::Verifier verifier(data, len);
+	if(!protocol::VerifyMessageBuffer(verifier))
+	  return;
+
+	const protocol::Message *message = protocol::GetMessage(static_cast<const void *>(data));
+	if(message->msg_type() == protocol::MsgType_HandshakeAck)
+	  return HandleAuth(message);
+  }
+
+  void HandleAuth(const protocol::Message* msg)
+  {
+	  auto* m = msg->msg_as_HandshakeAck();
+	  fmt::print("Recieved handshake acknowledgement, active users: {}", m->numUsers());
   }
 
   void OnDisconnect(int reason) override
@@ -54,13 +80,6 @@ public:
 
   void Tick()
   {
-	network::FbsBuffer buffer;
-
-	auto request = protocol::CreateHandshakeRequestDirect(
-	    buffer, 1337, "", "{1337-1337-1337}", "TestClient");
-
-	_client.SendPacket(protocol::MsgType_HandshakeRequest, buffer, request.Union());
-
 	_client.Tick();
   }
 

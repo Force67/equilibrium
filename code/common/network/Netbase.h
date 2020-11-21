@@ -13,6 +13,7 @@ namespace network {
 
   template <typename T>
   using FbsRef = flatbuffers::Offset<T>;
+  using FbsStringRef = flatbuffers::Offset<flatbuffers::String >;
 
   using ScopedSocket = sockpp::socket_initializer;
 
