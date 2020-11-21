@@ -10,7 +10,7 @@
 #include <network/TCPServer.h>
 
 namespace protocol {
-	class Message;
+  class Message;
 }
 
 namespace noda {
@@ -35,7 +35,7 @@ namespace noda {
 
   private:
 	void WorkerThread();
-	void ProcessTask(Task&);
+	void ProcessTask(Task &);
 
 	void CreateBucket(const protocol::Message *);
 	void DeleteBucket(const protocol::Message *);

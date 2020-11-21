@@ -39,18 +39,18 @@ public:
 
   void OnConnection(network::connectid_t id) override
   {
-	fmt::print("OnConnection(): -> {}", id);
+	fmt::print("OnConnection(): -> {}\n", id);
   }
 
   void OnDisconnection(network::connectid_t id) override
   {
 	const auto* peer = _server.PeerById(id);
 	if (!peer) {
-		fmt::print("Network crime!!!!!!");
+		fmt::print("Network crime!!!!!!\n");
 		return;
 	}
 
-	fmt::print("OnDisconnection(): -> {} {}", id, peer->addr.to_string());
+	fmt::print("OnDisconnection(): -> {} {}\n", id, peer->addr.to_string());
   }
 
   bool ShouldRun() const
@@ -72,7 +72,7 @@ int main()
 {
   network::ScopedSocket sockInit;
 
-  fmt::print("Initializing test_server");
+  fmt::print("Initializing test_server\n");
   TestServer2 server;
 
   while(server.ShouldRun()) {
@@ -80,6 +80,6 @@ int main()
 	std::this_thread::sleep_for(1ms);
   }
 
-  fmt::print("Exiting test_server");
+  fmt::print("Exiting test_server\n");
   return 0;
 }

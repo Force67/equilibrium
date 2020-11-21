@@ -12,6 +12,8 @@ namespace noda {
 	FsError,
   };
 
+  using logcallback_t = void (*)(const char *);
+
   class ServerImpl;
 
   class Server {
@@ -21,7 +23,7 @@ namespace noda {
 	  return s == ServerStatus::Success;
 	}
 
-	Server(int16_t port);
+	Server(int16_t port = 0);
 	~Server();
 
 	ServerStatus Initialize(bool useStorage);
@@ -30,6 +32,8 @@ namespace noda {
 
 	bool IsListening() const;
 	int16_t GetPort() const;
+
+	static void SetLogCallback(logcallback_t);
 
   private:
 	std::unique_ptr<ServerImpl> _impl;

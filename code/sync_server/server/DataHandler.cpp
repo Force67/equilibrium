@@ -11,8 +11,9 @@
 #include "DataHandler.h"
 
 #include "utility/Thread.h"
-#include "protocol/generated/Message_generated.h"
+#include "utils/Logger.h"
 
+#include "protocol/generated/Message_generated.h"
 
 using namespace std::chrono_literals;
 
@@ -47,8 +48,10 @@ namespace noda {
   DataHandler::Status DataHandler::Initialize()
   {
 	// mount main DB
-	bool r = _mainDb.Initialize((GetStoragePath() / "noda.db").u8string());
+	if(!_mainDb.Initialize((GetStoragePath() / "noda.db").u8string()))
+	  return Status::HiveError;
 
+	LOG_INFO("Successfully initialized RootDB");
 	return Status::Success;
   }
 
@@ -63,7 +66,7 @@ namespace noda {
 	_taskQueue.push(&item->key);
   }
 
-  void DataHandler::ProcessTask(Task& task)
+  void DataHandler::ProcessTask(Task &task)
   {
 	const auto *message = protocol::GetMessage(static_cast<const void *>(task.data.get()));
 
@@ -78,7 +81,6 @@ namespace noda {
 	  // OpenNodaDb(*sender, message);
 	  break;
 	}
-
   }
 
   void DataHandler::WorkerThread()
@@ -88,8 +90,7 @@ namespace noda {
 
 	while(_run) {
 	  while(auto *item = _taskQueue.pop(&Task::key)) {
-
-		  // not thread safe at all...
+		// not thread safe at all...
 		userptr_t sender = _server.Registry().UserById(item->id);
 		if(!sender)
 		  return;

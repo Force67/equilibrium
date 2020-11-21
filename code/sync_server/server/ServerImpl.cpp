@@ -6,6 +6,8 @@
 #undef GetMessageW
 
 #include "ServerImpl.h"
+#include "utils/Logger.h"
+
 #include "protocol/generated/Message_generated.h"
 
 namespace noda {
@@ -15,13 +17,15 @@ namespace noda {
       _dataHandler(*this),
       _tickTime(std::chrono::high_resolution_clock::now())
   {
-	_server.Host(port);
+	_server.Host(port == 0 ? network::constants::kServerPort : port);
   }
 
   ServerStatus ServerImpl::Initialize(bool useStorage)
   {
 	if(_server.Port() == -1)
 	  return ServerStatus::NetError;
+
+	LOG_INFO("Initialized server on port {}", _server.Port());
 
 	if(useStorage) {
 	  // TODO: more result codes
@@ -56,6 +60,7 @@ namespace noda {
   {
 	const std::string name = _userRegistry.UserById(cid)->Name();
 
+	LOG_INFO("User {} left", name);
 	_userRegistry.RemoveUser(cid);
 
 	for(auto &it : _userRegistry) {
@@ -92,6 +97,8 @@ namespace noda {
 
 	userptr_t user = _userRegistry.AddUser(cid, packet->name()->str(), packet->guid()->str());
 
+	LOG_INFO("User {} joined", user->Name());
+
 	network::FbsBuffer buffer;
 	auto pack = protocol::CreateHandshakeAck(
 	    buffer, protocol::UserPermissions_NONE,
@@ -111,7 +118,7 @@ namespace noda {
 	_freeTime += deltaMs;
 
 	if(_freeTime > (1000 / 30)) {
-	  std::printf("Detected hitch!\n");
+	  LOG_WARNING("Detected hitch {}", _freeTime);
 	  _freeTime = 0;
 	}
 

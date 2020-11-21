@@ -12,7 +12,11 @@ int main(int argc, char **argv)
 {
   std::puts("Initializing NODA");
 
-  noda::Server server(4523);
+  noda::Server::SetLogCallback([](const char* text) {
+	  std::puts(text);
+  });
+
+  noda::Server server;
   auto result = server.Initialize(true);
   if(result != noda::ServerStatus::Success) {
 	std::printf("Failed to initialize the server instance (status: %d)\n",

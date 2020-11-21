@@ -5,6 +5,9 @@ include("tools/build")
 filter("architecture:x86_64")
     targetsuffix("_64")
 
+filter ("configurations:Debug")
+    defines("ND_DEBUG")
+
 filter("configurations:Release")
     runtime("Release")
     optimize("Speed")

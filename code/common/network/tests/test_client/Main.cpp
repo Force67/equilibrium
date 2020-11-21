@@ -3,6 +3,7 @@
 
 #include <thread>
 
+#include <fmt/format.h>
 #include <TCPClient.h>
 
 // stupid windows
@@ -26,9 +27,10 @@ public:
   {
 	_run = _client.Connect(nullptr, network::constants::kServerPort);
 
-	if(!_run) {
-	  std::printf("Oh no! connect() failed with '%s'\n", _client.LastError().c_str());
-	}
+	if (!_run)
+		fmt::print("Oh no! connect() failed with '{}'\n", _client.LastError());
+	else
+		fmt::print("Connection: OK!\n");
   }
 
   ~TestClient2()
@@ -71,7 +73,7 @@ int main()
 {
   network::ScopedSocket sockInit;
 
-  std::puts("Initializing test_client");
+  fmt::print("Initializing test_client\n");
   TestClient2 client;
 
   while(client.ShouldRun()) {
@@ -79,6 +81,6 @@ int main()
 	std::this_thread::sleep_for(1ms);
   }
 
-  std::puts("Exiting test_client");
+  fmt::print("Exiting test_client\n");
   return 0;
 }
