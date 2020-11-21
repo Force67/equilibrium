@@ -6,14 +6,10 @@
 #include <chrono>
 #include <Server.h>
 
-#include <netlib/NetLib.h>
-
 using namespace std::chrono_literals;
 
 int main(int argc, char **argv)
 {
-  netlib::ScopedNetContext context;
-
   std::puts("Initializing NODA");
 
   noda::Server server(4523);

@@ -4,10 +4,14 @@
 
 #include <thread>
 
-#include "Packet.h"
-#include "moc_protocol/Message_generated.h"
+#include "database/StorageModel.h"
 
-#include "Storage.h"
+#include "utility/DetachedQueue.h"
+#include <network/TCPServer.h>
+
+namespace protocol {
+	class Message;
+}
 
 namespace noda {
 
@@ -20,20 +24,23 @@ namespace noda {
 	  HiveError,
 	};
 
+	struct Task;
+
 	DataHandler(ServerImpl &);
 	~DataHandler();
 
 	Status Initialize();
 
-	void Queue(netlib::connectid_t, netlib::Packet *);
+	void QueueTask(network::connectid_t source, const uint8_t *data, size_t size);
 
   private:
 	void WorkerThread();
+	void ProcessTask(Task&);
 
 	void CreateBucket(const protocol::Message *);
 	void DeleteBucket(const protocol::Message *);
 
-	void OpenNodaDb(const NdUser &sender, const protocol::Message *);
+	//void OpenNodaDb(const NdUser &sender, const protocol::Message *);
 
   private:
 	ServerImpl &_server;
@@ -42,9 +49,15 @@ namespace noda {
 
 	bool _run = true;
 	std::thread _workerThread;
-	utility::detached_mpsc_queue<InPacket> _packetQueue;
 
-	Storage _storage;
-	std::vector<NodaDb> dbref_;
+	struct Task {
+	  network::connectid_t id;
+	  std::unique_ptr<uint8_t[]> data;
+	  utility::detached_queue_key<Task> key;
+	};
+	utility::detached_mpsc_queue<Task> _taskQueue;
+	utility::object_pool<Task> _taskPool;
+
+	database::RootDB _mainDb;
   };
 } // namespace noda

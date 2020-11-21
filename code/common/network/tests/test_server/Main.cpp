@@ -32,19 +32,25 @@ public:
   {
   }
 
-  void ConsumeMessage(network::TCPPeer &source, const uint8_t *ptr, size_t size) override
+  void ConsumeMessage(network::connectid_t id, const uint8_t *ptr, size_t size) override
   {
 	fmt::print("Consume(): {}: {}\n", static_cast<const void *>(ptr), size);
   }
 
-  void OnConnection(const network::TCPPeer &peer) override
+  void OnConnection(network::connectid_t id) override
   {
-	fmt::print("OnConnection(): -> {}", peer.id);
+	fmt::print("OnConnection(): -> {}", id);
   }
 
-  void OnDisconnection(const network::TCPPeer &peer) override
+  void OnDisconnection(network::connectid_t id) override
   {
-	fmt::print("OnDisconnection()");
+	const auto* peer = _server.PeerById(id);
+	if (!peer) {
+		fmt::print("Network crime!!!!!!");
+		return;
+	}
+
+	fmt::print("OnDisconnection(): -> {} {}", id, peer->addr.to_string());
   }
 
   bool ShouldRun() const

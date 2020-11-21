@@ -8,7 +8,7 @@ project("Server")
         "**.h",
     })
     links({
-        "enet",
+        "network",
         "fmtlib",
         "database",
         "utility"
@@ -20,5 +20,6 @@ project("Server")
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/sockpp/include",
         blu.extdir .. "/xenium"
     })

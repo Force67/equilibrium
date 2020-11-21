@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <limits>
 #include <sockpp/socket.h>
 #include "protocol/generated/Message_generated.h"
 

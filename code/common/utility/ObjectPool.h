@@ -262,6 +262,7 @@ namespace utility {
 	{
 	  return new(allocate()) T(std::forward<Tx>(args)...);
 	}
+
 	void destruct(T *pointer)
 	{
 	  std::destroy_at<T>(pointer);

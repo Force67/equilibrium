@@ -14,10 +14,10 @@ namespace network {
   public:
 	virtual ~TCPServerConsumer() = default;
 
-	virtual void OnConnection(const TCPPeer &) = 0;
-	virtual void OnDisconnection(const TCPPeer &) = 0;
+	virtual void OnConnection(connectid_t) {};
+	virtual void OnDisconnection(connectid_t) = 0;
 
-	virtual void ConsumeMessage(TCPPeer &, const uint8_t *, size_t size) = 0;
+	virtual void ConsumeMessage(connectid_t, const uint8_t *, size_t size) = 0;
   };
 
   class TCPServer {
@@ -30,14 +30,16 @@ namespace network {
 
 	void Tick();
 
-	bool Drop(connectionid_t);
+	bool Drop(connectid_t);
 
-	void SendPacket(connectionid_t cid,
+	void SendPacket(connectid_t cid,
 	                protocol::MsgType type,
 	                FbsBuffer &buffer,
 	                FbsRef<void> packet);
 
-	TCPPeer *PeerById(connectionid_t);
+	void BroadcastPacket(const uint8_t *data, size_t size, connectid_t excluder = invalid_connectid);
+
+	TCPPeer *PeerById(connectid_t);
 
 	int16_t Port() const
 	{
@@ -62,7 +64,7 @@ namespace network {
 
 	struct Packet {
 	  FbsBuffer buffer;
-	  connectionid_t cid;
+	  connectid_t cid;
 	  utility::detached_queue_key<Packet> key;
 	};
 

@@ -12,7 +12,7 @@ namespace network {
 
   uint32_t TCPServer::GetMartinsRandomSeed()
   {
-	uintptr_t address = reinterpret_cast<uintptr_t>(&_consumer);
+	uintptr_t address = reinterpret_cast<uintptr_t>(this);
 	uint32_t lower = static_cast<uint32_t>(address);
 
 	lower += 0xBADBABE;
@@ -40,7 +40,7 @@ namespace network {
 	return port;
   }
 
-  bool TCPServer::Drop(connectionid_t cid)
+  bool TCPServer::Drop(connectid_t cid)
   {
 	if(TCPPeer *peer = PeerById(cid)) {
 	  peer->sock.close();
@@ -51,7 +51,7 @@ namespace network {
 	return false;
   }
 
-  void TCPServer::SendPacket(connectionid_t cid, protocol::MsgType type, FbsBuffer &buf, FbsRef<void> ref)
+  void TCPServer::SendPacket(connectid_t cid, protocol::MsgType type, FbsBuffer &buf, FbsRef<void> ref)
   {
 	const auto packet = protocol::CreateMessage(buf, type, ref);
 	buf.Finish(packet);
@@ -63,8 +63,19 @@ namespace network {
 
 	_queue.push(&item->key);
   }
+  
+  void TCPServer::BroadcastPacket(const uint8_t* data, size_t size, connectid_t excluder /* = invalidid_t */)
+  {
+	  for (auto& it : _peers) {
 
-  TCPPeer *TCPServer::PeerById(connectionid_t id)
+		  if (it.id == excluder)
+			  continue;
+
+		  it.sock.write_n(static_cast<const void*>(data), size);
+	  }
+  }
+
+  TCPPeer *TCPServer::PeerById(connectid_t id)
   {
 	auto it = std::find_if(_peers.begin(), _peers.end(), [&](TCPPeer &it) {
 	  return it.id == id;
@@ -84,19 +95,19 @@ namespace network {
 	  peer.id = ++_seed;
 	  peer.addr = _addr;
 
-	  _consumer.OnConnection(peer);
+	  _consumer.OnConnection(peer.id);
 	}
 
 	for(auto it = _peers.begin(); it != _peers.end(); ++it) {
 	  if(!it->open()) {
-		_consumer.OnDisconnection(*it);
+		_consumer.OnDisconnection(it->id);
 		it = _peers.erase(it);
 	  }
 	  else {
 		ssize_t n;
 
 		while((n = it->sock.read(_workbuf, sizeof(_workbuf))) > 0) {
-		  _consumer.ConsumeMessage(*it, _workbuf, n);
+		  _consumer.ConsumeMessage(it->id, _workbuf, n);
 		}
 	  }
 	}

@@ -33,6 +33,21 @@ namespace database {
 
 	bool Step();
 
+	template <typename... Args>
+	bool BindMany(database::SqliteStatement &cmd)
+	{
+	  return true;
+	}
+
+	template <typename T, typename... Args>
+	bool BindMany(database::SqliteStatement &cmd, const T &arg, Args &&... args)
+	{
+	  if(!cmd.Bind(arg)) {
+		return false;
+	  }
+	  return Bind(cmd, std::forward<Args>(args)...);
+	}
+
   private:
 	sqlite3_stmt *_st;
 	bool _good;

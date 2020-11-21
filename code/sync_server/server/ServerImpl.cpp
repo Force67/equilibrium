@@ -6,15 +6,16 @@
 #undef GetMessageW
 
 #include "ServerImpl.h"
+#include "protocol/generated/Message_generated.h"
 
 namespace noda {
 
   ServerImpl::ServerImpl(int16_t port) :
-	  _server(*this),
-      _datahandler(*this),
+      _server(*this),
+      _dataHandler(*this),
       _tickTime(std::chrono::high_resolution_clock::now())
   {
-	  _server.Host(port);
+	_server.Host(port);
   }
 
   ServerStatus ServerImpl::Initialize(bool useStorage)
@@ -24,7 +25,7 @@ namespace noda {
 
 	if(useStorage) {
 	  // TODO: more result codes
-	  const auto res = _datahandler.Initialize();
+	  const auto res = _dataHandler.Initialize();
 	  switch(res) {
 	  case DataHandler::Status::HiveError:
 		return ServerStatus::FsError;
@@ -37,11 +38,7 @@ namespace noda {
 	return ServerStatus::Success;
   }
 
-  void ServerImpl::OnConnection(const network::TCPPeer& peer)
-  {
-  }
-
-  void ServerImpl::ConsumeMessage(network::TCPPeer& source, const uint8_t* ptr, size_t size)
+  void ServerImpl::ConsumeMessage(network::connectid_t cid, const uint8_t *ptr, size_t size)
   {
 	flatbuffers::Verifier verifier(ptr, size);
 	if(!protocol::VerifyMessageBuffer(verifier))
@@ -49,84 +46,58 @@ namespace noda {
 
 	const auto *message = protocol::GetMessage(static_cast<const void *>(ptr));
 	if(message->msg_type() == protocol::MsgType_HandshakeRequest)
-	  return HandleAuth(peer, message);
+	  return HandleAuth(cid, message);
 
-	_datahandler.Queue(peer->Id(), packet);
-
-	BroadcastReliable(packet, peer);
+	_dataHandler.QueueTask(cid, ptr, size);
+	_server.BroadcastPacket(ptr, size, cid);
   }
 
-  userptr_t ServerImpl::UserById(netlib::connectid_t cid)
+  void ServerImpl::OnDisconnection(network::connectid_t cid)
   {
-	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
-	  return user->Id() == cid;
-	});
+	const std::string name = _userRegistry.UserById(cid)->Name();
 
-	if(it == _userRegistry.end())
-	  return nullptr;
-
-	return *it;
-  }
-
-  void ServerImpl::HandleAuth(netlib::Peer *source, const protocol::Message *message)
-  {
-	auto *packet = message->msg_as_HandshakeRequest();
-
-	if(packet->protocolVersion() < netlib::constants::kClientVersion) {
-	  source->Kick(protocol::DisconnectReason_BadConnection);
-	  return;
-	}
-
-	if(packet->token()->str() != _token) {
-	  source->Kick(protocol::DisconnectReason_BadPassword);
-	  return;
-	}
-
-	for(auto &it : _userRegistry) {
-	  FbsBuffer buffer;
-	  auto pack = protocol::CreateAnnouncement(buffer, protocol::AnnounceType_Joined,
-	                                           buffer.CreateString(packet->name()->str()));
-
-	  CreatePacket(it->Id(), protocol::MsgType_Announcement, buffer, pack.Union());
-	}
-
-	const netlib::connectid_t id = source->Id();
-
-	userptr_t user = std::make_shared<NdUser>(id,
-	                                          packet->name()->str(),
-	                                          packet->guid()->str());
-
-	_userRegistry.emplace_back(user);
-
-	FbsBuffer buffer;
-	auto pack = protocol::CreateHandshakeAck(
-	    buffer, protocol::UserPermissions_NONE,
-	    id, static_cast<int32_t>(_userRegistry.size()));
-
-	CreatePacket(id, protocol::MsgType_HandshakeAck, buffer, pack.Union());
-  }
-
-  void ServerImpl::OnDisconnection(const network::TCPPeer& peer)
-  {
-	auto it = std::find_if(_userRegistry.begin(), _userRegistry.end(), [&](userptr_t &user) {
-	  return user->Id() == peer->Id();
-	});
-
-	if(it == _userRegistry.end())
-	  return;
-
-	std::string name = (*it)->Name();
-
-	_userRegistry.erase(it);
+	_userRegistry.RemoveUser(cid);
 
 	for(auto &it : _userRegistry) {
 	  // yes this sucks, and buffers should be *refcounted* instead
-	  FbsBuffer buffer;
+	  network::FbsBuffer buffer;
 	  auto pack = protocol::CreateAnnouncement(buffer,
 	                                           protocol::AnnounceType_Disconnect, buffer.CreateString(name));
 
-	  CreatePacket(it->Id(), protocol::MsgType_Announcement, buffer, pack.Union());
+	  _server.SendPacket(it->Id(), protocol::MsgType_Announcement, buffer, pack.Union());
 	}
+  }
+
+  void ServerImpl::HandleAuth(network::connectid_t cid, const protocol::Message *message)
+  {
+	auto *packet = message->msg_as_HandshakeRequest();
+
+	if(packet->protocolVersion() < network::constants::kClientVersion) {
+	  _server.Drop(cid);
+	  return;
+	}
+
+	if(packet->token()->str() != _loginToken) {
+	  _server.Drop(cid);
+	  return;
+	}
+
+	for(auto &it : _userRegistry) {
+	  network::FbsBuffer buffer;
+	  auto pack = protocol::CreateAnnouncement(buffer, protocol::AnnounceType_Joined,
+	                                           buffer.CreateString(packet->name()->str()));
+
+	  _server.SendPacket(it->Id(), protocol::MsgType_Announcement, buffer, pack.Union());
+	}
+
+	userptr_t user = _userRegistry.AddUser(cid, packet->name()->str(), packet->guid()->str());
+
+	network::FbsBuffer buffer;
+	auto pack = protocol::CreateHandshakeAck(
+	    buffer, protocol::UserPermissions_NONE,
+	    cid, _userRegistry.UserCount());
+
+	_server.SendPacket(cid, protocol::MsgType_HandshakeAck, buffer, pack.Union());
   }
 
   void ServerImpl::Update()

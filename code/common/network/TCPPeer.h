@@ -5,9 +5,12 @@
 #include "Netbase.h"
 #include <sockpp/tcp_acceptor.h>
 
+#undef max
+
 namespace network {
 
-  using connectionid_t = uint32_t;
+  using connectid_t = uint32_t;
+  constexpr uint32_t invalid_connectid = std::numeric_limits<uint32_t>::max();
 
   struct TCPPeer {
 	explicit TCPPeer(sockpp::tcp_socket &s)
@@ -21,7 +24,7 @@ namespace network {
 	}
 
 	sockpp::inet_address addr;
-	connectionid_t id;
+	connectid_t id;
 	sockpp::tcp_socket sock;
   };
 } // namespace network

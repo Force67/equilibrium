@@ -31,6 +31,7 @@ workspace("NODA")
     flags {
         "MultiProcessorCompile"
     }
+    defines("NOMINMAX")
 
     group("Dependencies")
     include("external")

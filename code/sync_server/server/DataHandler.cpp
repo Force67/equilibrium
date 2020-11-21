@@ -5,16 +5,32 @@
 #undef GetMessage
 #undef GetMessageW
 
+#include <filesystem>
+
 #include "ServerImpl.h"
 #include "DataHandler.h"
 
 #include "utility/Thread.h"
+#include "protocol/generated/Message_generated.h"
+
 
 using namespace std::chrono_literals;
 
+namespace fs = std::filesystem;
+
 namespace noda {
 
-  inline utility::object_pool<InPacket> packetPool;
+  static const fs::path &GetStoragePath() noexcept
+  {
+	static fs::path s_path{};
+	if(s_path.empty()) {
+	  s_path = fs::current_path() / "storage";
+	  if(!fs::exists(s_path))
+		fs::create_directory(s_path);
+	}
+
+	return s_path;
+  }
 
   DataHandler::DataHandler(ServerImpl &server) :
       _server(server)
@@ -28,19 +44,41 @@ namespace noda {
 	_workerThread.join();
   }
 
-  void DataHandler::Queue(netlib::connectid_t cid, netlib::Packet *packet)
-  {
-	InPacket *item = packetPool.construct(cid, packet);
-	_packetQueue.push(&item->key);
-  }
-
   DataHandler::Status DataHandler::Initialize()
   {
-	StorageConfig config;
-	if(!_storage.Initialize(config))
-	  return Status::HiveError;
+	// mount main DB
+	bool r = _mainDb.Initialize((GetStoragePath() / "noda.db").u8string());
 
 	return Status::Success;
+  }
+
+  void DataHandler::QueueTask(network::connectid_t cid, const uint8_t *data, size_t size)
+  {
+	Task *item = _taskPool.allocate();
+	item->data = std::make_unique<uint8_t[]>(size);
+	item->id = cid;
+
+	std::memcpy(item->data.get(), data, size);
+
+	_taskQueue.push(&item->key);
+  }
+
+  void DataHandler::ProcessTask(Task& task)
+  {
+	const auto *message = protocol::GetMessage(static_cast<const void *>(task.data.get()));
+
+	switch(message->msg_type()) {
+	case protocol::MsgType_CreateBucket:
+	  CreateBucket(message);
+	  break;
+	case protocol::MsgType_RemoveBucket:
+	  DeleteBucket(message);
+	  break;
+	case protocol::MsgType_OpenNodaDB:
+	  // OpenNodaDb(*sender, message);
+	  break;
+	}
+
   }
 
   void DataHandler::WorkerThread()
@@ -49,28 +87,15 @@ namespace noda {
 	utility::SetCurrentThreadName("[WorkerThread]");
 
 	while(_run) {
-	  while(auto *item = _packetQueue.pop(&InPacket::key)) {
-		const netlib::Packet &packet = item->packet;
+	  while(auto *item = _taskQueue.pop(&Task::key)) {
 
-		userptr_t sender = _server.UserById(item->id);
+		  // not thread safe at all...
+		userptr_t sender = _server.Registry().UserById(item->id);
 		if(!sender)
 		  return;
 
-		const auto *message = protocol::GetMessage(static_cast<const void *>(packet.data()));
-
-		switch(message->msg_type()) {
-		case protocol::MsgType_CreateBucket:
-		  CreateBucket(message);
-		  break;
-		case protocol::MsgType_RemoveBucket:
-		  DeleteBucket(message);
-		  break;
-		case protocol::MsgType_OpenNodaDB:
-		  // OpenNodaDb(*sender, message);
-		  break;
-		}
-
-		packetPool.destruct(item);
+		ProcessTask(*item);
+		_taskPool.destruct(item);
 	  }
 
 	  std::this_thread::sleep_for(1ms);
@@ -86,7 +111,7 @@ namespace noda {
 	// confirm or deny, perms:
 
 	auto *msg = message->msg_as_CreateBucket();
-	bool res = _storage.AddBucket(msg->name()->str());
+	//bool res = _storage.AddBucket(msg->name()->str());
   }
 
   void DataHandler::DeleteBucket(const protocol::Message *message)
@@ -94,10 +119,10 @@ namespace noda {
 	// todo: report result:
 
 	auto *msg = message->msg_as_RemoveBucket();
-	bool res = _storage.RemBucket(msg->name()->str());
+	//bool res = _storage.RemBucket(msg->name()->str());
   }
 
-  void DataHandler::OpenNodaDb(const NdUser &sender, const protocol::Message *message)
+  /*void DataHandler::OpenNodaDb(const NdUser &sender, const protocol::Message *message)
   {
 	// TODO: respond with a list of workspaces + projects
 	auto *msg = message->msg_as_OpenNodaDB();
@@ -107,6 +132,6 @@ namespace noda {
 	auto inst = dbref_.emplace_back(_storage, name);
 	inst.AddRef();
 	inst.Open();
-  }
+  }*/
 
 } // namespace noda

@@ -3,11 +3,15 @@
 #pragma once
 
 #include "Server.h"
-#include "NdUser.h"
 
 #include "DataHandler.h"
+#include "UserRegistry.h"
 
 #include "network/TCPServer.h"
+
+namespace protocol {
+	class Message;
+}
 
 namespace noda {
 
@@ -22,32 +26,31 @@ namespace noda {
 
 	void Update();
 
-	// thread safe due to the order of calls
-	// in the net thread
-	userptr_t UserById(netlib::connectid_t cid);
+	UserRegistry &Registry()
+	{
+	  return _userRegistry;
+	}
 
   private:
-	void OnConnection(const network::TCPPeer& peer) override;
-	void OnDisconnection(const network::TCPPeer& peer) override;
-	void ConsumeMessage(network::TCPPeer& source, const uint8_t* ptr, size_t size) override;
+	// impl for: TCPServerConsumer
+	void OnDisconnection(network::connectid_t) override;
+	void ConsumeMessage(network::connectid_t, const uint8_t *ptr, size_t size) override;
 
-	void HandleAuth(netlib::Peer *source, const protocol::Message *message);
+	void HandleAuth(network::connectid_t, const protocol::Message *message);
 
   private:
-
 	bool _listening = false;
-	network::TCPServer _server;
+	std::string _loginToken = "";
 
-	std::string _token = "";
-	DataHandler _datahandler;
+	network::ScopedSocket _socket;
+	network::TCPServer _server;
+	UserRegistry _userRegistry;
+	DataHandler _dataHandler;
 
 	flatbuffers::FlatBufferBuilder _fbb;
 
 	using timestamp_t = std::chrono::high_resolution_clock::time_point;
 	timestamp_t _tickTime;
 	float _freeTime = 0;
-
-	std::vector<userptr_t> _userRegistry;
-	utility::detached_mpsc_queue<OutPacket> _packetQueue;
   };
 } // namespace noda

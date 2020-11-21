@@ -10,12 +10,12 @@ project("DedicatedMain")
     })
     links({
         "server",
-        "netlib"
+        "network"
     })
     dependson("server")
     includedirs({
         ".",
         "../../common",
         "../server",
-        blu.extdir .. "/enet/include"
+        blu.extdir .. "/sockpp/include"
     })
