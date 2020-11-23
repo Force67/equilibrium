@@ -65,7 +65,7 @@ project("IDAPlugin")
     })
     qt.enable()
     qtprefix("Qt5")
-    qtgenerateddir("ui/moc")
+    qtgenerateddir("ui/generated")
     -- TODO: think about a better way of doing this
     qtpath("C:/Qt/Qt5.6.3/5.6.3/msvc2015_64")
     qtmodules({
