@@ -10,7 +10,7 @@
 #include "network/TCPServer.h"
 
 namespace protocol {
-  class MessageRoot;
+  struct MessageRoot;
 }
 
 namespace noda {

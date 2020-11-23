@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "ui/moc/ui_AboutDialog.h"
+#include "ui/generated/ui_AboutDialog.h"
 
 namespace noda {
   class AboutDialog final : public QDialog, public Ui::AboutDialog {

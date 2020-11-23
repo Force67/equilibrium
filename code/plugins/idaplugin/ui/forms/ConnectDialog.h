@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "ui/moc/ui_ConnectDialog.h"
+#include "ui/generated/ui_ConnectDialog.h"
 
 namespace noda {
   class UiController;

@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "ui/moc/ui_ProgressDialog.h"
+#include "ui/generated/ui_ProgressDialog.h"
 
 namespace noda {
   class ProgressDialog final : public QDialog, public Ui::ProgressDialog {

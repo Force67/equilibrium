@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "ui/moc/ui_NSyncDialog.h"
+#include "ui/generated/ui_NSyncDialog.h"
 
 namespace noda {
   class NSyncDialog final : public QDialog, public Ui::NSyncDialog {

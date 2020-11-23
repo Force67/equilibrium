@@ -10,7 +10,7 @@
 #include <network/TCPServer.h>
 
 namespace protocol {
-  class MessageRoot;
+  struct MessageRoot;
 }
 
 namespace noda {
@@ -24,8 +24,6 @@ namespace noda {
 	  HiveError,
 	};
 
-	struct Task;
-
 	DataHandler(ServerImpl &);
 	~DataHandler();
 
@@ -34,6 +32,8 @@ namespace noda {
 	void QueueTask(network::connectid_t source, const uint8_t *data, size_t size);
 
   private:
+	struct Task;
+
 	void WorkerThread();
 	void ProcessTask(Task &);
 

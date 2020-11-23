@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "ui/moc/ui_WelcomeDialog.h"
+#include "ui/generated/ui_WelcomeDialog.h"
 
 namespace noda {
   class WelcomeDialog final : public QDialog, public Ui::WelcomeDialog {

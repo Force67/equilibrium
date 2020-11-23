@@ -4,7 +4,7 @@
 
 #include "Plugin.h"
 #include <qsettings.h>
-#include "ui/moc/ui_Settings.h"
+#include "ui/generated/ui_Settings.h"
 
 namespace noda {
   class SyncController;
