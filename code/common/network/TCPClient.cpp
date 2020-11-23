@@ -4,6 +4,8 @@
 #include <utility/ObjectPool.h>
 #include "TCPClient.h"
 
+using namespace std::chrono_literals;
+
 namespace network {
   inline utility::object_pool<OutPacket> s_packetPool;
 
@@ -17,21 +19,20 @@ namespace network {
 	if(!addr)
 	  addr = "localhost";
 
-	if(!_conn.connect(sockpp::inet_address(addr, port)))
-	  return false;
+	_addr = sockpp::inet_address(addr, port);
 
-	if(!_conn.set_non_blocking())
-	  return false;
+	bool result;
+	result = _conn.connect(_addr);
+	result = _conn.set_non_blocking(true);
+	// no timeouts
+	_conn.read_timeout(0ms);
+	_conn.write_timeout(0ms);
 
-	//_conn.read_timeout();
+	/*int32_t val = 0;
+	_conn.get_option(IPPROTO_TCP, TCP_KEEPCNT, &val);*/
 
 	_conn.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
-	//_conn.set_option(IPPROTO_TCP, )
-
-	// TODO: think about timeout..
-	//_conn.read_timeout();
-
-	return true;
+	return result;
   }
 
   std::string TCPClient::LastError() const

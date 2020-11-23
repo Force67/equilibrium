@@ -3,9 +3,29 @@
 
 namespace protocol;
 
+table Workspace {
+  id:int;
+  name:string;
+  desc:string;
+}
+
+table Project {
+  id:int;
+  name:string;
+  guid:string;
+}
+
 table CreateWorkspace {
   name:string;
   desc:string;
+}
+
+table ListWorkspaces {
+  list:[Workspace];
+}
+
+table ListProjects {
+  list:[Project];
 }
 
 table CreateProject {
@@ -14,8 +34,22 @@ table CreateProject {
   guid:string;
 }
 
+// when joining a server, the project index is searched by MD5
+// if none is found, the server will create a new project.
 table LocalProjectInfo {
   inputFileMd5:string;
   inputFileName:string;
   updateVersion:int;
+  newProject:bool;
+}
+
+// if no remote project exists we return
+// -1 as workspace & project id.
+table RemoteProjectInfo {
+  wksId:int;
+  projId:int;
+}
+
+table ListProjects {
+
 }

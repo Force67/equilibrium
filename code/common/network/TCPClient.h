@@ -43,7 +43,12 @@ namespace network {
 		return _conn.is_connected();
 	}
 
+	const auto GetAddress() const {
+		return _addr;
+	}
+
   private:
+	sockpp::inet_address _addr;
 	sockpp::tcp_connector _conn;
 
 	uint8_t buf[constants::kTCPBufSize]{};

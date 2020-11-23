@@ -29,7 +29,7 @@ namespace noda {
 	  _node = node._node;
 	}
 
-	inline bool good() const
+	inline bool open() const
 	{
 	  return nodeidx_t() != BADNODE;
 	}

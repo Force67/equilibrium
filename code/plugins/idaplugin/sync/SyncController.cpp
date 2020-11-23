@@ -1,8 +1,6 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#undef GetMessage
-
 #include "Pch.h"
 #include "TaskHandler.h"
 #include "SyncController.h"
@@ -102,11 +100,14 @@ namespace noda {
   {
 	assert(is_main_thread());
 
-	// Note that this is not invoked from net thread..
-	_node = NetNode(kSyncNodeName);
-	if(!_node.good()) {
-	  LOG_ERROR("Bad node {}", kSyncNodeName);
-	  return;
+	// load the permanent data
+	_node = NetNode(kSyncNodeName, false);
+
+	bool hasPermanentData = _node.open();
+
+	// looks like a new IDB
+	if (!hasPermanentData) {
+		_node = NetNode(kSyncNodeName, true);
 	}
 
 	_localVersion = _node.LoadScalar(NodeIndex::UpdateVersion, 0);
@@ -129,7 +130,7 @@ namespace noda {
 
 	network::FbsBuffer buffer;
 	auto request = protocol::CreateLocalProjectInfoDirect(
-	    buffer, md5Str, fileName, _localVersion);
+	    buffer, md5Str, fileName, _localVersion, !hasPermanentData);
 
 	_client.SendPacket(protocol::MsgType_LocalProjectInfo, buffer, request.Union());
   }
@@ -181,11 +182,18 @@ namespace noda {
 		Disconnect();
 		break;
 	  case idb_event::savebase:
-
+		//_node.StoreScalar()
 		break;
 	  }
 
 	  return 0;
+	}
+
+	if (type == hook_type_t::HT_IDP) {
+		switch(code) {
+		default:
+			break;
+		}
 	}
 
 	_dispatcher.DispatchEvent(type, code, args);
