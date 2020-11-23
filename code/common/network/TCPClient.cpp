@@ -41,12 +41,16 @@ namespace network {
 
   void TCPClient::Disconnect()
   {
+	  //Update();
+
+
+	// Disconnect by force
 	_conn.reset();
   }
 
   void TCPClient::SendPacket(pt::MsgType type, FbsBuffer &buf, FbsRef<void> ref)
   {
-	const auto packet = protocol::CreateMessage(buf, type, ref);
+	const auto packet = protocol::CreateMessageRoot(buf, type, ref);
 	buf.Finish(packet);
 
 	OutPacket *item = s_packetPool.construct();
@@ -55,7 +59,7 @@ namespace network {
 	_outQueue.push(&item->key);
   }
 
-  void TCPClient::Tick()
+  void TCPClient::Update()
   {
 	if(!_conn.is_connected())
 	  return;

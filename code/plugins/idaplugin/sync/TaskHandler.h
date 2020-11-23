@@ -5,7 +5,7 @@
 
 #include "SyncController.h"
 #include "utils/Logger.h"
-#include "protocol/generated/Message_generated.h"
+#include "protocol/generated/MessageRoot_generated.h"
 
 namespace noda {
   using namespace protocol::sync;

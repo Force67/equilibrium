@@ -77,6 +77,9 @@ namespace noda {
 	fileMenu->insertAction(before, _openFromServerAct);
 	fileMenu->insertAction(before, _saveToServerAct);
 
+	_openFromServerAct->setEnabled(false);
+	_saveToServerAct->setEnabled(false);
+
 	if(QMenu *nodaMenu = menuBar->addMenu("Noda")) {
 	  _connectAct = nodaMenu->addAction("Connect", this, &UiController::ToggleConnect);
 	  //_projectAct = nodaMenu->addAction(QIcon(":/sync"), "Projects", this, &UiController::OpenSyncMenu);
@@ -85,6 +88,9 @@ namespace noda {
 	  nodaMenu->addSeparator();
 	  nodaMenu->addAction(QIcon(":/info"), "About NODA", this, &UiController::OpenAboutDialog);
 	}
+
+	// we only allow connecting, when we are in an idb.
+	_connectAct->setEnabled(false);
 
 	auto *statusBar = mainWindow->statusBar();
 	_netStatus.reset(new StatusWidget(statusBar));
@@ -155,7 +161,6 @@ namespace noda {
 	_connectAct->setEnabled(true);
 	//_cloudUpAct->setEnabled(true);
 
-	_sync.InitializeForIdb();
   }
 
   void UiController::OnIdbLoad()

@@ -4,7 +4,7 @@
 
 #include <limits>
 #include <sockpp/socket.h>
-#include "protocol/generated/Message_generated.h"
+#include "protocol/generated/MessageRoot_generated.h"
 
 namespace network {
   namespace pt = protocol;

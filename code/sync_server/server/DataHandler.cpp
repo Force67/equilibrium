@@ -1,10 +1,6 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-// stupid windows
-#undef GetMessage
-#undef GetMessageW
-
 #include <filesystem>
 
 #include "ServerImpl.h"
@@ -13,7 +9,7 @@
 #include "utility/Thread.h"
 #include "utils/Logger.h"
 
-#include "protocol/generated/Message_generated.h"
+#include "protocol/generated/MessageRoot_generated.h"
 
 using namespace std::chrono_literals;
 
@@ -69,7 +65,7 @@ namespace noda {
 
   void DataHandler::ProcessTask(Task &task)
   {
-	const auto *message = protocol::GetMessage(static_cast<const void *>(task.data.get()));
+	const auto *message = protocol::GetMessageRoot(static_cast<const void *>(task.data.get()));
 
 	switch(message->msg_type()) {
 	case protocol::MsgType_CreateWorkspace:
@@ -79,8 +75,6 @@ namespace noda {
 	  CreateProject(message);
 	  break;
 	}
-
-
   }
 
   void DataHandler::WorkerThread()
@@ -103,17 +97,14 @@ namespace noda {
 	}
   }
 
-  void DataHandler::SendActionResult(protocol::MsgType type, bool failed)
-  {
-  }
 
-  void DataHandler::CreateProject(const protocol::Message* msg)
+  void DataHandler::CreateProject(const protocol::MessageRoot* msg)
   {
 	  auto* m = msg->msg_as_CreateProject();
 	  //_mainDb.CreateProject();
   }
 
-  void DataHandler::CreateWorkspace(const protocol::Message* msg)
+  void DataHandler::CreateWorkspace(const protocol::MessageRoot* msg)
   {
 	  auto* m = msg->msg_as_CreateWorkspace();
 	  _mainDb.CreateWorkspace(m->name()->str(), m->desc()->str());

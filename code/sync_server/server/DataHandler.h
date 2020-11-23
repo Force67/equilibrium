@@ -10,7 +10,7 @@
 #include <network/TCPServer.h>
 
 namespace protocol {
-  class Message;
+  class MessageRoot;
 }
 
 namespace noda {
@@ -38,15 +38,13 @@ namespace noda {
 	void ProcessTask(Task &);
 
 	// tasks
-	void CreateWorkspace(const protocol::Message*);
-	void CreateProject(const protocol::Message*);
+	void CreateWorkspace(const protocol::MessageRoot*);
+	void CreateProject(const protocol::MessageRoot*);
 
 	//void OpenNodaDb(const NdUser &sender, const protocol::Message *);
 
   private:
 	ServerImpl &_server;
-
-	void SendActionResult(protocol::MsgType, bool failed);
 
 	bool _run = true;
 	std::thread _workerThread;

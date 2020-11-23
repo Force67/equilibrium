@@ -3,6 +3,21 @@
 
 namespace protocol;
 
+enum ProtocolVersion : int
+{
+    // Change this value whenever we are adding breaking changes
+    Current = 10,
+}
+
+enum DisconnectReason : uint
+{
+    Quit,
+    Kicked,
+    BadPassword,
+    BadConnection,
+    TimedOut,
+}
+
 enum UserPermissions : ubyte (bit_flags) {
   Guest,
   Reporter,
@@ -21,4 +36,16 @@ table HandshakeAck {
   perms:UserPermissions;
   userIndex:uint;
   numUsers:int;
+}
+
+enum AnnounceType : byte
+{
+    FirstJoin,
+    Joined,
+    Disconnect
+}
+
+table Announcement {
+  type:AnnounceType;
+  name:string;
 }

@@ -28,10 +28,11 @@ namespace network {
   public:
 	TCPClient(TCPClientConsumer &);
 
+	// the connect call is blocking.
 	bool Connect(const char *addr, int16_t port);
 	void Disconnect();
 
-	void Tick();
+	void Update();
 
 	// thread safe
 	void SendPacket(pt::MsgType, FbsBuffer &buf, FbsRef<void> ref);
@@ -41,6 +42,7 @@ namespace network {
 	bool Connected() const {
 		return _conn.is_connected();
 	}
+
   private:
 	sockpp::tcp_connector _conn;
 

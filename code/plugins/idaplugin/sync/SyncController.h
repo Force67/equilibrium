@@ -28,22 +28,25 @@ namespace noda {
 	~SyncController();
 
 	bool Connect();
-	void Disconnect();
 
-	bool IsConnected();
+	void Disconnect()
+	{
+	  _client.Disconnect();
+	}
 
-	TaskHandler *HanderByNetType(protocol::MsgType);
+	bool IsConnected() const
+	{
+	  return _client.Connected() && _active;
+	}
 
-	void InitializeForIdb();
+	void InitializeLocalProject();
   signals:
 	void Connected();
 	void Disconnected(int);
 	void Announce(int);
 
   private:
-	void OnAnnouncement(const protocol::Message *);
-	void OnProjectJoin(const protocol::Message *);
-	void HandleAuth(const protocol::Message *);
+	void HandleAuth(const protocol::MessageRoot *);
 
 	// network events
 	void OnDisconnect(int) override;
@@ -55,24 +58,19 @@ namespace noda {
 	static ssize_t IdbEvent(void *userData, int code, va_list args);
 	static ssize_t IdpEvent(void *userData, int code, va_list args);
 
+  private:
 	enum NodeIndex : nodeidx_t {
-		UpdateVersion,
+	  UpdateVersion,
 	};
 
 	NetNode _node;
 
 	bool _active = false;
-
 	network::ScopedSocket _sock;
 	network::TCPClient _client;
 
 	TaskDispatcher _dispatcher;
 	int _localVersion = 0;
-
 	int _userCount = 0;
-
-	using IdaEventType_t = std::pair<hook_type_t, int>;
-	std::map<IdaEventType_t, TaskHandler *> _idaEvents;
-	std::map<protocol::MsgType, TaskHandler *> _netEvents;
   };
 } // namespace noda

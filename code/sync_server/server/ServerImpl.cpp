@@ -1,14 +1,10 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-// stupid windows
-#undef GetMessage
-#undef GetMessageW
-
 #include "ServerImpl.h"
 #include "utils/Logger.h"
 
-#include "protocol/generated/Message_generated.h"
+#include "protocol/generated/MessageRoot_generated.h"
 
 namespace noda {
 
@@ -45,10 +41,10 @@ namespace noda {
   void ServerImpl::ConsumeMessage(network::connectid_t cid, const uint8_t *ptr, size_t size)
   {
 	flatbuffers::Verifier verifier(ptr, size);
-	if(!protocol::VerifyMessageBuffer(verifier))
+	if(!protocol::VerifyMessageRootBuffer(verifier))
 	  return;
 
-	const auto *message = protocol::GetMessage(static_cast<const void *>(ptr));
+	const auto *message = protocol::GetMessageRoot(static_cast<const void *>(ptr));
 	if(message->msg_type() == protocol::MsgType_HandshakeRequest)
 	  return HandleAuth(cid, message);
 
@@ -73,7 +69,7 @@ namespace noda {
 	}
   }
 
-  void ServerImpl::HandleAuth(network::connectid_t cid, const protocol::Message *message)
+  void ServerImpl::HandleAuth(network::connectid_t cid, const protocol::MessageRoot *message)
   {
 	auto *packet = message->msg_as_HandshakeRequest();
 

@@ -46,8 +46,8 @@ namespace noda {
 	void RemoveUser(network::connectid_t);
 
 	// for for loop
-	auto &begin() { return _list.begin(); }
-	auto &end() { return _list.end(); }
+	auto begin() { return _list.begin(); }
+	auto end() { return _list.end(); }
 
 	int32_t UserCount() const
 	{

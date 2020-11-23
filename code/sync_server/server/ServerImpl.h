@@ -10,7 +10,7 @@
 #include "network/TCPServer.h"
 
 namespace protocol {
-  class Message;
+  class MessageRoot;
 }
 
 namespace noda {
@@ -36,7 +36,7 @@ namespace noda {
 	void OnDisconnection(network::connectid_t) override;
 	void ConsumeMessage(network::connectid_t, const uint8_t *ptr, size_t size) override;
 
-	void HandleAuth(network::connectid_t, const protocol::Message *message);
+	void HandleAuth(network::connectid_t, const protocol::MessageRoot *message);
 
   private:
 	bool _listening = false;

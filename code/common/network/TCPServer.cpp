@@ -54,7 +54,7 @@ namespace network {
 
   void TCPServer::SendPacket(connectid_t cid, protocol::MsgType type, FbsBuffer &buf, FbsRef<void> ref)
   {
-	const auto packet = protocol::CreateMessage(buf, type, ref);
+	const auto packet = protocol::CreateMessageRoot(buf, type, ref);
 	buf.Finish(packet);
 
 	// only store ID to keep things thread safe..

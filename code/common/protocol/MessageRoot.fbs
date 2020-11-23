@@ -1,12 +1,10 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-include "Handshake.fbs";
-include "Announcement.fbs";
-include "ChatMessage.fbs";
+include "System.fbs";
 include "IdaSync.fbs";
 include "StorageModel.fbs";
-include "Transfer.fbs";
+include "FileTransfer.fbs";
 
 namespace protocol;
 
@@ -14,12 +12,11 @@ union MsgType {
     // system:
     HandshakeRequest,
     HandshakeAck,
+
     Announcement,
-    ChatMessage,
     CreateWorkspace,
     CreateProject,
     LocalProjectInfo,
-
     TransferBegin,
     TransferChunk,
 
@@ -56,9 +53,9 @@ union MsgType {
     sync.ChangeOperand
 }
 
-table Message
+table MessageRoot
 {
     msg:MsgType;
 }
 
-root_type Message;
+root_type MessageRoot;
