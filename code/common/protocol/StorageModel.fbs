@@ -3,30 +3,30 @@
 
 namespace protocol;
 
-table Workspace {
+/*table Workspace {
   id:int;
   name:string;
   desc:string;
-}
+}*/
 
-table Project {
+/*table Project {
   id:int;
   name:string;
   guid:string;
-}
+}*/
 
 table CreateWorkspace {
   name:string;
   desc:string;
 }
 
-table ListWorkspaces {
+/*table ListWorkspaces {
   list:[Workspace];
 }
 
 table ListProjects {
   list:[Project];
-}
+}*/
 
 table CreateProject {
   wksid:int;
@@ -48,8 +48,4 @@ table LocalProjectInfo {
 table RemoteProjectInfo {
   wksId:int;
   projId:int;
-}
-
-table ListProjects {
-
 }

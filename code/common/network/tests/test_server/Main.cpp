@@ -44,10 +44,10 @@ public:
 
   void OnDisconnection(network::connectid_t id) override
   {
-	const auto* peer = _server.PeerById(id);
-	if (!peer) {
-		fmt::print("Network crime!!!!!!\n");
-		return;
+	const auto *peer = _server.PeerById(id);
+	if(!peer) {
+	  fmt::print("Network crime!!!!!!\n");
+	  return;
 	}
 
 	fmt::print("OnDisconnection(): -> {} {}\n", id, peer->addr.to_string());

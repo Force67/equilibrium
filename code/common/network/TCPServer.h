@@ -14,7 +14,7 @@ namespace network {
   public:
 	virtual ~TCPServerConsumer() = default;
 
-	virtual void OnConnection(connectid_t) {};
+	virtual void OnConnection(connectid_t){};
 	virtual void OnDisconnection(connectid_t) = 0;
 
 	virtual void ConsumeMessage(connectid_t, const uint8_t *, size_t size) = 0;

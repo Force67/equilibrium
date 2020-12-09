@@ -4,6 +4,7 @@
 
 #include "ui/UiController.h"
 #include "sync/SyncController.h"
+#include "network/TCPClient.h"
 
 namespace noda {
   class Plugin {
@@ -15,12 +16,19 @@ namespace noda {
 
 	void Run();
 
-	static const char kPluginComment[];
-	static const char kPluginName[];
-	static const char kPluginHotkey[];
+	bool NetworkConnect();
+	void NetworkDisconnect();
+
+	auto &client()
+	{
+	  return _client;
+	}
 
   private:
 	SyncController _syncController;
 	UiController _uiController;
+
+	network::ScopedSocket _sock;
+	network::TCPClient _client;
   };
 } // namespace noda

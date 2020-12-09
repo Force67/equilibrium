@@ -9,21 +9,17 @@ using namespace std::chrono_literals;
 namespace network {
   inline utility::object_pool<OutPacket> s_packetPool;
 
-  TCPClient::TCPClient(TCPClientConsumer &consumer) :
-      _consumer(consumer)
-  {
-  }
-
-  bool TCPClient::Connect(const char *addr, int16_t port)
+  bool TCPClient::Connect(const char *addr, int port)
   {
 	if(!addr)
 	  addr = "localhost";
 
-	_addr = sockpp::inet_address(addr, port);
+	_addr = sockpp::inet_address(addr, static_cast<in_port_t>(port));
 
 	bool result;
 	result = _conn.connect(_addr);
 	result = _conn.set_non_blocking(true);
+
 	// no timeouts
 	_conn.read_timeout(0ms);
 	_conn.write_timeout(0ms);
@@ -31,8 +27,22 @@ namespace network {
 	/*int32_t val = 0;
 	_conn.get_option(IPPROTO_TCP, TCP_KEEPCNT, &val);*/
 
-	_conn.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
+	result = _conn.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
+
+	if(!result && _conn.is_connected()) {
+	  _conn.reset();
+	  return false;
+	}
+
+	for(NetworkedClientComponent *delegate : _listeners)
+	  delegate->OnConnection(_addr);
+
 	return result;
+  }
+
+  void TCPClient::RegisterComponent(NetworkedClientComponent *listener)
+  {
+	_listeners.push_back(listener);
   }
 
   std::string TCPClient::LastError() const
@@ -42,8 +52,7 @@ namespace network {
 
   void TCPClient::Disconnect()
   {
-	  //Update();
-
+	//Update();
 
 	// Disconnect by force
 	_conn.reset();
@@ -60,14 +69,15 @@ namespace network {
 	_outQueue.push(&item->key);
   }
 
-  void TCPClient::Update()
+  bool TCPClient::Update()
   {
 	if(!_conn.is_connected())
-	  return;
+	  return false;
 
 	ssize_t n = 0;
 	while((n = _conn.read(buf, sizeof(buf))) > 0) {
-	  _consumer.ConsumeMessage(buf, n);
+	  for(auto *it : _listeners)
+		it->ConsumeMessage(buf, n);
 	}
 
 	while(auto *packet = _outQueue.pop(&OutPacket::key)) {
@@ -77,5 +87,7 @@ namespace network {
 
 	  s_packetPool.destruct(packet);
 	}
+
+	return true;
   }
 } // namespace network

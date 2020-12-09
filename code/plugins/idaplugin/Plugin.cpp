@@ -6,21 +6,52 @@
 #include "Plugin.h"
 #include "utils/Logger.h"
 
+#include <QSettings>
+
 namespace noda {
-  const char Plugin::kPluginComment[] = "Nomad Ida Plugin";
-  const char Plugin::kPluginName[] = "NODAForIDA";
-  const char Plugin::kPluginHotkey[] = "Alt-L";
+
+  // plugin desc for "run" dialog
+  static const char kPluginComment[] = "Nomad Ida Plugin";
+
+  // "unique" plugin identifier
+  static const char kPluginName[] = "NODAForIDA";
+
+  // hotkey for the "run" dialog
+  static const char kPluginHotkey[] = "Alt-L";
 
   Plugin::Plugin() :
       _syncController(),
       _uiController(_syncController)
   {
 	LOG_INFO("Loaded NODA, version " GIT_BRANCH "@" GIT_COMMIT " Copyright(c) NOMAD Group <nomad-group.net>.");
+
+	_client.RegisterDelegate(&_syncController);
+	_client.RegisterDelegate(&_uiController);
   }
 
   Plugin::~Plugin()
   {
-	//https://github.com/citra-emu/citra/blob/master/src/citra_qt/loading_screen.cpp
+  }
+
+  bool Plugin::NetworkConnect()
+  {
+	QSettings settings;
+	int port = settings.value("Nd_SyncPort", network::constants::kServerPort).toInt();
+	auto addr = settings.value("Nd_SyncIp", network::constants::kServerIp).toString();
+
+	bool result = _client.Connect(addr.toUtf8().data(), static_cast<int16_t>(port));
+
+	if(result)
+	  LOG_INFO("Connected to {}:{}", addr.toUtf8().data(), port);
+	else
+	  LOG_ERROR("Failed to connect to {}:{}", addr.toUtf8().data(), port);
+
+	return result;
+  }
+
+  void Plugin::NetworkDisconnect()
+  {
+	_client.Disconnect();
   }
 
   bool Plugin::Init()
@@ -76,8 +107,8 @@ plugin_t PLUGIN = {
   PluginInit,
   PluginTerm,
   PluginRun,
-  Plugin::kPluginComment,
-  Plugin::kPluginComment,
-  Plugin::kPluginName,
-  Plugin::kPluginHotkey
+  kPluginComment,
+  kPluginComment,
+  kPluginName,
+  kPluginHotkey
 };

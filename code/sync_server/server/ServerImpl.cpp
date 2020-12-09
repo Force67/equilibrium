@@ -97,8 +97,7 @@ namespace noda {
 
 	network::FbsBuffer buffer;
 	auto pack = protocol::CreateHandshakeAck(
-	    buffer, protocol::UserPermissions_NONE,
-	    cid, _userRegistry.UserCount());
+	    buffer, protocol::UserPermissions_NONE, _userRegistry.UserCount());
 
 	_server.SendPacket(cid, protocol::MsgType_HandshakeAck, buffer, pack.Union());
   }

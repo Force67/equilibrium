@@ -34,7 +34,6 @@ table HandshakeRequest {
 
 table HandshakeAck {
   perms:UserPermissions;
-  userIndex:uint;
   numUsers:int;
 }
 

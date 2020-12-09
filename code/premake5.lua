@@ -21,6 +21,7 @@ include("sync_server/server")
 
 group("Plugins")
 include("plugins/idaplugin")
+include("plugins/new_idaplugin")
 include("plugins/xdbgplugin")
 
 group("Shared")

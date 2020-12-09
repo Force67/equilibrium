@@ -42,7 +42,7 @@ namespace noda {
 	bool _listening = false;
 	std::string _loginToken = "";
 
-	network::ScopedSocket _socket;
+	network::Context _context;
 	network::TCPServer _server;
 	UserRegistry _userRegistry;
 	DataHandler _dataHandler;

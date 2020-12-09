@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="logo">../resources/logo.png</file>
+        <file alias="cog">../resources/cog-solid.png</file>
+        <file alias="info">../resources/info-circle-solid.png</file>
+        <file alias="sync">../resources/sync-solid.png</file>
+        <file alias="bug">../resources/bug-solid.png</file>
+        <file alias="uikit">../resources/uikit-brands.png</file>
+        <file alias="check">../resources/check-solid.png</file>
+        <file alias="spinner">../resources/spinner-solid.png</file>
+        <file alias="times">../resources/times-solid.png</file>
+        <file alias="envelope">../resources/envelope-regular.png</file>
+        <file alias="user">../resources/user-solid.png</file>
+        <file alias="arrow_up">../resources/arrow-up-solid.png</file>
+        <file alias="arrow_down">../resources/arrow-down-solid.png</file>
+        <file alias="cloud_download">../resources/cloud-download-alt-solid.png</file>
+        <file alias="cloud_upload">../resources/cloud-upload-alt-solid.png</file>
+        <file alias="wired">../resources/network-wired-solid.png</file>
+        <file alias="globe_green">../resources/globe-solid-green.png</file>
+        <file alias="globe_red">../resources/globe-solid-red.png</file>
+    </qresource>
+</RCC>

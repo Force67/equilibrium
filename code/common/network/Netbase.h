@@ -9,13 +9,22 @@
 namespace network {
   namespace pt = protocol;
 
+  // TODO: move this into NetBuffer
   using FbsBuffer = flatbuffers::FlatBufferBuilder;
 
+  // Flatbuffer aliases
   template <typename T>
   using FbsRef = flatbuffers::Offset<T>;
-  using FbsStringRef = flatbuffers::Offset<flatbuffers::String >;
+  using FbsStringRef = flatbuffers::Offset<flatbuffers::String>;
 
-  using ScopedSocket = sockpp::socket_initializer;
+  // replacement for socket_initializer, which doesn't check
+  // if the socket was initialized before
+  struct Context {
+	Context();
+	~Context();
+
+	static bool Initialized();
+  };
 
   namespace constants {
 	constexpr int kTCPBufSize = 2048;

@@ -1,0 +1,30 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+
+#include "Netbase.h"
+
+namespace network {
+
+  static bool s_NetInitialized = false;
+
+  Context::Context()
+  {
+	if(!s_NetInitialized) {
+	  sockpp::socket::initialize();
+	  s_NetInitialized = true;
+	}
+  }
+
+  Context::~Context()
+  {
+	if(s_NetInitialized) {
+	  sockpp::socket::destroy();
+	  s_NetInitialized = false;
+	}
+  }
+
+  bool Context::Initialized()
+  {
+	return s_NetInitialized;
+  }
+} // namespace network

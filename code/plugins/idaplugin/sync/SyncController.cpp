@@ -12,21 +12,16 @@
 #include "utils/UserInfo.h"
 #include "protocol/generated/StorageModel_generated.h"
 
+#include "Plugin.h"
+
 namespace noda {
   constexpr int kNetTrackRate = 1000;
 
   constexpr uint32_t kStorageVersion = 4;
   static const char kSyncNodeName[] = "$ nd_sync_data";
 
-  static network::FbsStringRef MakeFbStringRef(network::FbsBuffer &msg, const QString &other)
-  {
-	const char *str = const_cast<const char *>(other.toUtf8().data());
-	size_t sz = static_cast<size_t>(other.size());
-	return msg.CreateString(str, sz);
-  }
-
-  SyncController::SyncController() :
-      _client(*this),
+  SyncController::SyncController(Plugin &plugin) :
+      _plugin(plugin),
       _dispatcher(*this)
   {
 	hook_to_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
@@ -67,35 +62,6 @@ namespace noda {
 	return static_cast<SyncController *>(userData)->HandleEvent(hook_type_t::HT_IDP, code, args);
   }
 
-  bool SyncController::Connect()
-  {
-	QSettings settings;
-	int port = settings.value("Nd_SyncPort", network::constants::kServerPort).toInt();
-	auto addr = settings.value("Nd_SyncIp", network::constants::kServerIp).toString();
-
-	if(_client.Connect(
-	       addr.toUtf8().data(),
-	       static_cast<int16_t>(port))) {
-	  LOG_INFO("Connected to {}:{}", addr.toUtf8().data(), port);
-
-	  auto name = settings.value("Nd_SyncUser", GetDefaultUserName()).toString();
-	  auto guid = GetUserGuid();
-
-	  network::FbsBuffer buffer;
-	  auto request = protocol::CreateHandshakeRequest(
-	      buffer, network::constants::kClientVersion,
-	      buffer.CreateSharedString(""),
-	      MakeFbStringRef(buffer, guid),
-	      MakeFbStringRef(buffer, name));
-
-	  _client.SendPacket(protocol::MsgType_HandshakeRequest, buffer, request.Union());
-	  return true;
-	}
-
-	LOG_ERROR("Failed to connect to {}:{}", addr.toUtf8().data(), port);
-	return false;
-  }
-
   void SyncController::InitializeLocalProject()
   {
 	assert(is_main_thread());
@@ -106,8 +72,8 @@ namespace noda {
 	bool hasPermanentData = _node.open();
 
 	// looks like a new IDB
-	if (!hasPermanentData) {
-		_node = NetNode(kSyncNodeName, true);
+	if(!hasPermanentData) {
+	  _node = NetNode(kSyncNodeName, true);
 	}
 
 	_localVersion = _node.LoadScalar(NodeIndex::UpdateVersion, 0);
@@ -135,38 +101,9 @@ namespace noda {
 	_client.SendPacket(protocol::MsgType_LocalProjectInfo, buffer, request.Union());
   }
 
-  void SyncController::OnDisconnect(int reason)
-  {
-	LOG_INFO("Disconnected with reason {}", reason);
-
-	_active = false;
-
-	// forward the event
-	emit Disconnected(reason);
-  }
-
-  void SyncController::HandleAuth(const protocol::MessageRoot *message)
-  {
-	auto *pack = message->msg_as_HandshakeAck();
-
-	LOG_INFO("Authenticated: {}/{}", pack->userIndex(), pack->numUsers());
-
-	_active = true;
-	_userCount = pack->numUsers();
-
-	emit Connected();
-
-	emit Announce(_userCount);
-  }
-
   // recv a net message
   void SyncController::ConsumeMessage(const uint8_t *data, size_t size)
   {
-	const protocol::MessageRoot *message = protocol::GetMessageRoot(static_cast<const void *>(data));
-	if(message->msg_type() == protocol::MsgType_HandshakeAck) {
-	  return HandleAuth(message);
-	}
-
 	_dispatcher.QueueTask(data, size);
   }
 
@@ -179,7 +116,6 @@ namespace noda {
 	if(type == hook_type_t::HT_IDB) {
 	  switch(code) {
 	  case idb_event::closebase:
-		Disconnect();
 		break;
 	  case idb_event::savebase:
 		//_node.StoreScalar()
@@ -189,11 +125,11 @@ namespace noda {
 	  return 0;
 	}
 
-	if (type == hook_type_t::HT_IDP) {
-		switch(code) {
-		default:
-			break;
-		}
+	if(type == hook_type_t::HT_IDP) {
+	  switch(code) {
+	  default:
+		break;
+	  }
 	}
 
 	_dispatcher.DispatchEvent(type, code, args);

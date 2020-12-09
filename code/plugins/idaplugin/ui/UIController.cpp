@@ -6,7 +6,6 @@
 
 #include "forms/Settings.h"
 #include "forms/ConnectDialog.h"
-#include "forms/AboutDialog.h"
 #include "forms/ProgressDialog.h"
 #include "forms/WelcomeDialog.h"
 #include "forms/NSyncDialog.h"
@@ -160,7 +159,6 @@ namespace noda {
   {
 	_connectAct->setEnabled(true);
 	//_cloudUpAct->setEnabled(true);
-
   }
 
   void UiController::OnIdbLoad()
@@ -272,9 +270,11 @@ namespace noda {
 	case ui_notification_t::ui_saving:
 	  self->OnIdbSave();
 	  break;
+
 	case ui_notification_t::ui_database_inited:
 	  self->OnIdbLoad();
 	  break;
+
 	case ui_notification_t::ui_plugin_unloading: {
 	  const plugin_info_t *pinfo = va_arg(va, plugin_info_t *);
 	  if(pinfo && pinfo->entry) {

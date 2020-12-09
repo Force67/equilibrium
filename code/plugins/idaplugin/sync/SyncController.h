@@ -7,49 +7,35 @@
 
 #include "utils/Logger.h"
 #include "utils/NetNode.h"
+#include "network/TCPClient.h"
 
 #include "TaskDispatcher.h"
-#include "network/TCPClient.h"
 
 namespace QT {
   class QTimer;
 }
 
+namespace protocol {
+  struct MessageRoot;
+}
+
 namespace noda {
   struct TaskHandler;
+  class Plugin;
 
   class SyncController final : public QThread,
-                               public network::TCPClientConsumer {
+                               public network::ClientDelegate {
 	Q_OBJECT;
 
   public:
-	SyncController();
+	SyncController(Plugin &);
 	SyncController(const SyncController &) = delete;
 	~SyncController();
 
-	bool Connect();
-
-	void Disconnect()
-	{
-	  _client.Disconnect();
-	}
-
-	bool IsConnected() const
-	{
-	  return _client.Connected() && _active;
-	}
-
 	void InitializeLocalProject();
-  signals:
-	void Connected();
-	void Disconnected(int);
-	void Announce(int);
 
   private:
-	void HandleAuth(const protocol::MessageRoot *);
-
 	// network events
-	void OnDisconnect(int) override;
 	void ConsumeMessage(const uint8_t *data, size_t size) override;
 
 	// IDA
@@ -66,11 +52,11 @@ namespace noda {
 	NetNode _node;
 
 	bool _active = false;
-	network::ScopedSocket _sock;
-	network::TCPClient _client;
 
 	TaskDispatcher _dispatcher;
 	int _localVersion = 0;
 	int _userCount = 0;
+
+	Plugin &_plugin;
   };
 } // namespace noda

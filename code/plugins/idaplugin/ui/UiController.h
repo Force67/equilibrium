@@ -6,6 +6,7 @@
 #include <qobject.h>
 #include <qscopedpointer.h>
 
+#include "network/TCPClient.h"
 #include "utils/NetNode.h"
 
 namespace QT {
@@ -19,7 +20,8 @@ namespace noda {
   class SyncController;
   class StatusWidget;
 
-  class UiController final : public QObject {
+  class UiController final : public QObject,
+                             public network::ClientDelegate {
 	Q_OBJECT;
 
   public:
@@ -46,8 +48,6 @@ namespace noda {
 	static ssize_t idaapi UiEvent(void *, int, va_list);
 	static ssize_t idaapi IdbEvent(void *, int, va_list);
 
-	QAction *_connectAct = nullptr;
-	QAction *_projectAct = nullptr;
 	QAction *_saveToServerAct = nullptr;
 	QAction *_openFromServerAct = nullptr;
 

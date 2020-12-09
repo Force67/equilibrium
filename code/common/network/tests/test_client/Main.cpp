@@ -12,7 +12,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "protocol/generated/Message_generated.h"
+#include "protocol/generated/MessageRoot_generated.h"
 #include "protocol/generated/Handshake_generated.h"
 #include "protocol/generated/IdaSync_generated.h"
 
@@ -27,12 +27,12 @@ public:
   {
 	_run = _client.Connect(nullptr, network::constants::kServerPort);
 
-	if (!_run)
-		fmt::print("Oh no! connect() failed with '{}'\n", _client.LastError());
+	if(!_run)
+	  fmt::print("Oh no! connect() failed with '{}'\n", _client.LastError());
 	else {
-		fmt::print("Connection: OK!\n");
+	  fmt::print("Connection: OK!\n");
 
-		Hello();
+	  Hello();
 	}
   }
 
@@ -63,10 +63,10 @@ public:
 	  return HandleAuth(message);
   }
 
-  void HandleAuth(const protocol::Message* msg)
+  void HandleAuth(const protocol::Message *msg)
   {
-	  auto* m = msg->msg_as_HandshakeAck();
-	  fmt::print("Recieved handshake acknowledgement, active users: {}", m->numUsers());
+	auto *m = msg->msg_as_HandshakeAck();
+	fmt::print("Recieved handshake acknowledgement, active users: {}", m->numUsers());
   }
 
   void OnDisconnect(int reason) override

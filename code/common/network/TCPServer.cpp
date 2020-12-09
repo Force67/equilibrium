@@ -64,16 +64,15 @@ namespace network {
 
 	_queue.push(&item->key);
   }
-  
-  void TCPServer::BroadcastPacket(const uint8_t* data, size_t size, connectid_t excluder /* = invalidid_t */)
+
+  void TCPServer::BroadcastPacket(const uint8_t *data, size_t size, connectid_t excluder /* = invalidid_t */)
   {
-	  for (auto& it : _peers) {
+	for(auto &it : _peers) {
+	  if(it.id == excluder)
+		continue;
 
-		  if (it.id == excluder)
-			  continue;
-
-		  it.sock.write_n(static_cast<const void*>(data), size);
-	  }
+	  it.sock.write_n(static_cast<const void *>(data), size);
+	}
   }
 
   TCPPeer *TCPServer::PeerById(connectid_t id)
