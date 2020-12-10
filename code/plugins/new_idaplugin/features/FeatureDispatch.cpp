@@ -3,7 +3,7 @@
 
 #include "Pch.h"
 #include "FeatureDispatch.h"
-#include "Sigmaker.h"
+#include "sigmaker/Sigmaker.h"
 
 #include "utils/Logger.h"
 
@@ -13,7 +13,7 @@ namespace features {
   {
 	switch(index) {
 	case FeatureIndex::DumbSig:
-	  GenerateDumbSig();
+	  GenerateSignature();
 	  break;
 	default:
 	  LOG_ERROR("Unable to find feature index");

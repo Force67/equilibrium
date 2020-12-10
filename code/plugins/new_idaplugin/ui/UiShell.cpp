@@ -180,10 +180,14 @@ void UiShell::RunFeature()
 	return;
   }
 
-  forms::RunDialog dia(GetTopWidget());
-  dia.exec();
+  features::FeatureIndex index;
+  {
+	forms::RunDialog dia(GetTopWidget());
+	dia.exec();
 
-  const auto index = dia.SelectedIndex();
+	index = dia.SelectedIndex();
+  }
+
   if(index != features::FeatureIndex::None) {
 	features::DispatchFeatureIndex(index);
   }

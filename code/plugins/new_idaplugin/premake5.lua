@@ -41,9 +41,9 @@ project("NEWIDAPlugin")
         "utility"
     })
     defines({
-        -- idaq constants
-        "__NT__",
-        "__QT__",
+        "__NT__", -- < IDA windows NT Target
+        "__QT__", -- < IDA QT Target
+        "__EA64__", -- < IDA 64 Bit Target (Even ida 32 is 64 bit nowadays)
 
         -- qt symbol workaround, read more here:
         -- https://www.hex-rays.com/blog/ida-qt-under-the-hood/

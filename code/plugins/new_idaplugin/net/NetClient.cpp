@@ -7,9 +7,16 @@
 
 using namespace network::constants;
 
-utils::Opt<int> NetPort{ kServerPort, "Nd_NetPort" };
-utils::Opt<int> NetIdle{ kNetworkerThreadIdle, "Nd_NetThreadIdle" };
-utils::Opt<QString> NetIp{ kServerIp, "Nd_NetIp" };
+namespace {
+  // Server Port Property
+  utils::Opt<int> NetPort{ kServerPort, "Nd_NetPort" };
+
+  // Server Ip/Address property
+  utils::Opt<QString> NetIp{ kServerIp, "Nd_NetIp" };
+
+  // How long the net thread should yield
+  utils::Opt<int> NetIdle{ kNetworkerThreadIdle, "Nd_NetThreadIdle" };
+} // namespace
 
 static NetClient *s_NetClient{ nullptr };
 

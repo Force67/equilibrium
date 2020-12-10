@@ -24,6 +24,10 @@ namespace noda {
   // pretty print me, please :-)
   void PrintLogMessageImpl(LogLevel ll, const char *text, const fmt::format_args &args)
   {
+	// ensure we don't print into nirvana
+	if(!callui(ui_is_msg_inited).cnd)
+	  return;
+
 	if(ll == LogLevel::Error) {
 	  callui(ui_beep, 0);
 	}

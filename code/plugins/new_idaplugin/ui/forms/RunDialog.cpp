@@ -37,6 +37,8 @@ namespace forms {
 
 	const auto &item = selected.at(0);
 	_index = item.row() + 1;
+
+	QDialog::close();
   }
 
   features::FeatureIndex RunDialog::SelectedIndex() const

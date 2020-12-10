@@ -8,6 +8,7 @@
 #pragma warning(disable : 4244)
 
 #include <ida.hpp>
+#include <bytes.hpp>
 #include <loader.hpp>
 #include <idp.hpp>
 #include <auto.hpp>

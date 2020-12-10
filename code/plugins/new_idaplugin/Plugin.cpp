@@ -87,7 +87,9 @@ namespace {
 
   bool idaapi PluginRun(size_t arg)
   {
-	g_Plugin->Run();
+	if(arg != -1)
+	  g_Plugin->Run();
+
 	return true;
   }
 } // namespace
