@@ -11,9 +11,22 @@ utils::Opt<int> NetPort{ kServerPort, "Nd_NetPort" };
 utils::Opt<int> NetIdle{ kNetworkerThreadIdle, "Nd_NetThreadIdle" };
 utils::Opt<QString> NetIp{ kServerIp, "Nd_NetIp" };
 
+static NetClient *s_NetClient{ nullptr };
+
+NetClient *GNetClient()
+{
+  return s_NetClient;
+}
+
+NetClient::NetClient()
+{
+  s_NetClient = this;
+}
+
 NetClient::~NetClient()
 {
   Stop();
+  s_NetClient = nullptr;
 }
 
 bool NetClient::Start()

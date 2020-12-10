@@ -30,17 +30,29 @@ public:
   explicit UiShell(Plugin &);
   ~UiShell();
 
+  enum class ShellState {
+	 NO_DB,
+	 IN_DB,
+  };
+
+  void SetShellState(ShellState);
+  ShellState GetShellState() const;
+
+signals:
+  void ShellStateChange(ShellState newState);
+
 private:
   void Tick();
+  void ClenseTheShell();
 
   static ssize_t idaapi StaticEvent(void *, int, va_list);
-
   void HandleEvent(int, va_list);
 
   void Connect();
 
   Plugin &_plugin;
   UiStorage _store;
+  ShellState _state{ ShellState::NO_DB };
 
   enum class IdbState {
 	Opening,
@@ -51,4 +63,6 @@ private:
   QScopedPointer<QTimer> _timer;
 
   uint32_t _tick = 0;
+
+  QAction *_cnAct = nullptr;
 };

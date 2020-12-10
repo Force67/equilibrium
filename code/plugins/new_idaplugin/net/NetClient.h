@@ -7,6 +7,7 @@
 
 class NetClient final : public network::TCPClient, public QThread {
 public:
+  NetClient();
   ~NetClient();
 
   bool Start();
@@ -19,3 +20,5 @@ private:
   bool _runState = false;
   network::Context _ctx;
 };
+
+NetClient *GNetClient();

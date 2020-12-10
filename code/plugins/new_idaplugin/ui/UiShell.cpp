@@ -41,6 +41,9 @@ namespace {
   constexpr char kWhyAreYouWastingYourTimeText[] = "Time wasted reversing: %1:%2:%3";
 } // namespace
 
+// global plugin description
+extern plugin_t PLUGIN;
+
 UiShell::UiShell(Plugin &plugin) :
     _plugin(plugin)
 {
@@ -51,7 +54,7 @@ UiShell::UiShell(Plugin &plugin) :
 
   // register a new menu bar for the sync stuff
   QMenu *syncMenu = window->menuBar()->addMenu("RESync");
-  syncMenu->addAction("Connect", this, &UiShell::Connect);
+  _cnAct = syncMenu->addAction("Connect", this, &UiShell::Connect);
   syncMenu->addSeparator();
   //syncMenu->addAction("Settings", this, &UiShell)
 
@@ -67,6 +70,14 @@ UiShell::UiShell(Plugin &plugin) :
 
   // and connect everything
   connect(_timer.data(), &QTimer::timeout, this, &UiShell::Tick);
+
+  connect(this, &UiShell::ShellStateChange, this, [&](ShellState newState) {
+	if(newState == ShellState::IN_DB)
+	  _cnAct->setEnabled(true);
+
+	if(newState == ShellState::NO_DB)
+	  _cnAct->setEnabled(false);
+  });
 }
 
 UiShell::~UiShell()
@@ -74,11 +85,11 @@ UiShell::~UiShell()
   unhook_from_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 }
 
-void UiShell::HandleEvent(int code, va_list)
+void UiShell::HandleEvent(int code, va_list args)
 {
   switch(code) {
   case ui_notification_t::ui_term:
-
+	SetShellState(ShellState::NO_DB);
 	break;
   case ui_notification_t::ui_saving: {
 	// flush timer
@@ -95,9 +106,39 @@ void UiShell::HandleEvent(int code, va_list)
 	_tick = _store.GetTick();
 	_wastedTime->show();
 	_timer->start(1000);
+
+	SetShellState(ShellState::IN_DB);
+	break;
+  }
+  case ui_notification_t::ui_plugin_unloading: {
+	const plugin_info_t *info = va_arg(args, plugin_info_t *);
+	if(info && info->entry) {
+	  if(info->entry == &PLUGIN) {
+		ClenseTheShell();
+	  }
+	}
 	break;
   }
   }
+}
+
+void UiShell::SetShellState(ShellState newState)
+{
+	if (newState != _state) {
+	_state = newState;
+
+	emit ShellStateChange(newState);
+  }
+}
+
+UiShell::ShellState UiShell::GetShellState() const
+{
+  return _state;
+}
+
+void UiShell::ClenseTheShell()
+{
+
 }
 
 void UiShell::Tick()
