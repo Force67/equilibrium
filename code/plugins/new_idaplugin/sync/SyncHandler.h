@@ -6,6 +6,8 @@
 #include "Pch.h"
 #include "SyncService.h"
 #include "utils/Logger.h"
+#include "net/NetClient.h"
+
 #include "protocol/generated/MessageRoot_generated.h"
 
 namespace sync {
@@ -59,7 +61,7 @@ namespace sync {
 
 	  explicit Handlers(apply_t apply_impl, react_t react_impl)
 	  {
-		apply = reinterpret_cast<TaskHandler::apply_t>(reinterpret_cast<void *>(apply_impl));
+		apply = reinterpret_cast<StaticHandler::apply_t>(reinterpret_cast<void *>(apply_impl));
 		react = react_impl;
 	  }
 	};

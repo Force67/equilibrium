@@ -7,16 +7,16 @@
 #include "sync/SyncHandler.h"
 
 using namespace protocol::sync;
-#if 0
+
 namespace sync::create_enum {
-  static bool Apply(SyncController &, const CreateEnum &pack)
+  static bool Apply(SyncService &, const CreateEnum &pack)
   {
 	LOG_TRACE("Created Enum {}", pack.name()->c_str());
 
 	return add_enum(pack.id(), pack.name()->c_str(), 0) != BADADDR;
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(SyncService &sc, va_list list)
   {
 	enum_t eid = va_arg(list, enum_t);
 
@@ -27,20 +27,23 @@ namespace sync::create_enum {
 
 	uval_t index = get_enum_idx(eid);
 
-	auto pack = CreateCreateEnumDirect(sc.fbb(), index, name.c_str());
-	return sc.SendFbsPacket(protocol::MsgType_sync_CreateEnum, pack);
+	network::FbsBuffer buf;
+	auto pack = CreateCreateEnumDirect(buf, index, name.c_str());
+
+	GNetClient()->SendPacket(protocol::MsgType_sync_CreateEnum, buf, pack.Union());
+	return true;
   }
 
   static StaticHandler handler{
 	hook_type_t::HT_IDB,
 	idb_event::enum_created,
 	protocol::MsgType_sync_CreateEnum,
-	SyncHandler::Handlers<CreateEnum>{ Apply, React }
+	StaticHandler::Handlers<CreateEnum>{ Apply, React }
   };
 } // namespace noda::sync::create_enum
 
 namespace sync::delete_enum {
-  static bool Apply(SyncController &, const DeleteEnum &pack)
+  static bool Apply(SyncService &, const DeleteEnum &pack)
   {
 	enum_t eid = get_enum(pack.name()->c_str());
 	if(eid == BADADDR)
@@ -51,7 +54,7 @@ namespace sync::delete_enum {
 	return true;
   }
 
-  static bool React(SyncController &sc, va_list list)
+  static bool React(SyncService &sc, va_list list)
   {
 	enum_t eid = va_arg(list, enum_t);
 
@@ -60,16 +63,17 @@ namespace sync::delete_enum {
 	if(size == 0)
 	  return false;
 
-	auto pack = CreateDeleteEnumDirect(sc.fbb(), name.c_str());
-	return sc.SendFbsPacket(protocol::MsgType_sync_DeleteEnum, pack);
+	network::FbsBuffer buf;
+	auto pack = CreateDeleteEnumDirect(buf, name.c_str());
+
+	GNetClient()->SendPacket(protocol::MsgType_sync_DeleteEnum, buf, pack.Union());
+	return true;
   }
 
   static StaticHandler handler{
 	hook_type_t::HT_IDB,
 	idb_event::deleting_enum,
 	protocol::MsgType_sync_DeleteEnum,
-	SyncHandler::Handlers<DeleteEnum>{ Apply, React }
+	StaticHandler::Handlers<DeleteEnum>{ Apply, React }
   };
 } // namespace noda::sync::delete_enum
-
-#endif
