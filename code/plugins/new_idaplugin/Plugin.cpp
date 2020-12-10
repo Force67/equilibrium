@@ -18,7 +18,7 @@ namespace {
   constexpr char kPluginName[] = "NODAForIDA";
 
   // hotkey for the "run" dialog
-  constexpr char kPluginHotkey[] = "Alt-L";
+  constexpr char kPluginHotkey[] = "Ctrl-Y";
 } // namespace
 
 Plugin::Plugin() :
