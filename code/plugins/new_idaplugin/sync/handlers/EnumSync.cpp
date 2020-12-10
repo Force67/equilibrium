@@ -40,7 +40,7 @@ namespace sync::create_enum {
 	protocol::MsgType_sync_CreateEnum,
 	StaticHandler::Handlers<CreateEnum>{ Apply, React }
   };
-} // namespace noda::sync::create_enum
+} // namespace sync::create_enum
 
 namespace sync::delete_enum {
   static bool Apply(SyncService &, const DeleteEnum &pack)
@@ -76,4 +76,4 @@ namespace sync::delete_enum {
 	protocol::MsgType_sync_DeleteEnum,
 	StaticHandler::Handlers<DeleteEnum>{ Apply, React }
   };
-} // namespace noda::sync::delete_enum
+} // namespace sync::delete_enum

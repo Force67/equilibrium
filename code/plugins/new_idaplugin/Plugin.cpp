@@ -62,7 +62,7 @@ void Plugin::Run()
 	return;
   }
 
-  //_uiController.OpenRunDialog();
+  _shell.RunFeature();
 }
 
 namespace {

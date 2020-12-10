@@ -84,7 +84,7 @@ public:
 	const bool __sortingEnabled = optionList->isSortingEnabled();
 	optionList->setSortingEnabled(false);
 	QListWidgetItem *___qlistwidgetitem = optionList->item(0);
-	___qlistwidgetitem->setText(QApplication::translate("RunDialog", "Connect", Q_NULLPTR));
+	___qlistwidgetitem->setText(QApplication::translate("RunDialog", "Create Dumb Pattern", Q_NULLPTR));
 	QListWidgetItem *___qlistwidgetitem1 = optionList->item(1);
 	___qlistwidgetitem1->setText(QApplication::translate("RunDialog", "Request Updates", Q_NULLPTR));
 	optionList->setSortingEnabled(__sortingEnabled);

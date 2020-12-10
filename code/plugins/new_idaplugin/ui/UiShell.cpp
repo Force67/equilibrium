@@ -14,6 +14,12 @@
 #include <QStatusBar>
 #include <QMainWindow>
 
+#include "forms/StatusWidget.h"
+#include "forms/RunDialog.h"
+#include "features/FeatureDispatch.h"
+
+#include "utils/Logger.h"
+
 QT::QWidget *GetTopWidget()
 {
   return qobject_cast<QMainWindow *>(
@@ -61,12 +67,15 @@ UiShell::UiShell(Plugin &plugin) :
   //syncMenu->addAction(QIcon(":/cog"), "Settings", this, &UiView::OpenSettings);
 
   _wastedTime.reset(new QLabel(""));
+  _statusForm.reset(new forms::StatusWidget(window->statusBar()));
+
   _wastedTime->hide();
 
   _timer.reset(new QTimer());
 
   // register tray widgets
   window->statusBar()->addPermanentWidget(_wastedTime.data());
+  window->statusBar()->addPermanentWidget(_statusForm.data());
 
   // and connect everything
   connect(_timer.data(), &QTimer::timeout, this, &UiShell::Tick);
@@ -124,7 +133,7 @@ void UiShell::HandleEvent(int code, va_list args)
 
 void UiShell::SetShellState(ShellState newState)
 {
-	if (newState != _state) {
+  if(newState != _state) {
 	_state = newState;
 
 	emit ShellStateChange(newState);
@@ -138,7 +147,9 @@ UiShell::ShellState UiShell::GetShellState() const
 
 void UiShell::ClenseTheShell()
 {
-
+  // manually kill the statusform here, in order to prevent QT from freeing it, which
+  // would result in a crash and leave the idb broken...
+  _statusForm.reset();
 }
 
 void UiShell::Tick()
@@ -160,6 +171,22 @@ void UiShell::Tick()
 void UiShell::Connect()
 {
   _plugin.CreateSyncSession();
+}
+
+void UiShell::RunFeature()
+{
+  if(_state == ShellState::NO_DB) {
+	LOG_ERROR("Open an IDB to run features");
+	return;
+  }
+
+  forms::RunDialog dia(GetTopWidget());
+  dia.exec();
+
+  const auto index = dia.SelectedIndex();
+  if(index != features::FeatureIndex::None) {
+	features::DispatchFeatureIndex(index);
+  }
 }
 
 // static handler for ida

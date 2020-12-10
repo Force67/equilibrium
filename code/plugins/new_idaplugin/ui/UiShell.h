@@ -17,6 +17,10 @@ namespace QT {
   class QMainWindow;
 } // namespace QT
 
+namespace forms {
+  class StatusWidget;
+}
+
 // returns the currently most top widget
 QT::QWidget *GetTopWidget();
 
@@ -31,13 +35,14 @@ public:
   ~UiShell();
 
   enum class ShellState {
-	 NO_DB,
-	 IN_DB,
+	NO_DB,
+	IN_DB,
   };
 
   void SetShellState(ShellState);
   ShellState GetShellState() const;
 
+  void RunFeature();
 signals:
   void ShellStateChange(ShellState newState);
 
@@ -61,6 +66,8 @@ private:
 
   QScopedPointer<QLabel> _wastedTime;
   QScopedPointer<QTimer> _timer;
+
+  QScopedPointer<forms::StatusWidget> _statusForm;
 
   uint32_t _tick = 0;
 
