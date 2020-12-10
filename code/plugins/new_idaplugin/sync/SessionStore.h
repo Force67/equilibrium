@@ -14,8 +14,8 @@ public:
 private:
   static ssize_t idaapi Event(void *, int, va_list);
 
-  void InitializeNode();
-  void SaveNode();
+  void Load();
+  void Save();
 
   int _localVersion = 0;
 

@@ -7,6 +7,10 @@
 namespace network {
 
 class NetBuffer final : public flatbuffers::FlatBufferBuilder {
-  
+public:
+  NetBuffer();
+  ~NetBuffer();
+
+
 };
 }

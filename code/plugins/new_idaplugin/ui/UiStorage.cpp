@@ -3,32 +3,57 @@
 
 #include "Pch.h"
 #include "UiStorage.h"
+#include "utils/Logger.h"
 
 namespace {
   // unique identifier for IDB storage
-  constexpr char kSessionNodeId[] = "$ noda_ui_storage";
+  // please do *not* change these
+  constexpr char kStorageNodeId[] = "$ noda_ui_storage";
 
   // increment this whenever a breaking change happens
   constexpr int kUiStorageVersion = 1;
 
   enum NodeIndex : nodeidx_t {
 	StorageVersion,
-	Uptime,
+	Tick,
 	IdbUsageFlags
   };
 } // namespace
 
-UiStorage::UiStorage()
+void UiStorage::SetTick(uint32_t newVal)
 {
-  hook_to_notification_point(hook_type_t::HT_UI, Event, this);
+  _tick = newVal;
 }
 
-UiStorage::~UiStorage()
+int UiStorage::GetTick() const
 {
-  unhook_from_notification_point(hook_type_t::HT_UI, Event, this);
+  return _tick;
 }
 
-ssize_t UiStorage::Event(void *, int, va_list)
+void UiStorage::Load()
 {
-  return 0;
+  _node = noda::NetNode(kStorageNodeId);
+
+  int v1 = _node.LoadScalar(StorageVersion, -1);
+  // mark the node version
+  if(v1 == -1) {
+	bool res = _node.StoreScalar(StorageVersion, kUiStorageVersion);
+	LOG_TRACE("StoreVersion: {}", res);
+  }
+
+  // cry out loud...
+  if(v1 < kUiStorageVersion) {
+	LOG_WARNING("Outdated UiStorageVersion: idb: {} plugin: {}", v1, kUiStorageVersion);
+  }
+
+  _tick = _node.LoadScalar(Tick, 0);
+  LOG_TRACE("UiStorage::Load {}", _tick);
+}
+
+void UiStorage::Save()
+{
+  bool res;
+  res = _node.StoreScalar(Tick, _tick);
+
+  LOG_TRACE("UiStorage::Save {}", res);
 }

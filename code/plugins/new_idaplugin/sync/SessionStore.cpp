@@ -11,6 +11,7 @@
 namespace {
 
   // unique identifier for IDB storage
+  // please do *NOT* change these
   constexpr char kSessionNodeId[] = "$ noda_session";
 
   // increment this whenever a breaking change happens
@@ -38,7 +39,7 @@ void SessionStore::BumpVersion()
   _localVersion++;
 }
 
-void SessionStore::InitializeNode()
+void SessionStore::Load()
 {
   _node = noda::NetNode(kSessionNodeId);
 
@@ -53,31 +54,31 @@ void SessionStore::InitializeNode()
   }
 
   _localVersion = _node.LoadScalar<int>(NodeIndex::SessionVersion, 0);
-  LOG_TRACE("SessionStore::InitializeNode() -> {} : {}", version, _localVersion);
+  LOG_TRACE("SessionStore::Load() -> {} : {}", version, _localVersion);
 }
 
-void SessionStore::SaveNode()
+void SessionStore::Save()
 {
   // attempt to rescue the node
   if(!_node.open()) {
-	InitializeNode();
+	Load();
   }
 
-  bool res = _node.StoreScalar(NodeIndex::SessionVersion, _localVersion);
-  LOG_TRACE("SessionStore::SaveNode() -> {}", res);
+  bool res;
+  res = _node.StoreScalar(NodeIndex::SessionVersion, _localVersion);
+
+  LOG_TRACE("SessionStore::Save() -> {}", res);
 }
 
 ssize_t SessionStore::Event(void *ptr, int code, va_list)
 {
   SessionStore *store = reinterpret_cast<SessionStore *>(ptr);
 
-  if(code == ui_notification_t::ui_saving) {
-	store->SaveNode();
-  }
+  if(code == ui_notification_t::ui_saving)
+	store->Save();
 
-  if(code == ui_notification_t::ui_database_inited) {
-	store->InitializeNode();
-  }
+  if(code == ui_notification_t::ui_database_inited)
+	store->Load();
 
   return 0;
 }

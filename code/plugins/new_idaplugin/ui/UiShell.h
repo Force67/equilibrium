@@ -5,7 +5,9 @@
 class Plugin;
 
 #include "UiStorage.h"
+
 #include <QObject>
+#include <QScopedPointer>
 
 namespace QT {
   class QAction;
@@ -29,10 +31,24 @@ public:
   ~UiShell();
 
 private:
-  static ssize_t idaapi UiEvent(void *, int, va_list);
+  void Tick();
+
+  static ssize_t idaapi StaticEvent(void *, int, va_list);
+
+  void HandleEvent(int, va_list);
 
   void Connect();
 
   Plugin &_plugin;
   UiStorage _store;
+
+  enum class IdbState {
+	Opening,
+	Closing,
+  };
+
+  QScopedPointer<QLabel> _wastedTime;
+  QScopedPointer<QTimer> _timer;
+
+  uint32_t _tick = 0;
 };

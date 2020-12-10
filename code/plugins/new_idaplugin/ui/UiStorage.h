@@ -6,11 +6,15 @@
 
 class UiStorage {
 public:
-  UiStorage();
-  ~UiStorage();
+  void SetTick(uint32_t newVal);
+  int GetTick() const;
+
+  void Save();
+  void Load();
 
 private:
   static ssize_t idaapi Event(void *, int, va_list);
 
+  uint32_t _tick;
   noda::NetNode _node;
 };
