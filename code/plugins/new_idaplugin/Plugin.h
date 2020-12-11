@@ -6,7 +6,9 @@
 #include "net/NetClient.h"
 #include "ui/UiShell.h"
 
-class Plugin {
+class Plugin final : public QObject {
+  Q_OBJECT;
+
 public:
   Plugin();
   ~Plugin();
@@ -14,8 +16,7 @@ public:
   bool Init();
   void Run();
 
-  bool CreateSyncSession();
-  void ShutdownSyncSession();
+  bool ToggleNet();
 
   auto &client()
   {

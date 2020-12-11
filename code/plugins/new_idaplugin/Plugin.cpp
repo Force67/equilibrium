@@ -34,20 +34,23 @@ Plugin::~Plugin()
 {
 }
 
-bool Plugin::CreateSyncSession()
+bool Plugin::ToggleNet()
 {
-  const bool result = _client.Start();
+  if(_client.Connected()) {
+	LOG_TRACE("Plugin::ToggleNet() -> Disconnect");
+
+	_client.Stop();
+	return true;
+  }
+
+  bool result = _client.Start();
+  LOG_TRACE("Plugin::ToggleNet() -> Connect {}", result);
 
   if(result) {
 	_session.LoginUser();
   }
 
   return result;
-}
-
-void Plugin::ShutdownSyncSession()
-{
-  _client.Stop();
 }
 
 bool Plugin::Init()

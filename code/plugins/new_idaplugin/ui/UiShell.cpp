@@ -60,7 +60,7 @@ UiShell::UiShell(Plugin &plugin) :
 
   // register a new menu bar for the sync stuff
   QMenu *syncMenu = window->menuBar()->addMenu("RESync");
-  _cnAct = syncMenu->addAction("Connect", this, &UiShell::Connect);
+  _cnAct = syncMenu->addAction("Connect");
   syncMenu->addSeparator();
   //syncMenu->addAction("Settings", this, &UiShell)
 
@@ -79,6 +79,7 @@ UiShell::UiShell(Plugin &plugin) :
 
   // and connect everything
   connect(_timer.data(), &QTimer::timeout, this, &UiShell::Tick);
+  connect(_cnAct, &QAction::triggered, &_plugin, &Plugin::ToggleNet);
 
   connect(this, &UiShell::ShellStateChange, this, [&](ShellState newState) {
 	if(newState == ShellState::IN_DB)
@@ -99,12 +100,12 @@ void UiShell::HandleEvent(int code, va_list args)
   switch(code) {
   case ui_notification_t::ui_term:
 	SetShellState(ShellState::NO_DB);
+
+	_timer->stop();
 	break;
   case ui_notification_t::ui_saving: {
 	// flush timer
 	_store.SetTick(_tick);
-	_timer->stop();
-
 	_store.Save();
 	break;
   }
@@ -166,11 +167,6 @@ void UiShell::Tick()
 
   _wastedTime->setText(text);
   _tick++;
-}
-
-void UiShell::Connect()
-{
-  _plugin.CreateSyncSession();
 }
 
 void UiShell::RunFeature()

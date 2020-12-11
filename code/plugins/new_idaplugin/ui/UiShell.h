@@ -53,8 +53,6 @@ private:
   static ssize_t idaapi StaticEvent(void *, int, va_list);
   void HandleEvent(int, va_list);
 
-  void Connect();
-
   Plugin &_plugin;
   UiStorage _store;
   ShellState _state{ ShellState::NO_DB };

@@ -40,17 +40,16 @@ bool NetClient::Start()
 {
   const QString ip = NetIp;
 
-  const bool result = TCPClient::Connect(
+  _runState = TCPClient::Connect(
       ip.toUtf8().data(), NetPort);
 
-  if(result) {
-	_runState = true;
+  if(_runState) {
 	_idleSetting = NetIdle;
 
 	QThread::start(QThread::HighPriority);
   }
 
-  return result;
+  return _runState;
 }
 
 void NetClient::run()
