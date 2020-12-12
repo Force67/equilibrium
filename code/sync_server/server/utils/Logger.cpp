@@ -27,7 +27,7 @@ namespace noda::utils {
   void PrintLogMessageImpl(LogLevel ll, const char *text, const fmt::format_args &args)
   {
 	const char *levelName = GetLevelName(ll);
-	auto fmt = fmt::format("[Noda] <{}>: {}", levelName, fmt::vformat(text, args));
+	auto fmt = fmt::format("[{}]: {}", levelName, fmt::vformat(text, args));
 
 	if(s_callback)
 	  s_callback(fmt.c_str());

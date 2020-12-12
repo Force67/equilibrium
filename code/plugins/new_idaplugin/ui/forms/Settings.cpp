@@ -34,12 +34,12 @@ namespace forms {
 	  _settings.setValue("Nd_UiSkipConnect", !down);
 	});
 
-	editIP->setText(_settings.value("Nd_SyncIp", network::constants::kServerIp).toString());
-	editPort->setText(_settings.value("Nd_SyncPort", network::constants::kServerPort).toString());
+	editIP->setText(_settings.value("Nd_SyncIp", network::kDefaultServerIp).toString());
+	editPort->setText(_settings.value("Nd_SyncPort", network::kDefaultServerPort).toString());
 	editPass->setText(_settings.value("Nd_SyncPass", "").toString());
 	editUser->setText(_settings.value("Nd_SyncUser", sync_utils::GetDefaultUserName()).toString());
 
-	editTimeout->setText(_settings.value("Nd_NetTimeout", network::constants::kTimeout).toString());
+	editTimeout->setText(_settings.value("Nd_NetTimeout", network::kTimeout).toString());
 	cbShowWelcome->setChecked(!_settings.value("Nd_UiSkipWelcome").toBool());
 	cbShowAutoconnect->setChecked(!_settings.value("Nd_UiSkipConnect").toBool());
 

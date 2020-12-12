@@ -1,0 +1,37 @@
+// Copyright (C) NOMAD Group <nomad-group.net>.
+// For licensing information see LICENSE at the root of this distribution.
+
+namespace protocol;
+
+// Request authentication
+table HandshakeRequest {
+  protocolVersion:ushort;
+  token:string;
+  guid:string;
+  name:string;
+}
+
+enum UserPermissions : ubyte (bit_flags) {
+  Guest,
+  Reporter,
+  Developer,
+  Master
+}
+
+// Authentication was granted
+table HandshakeAck {
+  perms:UserPermissions;
+  numUsers:int;
+}
+
+enum UserEventType : int {
+  Join,
+  Quit
+}
+
+// Notification about a user
+table UserEvent {
+  type:UserEventType;
+  newCount:int;
+  userName:string;
+}

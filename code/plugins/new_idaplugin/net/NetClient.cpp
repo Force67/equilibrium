@@ -5,17 +5,15 @@
 #include "NetClient.h"
 #include "utils/Opt.h"
 
-using namespace network::constants;
-
 namespace {
   // Server Port Property
-  utils::Opt<int> NetPort{ kServerPort, "Nd_NetPort" };
+  utils::Opt<int> NetPort{ network::kDefaultServerPort, "Nd_NetPort" };
 
   // Server Ip/Address property
-  utils::Opt<QString> NetIp{ kServerIp, "Nd_NetIp" };
+  utils::Opt<QString> NetIp{ network::kDefaultServerIp, "Nd_NetIp" };
 
   // How long the net thread should yield
-  utils::Opt<int> NetIdle{ kNetworkerThreadIdle, "Nd_NetThreadIdle" };
+  utils::Opt<int> NetIdle{ 1, "Nd_NetThreadIdle" };
 } // namespace
 
 static NetClient *s_NetClient{ nullptr };

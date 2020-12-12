@@ -3,7 +3,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <QString>
-#include <network/Netbase.h>
+#include <network/NetBuffer.h>
 
 namespace sync_utils {
 

@@ -5,28 +5,25 @@
 
 namespace network {
 
-class NetAllocator final : public flatbuffers::Allocator {
+  class NetAllocator final : public flatbuffers::Allocator {
   public:
-  uint8_t *allocate(size_t size) override
+	uint8_t *allocate(size_t size) override
+	{
+	  throw std::logic_error("The method or operation is not implemented.");
+	}
+
+	void deallocate(uint8_t *p, size_t size) override
+	{
+	  throw std::logic_error("The method or operation is not implemented.");
+	}
+  };
+
+  NetBuffer::NetBuffer() :
+      flatbuffers::FlatBufferBuilder()
   {
-	throw std::logic_error("The method or operation is not implemented.");
   }
 
-  void deallocate(uint8_t *p, size_t size) override
+  NetBuffer::~NetBuffer()
   {
-	throw std::logic_error("The method or operation is not implemented.");
   }
-};
-
-
-NetBuffer::NetBuffer() : 
-	flatbuffers::FlatBufferBuilder()
-{
-
-}
-
-NetBuffer::~NetBuffer()
-{
-
-}
-}
+} // namespace network

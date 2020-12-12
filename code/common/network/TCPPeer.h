@@ -10,7 +10,12 @@
 namespace network {
 
   using connectid_t = uint32_t;
-  constexpr uint32_t invalid_connectid = std::numeric_limits<uint32_t>::max();
+
+  // invalid connection
+  constexpr uint32_t kInvalidConnectId = std::numeric_limits<uint32_t>::max();
+
+  // address all peers
+  constexpr uint32_t kAllConnectId = kInvalidConnectId - 1;
 
   struct TCPPeer {
 	explicit TCPPeer(sockpp::tcp_socket &s)

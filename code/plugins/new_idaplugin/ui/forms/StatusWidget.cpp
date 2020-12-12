@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "Pch.h"
+#include "Plugin.h"
 #include "StatusWidget.h"
 
 #include <qevent.h>
@@ -9,10 +10,16 @@
 #include <qpaintdevice.h>
 
 namespace forms {
-  constexpr int ksizeOffset = 3;
-  constexpr int kseperatorOffset = 6;
 
-  StatusWidget::StatusWidget(QWidget *parent) :
+  namespace {
+	// vertical size of objects
+	constexpr int ksizeOffset = 3;
+
+	// space between items
+	constexpr int kseperatorOffset = 6;
+  } // namespace
+
+  StatusWidget::StatusWidget(QWidget *parent, Plugin &plugin) :
       QWidget(parent)
   {
 	setAttribute(Qt::WA_PaintOnScreen);
@@ -32,8 +39,27 @@ namespace forms {
 	_labelUserText->setText("1");
 
 	SetLabelIcon(*_labelUserIcon, ":/user");
+	SetDisconnected();
 
-	OnDisconnect(0);
+	connect(&plugin.session(), &SyncSession::TransportStateChange, this, [&](SyncSession::TransportState newState) {
+	  switch(newState) {
+	  case SyncSession::TransportState::ACTIVE:
+		return SetConnected();
+	  case SyncSession::TransportState::DISABLED:
+		return SetDisconnected();
+	  case SyncSession::TransportState::PENDING:
+		return SetPending();
+	  default:
+		break;
+	  }
+	});
+
+	connect(&plugin.session(), &SyncSession::SessionNotification, this, [&](SyncSession::NotificationCode code) {
+	  if(code == SyncSession::NotificationCode::USER_JOIN ||
+	     code == SyncSession::NotificationCode::USER_QUIT) {
+		_labelUserText->setText(QString::number(plugin.session().UserCount()));
+	  }
+	});
   }
 
   void StatusWidget::SetLabelIcon(QLabel &labelIcon, const QString &iconName)
@@ -60,25 +86,27 @@ namespace forms {
 	return QSize(width, _labelConnectText->sizeHint().height());
   }
 
-  void StatusWidget::OnConnected()
+  void StatusWidget::SetConnected()
   {
 	SetLabelIcon(*_labelConnectIcon, ":/globe_green");
 	_labelConnectText->setText("<font color='green'>Connected</font>");
 	updateGeometry();
   }
 
-  void StatusWidget::OnDisconnect(uint32_t r)
+  void StatusWidget::SetPending()
+  {
+	SetLabelIcon(*_labelConnectIcon, ":/spinner");
+	_labelConnectText->setText("<font color='orange'>Connecting</font>");
+	updateGeometry();
+  }
+
+  void StatusWidget::SetDisconnected()
   {
 	_labelUserText->setText("1");
 
 	SetLabelIcon(*_labelConnectIcon, ":/globe_red");
 	_labelConnectText->setText("<font color='red'>Disconnected</font>");
 	updateGeometry();
-  }
-
-  void StatusWidget::OnAnnounce(int count)
-  {
-	_labelUserText->setText(QString::number(count));
   }
 
   void StatusWidget::paintEvent(QPaintEvent *paintEvent)

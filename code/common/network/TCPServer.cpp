@@ -24,7 +24,7 @@ namespace network {
   {
 	_port = -1;
 
-	for(int32_t i = 0; i < constants::kServerDiscoveryPortRange; i++) {
+	for(int32_t i = 0; i < kDefaultPortRange; i++) {
 	  if(_acc.open(port)) {
 		_port = port;
 		break;
@@ -38,10 +38,10 @@ namespace network {
 	  _acc.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
 	}
 
-	return port;
+	return _port;
   }
 
-  bool TCPServer::Drop(connectid_t cid)
+  bool TCPServer::DropPeer(connectid_t cid)
   {
 	if(TCPPeer *peer = PeerById(cid)) {
 	  peer->sock.close();
@@ -89,6 +89,7 @@ namespace network {
 
   void TCPServer::Tick()
   {
+	// listen for incoming connections
 	sockpp::tcp_socket sock = _acc.accept(&_addr);
 	if(sock.is_open()) {
 	  TCPPeer &peer = _peers.emplace_back(sock);
@@ -98,6 +99,7 @@ namespace network {
 	  _consumer.OnConnection(peer.id);
 	}
 
+	// process peers
 	for(auto it = _peers.begin(); it != _peers.end(); ++it) {
 	  if(!it->open()) {
 		_consumer.OnDisconnection(it->id);
@@ -112,11 +114,22 @@ namespace network {
 	  }
 	}
 
+	// work out queue
 	while(auto *packet = _queue.pop(&Packet::key)) {
-	  if(TCPPeer *peer = PeerById(packet->cid)) {
-		peer->sock.write_n(
-		    packet->buffer.GetBufferPointer(),
-		    packet->buffer.GetSize());
+	  // dispatch to everyone
+	  if(packet->cid == kAllConnectId) {
+		for(auto &peer : _peers) {
+		  peer.sock.write_n(
+		      packet->buffer.GetBufferPointer(),
+		      packet->buffer.GetSize());
+		}
+	  }
+	  else {
+		if(TCPPeer *peer = PeerById(packet->cid)) {
+		  peer->sock.write_n(
+		      packet->buffer.GetBufferPointer(),
+		      packet->buffer.GetSize());
+		}
 	  }
 
 	  _packetPool.destruct(packet);

@@ -2,4 +2,5 @@
 
 include("network")
 include("database")
+include("protocol")
 include("utility")

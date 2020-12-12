@@ -15,6 +15,7 @@
 #include <QMainWindow>
 
 #include "forms/StatusWidget.h"
+#include "forms/Settings.h"
 #include "forms/RunDialog.h"
 #include "features/FeatureDispatch.h"
 
@@ -62,14 +63,13 @@ UiShell::UiShell(Plugin &plugin) :
   QMenu *syncMenu = window->menuBar()->addMenu("RESync");
   _cnAct = syncMenu->addAction("Connect");
   syncMenu->addSeparator();
-  //syncMenu->addAction("Settings", this, &UiShell)
-
-  //syncMenu->addAction(QIcon(":/cog"), "Settings", this, &UiView::OpenSettings);
+  _stAct = syncMenu->addAction(QIcon(":/cog"), "Settings");
 
   _wastedTime.reset(new QLabel(""));
-  _statusForm.reset(new forms::StatusWidget(window->statusBar()));
+  _statusForm.reset(new forms::StatusWidget(window->statusBar(), plugin));
 
   _wastedTime->hide();
+  _cnAct->setEnabled(false);
 
   _timer.reset(new QTimer());
 
@@ -81,12 +81,25 @@ UiShell::UiShell(Plugin &plugin) :
   connect(_timer.data(), &QTimer::timeout, this, &UiShell::Tick);
   connect(_cnAct, &QAction::triggered, &_plugin, &Plugin::ToggleNet);
 
+  connect(_stAct, &QAction::triggered, this, [&]() {
+	forms::Settings dia(plugin.client().Connected(), GetTopWidget());
+	dia.exec();
+  });
+
   connect(this, &UiShell::ShellStateChange, this, [&](ShellState newState) {
 	if(newState == ShellState::IN_DB)
 	  _cnAct->setEnabled(true);
 
 	if(newState == ShellState::NO_DB)
 	  _cnAct->setEnabled(false);
+  });
+
+  connect(&_plugin.session(), &SyncSession::TransportStateChange, this, [&](SyncSession::TransportState newState) {
+	if(newState == SyncSession::TransportState::ACTIVE)
+	  _cnAct->setText("Disconnect");
+
+	if(newState == SyncSession::TransportState::DISABLED)
+	  _cnAct->setText("Connect");
   });
 }
 

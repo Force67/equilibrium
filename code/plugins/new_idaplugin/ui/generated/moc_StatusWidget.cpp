@@ -20,8 +20,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_forms__StatusWidget_t {
-    QByteArrayData data[6];
-    char stringdata0[66];
+    QByteArrayData data[1];
+    char stringdata0[20];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -30,16 +30,10 @@ struct qt_meta_stringdata_forms__StatusWidget_t {
     )
 static const qt_meta_stringdata_forms__StatusWidget_t qt_meta_stringdata_forms__StatusWidget = {
     {
-QT_MOC_LITERAL(0, 0, 19), // "forms::StatusWidget"
-QT_MOC_LITERAL(1, 20, 11), // "OnConnected"
-QT_MOC_LITERAL(2, 32, 0), // ""
-QT_MOC_LITERAL(3, 33, 12), // "OnDisconnect"
-QT_MOC_LITERAL(4, 46, 8), // "uint32_t"
-QT_MOC_LITERAL(5, 55, 10) // "OnAnnounce"
+QT_MOC_LITERAL(0, 0, 19) // "forms::StatusWidget"
 
     },
-    "forms::StatusWidget\0OnConnected\0\0"
-    "OnDisconnect\0uint32_t\0OnAnnounce"
+    "forms::StatusWidget"
 };
 #undef QT_MOC_LITERAL
 
@@ -49,38 +43,22 @@ static const uint qt_meta_data_forms__StatusWidget[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   14, // methods
+       0,    0, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        0,       // signalCount
 
- // slots: name, argc, parameters, tag, flags
-       1,    0,   29,    2, 0x0a /* Public */,
-       3,    1,   30,    2, 0x0a /* Public */,
-       5,    1,   33,    2, 0x0a /* Public */,
-
- // slots: parameters
-    QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 4,    2,
-    QMetaType::Void, QMetaType::Int,    2,
-
        0        // eod
 };
 
 void forms::StatusWidget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        StatusWidget *_t = static_cast<StatusWidget *>(_o);
-        Q_UNUSED(_t)
-        switch (_id) {
-        case 0: _t->OnConnected(); break;
-        case 1: _t->OnDisconnect((*reinterpret_cast< uint32_t(*)>(_a[1]))); break;
-        case 2: _t->OnAnnounce((*reinterpret_cast< int(*)>(_a[1]))); break;
-        default: ;
-        }
-    }
+    Q_UNUSED(_o);
+    Q_UNUSED(_id);
+    Q_UNUSED(_c);
+    Q_UNUSED(_a);
 }
 
 const QMetaObject forms::StatusWidget::staticMetaObject = {
@@ -107,15 +85,6 @@ int forms::StatusWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     _id = QWidget::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 3)
-            qt_static_metacall(this, _c, _id, _a);
-        _id -= 3;
-    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 3)
-            *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 3;
-    }
     return _id;
 }
 QT_END_MOC_NAMESPACE

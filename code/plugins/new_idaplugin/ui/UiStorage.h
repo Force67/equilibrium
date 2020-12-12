@@ -12,6 +12,8 @@ public:
   void Save();
   void Load();
 
+  static bool SeenBefore();
+
 private:
   static ssize_t idaapi Event(void *, int, va_list);
 

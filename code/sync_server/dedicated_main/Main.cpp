@@ -10,7 +10,7 @@ using namespace std::chrono_literals;
 
 int main(int argc, char **argv)
 {
-  std::puts("Initializing NODA");
+  std::puts("<<DedicatedMain Init>>");
 
   noda::Server::SetLogCallback([](const char* text) {
 	  std::puts(text);
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
   noda::Server server;
   auto result = server.Initialize(true);
   if(result != noda::ServerStatus::Success) {
-	std::printf("Failed to initialize the server instance (status: %d)\n",
+	std::printf("[Error] DedicatedMain() -> Failed to initialize server (errc: %d)\n",
 	            static_cast<int>(result));
 	return 0;
   }

@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "TCPPeer.h"
-#include "flatbuffers/flatbuffers.h"
+#include "TcpPeer.h"
+#include "NetBuffer.h"
 
 #include <utility/ObjectPool.h>
 #include <utility/DetachedQueue.h>
@@ -24,22 +24,22 @@ namespace network {
   public:
 	explicit TCPServer(TCPServerConsumer &consumer);
 
-	// range describes how much the port may shift if it cant host
-	// on a particular port.
+	// returns the actual host within the port range
 	int16_t Host(int16_t port);
 
 	void Tick();
 
-	bool Drop(connectid_t);
+	bool DropPeer(connectid_t);
+	TCPPeer *PeerById(connectid_t);
 
 	void SendPacket(connectid_t cid,
 	                protocol::MsgType type,
 	                FbsBuffer &buffer,
 	                FbsRef<void> packet);
 
-	void BroadcastPacket(const uint8_t *data, size_t size, connectid_t excluder = invalid_connectid);
+	// not threadsafe
+	void BroadcastPacket(const uint8_t *data, size_t size, connectid_t excluder = kInvalidConnectId);
 
-	TCPPeer *PeerById(connectid_t);
 
 	int16_t Port() const
 	{
@@ -47,8 +47,6 @@ namespace network {
 	}
 
   private:
-	// named after martin who discovered
-	// a true source of randomness
 	uint32_t GetMartinsRandomSeed();
 
 	sockpp::tcp_acceptor _acc;

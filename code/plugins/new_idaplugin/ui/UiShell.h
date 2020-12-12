@@ -70,4 +70,5 @@ private:
   uint32_t _tick = 0;
 
   QAction *_cnAct = nullptr;
+  QAction *_stAct = nullptr;
 };

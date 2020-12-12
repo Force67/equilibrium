@@ -4,20 +4,21 @@
 
 #include <qlabel.h>
 
+class Plugin;
+
 namespace forms {
   class StatusWidget final : public QWidget {
 	Q_OBJECT;
 
   public:
-	StatusWidget(QWidget *parent);
+	StatusWidget(QWidget *parent, Plugin &);
 	~StatusWidget() = default;
 
-  public slots:
-	void OnConnected();
-	void OnDisconnect(uint32_t);
-	void OnAnnounce(int);
-
   private:
+	void SetConnected();
+	void SetPending();
+	void SetDisconnected();
+
 	void paintEvent(QPaintEvent *) override;
 	QSize sizeHint() const override;
 

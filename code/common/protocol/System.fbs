@@ -18,25 +18,6 @@ enum DisconnectReason : uint
     TimedOut,
 }
 
-enum UserPermissions : ubyte (bit_flags) {
-  Guest,
-  Reporter,
-  Developer,
-  Master
-}
-
-table HandshakeRequest {
-  protocolVersion:ushort;
-  token:string;
-  guid:string;
-  name:string;
-}
-
-table HandshakeAck {
-  perms:UserPermissions;
-  numUsers:int;
-}
-
 enum AnnounceType : byte
 {
     FirstJoin,

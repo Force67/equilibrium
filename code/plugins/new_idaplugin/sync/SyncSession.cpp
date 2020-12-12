@@ -9,6 +9,7 @@
 
 #include "utils/Logger.h"
 
+#include <QTimer>
 #include <QSettings>
 
 SyncSession::SyncSession(Plugin &plugin) :
@@ -16,6 +17,12 @@ SyncSession::SyncSession(Plugin &plugin) :
     _service(*this)
 {
   _state = TransportState::DISABLED;
+
+  _timeout.reset(new QTimer());
+
+  connect(_timeout.data(), &QTimer::timeout, this, [&]() {
+	SetTransportState(TransportState::DISABLED);
+  });
 }
 
 SyncSession::~SyncSession()
@@ -57,6 +64,11 @@ void SyncSession::SetTransportState(TransportState newState)
   }
 }
 
+int SyncSession::UserCount() const
+{
+  return _userCount;
+}
+
 void SyncSession::LoginUser()
 {
   QString name, guid = sync_utils::GetUserGuid();
@@ -68,7 +80,7 @@ void SyncSession::LoginUser()
 
   network::FbsBuffer buffer;
   auto request = protocol::CreateHandshakeRequest(
-      buffer, network::constants::kClientVersion,
+      buffer, network::kClientVersion,
       buffer.CreateSharedString(""),
       sync_utils::CreateFbStringRef(buffer, guid),
       sync_utils::CreateFbStringRef(buffer, name));
@@ -76,22 +88,60 @@ void SyncSession::LoginUser()
   _plugin.client().SendPacket(protocol::MsgType_HandshakeRequest, buffer, request.Union());
 
   SetTransportState(TransportState::PENDING);
+
+  // give the server 5 seconds to respond
+  _timeout->start(5000);
 }
 
 void SyncSession::HandleAuthAck(const protocol::MessageRoot *root)
 {
+  _timeout->stop();
+
   const protocol::HandshakeAck *msg = root->msg_as_HandshakeAck();
+  _userCount = 1;
 
   LOG_INFO("Joined session. {} users online.", msg->numUsers());
 
   SetTransportState(TransportState::ACTIVE);
 }
 
+void SyncSession::HandleUserEvent(const protocol::MessageRoot *root)
+{
+  const protocol::UserEvent *msg = root->msg_as_UserEvent();
+
+  LOG_TRACE("HandleUserEvent() -> {}",
+            protocol::EnumNameUserEventType(msg->type()));
+
+  if(msg->type() == protocol::UserEventType_Join) {
+	_userCount++;
+	emit SessionNotification(NotificationCode::USER_JOIN);
+  }
+
+  if(msg->type() == protocol::UserEventType_Quit) {
+	if(_userCount - 1 < 1) {
+	  LOG_WARNING("HandleUserEvent() -> NetCrime: less than one user not possible");
+	  return;
+	}
+
+	_userCount--;
+	emit SessionNotification(NotificationCode::USER_QUIT);
+  }
+}
+
 void SyncSession::ConsumeMessage(const uint8_t *ptr, size_t len)
 {
-  const protocol::MessageRoot *message = protocol::GetMessageRoot(static_cast<const void *>(ptr));
-  if(message->msg_type() == protocol::MsgType_HandshakeAck) {
+  const protocol::MessageRoot *message =
+      protocol::GetMessageRoot(static_cast<const void *>(ptr));
+
+  LOG_TRACE("ConsumeMessage() -> {}", protocol::EnumNameMsgType(message->msg_type()));
+
+  switch(message->msg_type()) {
+  case protocol::MsgType_HandshakeAck:
 	return HandleAuthAck(message);
+  case protocol::MsgType_UserEvent:
+	return HandleUserEvent(message);
+  default:
+	break;
   }
 
   // if the message could be applied successfully we mark it in the IDB storage.

@@ -18,10 +18,8 @@ public:
 
   bool ToggleNet();
 
-  auto &client()
-  {
-	return _client;
-  }
+  NetClient &client();
+  SyncSession &session();
 
 private:
   NetClient _client;

@@ -30,6 +30,11 @@ int UiStorage::GetTick() const
   return _tick;
 }
 
+bool UiStorage::SeenBefore()
+{
+  return noda::NetNode(kStorageNodeId, false).open();
+}
+
 void UiStorage::Load()
 {
   _node = noda::NetNode(kStorageNodeId);

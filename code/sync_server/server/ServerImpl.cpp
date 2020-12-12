@@ -13,7 +13,7 @@ namespace noda {
       _dataHandler(*this),
       _tickTime(std::chrono::high_resolution_clock::now())
   {
-	_server.Host(port == 0 ? network::constants::kServerPort : port);
+	_server.Host(port == 0 ? network::kDefaultServerPort : port);
   }
 
   ServerStatus ServerImpl::Initialize(bool useStorage)
@@ -21,7 +21,7 @@ namespace noda {
 	if(_server.Port() == -1)
 	  return ServerStatus::NetError;
 
-	LOG_INFO("Initialized server on port {}", _server.Port());
+	LOG_INFO("Welcome to Sync Server (port: {})", _server.Port());
 
 	if(useStorage) {
 	  // TODO: more result codes
@@ -73,22 +73,31 @@ namespace noda {
   {
 	auto *packet = message->msg_as_HandshakeRequest();
 
-	if(packet->protocolVersion() < network::constants::kClientVersion) {
+	const std::string userName = packet->name()->str();
+
+	if(packet->protocolVersion() < network::kClientVersion) {
 	  _server.Drop(cid);
+	  LOG_WARNING("HandleAuth: Dropped client {}:{} for invalid protocolVersion", 
+		  cid, userName);
 	  return;
 	}
 
 	if(packet->token()->str() != _loginToken) {
 	  _server.Drop(cid);
+	  LOG_WARNING("HandleAuth: Dropped client {}:{} for invalid loginToken",
+	              cid, userName);
 	  return;
 	}
 
-	for(auto &it : _userRegistry) {
+	// BUGGED LOGIC...
+	{
 	  network::FbsBuffer buffer;
-	  auto pack = protocol::CreateAnnouncement(buffer, protocol::AnnounceType_Joined,
-	                                           buffer.CreateString(packet->name()->str()));
+	  auto pack = protocol::CreateUserEvent(
+		  buffer, protocol::UserEventType_Join, 
+		  _userRegistry.UserCount() + 1, 
+		  buffer.CreateString(packet->name()->str()));
 
-	  _server.SendPacket(it->Id(), protocol::MsgType_Announcement, buffer, pack.Union());
+	  _server.SendPacket(network::kAllConnectId, protocol::MsgType_UserEvent, buffer, pack.Union());
 	}
 
 	userptr_t user = _userRegistry.AddUser(cid, packet->name()->str(), packet->guid()->str());

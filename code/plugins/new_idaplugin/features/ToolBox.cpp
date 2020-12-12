@@ -6,15 +6,14 @@
 #include "utils/Opt.h"
 
 namespace {
-// Somethin
-utils::Opt<bool> ToolCache{ false, "Nd_PatternCache" };
-}
+  // Somethin
+  utils::Opt<bool> ToolCache{ false, "Nd_PatternCache" };
+} // namespace
 
 // s_mToolBox;
 
 ToolBox::ToolBox()
 {
-
 }
 
 ToolBox::~ToolBox()
@@ -26,6 +25,4 @@ void ToolBox::RegisterPattern(const std::string &pat)
   bool shouldCache = ToolCache;
   if(!shouldCache)
 	return;
-
-
 }

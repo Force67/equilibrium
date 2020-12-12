@@ -20,8 +20,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_SyncSession_t {
-    QByteArrayData data[5];
-    char stringdata0[58];
+    QByteArrayData data[6];
+    char stringdata0[86];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -34,11 +34,13 @@ QT_MOC_LITERAL(0, 0, 11), // "SyncSession"
 QT_MOC_LITERAL(1, 12, 20), // "TransportStateChange"
 QT_MOC_LITERAL(2, 33, 0), // ""
 QT_MOC_LITERAL(3, 34, 14), // "TransportState"
-QT_MOC_LITERAL(4, 49, 8) // "newState"
+QT_MOC_LITERAL(4, 49, 19), // "SessionNotification"
+QT_MOC_LITERAL(5, 69, 16) // "NotificationCode"
 
     },
     "SyncSession\0TransportStateChange\0\0"
-    "TransportState\0newState"
+    "TransportState\0SessionNotification\0"
+    "NotificationCode"
 };
 #undef QT_MOC_LITERAL
 
@@ -48,18 +50,20 @@ static const uint qt_meta_data_SyncSession[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       2,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       1,       // signalCount
+       2,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    1,   19,    2, 0x06 /* Public */,
+       1,    1,   24,    2, 0x06 /* Public */,
+       4,    1,   27,    2, 0x06 /* Public */,
 
  // signals: parameters
-    QMetaType::Void, 0x80000000 | 3,    4,
+    QMetaType::Void, 0x80000000 | 3,    2,
+    QMetaType::Void, 0x80000000 | 5,    2,
 
        0        // eod
 };
@@ -71,6 +75,7 @@ void SyncSession::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->TransportStateChange((*reinterpret_cast< TransportState(*)>(_a[1]))); break;
+        case 1: _t->SessionNotification((*reinterpret_cast< NotificationCode(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
@@ -80,6 +85,13 @@ void SyncSession::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
             typedef void (SyncSession::*_t)(TransportState );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SyncSession::TransportStateChange)) {
                 *result = 0;
+                return;
+            }
+        }
+        {
+            typedef void (SyncSession::*_t)(NotificationCode );
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SyncSession::SessionNotification)) {
+                *result = 1;
                 return;
             }
         }
@@ -113,13 +125,13 @@ int SyncSession::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 1)
+        if (_id < 2)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 1;
+        _id -= 2;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 1)
+        if (_id < 2)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 1;
+        _id -= 2;
     }
     return _id;
 }
@@ -129,5 +141,12 @@ void SyncSession::TransportStateChange(TransportState _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
+}
+
+// SIGNAL 1
+void SyncSession::SessionNotification(NotificationCode _t1)
+{
+    void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
+    QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 QT_END_MOC_NAMESPACE

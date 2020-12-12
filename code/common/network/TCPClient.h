@@ -3,6 +3,8 @@
 #pragma once
 
 #include "Netbase.h"
+#include "NetBuffer.h"
+
 #include <sockpp/tcp_connector.h>
 #include <utility/DetachedQueue.h>
 
@@ -56,7 +58,7 @@ namespace network {
 	sockpp::inet_address _addr;
 	sockpp::tcp_connector _conn;
 
-	uint8_t buf[constants::kTCPBufSize]{};
+	uint8_t buf[kTCPBufSize]{};
 	utility::detached_mpsc_queue<OutPacket> _outQueue;
 
 	std::vector<NetworkedClientComponent *> _listeners;

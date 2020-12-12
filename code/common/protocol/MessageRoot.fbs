@@ -2,16 +2,21 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 include "System.fbs";
+include "Session.fbs";
 include "IdaSync.fbs";
 include "StorageModel.fbs";
 include "FileTransfer.fbs";
 
+// This file contains the Root message type that all protocol messages
+// inherit from.
+
 namespace protocol;
 
 union MsgType {
-    // system:
+    // session:
     HandshakeRequest,
     HandshakeAck,
+    UserEvent,
 
     Announcement,
     CreateWorkspace,
