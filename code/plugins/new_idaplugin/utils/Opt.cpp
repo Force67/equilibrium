@@ -9,7 +9,7 @@
 
 namespace utils {
 
-  size_t OptRegistry::Init()
+  size_t OptRegistry::Load()
   {
 	size_t total = 0;
 	QSettings set;
@@ -28,10 +28,25 @@ namespace utils {
 	  }
 
 	  OptRegistry *j = i->next;
-	  i->next = nullptr;
+	 // i->next = nullptr;
 	  i = j;
 	}
 
 	return total;
+  }
+
+  void OptRegistry::Save()
+  {
+	QSettings set;
+
+	for(auto *i = Root(); i;) {
+	  OptBase *item = i->item;
+	  if(item && item->name) {
+		 set.setValue(item->name, item->data);
+	  }
+
+	  OptRegistry *j = i->next;
+	  i = j;
+	}
   }
 } // namespace utils

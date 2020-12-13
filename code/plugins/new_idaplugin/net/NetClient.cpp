@@ -26,6 +26,9 @@ bool IsOnNetThread()
 
 NetClient *GNetClient()
 {
+  if(!s_NetClient)
+	__debugbreak();
+
   return s_NetClient;
 }
 

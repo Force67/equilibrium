@@ -9,6 +9,7 @@
 #include "net/NetClient.h"
 
 #include "protocol/generated/MessageRoot_generated.h"
+#include "protocol/generated/IdaSync_generated.h"
 
 namespace sync {
   using namespace protocol::sync;

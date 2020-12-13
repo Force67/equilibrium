@@ -155,7 +155,7 @@ void SyncSession::ConsumeMessage(const uint8_t *ptr, size_t len)
   }
 
   // if the message could be applied successfully we mark it in the IDB storage.
-  bool result = _service.ProcessMessage(message);
+  bool result = _service.ProcessNetMessage(message);
   if(result) {
 	_storage.BumpVersion();
   }

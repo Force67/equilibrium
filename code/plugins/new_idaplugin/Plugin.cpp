@@ -86,7 +86,7 @@ namespace {
 
   int idaapi PluginInit()
   {
-	const size_t optCount = utils::OptRegistry::Init();
+	const size_t optCount = utils::OptRegistry::Load();
 	LOG_TRACE("Registered {} opts", optCount);
 
 	g_Plugin = new Plugin();
@@ -95,6 +95,8 @@ namespace {
 
   void idaapi PluginTerm()
   {
+	utils::OptRegistry::Save();
+
 	if(g_Plugin)
 	  delete g_Plugin;
   }

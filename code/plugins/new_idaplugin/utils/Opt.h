@@ -16,7 +16,8 @@ namespace utils {
 	explicit OptRegistry(OptBase *handler) noexcept;
 
 	// initialize values for OPTS
-	static size_t Init();
+	static size_t Load();
+	static void Save();
 
   private:
 	static OptRegistry *&Root() noexcept;

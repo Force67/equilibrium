@@ -58,7 +58,7 @@ namespace network {
 	_conn.reset();
   }
 
-  void TCPClient::SendPacket(pt::MsgType type, FbsBuffer &buf, FbsRef<void> ref)
+  bool TCPClient::SendPacket(pt::MsgType type, FbsBuffer &buf, FbsRef<void> ref)
   {
 	const auto packet = protocol::CreateMessageRoot(buf, type, ref);
 	buf.Finish(packet);
@@ -67,6 +67,8 @@ namespace network {
 	item->buffer = std::move(buf);
 
 	_outQueue.push(&item->key);
+
+	return true;
   }
 
   bool TCPClient::Update()

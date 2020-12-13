@@ -44,9 +44,13 @@ namespace noda {
 	if(!protocol::VerifyMessageRootBuffer(verifier))
 	  return;
 
-	const auto *message = protocol::GetMessageRoot(static_cast<const void *>(ptr));
-	if(message->msg_type() == protocol::MsgType_HandshakeRequest)
-	  return HandleAuth(cid, message);
+	const protocol::MessageRoot *root = 
+		protocol::GetMessageRoot(static_cast<const void *>(ptr));
+
+	LOG_TRACE("ConsumeMessage() -> {}", protocol::EnumNameMsgType(root->msg_type()));
+
+	if(root->msg_type() == protocol::MsgType_HandshakeRequest)
+	  return HandleAuth(cid, root);
 
 	_dataHandler.QueueTask(cid, ptr, size);
 	_server.BroadcastPacket(ptr, size, cid);

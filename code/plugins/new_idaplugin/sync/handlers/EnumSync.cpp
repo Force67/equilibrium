@@ -30,8 +30,8 @@ namespace sync::create_enum {
 	network::FbsBuffer buf;
 	auto pack = CreateCreateEnumDirect(buf, index, name.c_str());
 
-	GNetClient()->SendPacket(protocol::MsgType_sync_CreateEnum, buf, pack.Union());
-	return true;
+	return GNetClient()->
+		SendPacket(protocol::MsgType_sync_CreateEnum, buf, pack.Union());
   }
 
   static StaticHandler handler{
@@ -66,8 +66,8 @@ namespace sync::delete_enum {
 	network::FbsBuffer buf;
 	auto pack = CreateDeleteEnumDirect(buf, name.c_str());
 
-	GNetClient()->SendPacket(protocol::MsgType_sync_DeleteEnum, buf, pack.Union());
-	return true;
+	return GNetClient()->
+		SendPacket(protocol::MsgType_sync_DeleteEnum, buf, pack.Union());
   }
 
   static StaticHandler handler{

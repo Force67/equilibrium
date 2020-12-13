@@ -15,6 +15,9 @@
 #include <kernwin.hpp>
 #include <loader.hpp>
 #include <netnode.hpp>
+#include <name.hpp>
+#include <enum.hpp>
+#include <struct.hpp>
 
 #pragma warning(pop)
 

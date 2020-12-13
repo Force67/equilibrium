@@ -38,7 +38,7 @@ namespace network {
 	void Disconnect();
 
 	// thread safe
-	void SendPacket(pt::MsgType, FbsBuffer &buf, FbsRef<void> ref);
+	bool SendPacket(pt::MsgType, FbsBuffer &buf, FbsRef<void> ref);
 
 	void RegisterComponent(NetworkedClientComponent *);
 
