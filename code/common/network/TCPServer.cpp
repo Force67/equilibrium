@@ -117,7 +117,7 @@ namespace network {
 	// work out queue
 	while(auto *packet = _queue.pop(&Packet::key)) {
 	  // dispatch to everyone
-	  if(packet->cid == kAllConnectId) {
+	/*  if(packet->cid == kAllConnectId) {
 		for(auto &peer : _peers) {
 		  peer.sock.write_n(
 		      packet->buffer.GetBufferPointer(),
@@ -130,6 +130,12 @@ namespace network {
 		      packet->buffer.GetBufferPointer(),
 		      packet->buffer.GetSize());
 		}
+	  }*/
+
+	if(TCPPeer *peer = PeerById(packet->cid)) {
+		peer->sock.write_n(
+		    packet->buffer.GetBufferPointer(),
+		    packet->buffer.GetSize());
 	  }
 
 	  _packetPool.destruct(packet);

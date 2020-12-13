@@ -17,6 +17,12 @@ namespace {
 } // namespace
 
 static NetClient *s_NetClient{ nullptr };
+static Qt::HANDLE s_netThreadId{ nullptr };
+
+bool IsOnNetThread()
+{
+  return s_netThreadId == QThread::currentThreadId();
+}
 
 NetClient *GNetClient()
 {
@@ -30,7 +36,9 @@ NetClient::NetClient()
 
 NetClient::~NetClient()
 {
-  Stop();
+  if(_runState)
+	  Stop();
+
   s_NetClient = nullptr;
 }
 
@@ -52,6 +60,8 @@ bool NetClient::Start()
 
 void NetClient::run()
 {
+  s_netThreadId = QThread::currentThreadId();
+
   while(_runState) {
 	// when we get disconnected, the tcpclient
 	// updates the runstate to false
@@ -59,6 +69,8 @@ void NetClient::run()
 
 	QThread::msleep(_idleSetting);
   }
+
+  s_netThreadId = nullptr;
 }
 
 void NetClient::Stop()

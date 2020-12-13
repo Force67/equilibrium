@@ -76,28 +76,27 @@ namespace noda {
 	const std::string userName = packet->name()->str();
 
 	if(packet->protocolVersion() < network::kClientVersion) {
-	  _server.Drop(cid);
+	  _server.DropPeer(cid);
 	  LOG_WARNING("HandleAuth: Dropped client {}:{} for invalid protocolVersion", 
 		  cid, userName);
 	  return;
 	}
 
 	if(packet->token()->str() != _loginToken) {
-	  _server.Drop(cid);
+	  _server.DropPeer(cid);
 	  LOG_WARNING("HandleAuth: Dropped client {}:{} for invalid loginToken",
 	              cid, userName);
 	  return;
 	}
 
-	// BUGGED LOGIC...
-	{
-	  network::FbsBuffer buffer;
+	for (auto& it : _userRegistry) {
+	  network::FbsBuffer buf;
 	  auto pack = protocol::CreateUserEvent(
-		  buffer, protocol::UserEventType_Join, 
-		  _userRegistry.UserCount() + 1, 
-		  buffer.CreateString(packet->name()->str()));
+	      buf, protocol::UserEventType_Join,
+	      _userRegistry.UserCount() + 1,
+	      buf.CreateString(packet->name()->str()));
 
-	  _server.SendPacket(network::kAllConnectId, protocol::MsgType_UserEvent, buffer, pack.Union());
+	  _server.SendPacket(it->Id(), protocol::MsgType_UserEvent, buf, pack.Union());
 	}
 
 	userptr_t user = _userRegistry.AddUser(cid, packet->name()->str(), packet->guid()->str());

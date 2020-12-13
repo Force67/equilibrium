@@ -100,7 +100,7 @@ UiShell::UiShell(Plugin &plugin) :
 
 	if(newState == SyncSession::TransportState::DISABLED)
 	  _cnAct->setText("Connect");
-  });
+  }, Qt::QueuedConnection);
 }
 
 UiShell::~UiShell()

@@ -91,18 +91,28 @@ void SyncSession::LoginUser()
 
   // give the server 5 seconds to respond
   _timeout->start(5000);
+
+  // TODO: think about making timeout stuff a client feature...
+  _timeout->moveToThread(&_plugin.client());
+}
+
+void SyncSession::LogOff()
+{
+	// TODO: send IQUIT
+  SetTransportState(TransportState::DISABLED);
 }
 
 void SyncSession::HandleAuthAck(const protocol::MessageRoot *root)
 {
   _timeout->stop();
+  SetTransportState(TransportState::ACTIVE);
 
   const protocol::HandshakeAck *msg = root->msg_as_HandshakeAck();
-  _userCount = 1;
 
+  _userCount = msg->numUsers();
   LOG_INFO("Joined session. {} users online.", msg->numUsers());
 
-  SetTransportState(TransportState::ACTIVE);
+  emit SessionNotification(NotificationCode::USERS_JOIN);
 }
 
 void SyncSession::HandleUserEvent(const protocol::MessageRoot *root)

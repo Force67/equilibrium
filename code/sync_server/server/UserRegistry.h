@@ -12,11 +12,11 @@ namespace noda {
 
   class User {
   public:
-	explicit User(uint32_t id, std::string name, std::string guid);
+	explicit User(network::connectid_t cid, std::string name, std::string guid);
 
-	uint32_t Id() const
+	network::connectid_t Id() const
 	{
-	  return _netId;
+	  return _cid;
 	}
 
 	auto &Name() const
@@ -30,7 +30,7 @@ namespace noda {
 	}
 
   private:
-	uint32_t _netId;
+	network::connectid_t _cid;
 
 	std::string _guid;
 	std::string _name;

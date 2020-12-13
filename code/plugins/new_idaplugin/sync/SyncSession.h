@@ -34,11 +34,13 @@ public:
 
   enum class NotificationCode {
 	USER_JOIN,
+	USERS_JOIN,
 	USER_QUIT,
 	USER_HINT,
   };
 
   void LoginUser();
+  void LogOff();
 
   static const char *TransportStateToString(TransportState);
   const char *CurrentTransportStateToString() const;
@@ -48,13 +50,6 @@ signals:
 
   void TransportStateChange(TransportState);
   void SessionNotification(NotificationCode);
-
-  /*
-  Qt VS Tools: QML debug: DISABLED: Non-Qt/MSBuild project
-QObject::connect: Cannot queue arguments of type 'NotificationCode'
-(Make sure 'NotificationCode' is registered using qRegisterMetaType().)
-Der Thread 0x4448 hat mit Code 0 (0x0) geendet.
-  */
 
 private:
   void SetTransportState(TransportState state);
@@ -74,4 +69,7 @@ private:
   int _userCount = 1;
 
   QScopedPointer<QTimer> _timeout;
+
+  Q_ENUM(SyncSession::TransportState)
+  Q_ENUM(SyncSession::NotificationCode)
 };

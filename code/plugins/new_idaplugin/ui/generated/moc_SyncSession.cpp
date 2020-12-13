@@ -65,6 +65,10 @@ static const uint qt_meta_data_SyncSession[] = {
     QMetaType::Void, 0x80000000 | 3,    2,
     QMetaType::Void, 0x80000000 | 5,    2,
 
+ // enums: name, flags, count, data
+
+ // enum data: key, value
+
        0        // eod
 };
 

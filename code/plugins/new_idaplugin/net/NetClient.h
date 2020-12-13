@@ -19,6 +19,9 @@ private:
   int _idleSetting = 0;
   bool _runState = false;
   network::Context _ctx;
+
+  static Qt::HANDLE s_Handle;
 };
 
 NetClient *GNetClient();
+bool IsOnNetThread();

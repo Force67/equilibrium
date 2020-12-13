@@ -52,14 +52,15 @@ namespace forms {
 	  default:
 		break;
 	  }
-	});
+	}, Qt::QueuedConnection);
 
 	connect(&plugin.session(), &SyncSession::SessionNotification, this, [&](SyncSession::NotificationCode code) {
 	  if(code == SyncSession::NotificationCode::USER_JOIN ||
+		 code == SyncSession::NotificationCode::USERS_JOIN ||
 	     code == SyncSession::NotificationCode::USER_QUIT) {
 		_labelUserText->setText(QString::number(plugin.session().UserCount()));
 	  }
-	});
+	}, Qt::QueuedConnection);
   }
 
   void StatusWidget::SetLabelIcon(QLabel &labelIcon, const QString &iconName)

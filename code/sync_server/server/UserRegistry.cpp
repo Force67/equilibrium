@@ -5,8 +5,8 @@
 
 namespace noda {
 
-  User::User(uint32_t id, std::string name, std::string guid) :
-      _netId(id)
+  User::User(network::connectid_t id, std::string name, std::string guid) :
+      _cid(id)
   {
 	_name = std::move(name);
 	_guid = std::move(guid);

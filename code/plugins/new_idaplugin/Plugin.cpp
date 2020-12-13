@@ -49,6 +49,7 @@ bool Plugin::ToggleNet()
   if(_client.Connected()) {
 	LOG_TRACE("Plugin::ToggleNet() -> Disconnect");
 
+	_session.LogOff();
 	_client.Stop();
 	return true;
   }
