@@ -30,6 +30,10 @@ SyncSession::~SyncSession()
   _state = TransportState::DISABLED;
 }
 
+SessionStore& SyncSession::Store() {
+  return _storage;
+}
+
 const char *SyncSession::TransportStateToString(TransportState state)
 {
 #define TS_HELPER(x) \

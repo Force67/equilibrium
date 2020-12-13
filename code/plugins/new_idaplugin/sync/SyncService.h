@@ -3,7 +3,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "Pch.h"
+
 #include <map>
+#include <QObject>
 
 class SyncSession;
 
@@ -21,7 +23,9 @@ struct SyncStats {
   int netCount = 0;
 };
 
-class SyncService : exec_request_t {
+class SyncService : QObject, exec_request_t {
+  Q_OBJECT;
+
 public:
   SyncService(SyncSession &);
   ~SyncService();
@@ -34,6 +38,7 @@ private:
   void HandleIDAEvent(hook_type_t, int code, va_list args);
 
   void BindStaticHandlers();
+  void SendSessionInfo();
 
   static ssize_t IdbEvent(void *userData, int code, va_list args);
   static ssize_t IdpEvent(void *userData, int code, va_list args);
@@ -42,6 +47,7 @@ private:
 
   SyncSession &_session;
   SyncStats _stats;
+  bool _active = false;
 
   using IdaEventType_t = std::pair<hook_type_t, int>;
   std::map<IdaEventType_t, sync::StaticHandler *> _idaEvents;

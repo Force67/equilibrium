@@ -46,6 +46,8 @@ public:
   const char *CurrentTransportStateToString() const;
 
   int UserCount() const;
+
+  SessionStore &Store();
 signals:
 
   void TransportStateChange(TransportState);

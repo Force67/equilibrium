@@ -78,27 +78,6 @@ namespace noda {
 
 	_localVersion = _node.LoadScalar(NodeIndex::UpdateVersion, 0);
 
-	uchar md5[16]{};
-	bool result = retrieve_input_file_md5(md5);
-	assert(result != false);
-
-	char md5Str[32 + 1]{};
-
-	// convert bytes to str
-	constexpr char lookup[] = "0123456789abcdef";
-	for(int i = 0; i < 16; i++) {
-	  md5Str[i * 2] = lookup[(md5[i]) >> 4 & 0xF];
-	  md5Str[i * 2 + 1] = lookup[(md5[i]) & 0xF];
-	}
-
-	char fileName[128]{};
-	get_root_filename(fileName, sizeof(fileName) - 1);
-
-	network::FbsBuffer buffer;
-	auto request = protocol::CreateLocalProjectInfoDirect(
-	    buffer, md5Str, fileName, _localVersion, !hasPermanentData);
-
-	_client.SendPacket(protocol::MsgType_LocalProjectInfo, buffer, request.Union());
   }
 
   // recv a net message

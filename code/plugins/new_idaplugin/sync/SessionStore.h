@@ -9,6 +9,8 @@ public:
   SessionStore();
   ~SessionStore();
 
+  int LocalVersion() const;
+
   void BumpVersion();
 
 private:

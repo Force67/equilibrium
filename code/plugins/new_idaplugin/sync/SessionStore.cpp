@@ -34,6 +34,10 @@ SessionStore::~SessionStore()
   unhook_from_notification_point(hook_type_t::HT_UI, Event, this);
 }
 
+int SessionStore::LocalVersion() const {
+  return _localVersion;
+}
+
 void SessionStore::BumpVersion()
 {
   _localVersion++;
