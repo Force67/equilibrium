@@ -111,7 +111,7 @@ UiShell::~UiShell()
 void UiShell::HandleEvent(int code, va_list args)
 {
   switch(code) {
-  case ui_notification_t::ui_term:
+  case ui_notification_t::ui_database_closed:
 	SetShellState(ShellState::NO_DB);
 
 	_timer->stop();

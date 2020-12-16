@@ -20,6 +20,7 @@ namespace {
   enum NodeIndex : nodeidx_t {
 	StorageVersion,
 	SessionVersion,
+	WorkspaceInfo,
   };
 } // namespace
 

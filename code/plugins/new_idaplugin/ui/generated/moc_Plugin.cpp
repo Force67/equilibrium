@@ -77,6 +77,8 @@ void *Plugin::qt_metacast(const char *_clname)
     if (!_clname) return Q_NULLPTR;
     if (!strcmp(_clname, qt_meta_stringdata_Plugin.stringdata0))
         return static_cast<void*>(const_cast< Plugin*>(this));
+    if (!strcmp(_clname, "plugmod_t"))
+        return static_cast< plugmod_t*>(const_cast< Plugin*>(this));
     return QObject::qt_metacast(_clname);
 }
 

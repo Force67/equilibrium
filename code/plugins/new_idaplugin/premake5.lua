@@ -5,10 +5,10 @@ filter("configurations:Release")
 
 project("NEWIDAPlugin")
     kind("SharedLib")
-    targetname("Noda_72")
+    targetname("Noda_75")
     include_meta()
-    debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.2")
-    debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.2\\ida64.exe")
+    debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5")
+    debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5\\ida64.exe")
     files({
         "**.cpp",
         "**.h",
@@ -44,6 +44,7 @@ project("NEWIDAPlugin")
         "__NT__", -- < IDA windows NT Target
         "__QT__", -- < IDA QT Target
         "__EA64__", -- < IDA 64 Bit Target (Even ida 32 is 64 bit nowadays)
+        "NO_OBSOLETE_FUNCS", -- < No depricated functions (Target for latest IDA)
 
         -- qt symbol workaround, read more here:
         -- https://www.hex-rays.com/blog/ida-qt-under-the-hood/
@@ -53,15 +54,15 @@ project("NEWIDAPlugin")
         ".",
         "../../common",
         "../../sync_server",
-        blu.extdir .. "/idasdk72/include",
+        blu.extdir .. "/idasdk75/include",
         blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
         blu.extdir .. "/xenium"
     })
     libdirs({
-        blu.extdir .. "/idasdk72/lib/x64_win_vc_64",
-        blu.extdir .. "/idasdk72/lib/x64_win_qt",
+        blu.extdir .. "/idasdk75/lib/x64_win_vc_64",
+        blu.extdir .. "/idasdk75/lib/x64_win_qt",
     })
     qt.enable()
     qtprefix("Qt5")

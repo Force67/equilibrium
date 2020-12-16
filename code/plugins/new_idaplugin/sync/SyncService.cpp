@@ -136,7 +136,7 @@ void SyncService::HandleIDAEvent(hook_type_t type, int code, va_list args)
 bool SyncService::ProcessNetMessage(const protocol::MessageRoot *root)
 {
 
-
+	//root->s
 
   return true;
 }

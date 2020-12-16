@@ -6,15 +6,21 @@
 #include "net/NetClient.h"
 #include "ui/UiShell.h"
 
-class Plugin final : public QObject {
+#include "Pch.h"
+
+class Plugin final : 
+	public QObject,
+    public plugmod_t
+{
   Q_OBJECT;
 
 public:
   Plugin();
-  ~Plugin();
+  ~Plugin() override;
 
   bool Init();
-  void Run();
+
+  bool run(size_t arg);
 
   bool ToggleNet();
 

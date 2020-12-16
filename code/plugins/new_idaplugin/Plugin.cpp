@@ -32,6 +32,7 @@ Plugin::Plugin() :
 
 Plugin::~Plugin()
 {
+  utils::OptRegistry::Save();
 }
 
 NetClient &Plugin::client()
@@ -69,14 +70,20 @@ bool Plugin::Init()
   return true;
 }
 
-void Plugin::Run()
+bool Plugin::run(size_t arg)
 {
+	if (arg != -1) {
+	LOG_TRACE("Plugin::run() -> Arg : {}", arg);
+	  return false;
+  }
+
   if(!auto_is_ok()) {
 	LOG_ERROR("Must wait for Autoanalysis to finish before running.");
-	return;
+	return false;
   }
 
   _shell.RunFeature();
+  return true;
 }
 
 namespace {
@@ -84,29 +91,14 @@ namespace {
 
   Plugin *g_Plugin = nullptr;
 
-  int idaapi PluginInit()
+  plugmod_t* PluginInit()
   {
 	const size_t optCount = utils::OptRegistry::Load();
 	LOG_TRACE("Registered {} opts", optCount);
 
 	g_Plugin = new Plugin();
-	return g_Plugin->Init() ? PLUGIN_KEEP : PLUGIN_SKIP;
-  }
 
-  void idaapi PluginTerm()
-  {
-	utils::OptRegistry::Save();
-
-	if(g_Plugin)
-	  delete g_Plugin;
-  }
-
-  bool idaapi PluginRun(size_t arg)
-  {
-	if(arg != -1)
-	  g_Plugin->Run();
-
-	return true;
+	return g_Plugin->Init() ? g_Plugin : nullptr;
   }
 } // namespace
 
@@ -118,10 +110,11 @@ plugin_t PLUGIN = {
   // This is done to prevent crashes caused by QT moc'd code optimizing string refs into the
   // .rdata section of the DLL, so when the plugin gets unloaded while IDA is still running
   // it brings down the entire application.
-  PLUGIN_FIX,
+  PLUGIN_FIX |  // < plugin is pinned
+  PLUGIN_MULTI, // < plugin works with multiple idbs
   PluginInit,
-  PluginTerm,
-  PluginRun,
+  nullptr,
+  nullptr,
   kPluginComment,
   kPluginComment,
   kPluginName,
