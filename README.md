@@ -1,7 +1,7 @@
 
 <p align="center"><img src="https://i.imgur.com/pwlmRZx.png" width="150" height="150"></p>
 
-# Noda
+# **R**everse **E**ngineering **T**ool**k**it
 > By [Force67](https://github.com/Force67) &middot; [Demo](https://i.imgur.com/pwlmRZx.png)
 > 
 **RETK** is a set of tools designed to enhance your reverse engineering experience. It seamlessly works with IDA Pro and X64Debug.
@@ -18,7 +18,7 @@
 - **Inbuilt Tools**: Noda enhances the reverse engineering experience by adding tools such as PatternTool.
 
 # Setup
-Copy Noda_75.dll into your IDA plugin directory.
+Copy IDA_Retk75.dll into your IDA plugin directory.
 
 # Building
 First, [install Qt 5.6.3](https://download.qt.io/new_archive/qt/5.6/5.6.3/), which is required for the IDA plugin. Then clone the repo, like below:

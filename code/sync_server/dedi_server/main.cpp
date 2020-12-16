@@ -27,7 +27,7 @@ static const char* LogLevelToString(LogLevel ll) {
 }
 
 int main(int argc, char** argv) {
-  fmt::print("<<DedicatedMain Init>\n");
+  fmt::print("<<<- DedicatedMain Init ->>>\n");
 
   // pretty print the log to terminal
   Server::SetLogCallback([](LogLevel ll, const char* text) {

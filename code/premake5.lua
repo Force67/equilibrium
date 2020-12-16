@@ -20,8 +20,8 @@ include("sync_server/dedi_server")
 include("sync_server/server")
 
 group("Plugins")
-include("plugins/idaplugin")
-include("plugins/new_idaplugin")
+include("plugins/ida_plugin")
+include("plugins/old_idaplugin")
 include("plugins/xdbgplugin")
 
 group("Shared")
