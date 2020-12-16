@@ -2,6 +2,4 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-namespace noda {
-
-}
+namespace noda {}

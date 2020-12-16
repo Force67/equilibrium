@@ -5,13 +5,15 @@
 #include "ui/generated/ui_ProgressDialog.h"
 
 namespace noda {
-  class ProgressDialog final : public QDialog, public Ui::ProgressDialog {
-	Q_OBJECT;
+class ProgressDialog final : public QDialog, public Ui::ProgressDialog {
+  Q_OBJECT;
 
-  public:
-	explicit ProgressDialog(QWidget *parent, const QString &title, const QString &desc);
-	~ProgressDialog() = default;
+ public:
+  explicit ProgressDialog(QWidget* parent,
+                          const QString& title,
+                          const QString& desc);
+  ~ProgressDialog() = default;
 
-	void SetProgress(int value, const QString &status);
-  };
-} // namespace noda
+  void SetProgress(int value, const QString& status);
+};
+}  // namespace noda

@@ -7,10 +7,9 @@
 #pragma warning(disable : 4267)
 #pragma warning(disable : 4244)
 
-#include <ida.hpp>
-#include <loader.hpp>
-#include <idp.hpp>
 #include <auto.hpp>
+#include <ida.hpp>
+#include <idp.hpp>
 #include <kernwin.hpp>
 #include <loader.hpp>
 #include <netnode.hpp>

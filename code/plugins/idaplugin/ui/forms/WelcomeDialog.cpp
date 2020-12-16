@@ -1,26 +1,23 @@
 // Copyright (C) NOMAD Group <nomad-group.net>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "Pch.h"
-#include <qsettings.h>
 #include "WelcomeDialog.h"
+#include <qsettings.h>
+#include "Pch.h"
 
 namespace noda {
-  WelcomeDialog::WelcomeDialog() :
-      QDialog(QApplication::activeWindow())
-  {
-	setupUi(this);
+WelcomeDialog::WelcomeDialog() : QDialog(QApplication::activeWindow()) {
+  setupUi(this);
 
-	connect(buttonContinue, &QPushButton::clicked, this, &QDialog::accept);
-	connect(buttonDontShowAgain, &QCheckBox::clicked, [](bool checked) {
-	  QSettings settings;
-	  settings.setValue("Nd_UiSkipWelcome", checked);
-	});
-  }
+  connect(buttonContinue, &QPushButton::clicked, this, &QDialog::accept);
+  connect(buttonDontShowAgain, &QCheckBox::clicked, [](bool checked) {
+    QSettings settings;
+    settings.setValue("Nd_UiSkipWelcome", checked);
+  });
+}
 
-  bool WelcomeDialog::ShouldShow()
-  {
-	QSettings settings;
-	return !settings.value("Nd_UiSkipWelcome", true).toBool();
-  }
-} // namespace noda
+bool WelcomeDialog::ShouldShow() {
+  QSettings settings;
+  return !settings.value("Nd_UiSkipWelcome", true).toBool();
+}
+}  // namespace noda

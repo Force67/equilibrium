@@ -16,7 +16,7 @@ end
 
 -- Legacy component: include("legacy_server")
 group("Server")
-include("sync_server/dedicated_main")
+include("sync_server/dedi_server")
 include("sync_server/server")
 
 group("Plugins")

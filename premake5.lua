@@ -24,8 +24,11 @@ filter("language:C or C++")
 
 filter("language:C++")
     cppdialect("C++17")
+
+filter("system:windows")
+    defines("OS_WIN")
     
-workspace("NODA")
+workspace("RETK")
     configurations({
         "Debug",
         "Release",

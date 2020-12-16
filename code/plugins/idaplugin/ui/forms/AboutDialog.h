@@ -5,11 +5,11 @@
 #include "ui/generated/ui_AboutDialog.h"
 
 namespace noda {
-  class AboutDialog final : public QDialog, public Ui::AboutDialog {
-	Q_OBJECT;
+class AboutDialog final : public QDialog, public Ui::AboutDialog {
+  Q_OBJECT;
 
-  public:
-	AboutDialog(QWidget *parent);
-	~AboutDialog() = default;
-  };
-} // namespace noda
+ public:
+  AboutDialog(QWidget* parent);
+  ~AboutDialog() = default;
+};
+}  // namespace noda

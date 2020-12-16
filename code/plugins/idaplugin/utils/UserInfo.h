@@ -5,6 +5,6 @@
 #include <qstring.h>
 
 namespace noda {
-  const QString &GetDefaultUserName();
-  const QString &GetUserGuid();
-} // namespace noda
+const QString& GetDefaultUserName();
+const QString& GetUserGuid();
+}  // namespace noda

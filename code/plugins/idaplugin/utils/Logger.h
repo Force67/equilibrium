@@ -6,20 +6,14 @@
 #include <string_view>
 
 namespace noda {
-  enum class LogLevel {
-	Trace,
-	Info,
-	Warning,
-	Error
-  };
+enum class LogLevel { Trace, Info, Warning, Error };
 
-  void PrintLogMessageImpl(LogLevel, const char *, const fmt::format_args &);
+void PrintLogMessageImpl(LogLevel, const char*, const fmt::format_args&);
 
-  template <typename... Args>
-  void PrintLogMessage(LogLevel level, const char *format, const Args &... args)
-  {
-	PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
-  }
+template <typename... Args>
+void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
+  PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
+}
 
 #if _DEBUG
 #define LOG_TRACE(...) \
@@ -33,4 +27,4 @@ namespace noda {
   ::noda::PrintLogMessage(::noda::LogLevel::Warning, __VA_ARGS__)
 #define LOG_ERROR(...) \
   ::noda::PrintLogMessage(::noda::LogLevel::Error, __VA_ARGS__)
-} // namespace noda
+}  // namespace noda

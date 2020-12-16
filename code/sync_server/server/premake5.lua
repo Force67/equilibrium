@@ -1,4 +1,4 @@
--- Copyright (c) NOMAD Group<nomad-group.net>
+-- Copyright (c) Force67 <github.com/Force67>.
 
 project("Server")
     kind("StaticLib")
@@ -10,7 +10,7 @@ project("Server")
     links({
         "network",
         "fmtlib",
-        "database",
+        "storage",
         "utility"
     })
     includedirs({

@@ -5,11 +5,11 @@
 #include "ui/generated/ui_NSyncDialog.h"
 
 namespace noda {
-  class NSyncDialog final : public QDialog, public Ui::NSyncDialog {
-	Q_OBJECT;
+class NSyncDialog final : public QDialog, public Ui::NSyncDialog {
+  Q_OBJECT;
 
-  public:
-	NSyncDialog(QWidget *parent);
-	~NSyncDialog() = default;
-  };
-} // namespace noda
+ public:
+  NSyncDialog(QWidget* parent);
+  ~NSyncDialog() = default;
+};
+}  // namespace noda

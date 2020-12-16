@@ -28,7 +28,7 @@ project("testclient")
     kind("ConsoleApp")
     include_meta()
     files({
-        "tests/test_client/Main.cpp",
+        "tests/client/Main.cpp",
     })
     network_include()
     links({
@@ -36,14 +36,14 @@ project("testclient")
         "network"
     })
     includedirs({
-        "tests/test_client"
+        "tests/client"
     })
 
 project("testserver")
     kind("ConsoleApp")
     include_meta()
     files({
-        "tests/test_server/Main.cpp",
+        "tests/server/Main.cpp",
     })
     network_include()
     links({
@@ -51,5 +51,5 @@ project("testserver")
         "network"
     })
     includedirs({
-        "tests/test_server"
+        "tests/server"
     })

@@ -5,7 +5,7 @@ filter("configurations:Release")
 
 project("NEWIDAPlugin")
     kind("SharedLib")
-    targetname("Noda_75")
+    targetname("IDA_Retk75")
     include_meta()
     debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5")
     debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5\\ida64.exe")
@@ -13,12 +13,12 @@ project("NEWIDAPlugin")
         "**.cpp",
         "**.h",
         "ui/**.ui",
-        "Resources.qrc",
+        "resources.qrc",
         "Plugin.rc",
         "premake5.lua"
     })
-    pchheader("Pch.h")
-    pchsource("Pch.cpp")
+    pchheader("pch.h")
+    pchsource("pch.cpp")
     links({
         -- ida libraries
         "ida",
@@ -41,9 +41,9 @@ project("NEWIDAPlugin")
         "utility"
     })
     defines({
-        "__NT__", -- < IDA windows NT Target
-        "__QT__", -- < IDA QT Target
-        "__EA64__", -- < IDA 64 Bit Target (Even ida 32 is 64 bit nowadays)
+        "__NT__",            -- < Windows NT Target
+        "__QT__",            -- < We are building with QT
+        "__EA64__",          -- < Use 64 Bit addressing (Even ida 32 is 64 bit nowadays)
         "NO_OBSOLETE_FUNCS", -- < No depricated functions (Target for latest IDA)
 
         -- qt symbol workaround, read more here:

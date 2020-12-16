@@ -11,32 +11,32 @@
 #include "utility/ObjectPool.h"
 
 namespace noda {
-  class SyncController;
+class SyncController;
 
-  struct TaskHandler;
+struct TaskHandler;
 
-  struct TaskDispatcher : exec_request_t {
-	explicit TaskDispatcher(SyncController &);
+struct TaskDispatcher : exec_request_t {
+  explicit TaskDispatcher(SyncController&);
 
-	void QueueTask(const uint8_t *data, size_t size);
-	void DispatchEvent(hook_type_t t, int, va_list);
+  void QueueTask(const uint8_t* data, size_t size);
+  void DispatchEvent(hook_type_t t, int, va_list);
 
-  private:
-	int idaapi execute() override;
+ private:
+  int idaapi execute() override;
 
-	struct Task {
-	  std::unique_ptr<uint8_t[]> data;
-	  utility::detached_queue_key<Task> key;
-	};
-
-	utility::detached_mpsc_queue<Task> _taskQueue;
-	utility::object_pool<Task> _taskPool;
-	std::atomic_int _eventSize = 0;
-
-	SyncController &_sc;
-
-	using IdaEventType_t = std::pair<hook_type_t, int>;
-	std::map<IdaEventType_t, TaskHandler *> _idaEvents;
-	std::map<protocol::MsgType, TaskHandler *> _netEvents;
+  struct Task {
+    std::unique_ptr<uint8_t[]> data;
+    utility::detached_queue_key<Task> key;
   };
-} // namespace noda
+
+  utility::detached_mpsc_queue<Task> _taskQueue;
+  utility::object_pool<Task> _taskPool;
+  std::atomic_int _eventSize = 0;
+
+  SyncController& _sc;
+
+  using IdaEventType_t = std::pair<hook_type_t, int>;
+  std::map<IdaEventType_t, TaskHandler*> _idaEvents;
+  std::map<protocol::MsgType, TaskHandler*> _netEvents;
+};
+}  // namespace noda

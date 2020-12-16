@@ -7,31 +7,30 @@
 
 namespace noda {
 
-  class Plugin;
+class Plugin;
 
-  class NetSession final : public QObject,
-                           public network::ClientDelegate {
-  public:
-	NetSession(Plugin &);
-	~NetSession();
+class NetSession final : public QObject, public network::ClientDelegate {
+ public:
+  NetSession(Plugin&);
+  ~NetSession();
 
-	enum class State {
-	  Disconnected,
-	  Connecting,
-	  JoinedProject,
-	};
-
-  private:
-	void OnConnection(const sockpp::inet_address &) override;
-	void OnDisconnected(int reason) override;
-	void ConsumeMessage(const uint8_t *ptr, size_t len) override;
-
-	void HandleAuth(const protocol::MessageRoot *);
-
-	bool _sessionActive = false;
-	Plugin &_plugin;
-
-  signals:
-	void JoinedSession(int userCount);
+  enum class State {
+    Disconnected,
+    Connecting,
+    JoinedProject,
   };
-} // namespace noda
+
+ private:
+  void OnConnection(const sockpp::inet_address&) override;
+  void OnDisconnected(int reason) override;
+  void ConsumeMessage(const uint8_t* ptr, size_t len) override;
+
+  void HandleAuth(const protocol::MessageRoot*);
+
+  bool _sessionActive = false;
+  Plugin& _plugin;
+
+ signals:
+  void JoinedSession(int userCount);
+};
+}  // namespace noda

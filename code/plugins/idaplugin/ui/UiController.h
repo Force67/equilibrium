@@ -2,86 +2,85 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "Pch.h"
 #include <qobject.h>
 #include <qscopedpointer.h>
+#include "Pch.h"
 
 #include "network/TCPClient.h"
 #include "utils/NetNode.h"
 
 namespace QT {
-  class QAction;
-  class QLabel;
-  class QTimer;
-  class QMainWindow;
-} // namespace QT
+class QAction;
+class QLabel;
+class QTimer;
+class QMainWindow;
+}  // namespace QT
 
 namespace noda {
-  class SyncController;
-  class StatusWidget;
+class SyncController;
+class StatusWidget;
 
-  class UiController final : public QObject,
-                             public network::ClientDelegate {
-	Q_OBJECT;
+class UiController final : public QObject, public network::ClientDelegate {
+  Q_OBJECT;
 
-  public:
-	UiController(SyncController &);
-	~UiController();
+ public:
+  UiController(SyncController&);
+  ~UiController();
 
-	static QWidget *GetTopWidget();
-	static QMainWindow *GetMainWindow();
+  static QWidget* GetTopWidget();
+  static QMainWindow* GetMainWindow();
 
-	void OpenRunDialog();
+  void OpenRunDialog();
 
-	static void ShowError(const char *text);
+  static void ShowError(const char* text);
 
-  private:
-	void DestroyUi();
+ private:
+  void DestroyUi();
 
-	void OnIdbLoad();
-	void OnIdbSave();
-	void OnIdbClose();
-	void OnIdbFinishAu();
+  void OnIdbLoad();
+  void OnIdbSave();
+  void OnIdbClose();
+  void OnIdbFinishAu();
 
-	void UpdateCounter();
+  void UpdateCounter();
 
-	static ssize_t idaapi UiEvent(void *, int, va_list);
-	static ssize_t idaapi IdbEvent(void *, int, va_list);
+  static ssize_t idaapi UiEvent(void*, int, va_list);
+  static ssize_t idaapi IdbEvent(void*, int, va_list);
 
-	QAction *_saveToServerAct = nullptr;
-	QAction *_openFromServerAct = nullptr;
+  QAction* _saveToServerAct = nullptr;
+  QAction* _openFromServerAct = nullptr;
 
-	QScopedPointer<QLabel> _labelCounter;
-	QScopedPointer<StatusWidget> _netStatus;
+  QScopedPointer<QLabel> _labelCounter;
+  QScopedPointer<StatusWidget> _netStatus;
 
-	QScopedPointer<QTimer> _timer;
-	uint32_t _timeCount = 0;
+  QScopedPointer<QTimer> _timer;
+  uint32_t _timeCount = 0;
 
-	SyncController &_sync;
+  SyncController& _sync;
 
-	// ui storage:
-	enum NodeIndex : nodeidx_t {
-	  Reserved,
-	  Flags,
-	  Timer,
-	};
-
-	enum UiFlags : uint32_t {
-	  None,
-	  EverJoined = 1 << 1,
-	} _flags;
-
-	NetNode _node;
-
-  public slots:
-	void ToggleConnect();
-
-  private slots:
-	void OpenSyncMenu();
-	void OpenAboutDialog();
-	void OpenSettings();
-
-	void OpenFromServer();
-	void SaveToServer();
+  // ui storage:
+  enum NodeIndex : nodeidx_t {
+    Reserved,
+    Flags,
+    Timer,
   };
-} // namespace noda
+
+  enum UiFlags : uint32_t {
+    None,
+    EverJoined = 1 << 1,
+  } _flags;
+
+  NetNode _node;
+
+ public slots:
+  void ToggleConnect();
+
+ private slots:
+  void OpenSyncMenu();
+  void OpenAboutDialog();
+  void OpenSettings();
+
+  void OpenFromServer();
+  void SaveToServer();
+};
+}  // namespace noda
