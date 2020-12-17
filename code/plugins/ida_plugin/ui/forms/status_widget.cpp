@@ -1,4 +1,4 @@
-// Copyright (C) NOMAD Group <nomad-group.net>.
+// Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "pch.h"
@@ -99,7 +99,6 @@ void StatusWidget::SetPending() {
   SetLabelIcon(*_labelConnectIcon, ":/spinner");
   _labelConnectText->setText("<font color='orange'>Connecting</font>");
   updateGeometry();
-
 }
 
 void StatusWidget::SetDisconnected() {
