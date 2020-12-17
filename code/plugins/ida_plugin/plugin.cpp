@@ -35,14 +35,6 @@ Plugin::~Plugin() {
   utils::OptRegistry::Save();
 }
 
-NetClient& Plugin::client() {
-  return _client;
-}
-
-SyncSession& Plugin::session() {
-  return _session;
-}
-
 bool Plugin::ToggleNet() {
   if (_client.Connected()) {
     LOG_TRACE("Plugin::ToggleNet() -> Disconnect");

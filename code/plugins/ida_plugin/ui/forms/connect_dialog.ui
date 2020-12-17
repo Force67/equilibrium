@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>518</width>
-    <height>84</height>
+    <width>524</width>
+    <height>90</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NODA: Auto-Connect</string>
+   <string>RETK: Auto-Connect</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../Resources.qrc">

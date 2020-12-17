@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>NODA Settings</string>
+   <string>RETK Settings</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../Resources.qrc">

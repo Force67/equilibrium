@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NODA - Run</string>
+   <string>RETK - Run</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../Resources.qrc">

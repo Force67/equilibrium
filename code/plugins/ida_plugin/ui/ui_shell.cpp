@@ -14,7 +14,6 @@
 #include <QTimer>
 #include <QWindow>
 
-#include "tools/feature_dispatch.h"
 #include "forms/run_dialog.h"
 #include "forms/settings.h"
 #include "forms/status_widget.h"
@@ -182,7 +181,7 @@ void UiShell::RunFeature() {
     return;
   }
 
-  features::FeatureIndex index;
+  tools::Toolbox::FeatureCode index;
   {
     forms::RunDialog dia(GetTopWidget());
     dia.exec();
@@ -190,8 +189,8 @@ void UiShell::RunFeature() {
     index = dia.SelectedIndex();
   }
 
-  if (index != features::FeatureIndex::None) {
-    features::DispatchFeatureIndex(index);
+  if (index != tools::Toolbox::FeatureCode::kNone) {
+    _plugin.toolbox().TriggerFeature(index);
   }
 }
 

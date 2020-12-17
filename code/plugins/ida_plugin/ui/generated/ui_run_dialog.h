@@ -83,7 +83,7 @@ public:
 
     void retranslateUi(QDialog *RunDialog)
     {
-        RunDialog->setWindowTitle(QApplication::translate("RunDialog", "NODA - Run", Q_NULLPTR));
+        RunDialog->setWindowTitle(QApplication::translate("RunDialog", "RETK - Run", Q_NULLPTR));
 
         const bool __sortingEnabled = optionList->isSortingEnabled();
         optionList->setSortingEnabled(false);

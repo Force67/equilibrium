@@ -99,6 +99,7 @@ void StatusWidget::SetPending() {
   SetLabelIcon(*_labelConnectIcon, ":/spinner");
   _labelConnectText->setText("<font color='orange'>Connecting</font>");
   updateGeometry();
+
 }
 
 void StatusWidget::SetDisconnected() {

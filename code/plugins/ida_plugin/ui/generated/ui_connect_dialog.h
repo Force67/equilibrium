@@ -40,7 +40,7 @@ public:
     {
         if (ConnectPromt->objectName().isEmpty())
             ConnectPromt->setObjectName(QStringLiteral("ConnectPromt"));
-        ConnectPromt->resize(518, 84);
+        ConnectPromt->resize(524, 90);
         QIcon icon;
         icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
         ConnectPromt->setWindowIcon(icon);
@@ -91,7 +91,7 @@ public:
 
     void retranslateUi(QDialog *ConnectPromt)
     {
-        ConnectPromt->setWindowTitle(QApplication::translate("ConnectPromt", "NODA: Auto-Connect", Q_NULLPTR));
+        ConnectPromt->setWindowTitle(QApplication::translate("ConnectPromt", "RETK: Auto-Connect", Q_NULLPTR));
         label->setText(QApplication::translate("ConnectPromt", "NODA detected a synced IDB. Do you wish to connect to Sync-Server?", Q_NULLPTR));
         buttonConnect->setText(QApplication::translate("ConnectPromt", "Connect", Q_NULLPTR));
         buttonCancel->setText(QApplication::translate("ConnectPromt", "Cancel", Q_NULLPTR));

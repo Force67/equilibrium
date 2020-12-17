@@ -409,7 +409,7 @@ public:
 
     void retranslateUi(QDialog *SettingsDialog)
     {
-        SettingsDialog->setWindowTitle(QApplication::translate("SettingsDialog", "NODA Settings", Q_NULLPTR));
+        SettingsDialog->setWindowTitle(QApplication::translate("SettingsDialog", "RETK Settings", Q_NULLPTR));
         gbSyncConfig->setTitle(QApplication::translate("SettingsDialog", "Synchronium Server Configuration", Q_NULLPTR));
         gbNetAddress->setTitle(QApplication::translate("SettingsDialog", "Network Address", Q_NULLPTR));
         labelIP->setText(QApplication::translate("SettingsDialog", "IP Address", Q_NULLPTR));

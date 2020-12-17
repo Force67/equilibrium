@@ -38,12 +38,14 @@ void RunDialog::OnClickOK() {
   QDialog::close();
 }
 
-features::FeatureIndex RunDialog::SelectedIndex() const {
+tools::Toolbox::FeatureCode RunDialog::SelectedIndex() const {
+    using tb_t = tools::Toolbox::FeatureCode;
+
   switch (_index) {
     case 1:
-      return features::FeatureIndex::DumbSig;
+      return tb_t::kSignature;
     default:
-      return features::FeatureIndex::None;
+      return tb_t::kNone;
   }
 }
 

@@ -8,7 +8,7 @@
 #include <QVector>
 #include <array>
 
-namespace features {
+namespace tools {
 
 namespace {
 constexpr int kInstructionLimit = 100;

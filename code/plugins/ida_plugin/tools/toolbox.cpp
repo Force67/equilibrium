@@ -4,6 +4,9 @@
 #include "pch.h"
 #include "toolbox.h"
 #include "utils/Opt.h"
+#include "utils/logger.h"
+
+#include "signature/sigmaker.h"
 
 namespace {
 // Somethin
@@ -12,12 +15,21 @@ utils::Opt<bool> ToolCache{false, "Nd_PatternCache"};
 
 // s_mToolBox;
 
-ToolBox::ToolBox() {}
 
-ToolBox::~ToolBox() {}
+namespace tools {
 
-void ToolBox::RegisterPattern(const std::string& pat) {
-  bool shouldCache = ToolCache;
-  if (!shouldCache)
-    return;
+Toolbox::Toolbox() {}
+Toolbox::~Toolbox() {}
+
+void Toolbox::RegisterPattern(const std::string&) {}
+
+void Toolbox::TriggerFeature(FeatureCode code) {
+  switch (code) {
+    case FeatureCode::kSignature:
+      tools::GenerateSignature();
+      break;
+    default:
+      LOG_ERROR("Unable to find feature index");
+  }
+}
 }
