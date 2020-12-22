@@ -1,6 +1,7 @@
--- Copyright (c) NOMAD Group<nomad-group.net>
+-- Copyright (C) Force67 <github.com/Force67>.
+-- For licensing information see LICENSE at the root of this distribution.
 
-include("tools/build")
+include("./build")
 
 filter("architecture:x86_64")
     targetsuffix("_64")

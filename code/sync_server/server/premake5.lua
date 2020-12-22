@@ -1,4 +1,5 @@
--- Copyright (c) Force67 <github.com/Force67>.
+-- Copyright (C) Force67 <github.com/Force67>.
+-- For licensing information see LICENSE at the root of this distribution.
 
 project("Server")
     kind("StaticLib")
@@ -10,7 +11,7 @@ project("Server")
     links({
         "network",
         "fmtlib",
-        "storage",
+        "database",
         "utility"
     })
     includedirs({

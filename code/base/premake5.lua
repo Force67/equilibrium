@@ -1,25 +1,17 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-project("dedi_server")
-    kind("ConsoleApp")
-    targetname("retksrv")
-    include_meta()
+group("Base")
+project("base")
+    kind("StaticLib")
     files({
         "**.cpp",
         "**.h",
-        "dedi_server.rc",
     })
     links({
-        "server",
-        "network",
         "fmtlib"
     })
-    dependson("server")
     includedirs({
         ".",
-        "../../common",
-        "../server",
         blu.extdir .. "/fmt/include",
-        blu.extdir .. "/sockpp/include"
     })

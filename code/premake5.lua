@@ -1,4 +1,5 @@
--- Copyright (c) NOMAD Group<nomad-group.net>
+-- Copyright (C) Force67 <github.com/Force67>.
+-- For licensing information see LICENSE at the root of this distribution.
 
 -- mock flatbuffer files
 os.rmdir("common/protocol/generated")
@@ -10,11 +11,9 @@ for k,v in pairs(matches) do
     os.executef("%s --cpp -o common/protocol/generated %s", fb_dir .. "/flatc", v) 
 end
 
-function include_netlib()
-    
-end
+include("base")
+include("components")
 
--- Legacy component: include("legacy_server")
 group("Server")
 include("sync_server/dedi_server")
 include("sync_server/server")
@@ -23,6 +22,3 @@ group("Plugins")
 include("plugins/ida_plugin")
 include("plugins/old_idaplugin")
 include("plugins/xdbgplugin")
-
-group("Shared")
-include("common")
