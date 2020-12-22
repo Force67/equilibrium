@@ -43,4 +43,13 @@ workspace("RETK")
     group("Dependencies")
     include("external")
 
-    include("./code")
+    include("./base")
+    include("./components")
+
+    group("Plugins")
+    include("plugins/ida_plugin")
+    include("plugins/xdbgplugin")
+
+    group("Server")
+    include("sync_server/dedi_server")
+    include("sync_server/server")
