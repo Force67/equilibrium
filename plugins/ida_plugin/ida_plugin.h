@@ -9,12 +9,12 @@
 
 #include "Pch.h"
 
-class Plugin final : public QObject, public plugmod_t {
+class IdaPlugin final : public QObject, public plugmod_t {
   Q_OBJECT;
 
  public:
-  Plugin();
-  ~Plugin() override;
+  IdaPlugin();
+  ~IdaPlugin() override;
 
   static plugmod_t* Create();
 

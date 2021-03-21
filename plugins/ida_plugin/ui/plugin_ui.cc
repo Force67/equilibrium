@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "Pch.h"
-#include "ui_shell.h"
-#include "plugin.h"
+#include "ida_plugin.h"
+#include "plugin_ui.h"
 
 #include <QApplication>
 
@@ -49,7 +49,7 @@ constexpr char kWhyAreYouWastingYourTimeText[] =
 // global plugin description
 extern plugin_t PLUGIN;
 
-UiShell::UiShell(Plugin& plugin) : _plugin(plugin) {
+PluginUi::PluginUi(IdaPlugin& plugin) : _plugin(plugin) {
   QMainWindow* window = GetMainWindow();
   assert(window != nullptr);
 
@@ -74,15 +74,15 @@ UiShell::UiShell(Plugin& plugin) : _plugin(plugin) {
   window->statusBar()->addPermanentWidget(_statusForm.data());
 
   // and connect everything
-  connect(_timer.data(), &QTimer::timeout, this, &UiShell::Tick);
-  connect(_cnAct, &QAction::triggered, &_plugin, &Plugin::ToggleNet);
+  connect(_timer.data(), &QTimer::timeout, this, &PluginUi::Tick);
+  connect(_cnAct, &QAction::triggered, &_plugin, &IdaPlugin::ToggleNet);
 
   connect(_stAct, &QAction::triggered, this, [&]() {
     forms::Settings dia(plugin.client().Connected(), GetTopWidget());
     dia.exec();
   });
 
-  connect(this, &UiShell::ShellStateChange, this, [&](ShellState newState) {
+  connect(this, &PluginUi::ShellStateChange, this, [&](ShellState newState) {
     if (newState == ShellState::IN_DB)
       _cnAct->setEnabled(true);
 
@@ -102,11 +102,11 @@ UiShell::UiShell(Plugin& plugin) : _plugin(plugin) {
       Qt::QueuedConnection);
 }
 
-UiShell::~UiShell() {
+PluginUi::~PluginUi() {
   unhook_from_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 }
 
-void UiShell::HandleEvent(int code, va_list args) {
+void PluginUi::HandleEvent(int code, va_list args) {
   switch (code) {
     case ui_notification_t::ui_database_closed:
       SetShellState(ShellState::NO_DB);
@@ -142,7 +142,7 @@ void UiShell::HandleEvent(int code, va_list args) {
   }
 }
 
-void UiShell::SetShellState(ShellState newState) {
+void PluginUi::SetShellState(ShellState newState) {
   if (newState != _state) {
     _state = newState;
 
@@ -150,17 +150,17 @@ void UiShell::SetShellState(ShellState newState) {
   }
 }
 
-UiShell::ShellState UiShell::GetShellState() const {
+PluginUi::ShellState PluginUi::GetShellState() const {
   return _state;
 }
 
-void UiShell::ClenseTheShell() {
+void PluginUi::ClenseTheShell() {
   // manually kill the statusform here, in order to prevent QT from freeing it,
   // which would result in a crash and leave the idb broken...
   _statusForm.reset();
 }
 
-void UiShell::Tick() {
+void PluginUi::Tick() {
   int hours = (_tick / 3600) % 24;
   int minutes = (_tick / 60) % 60;
   int seconds = _tick % 60;
@@ -175,7 +175,7 @@ void UiShell::Tick() {
   _tick++;
 }
 
-void UiShell::RunFeature() {
+void PluginUi::RunFeature() {
   if (_state == ShellState::NO_DB) {
     LOG_ERROR("Open an IDB to run features");
     return;
@@ -195,8 +195,8 @@ void UiShell::RunFeature() {
 }
 
 // static handler for ida
-ssize_t UiShell::StaticEvent(void* userp, int code, va_list args) {
-  if (auto* self = reinterpret_cast<UiShell*>(userp))
+ssize_t PluginUi::StaticEvent(void* userp, int code, va_list args) {
+  if (auto* self = reinterpret_cast<PluginUi*>(userp))
     self->HandleEvent(code, args);
 
   return 0;

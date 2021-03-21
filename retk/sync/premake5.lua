@@ -6,8 +6,8 @@ group("Components")
 project("sync")
     kind("StaticLib")
     files({
-        "*.cpp",
-        "*.h",
+        "**.cc",
+        "**.h",
     })
     links({
         "database",

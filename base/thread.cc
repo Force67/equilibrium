@@ -29,7 +29,7 @@
 
 #include "Thread.h"
 
-namespace utility {
+namespace base {
 
 #ifdef _WIN32
 

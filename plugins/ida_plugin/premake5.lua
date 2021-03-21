@@ -10,7 +10,7 @@ project("ida_plugin")
     debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5")
     debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5\\ida64.exe")
     files({
-        "**.cpp",
+        "**.cc",
         "**.h",
         "ui/**.ui",
         "resources.qrc",
@@ -18,7 +18,8 @@ project("ida_plugin")
         "premake5.lua"
     })
     pchheader("pch.h")
-    pchsource("pch.cpp")
+    pchsource("pch.cc")
+    forceincludes("pch.h")
     links({
         -- ida libraries
         "ida",

@@ -4,7 +4,7 @@
 project("database")
     kind("StaticLib")
     files({
-        "*.cpp",
+        "*.cc",
         "*.h",
     })
     links({

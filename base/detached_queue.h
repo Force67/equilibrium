@@ -32,7 +32,7 @@
 
 #include "type_helpers.h"
 
-namespace utility {
+namespace base {
 // Detached key.
 //
 template <typename T>

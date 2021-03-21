@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-class Plugin;
+class IdaPlugin;
 
 #include "ui_storage.h"
 
@@ -27,12 +27,12 @@ QT::QWidget* GetTopWidget();
 // Returns the main application window
 QT::QMainWindow* GetMainWindow();
 
-class UiShell final : public QObject {
+class PluginUi final : public QObject {
   Q_OBJECT;
 
  public:
-  explicit UiShell(Plugin&);
-  ~UiShell();
+  explicit PluginUi(IdaPlugin&);
+  ~PluginUi();
 
   enum class ShellState {
     NO_DB,
@@ -53,7 +53,7 @@ class UiShell final : public QObject {
   static ssize_t idaapi StaticEvent(void*, int, va_list);
   void HandleEvent(int, va_list);
 
-  Plugin& _plugin;
+  IdaPlugin& _plugin;
   UiStorage _store;
   ShellState _state{ShellState::NO_DB};
 

@@ -44,7 +44,7 @@ workspace("RETK")
     include("external")
 
     include("./base")
-    include("./components")
+    include("./retk")
 
     group("Plugins")
     include("plugins/ida_plugin")

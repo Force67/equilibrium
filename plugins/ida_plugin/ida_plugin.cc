@@ -3,7 +3,7 @@
 // Entry point of the sync plugin
 
 #include "pch.h"
-#include "plugin.h"
+#include "ida_plugin.h"
 #include "utils/logger.h"
 
 #include <QSettings>
@@ -11,31 +11,25 @@
 #include <utils/opt.h>
 
 namespace {
-// IDA plugin pointer
-Plugin* g_Plugin = nullptr;
+IdaPlugin* g_Plugin = nullptr;
 
-// plugin desc for "run" dialog
 constexpr char kPluginComment[] = "Nomad Ida Plugin";
-
-// "unique" plugin identifier
 constexpr char kPluginName[] = "NODAForIDA";
-
-// hotkey for the "run" dialog
 constexpr char kPluginHotkey[] = "Ctrl-Y";
 }  // namespace
 
-Plugin::Plugin() : _session(*this), _shell(*this) {
+IdaPlugin::IdaPlugin() : _session(*this), _shell(*this) {
   LOG_INFO("Loaded RETK, version " GIT_BRANCH "@" GIT_COMMIT
            " Created by Force67 <github.com/Force67>.");
 
   _client.RegisterComponent(&_session);
 }
 
-Plugin::~Plugin() {
+IdaPlugin::~IdaPlugin() {
   utils::OptRegistry::Save();
 }
 
-bool Plugin::ToggleNet() {
+bool IdaPlugin::ToggleNet() {
   if (_client.Connected()) {
     LOG_TRACE("Plugin::ToggleNet() -> Disconnect");
 
@@ -54,11 +48,11 @@ bool Plugin::ToggleNet() {
   return result;
 }
 
-bool Plugin::Init() {
+bool IdaPlugin::Init() {
   return true;
 }
 
-bool Plugin::run(size_t arg) {
+bool IdaPlugin::run(size_t arg) {
   /*if (arg != -1) {
     LOG_TRACE("Plugin::run() -> Arg : {}", arg);
     return false;
@@ -73,12 +67,11 @@ bool Plugin::run(size_t arg) {
   return true;
 }
 
-plugmod_t* Plugin::Create()
-{
+plugmod_t* IdaPlugin::Create() {
   const size_t optCount = utils::OptRegistry::Load();
   LOG_TRACE("Registered {} opts", optCount);
 
-  g_Plugin = new Plugin();
+  g_Plugin = new IdaPlugin();
 
   return g_Plugin->Init() ? g_Plugin : nullptr;
 }
@@ -94,7 +87,7 @@ plugin_t PLUGIN = {
     // application.
     PLUGIN_FIX |       // < plugin is pinned
         PLUGIN_MULTI,  // < plugin works with multiple idbs
-    Plugin::Create, 
+    IdaPlugin::Create, 
     nullptr, nullptr, 
     kPluginComment, 
     kPluginComment, 

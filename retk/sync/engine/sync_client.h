@@ -4,7 +4,7 @@
 
 #include "network/tcp_client.h"
 
-namespace syncer {
+namespace sync {
 
 class SyncClient : public network::TCPClient {
 public:

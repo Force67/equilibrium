@@ -5,7 +5,7 @@ group("Base")
 project("base")
     kind("StaticLib")
     files({
-        "**.cpp",
+        "**.cc",
         "**.h",
     })
     links({

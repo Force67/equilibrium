@@ -45,7 +45,7 @@
 #define _aligned_malloc(x, a) aligned_alloc(a, x)
 #endif
 
-namespace utility {
+namespace base {
 // Object pools allow for fast singular type allocation based on plf::colony.
 // The implementation here is heavily geared towards multithreading; it is
 // almost completely wait-free.

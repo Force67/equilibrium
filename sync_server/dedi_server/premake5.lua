@@ -6,8 +6,7 @@ project("dedi_server")
     targetname("retksrv")
     include_meta()
     files({
-        "**.cpp",
-        "**.h",
+        "main.cc",
         "dedi_server.rc",
     })
     links({

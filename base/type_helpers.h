@@ -36,7 +36,7 @@
 #include <tuple>
 #include <type_traits>
 
-namespace utility {
+namespace base {
 // Check for specialization.
 //
 namespace impl {

@@ -33,10 +33,10 @@
 #include <memory>
 #include <type_traits>
 
-#include "ObjectPool.h"
-#include "TypeHelpers.h"
+#include "object_pool.h"
+#include "type_helpers.h"
 
-namespace utility {
+namespace base {
 namespace impl {
 struct control_block {
   std::atomic<long> ref_counter;

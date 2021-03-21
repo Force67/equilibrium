@@ -19,7 +19,7 @@ end
 project("network")
     kind("StaticLib")
     files({
-        "*.cpp",
+        "*.cc",
         "*.h",
     })
     network_include()
