@@ -3,13 +3,13 @@
 
 #include <filesystem>
 
-#include "data_handler.h"
+#include "db_handler.h"
 #include "server_impl.h"
 
-#include "utility/thread.h"
-#include "utils/logger.h"
+#include <base/thread.h>
+#include "utils/server_logger.h"
 
-#include "protocol/generated/MessageRoot_generated.h"
+#include <sync/protocol/generated/message_root_generated.h>
 
 using namespace std::chrono_literals;
 
@@ -28,16 +28,24 @@ static const fs::path& GetStoragePath() noexcept {
   return s_path;
 }
 
-DataHandler::DataHandler(ServerImpl& server) : _server(server) {
-  _workerThread = std::thread(&DataHandler::WorkerThread, this);
+struct DbHandler::Tasklet {
+  network::connectid_t source;
+  std::unique_ptr<uint8_t[]> data;
+  base::detached_queue_key<Tasklet> key;
+};
+
+static base::object_pool<DbHandler::Tasklet> s_Pool;
+
+DbHandler::DbHandler(ServerImpl& server) : _server(server) {
+  worker_ = std::thread(&DbHandler::WorkerThread, this);
 }
 
-DataHandler::~DataHandler() {
-  _run = false;
-  _workerThread.join();
+DbHandler::~DbHandler() {
+  running_ = false;
+  worker_.join();
 }
 
-DataHandler::Status DataHandler::Initialize() {
+DbHandler::Status DbHandler::Initialize() {
   // mount main DB
   if (!_mainDb.Initialize((GetStoragePath() / "noda.db").u8string()))
     return Status::HiveError;
@@ -46,20 +54,20 @@ DataHandler::Status DataHandler::Initialize() {
   return Status::Success;
 }
 
-void DataHandler::QueueTask(network::connectid_t cid,
+void DbHandler::QueueTask(network::connectid_t cid,
                             const uint8_t* data,
                             size_t size) {
-  Task* item = _taskPool.allocate();
+  auto* item = s_Pool.allocate();
   item->data = std::make_unique<uint8_t[]>(size);
-  item->id = cid;
+  item->source = cid;
   item->key.next = nullptr;
 
   std::memcpy(item->data.get(), data, size);
 
-  _taskQueue.push(&item->key);
+  queue_.push(&item->key);
 }
 
-void DataHandler::ProcessTask(Task& task) {
+void DbHandler::ProcessTask(Tasklet& task) {
   const auto* message =
       protocol::GetMessageRoot(static_cast<const void*>(task.data.get()));
 
@@ -73,32 +81,32 @@ void DataHandler::ProcessTask(Task& task) {
   }
 }
 
-void DataHandler::WorkerThread() {
-  utility::SetCurrentThreadPriority(utility::ThreadPriority::High);
-  utility::SetCurrentThreadName("[WorkerThread]");
+void DbHandler::WorkerThread() {
+  base::SetCurrentThreadPriority(base::ThreadPriority::High);
+  base::SetCurrentThreadName("[DbThread]");
 
-  while (_run) {
-    while (auto* item = _taskQueue.pop(&Task::key)) {
+  while (running_) {
+    while (auto* item = queue_.pop(&Tasklet::key)) {
       // not thread safe at all...
-      userptr_t sender = _server.Registry().UserById(item->id);
+      userptr_t sender = _server.Registry().UserById(item->source);
       if (!sender)
         return;
 
       ProcessTask(*item);
-      _taskPool.destruct(item);
+      s_Pool.destruct(item);
     }
 
     std::this_thread::sleep_for(1ms);
   }
 }
 
-void DataHandler::CreateProject(const protocol::MessageRoot* msg) {
+void DbHandler::CreateProject(const protocol::MessageRoot* msg) {
   auto* m = msg->msg_as_CreateProject();
   //_mainDb.CreateProject();
 }
 
-void DataHandler::CreateWorkspace(const protocol::MessageRoot* msg) {
+void DbHandler::CreateWorkspace(const protocol::MessageRoot* msg) {
   auto* m = msg->msg_as_CreateWorkspace();
-  _mainDb.CreateWorkspace(m->name()->str(), m->desc()->str());
+  //_mainDb.CreateWorkspace(m->name()->str(), m->desc()->str());
 }
 }  // namespace sync_server

@@ -3,9 +3,6 @@
 #pragma once
 
 #include <thread>
-
-#include "storage/sync_storage_model.h"
-
 #include <network/tcp_server.h>
 #include "utility/detached_queue.h"
 
@@ -13,29 +10,33 @@ namespace protocol {
 struct MessageRoot;
 }
 
+namespace sync::storage {
+class MainDb;
+class ProjectDb;
+}
+
 namespace sync_server {
 
 class ServerImpl;
 
-class DataHandler {
+class DbHandler {
  public:
   enum class Status {
     Success,
     HiveError,
   };
 
-  DataHandler(ServerImpl&);
-  ~DataHandler();
+  DbHandler(ServerImpl&);
+  ~DbHandler();
 
   Status Initialize();
 
   void QueueTask(network::connectid_t source, const uint8_t* data, size_t size);
 
+  struct Tasklet;
  private:
-  struct Task;
-
   void WorkerThread();
-  void ProcessTask(Task&);
+  void ProcessTask(Tasklet&);
 
   // tasks
   void CreateWorkspace(const protocol::MessageRoot*);
@@ -46,17 +47,10 @@ class DataHandler {
  private:
   ServerImpl& _server;
 
-  bool _run = true;
-  std::thread _workerThread;
-
-  struct Task {
-    network::connectid_t id;
-    std::unique_ptr<uint8_t[]> data;
-    utility::detached_queue_key<Task> key;
-  };
-  utility::detached_mpsc_queue<Task> _taskQueue;
-  utility::object_pool<Task> _taskPool;
-
-  database::RootDB _mainDb;
+  bool running_ = true;
+  std::thread worker_;
+  std::unique_ptr<sync::storage::MainDb> maindb_;
+  std::unique_ptr<sync::storage::ProjectDb> project_;
+  base::detached_mpsc_queue<Tasklet> queue_;
 };
 }  // namespace sync_server

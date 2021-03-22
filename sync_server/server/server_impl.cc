@@ -19,7 +19,7 @@ Server::ResultStatus ServerImpl::Initialize(bool useStorage) {
   if (server_.Port() == -1)
     return Server::ResultStatus::kErrorNotInitalized;
 
-  LOG_INFO("Welcome to Sync Server (port: {})", _server.Port());
+  LOG_INFO("Welcome to Sync Server (port: {})", server_.Port());
 
   if (useStorage) {
     // TODO: more result codes
