@@ -94,7 +94,6 @@ enum class ThreadPriority : uint32_t {
 };
 
 void SetCurrentThreadPriority(ThreadPriority new_priority);
-
 void SetCurrentThreadName(const char* name);
 
 }  // namespace utility

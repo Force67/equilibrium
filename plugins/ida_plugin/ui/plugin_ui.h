@@ -4,7 +4,7 @@
 
 class IdaPlugin;
 
-#include "ui_storage.h"
+#include "storage/ui_data.h"
 
 #include <QObject>
 #include <QScopedPointer>
@@ -54,7 +54,7 @@ class PluginUi final : public QObject {
   void HandleEvent(int, va_list);
 
   IdaPlugin& _plugin;
-  UiStorage _store;
+  UiData data_;
   ShellState _state{ShellState::NO_DB};
 
   enum class IdbState {
@@ -66,9 +66,6 @@ class PluginUi final : public QObject {
   QScopedPointer<QTimer> _timer;
 
   QScopedPointer<forms::StatusWidget> _statusForm;
-
-  uint32_t _tick = 0;
-
   QAction* _cnAct = nullptr;
   QAction* _stAct = nullptr;
 };

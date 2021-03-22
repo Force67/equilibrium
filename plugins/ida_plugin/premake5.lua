@@ -53,7 +53,8 @@ project("ida_plugin")
     })
     includedirs({
         ".",
-        "../../common",
+        "../../",
+        "../../retk",
         "../../sync_server",
         blu.extdir .. "/idasdk75/include",
         blu.extdir .. "/sockpp/include",

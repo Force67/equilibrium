@@ -50,7 +50,7 @@ class SqliteDB {
   static bool InstallErrorHandler(errorhandler_t*);
 
  private:
-  sqlite3* _db;
-  bool _good;
+  sqlite3* db_;
+  bool good_;
 };
 }  // namespace database

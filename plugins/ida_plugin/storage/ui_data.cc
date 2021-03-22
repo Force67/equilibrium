@@ -2,33 +2,30 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "Pch.h"
-#include "ui_storage.h"
+#include "ui_data.h"
 #include "utils/Logger.h"
 
 namespace {
-// unique identifier for IDB storage
-// please do *not* change these
 constexpr char kStorageNodeId[] = "$ noda_ui_storage";
-
-// increment this whenever a breaking change happens
 constexpr int kUiStorageVersion = 1;
-
-enum NodeIndex : nodeidx_t { StorageVersion, Tick, IdbUsageFlags };
-}  // namespace
-
-void UiStorage::SetTick(uint32_t newVal) {
-  _tick = newVal;
 }
 
-int UiStorage::GetTick() const {
-  return _tick;
+const char* const UiData::GetName() {
+  return kStorageNodeId;
 }
 
-bool UiStorage::SeenBefore() {
+bool UiData::SeenBefore() {
   return noda::NetNode(kStorageNodeId, false).open();
 }
 
-void UiStorage::Load() {
+void UiData::Save() {
+  bool res;
+  res = _node.StoreScalar(Tick, tick_);
+
+  LOG_TRACE("UiStorage::Save {}", res);
+}
+
+void UiData::Load() {
   _node = noda::NetNode(kStorageNodeId);
 
   int v1 = _node.LoadScalar(StorageVersion, -1);
@@ -44,13 +41,6 @@ void UiStorage::Load() {
                 kUiStorageVersion);
   }
 
-  _tick = _node.LoadScalar(Tick, 0);
-  LOG_TRACE("UiStorage::Load {}", _tick);
-}
-
-void UiStorage::Save() {
-  bool res;
-  res = _node.StoreScalar(Tick, _tick);
-
-  LOG_TRACE("UiStorage::Save {}", res);
+  tick_ = _node.LoadScalar(Tick, 0);
+  LOG_TRACE("UiStorage::Load {}", tick_);
 }

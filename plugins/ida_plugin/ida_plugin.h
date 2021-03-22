@@ -7,7 +7,7 @@
 #include "ui/ui_shell.h"
 #include "tools/toolbox.h"
 
-#include "Pch.h"
+#include "storage/data_store.h"
 
 class IdaPlugin final : public QObject, public plugmod_t {
   Q_OBJECT;
@@ -28,6 +28,8 @@ class IdaPlugin final : public QObject, public plugmod_t {
   inline tools::Toolbox& toolbox() { return _toolbox; }
 
  private:
+  DataStore storage_;
+
   NetClient _client;
   SyncSession _session;
   UiShell _shell;

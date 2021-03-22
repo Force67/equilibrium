@@ -2,84 +2,60 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "tcp_client.h"
-#include <utility/object_pool.h>
+#include <base/object_pool.h>
 
 using namespace std::chrono_literals;
 
 namespace network {
-inline utility::object_pool<OutPacket> s_packetPool;
+
+TCPClient::TCPClient(TCPClientDelegate& delegate) : delegate_(delegate) {}
 
 bool TCPClient::Connect(const char* addr, int port) {
   if (!addr)
     addr = "localhost";
 
-  _addr = sockpp::inet_address(addr, static_cast<in_port_t>(port));
+  address_ = sockpp::inet_address(addr, static_cast<in_port_t>(port));
 
   bool result;
-  result = _conn.connect(_addr);
-  result = _conn.set_non_blocking(true);
+  result = connection_.connect(address_);
+  result = connection_.set_non_blocking(true);
 
   // no timeouts
-  _conn.read_timeout(0ms);
-  _conn.write_timeout(0ms);
+  connection_.read_timeout(0ms);
+  connection_.write_timeout(0ms);
 
   /*int32_t val = 0;
   _conn.get_option(IPPROTO_TCP, TCP_KEEPCNT, &val);*/
 
-  result = _conn.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
+  result = connection_.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
 
-  if (!result && _conn.is_connected()) {
-    _conn.reset();
+  if (!result && connection_.is_connected()) {
+    connection_.reset();
     return false;
   }
 
-  for (NetworkedClientComponent* delegate : _listeners)
-    delegate->OnConnection(_addr);
-
+  delegate_.OnConnection(address_);
   return result;
 }
 
-void TCPClient::RegisterComponent(NetworkedClientComponent* listener) {
-  _listeners.push_back(listener);
-}
-
 std::string TCPClient::LastError() const {
-  return _conn.last_error_str();
+  return connection_.last_error_str();
 }
 
 void TCPClient::Disconnect() {
   // Update();
 
   // Disconnect by force
-  _conn.reset();
-}
-
-bool TCPClient::SendPacket(pt::MsgType type, FbsBuffer& buf, FbsRef<void> ref) {
-  const auto packet = protocol::CreateMessageRoot(buf, type, ref);
-  buf.Finish(packet);
-
-  OutPacket* item = s_packetPool.construct();
-  item->buffer = std::move(buf);
-
-  _outQueue.push(&item->key);
-
-  return true;
+  connection_.reset();
 }
 
 bool TCPClient::Update() {
-  if (!_conn.is_connected())
+  if (!connection_.is_connected())
     return false;
 
   ssize_t n = 0;
-  while ((n = _conn.read(buf, sizeof(buf))) > 0) {
-    for (auto* it : _listeners)
-      it->ConsumeMessage(buf, n);
-  }
-
-  while (auto* packet = _outQueue.pop(&OutPacket::key)) {
-    _conn.write_n(packet->buffer.GetBufferPointer(), packet->buffer.GetSize());
-
-    s_packetPool.destruct(packet);
+  while ((n = connection_.read(workbuf_, sizeof(workbuf_))) > 0) {
+    delegate_.ProcessData(workbuf_, n);
   }
 
   return true;

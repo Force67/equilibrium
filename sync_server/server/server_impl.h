@@ -7,7 +7,7 @@
 #include "data_handler.h"
 #include "user_registry.h"
 
-#include "network/tcp_server.h"
+#include <sync/engine/sync_server.h>
 
 namespace protocol {
 struct MessageRoot;
@@ -15,7 +15,7 @@ struct MessageRoot;
 
 namespace sync_server {
 
-class ServerImpl final : public network::TCPServerConsumer {
+class ServerImpl final : public sync::SyncServerDelegate {
   friend class sync_server::Server;
 
  public:

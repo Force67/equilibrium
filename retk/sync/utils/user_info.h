@@ -4,10 +4,9 @@
 
 #include <string>
 
-namespace base {
+namespace sync::utils {
 
 #if defined(OS_WIN)
-// user name
 std::string GetSysUserName();
 
 // returns a unique id, based on the users hardware

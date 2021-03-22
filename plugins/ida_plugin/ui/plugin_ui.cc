@@ -113,17 +113,7 @@ void PluginUi::HandleEvent(int code, va_list args) {
 
       _timer->stop();
       break;
-    case ui_notification_t::ui_saving: {
-      // flush timer
-      _store.SetTick(_tick);
-      _store.Save();
-      break;
-    }
     case ui_notification_t::ui_database_inited: {
-      _store.Load();
-
-      // initialize tick
-      _tick = _store.GetTick();
       _wastedTime->show();
       _timer->start(1000);
 
@@ -161,9 +151,9 @@ void PluginUi::ClenseTheShell() {
 }
 
 void PluginUi::Tick() {
-  int hours = (_tick / 3600) % 24;
-  int minutes = (_tick / 60) % 60;
-  int seconds = _tick % 60;
+  int hours = (data_.tick_ / 3600) % 24;
+  int minutes = (data_.tick_ / 60) % 60;
+  int seconds = data_.tick_ % 60;
 
   // format time with leading zeros
   QString text = tr(kWhyAreYouWastingYourTimeText)
@@ -172,7 +162,7 @@ void PluginUi::Tick() {
                      .arg(seconds, 2, 10, QLatin1Char('0'));
 
   _wastedTime->setText(text);
-  _tick++;
+  data_.tick_++;
 }
 
 void PluginUi::RunFeature() {

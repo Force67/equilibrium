@@ -1,11 +1,11 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-include "System.fbs";
-include "Session.fbs";
-include "IdaSync.fbs";
-include "StorageModel.fbs";
-include "FileTransfer.fbs";
+//include "System.fbs";
+include "session.fbs";
+include "ida_sync.fbs";
+include "storage_model.fbs";
+include "file_transfer.fbs";
 
 // This file contains the Root message type that all protocol messages
 // inherit from.
@@ -18,7 +18,6 @@ union MsgType {
     HandshakeAck,
     UserEvent,
 
-    Announcement,
     CreateWorkspace,
     CreateProject,
     LocalProjectInfo,

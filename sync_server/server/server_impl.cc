@@ -2,9 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "server_impl.h"
-#include "utils/logger.h"
+#include "utils/server_logger.h"
 
-#include "protocol/generated/MessageRoot_generated.h"
+#include "sync/protocol/generated/MessageRoot_generated.h"
 
 namespace sync_server {
 

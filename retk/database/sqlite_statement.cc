@@ -11,58 +11,58 @@ namespace database {
 static SqliteDB* g_debug;
 
 SqliteStatement::SqliteStatement(SqliteDB& db, const char* sql) {
-  const int rc = sqlite3_prepare_v3(db._db, sql, -1, 0, &_st, nullptr);
+  const int rc = sqlite3_prepare_v3(db.db_, sql, -1, 0, &st_, nullptr);
   g_debug = &db;
-  _good = rc == SQLITE_OK;
+  good_ = rc == SQLITE_OK;
 }
 
 SqliteStatement::~SqliteStatement() {
-  if (_st) {
-    sqlite3_clear_bindings(_st);
-    sqlite3_reset(_st);
-    sqlite3_finalize(_st);
+  if (st_) {
+    sqlite3_clear_bindings(st_);
+    sqlite3_reset(st_);
+    sqlite3_finalize(st_);
   }
 }
 
 bool SqliteStatement::Run() {
-  const int rc = sqlite3_step(_st);
+  const int rc = sqlite3_step(st_);
 
-  const char* code = sqlite3_errmsg(g_debug->_db);
+  const char* code = sqlite3_errmsg(g_debug->db_);
   return rc == SQLITE_DONE;
 }
 
 bool SqliteStatement::Step() {
-  const int rc = sqlite3_step(_st);
+  const int rc = sqlite3_step(st_);
   return rc == SQLITE_ROW;
 }
 
 bool SqliteStatement::Bind(const std::string& str) {
   const int rc = sqlite3_bind_text(
-      _st, _idx, str.c_str(), static_cast<int>(str.length()), SQLITE_TRANSIENT);
+      st_, idx_, str.c_str(), static_cast<int>(str.length()), SQLITE_TRANSIENT);
 
-  _idx++;
+  idx_++;
   return rc == SQLITE_OK;
 }
 
 bool SqliteStatement::Bind(int val) {
-  const int rc = sqlite3_bind_int(_st, _idx, val);
-  _idx++;
+  const int rc = sqlite3_bind_int(st_, idx_, val);
+  idx_++;
 
   return rc == SQLITE_OK;
 }
 
 bool SqliteStatement::Bind(const void* blob, size_t len) {
-  const int rc = sqlite3_bind_blob(_st, _idx, blob, static_cast<int>(len),
+  const int rc = sqlite3_bind_blob(st_, idx_, blob, static_cast<int>(len),
                                    SQLITE_TRANSIENT);
-  _idx++;
+  idx_++;
 
   return rc == SQLITE_OK;
 }
 
 std::string SqliteStatement::ColumnStr(int col) {
   const char* str =
-      reinterpret_cast<const char*>(sqlite3_column_text(_st, col));
-  int len = sqlite3_column_bytes(_st, col);
+      reinterpret_cast<const char*>(sqlite3_column_text(st_, col));
+  int len = sqlite3_column_bytes(st_, col);
 
   std::string result;
   if (str && len > 0)
@@ -72,14 +72,14 @@ std::string SqliteStatement::ColumnStr(int col) {
 }
 
 const void* SqliteStatement::ColumnBlob(int col) const {
-  return sqlite3_column_blob(_st, col);
+  return sqlite3_column_blob(st_, col);
 }
 
 int SqliteStatement::ColumnInt(int col) const {
-  return sqlite3_column_int(_st, col);
+  return sqlite3_column_int(st_, col);
 }
 
 int64_t SqliteStatement::ColumnBigInt(int col) const {
-  return sqlite3_column_int64(_st, col);
+  return sqlite3_column_int64(st_, col);
 }
 }  // namespace database

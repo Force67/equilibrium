@@ -5,7 +5,7 @@ project("Server")
     kind("StaticLib")
     targetname("server")
     files({
-        "**.cpp",
+        "**.cc",
         "**.h",
     })
     links({
@@ -16,7 +16,8 @@ project("Server")
     })
     includedirs({
         ".",
-        "../../common",
+        "../../",
+        "../../retk",
         blu.extdir .. "/idasdk72/include",
         blu.extdir .. "/enet/include",
         blu.extdir .. "/flatbuffers/include",

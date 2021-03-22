@@ -3,9 +3,11 @@
 #pragma once
 
 #include <sockpp/tcp_acceptor.h>
-#include "netbase.h"
+#include "context.h"
 
+#if defined(max)
 #undef max
+#endif
 
 namespace network {
 

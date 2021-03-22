@@ -9,6 +9,7 @@ function network_include()
     includedirs({
         ".",
         "../",
+        "../../",
         blu.extdir .. "/xenium",
         blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",

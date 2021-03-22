@@ -3,58 +3,44 @@
 #pragma once
 
 #include "netbuffer.h"
-#include "netbase.h"
+#include "context.h"
 
 #include <sockpp/tcp_connector.h>
-#include <utility/detached_queue.h>
+#include <base/detached_queue.h>
 
 namespace network {
 
-class NetworkedClientComponent {
+class TCPClientDelegate {
  public:
-  virtual ~NetworkedClientComponent() = default;
+  virtual ~TCPClientDelegate() = default;
 
   // called when connection to dest succeeds
   virtual void OnConnection(const sockpp::inet_address&){};
-
-  // We have been dropped
   virtual void OnDisconnected(int reason) = 0;
-
-  // Handle a new message
-  virtual void ConsumeMessage(const uint8_t* ptr, size_t len) = 0;
-};
-
-struct OutPacket {
-  FbsBuffer buffer;
-  utility::detached_queue_key<OutPacket> key;
+  virtual void ProcessData(const uint8_t* ptr, size_t len) = 0;
 };
 
 class TCPClient {
  public:
+  explicit TCPClient(TCPClientDelegate&);
+
   bool Update();
 
   // the connect call is blocking.
   bool Connect(const char* addr, int port);
   void Disconnect();
 
-  // thread safe
-  bool SendPacket(pt::MsgType, FbsBuffer& buf, FbsRef<void> ref);
-
-  void RegisterComponent(NetworkedClientComponent*);
-
   std::string LastError() const;
 
-  bool Connected() const { return _conn.is_connected(); }
+  bool Connected() const { return connection_.is_connected(); }
+  const auto GetAddress() const { return address_; }
 
-  const auto GetAddress() const { return _addr; }
+ protected:
+  sockpp::inet_address address_;
+  sockpp::tcp_connector connection_;
 
  private:
-  sockpp::inet_address _addr;
-  sockpp::tcp_connector _conn;
-
-  uint8_t buf[kTCPBufSize]{};
-  utility::detached_mpsc_queue<OutPacket> _outQueue;
-
-  std::vector<NetworkedClientComponent*> _listeners;
+  uint8_t workbuf_[kTCPBufSize]{};
+  TCPClientDelegate& delegate_;
 };
 }  // namespace network

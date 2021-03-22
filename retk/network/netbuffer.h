@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "Netbase.h"
+#include "context.h"
 
 namespace network {
 namespace pt = protocol;

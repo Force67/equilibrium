@@ -5,17 +5,6 @@
 #include "session_store.h"
 #include "sync_service.h"
 
-#include <QObject>
-#include <QScopedPointer>
-
-#include <network/tcp_client.h>
-
-class Plugin;
-
-namespace QT {
-class QTimer;
-}
-
 class SyncSession final : public QObject,
                           public network::NetworkedClientComponent {
   Q_OBJECT;
@@ -44,10 +33,6 @@ class SyncSession final : public QObject,
 
   static const char* TransportStateToString(TransportState);
   const char* CurrentTransportStateToString() const;
-
-  int UserCount() const;
-
-  SessionStore& Store();
  signals:
 
   void TransportStateChange(TransportState);
@@ -60,17 +45,7 @@ class SyncSession final : public QObject,
   void ConsumeMessage(const uint8_t* ptr, size_t len) override;
   void OnDisconnected(int reason) override{};
 
-  void HandleAuthAck(const protocol::MessageRoot*);
-  void HandleUserEvent(const protocol::MessageRoot*);
-
   TransportState _state;
-  SyncService _service;
-  SessionStore _storage;
-
-  Plugin& _plugin;
-  int _userCount = 1;
-
-  QScopedPointer<QTimer> _timeout;
 
   Q_ENUM(SyncSession::TransportState)
   Q_ENUM(SyncSession::NotificationCode)

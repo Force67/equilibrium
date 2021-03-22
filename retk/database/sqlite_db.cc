@@ -17,10 +17,10 @@ static bool IsASCIIWhiteSpace(uint8_t c) {
 }
 
 SqliteDB::SqliteDB(const char* fileNameUtf8) {
-  _good = sqlite3_open(fileNameUtf8, &_db) == SQLITE_OK;
+  good_ = sqlite3_open(fileNameUtf8, &db_) == SQLITE_OK;
 }
 
-SqliteDB::SqliteDB() : _db(nullptr), _good(false) {}
+SqliteDB::SqliteDB() : db_(nullptr), good_(false) {}
 
 SqliteDB::~SqliteDB() {
   close();
@@ -32,27 +32,27 @@ bool SqliteDB::InstallErrorHandler(errorhandler_t* handler) {
 }
 
 bool SqliteDB::open(std::string_view view) {
-  _good = sqlite3_open_v2(view.data(), &_db,
+  good_ = sqlite3_open_v2(view.data(), &db_,
                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                           nullptr) == SQLITE_OK;
-  return _good;
+  return good_;
 }
 
 bool SqliteDB::create(const char* fileNameUtf8) {
-  _good = sqlite3_open_v2(fileNameUtf8, &_db,
+  good_ = sqlite3_open_v2(fileNameUtf8, &db_,
                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                           nullptr) == SQLITE_OK;
-  return _good;
+  return good_;
 }
 
 void SqliteDB::close() {
-  if (_db)
-    sqlite3_close(_db);
+  if (db_)
+    sqlite3_close(db_);
 }
 
 bool SqliteDB::ExecuteUnchecked(const char* sql) {
   char* errMsg;
-  const int rc = sqlite3_exec(_db, sql, nullptr, nullptr, &errMsg);
+  const int rc = sqlite3_exec(db_, sql, nullptr, nullptr, &errMsg);
   if (rc != 0) {
     int ts = sqlite3_threadsafe();
 
@@ -65,7 +65,7 @@ bool SqliteDB::ExecuteUnchecked(const char* sql) {
 // based off:
 // https://github.com/chromium/chromium/blob/dbce9b8c47bd77221cfdd073b6da2bacf2782131/sql/database.cc
 SqliteDB::DBStatus SqliteDB::ExecuteChecked(const char* sql) {
-  if (!_db)
+  if (!db_)
     return DBStatus::kUnopened;
 
   int rc = SQLITE_OK;
@@ -74,7 +74,7 @@ SqliteDB::DBStatus SqliteDB::ExecuteChecked(const char* sql) {
     sqlite3_stmt* stmt;
     const char* leftover;
 
-    rc = sqlite3_prepare_v3(_db, sql, -1, 0, &stmt, &leftover);
+    rc = sqlite3_prepare_v3(db_, sql, -1, 0, &stmt, &leftover);
 
     // stop if an error is encountered
     if (rc != SQLITE_OK)
@@ -110,7 +110,7 @@ bool SqliteDB::Attach(const std::string& path, const char* alias) {
 
   // warning: *ensure* that the main DB was opened with the 'SQLITE_OPEN_CREATE'
   // flag, else everything will crash and burn
-  // assert(_db->flags & SQLITE_OPEN_CREATE);
+  // assert(db_->flags & SQLITE_OPEN_CREATE);
 
   bool rs;
   rs = command.Bind(path);
@@ -133,6 +133,6 @@ bool SqliteDB::Deatch(const char* alias) {
 }
 
 int64_t SqliteDB::LastestRowId() const {
-  return sqlite3_last_insert_rowid(_db);
+  return sqlite3_last_insert_rowid(db_);
 }
 }  // namespace database

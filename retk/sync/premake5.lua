@@ -3,6 +3,15 @@
 
 group("Components")
 
+os.rmdir("protocol/generated")
+os.mkdir("protocol/generated")
+matches = os.matchfiles("protocol/**.fbs")
+for k,v in pairs(matches) do 
+    local fb_dir = path.getabsolute("../../build")
+    print(v)
+    os.executef("%s --cpp -o protocol/generated %s", fb_dir .. "/flatc", v) 
+end
+
 project("sync")
     kind("StaticLib")
     files({
@@ -14,8 +23,10 @@ project("sync")
         "network"
     })
     includedirs({
-        "../",
         ".",
+        "../",
+        "../../",
         blu.extdir .. "/sqlite",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/flatbuffers/include",
     })

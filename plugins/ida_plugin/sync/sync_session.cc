@@ -25,10 +25,6 @@ SyncSession::~SyncSession() {
   _state = TransportState::DISABLED;
 }
 
-SessionStore& SyncSession::Store() {
-  return _storage;
-}
-
 const char* SyncSession::TransportStateToString(TransportState state) {
 #define TS_HELPER(x) \
   case x:            \
@@ -58,10 +54,6 @@ void SyncSession::SetTransportState(TransportState newState) {
 
     emit TransportStateChange(_state);
   }
-}
-
-int SyncSession::UserCount() const {
-  return _userCount;
 }
 
 void SyncSession::LoginUser() {
@@ -94,62 +86,4 @@ void SyncSession::LoginUser() {
 void SyncSession::LogOff() {
   // TODO: send IQUIT
   SetTransportState(TransportState::DISABLED);
-}
-
-void SyncSession::HandleAuthAck(const protocol::MessageRoot* root) {
-  _timeout->stop();
-  SetTransportState(TransportState::ACTIVE);
-
-  const protocol::HandshakeAck* msg = root->msg_as_HandshakeAck();
-
-  _userCount = msg->numUsers();
-  LOG_INFO("Joined session. {} users online.", msg->numUsers());
-
-  emit SessionNotification(NotificationCode::USERS_JOIN);
-}
-
-void SyncSession::HandleUserEvent(const protocol::MessageRoot* root) {
-  const protocol::UserEvent* msg = root->msg_as_UserEvent();
-
-  LOG_TRACE("HandleUserEvent() -> {}",
-            protocol::EnumNameUserEventType(msg->type()));
-
-  if (msg->type() == protocol::UserEventType_Join) {
-    _userCount++;
-    emit SessionNotification(NotificationCode::USER_JOIN);
-  }
-
-  if (msg->type() == protocol::UserEventType_Quit) {
-    if (_userCount - 1 < 1) {
-      LOG_WARNING(
-          "HandleUserEvent() -> NetCrime: less than one user not possible");
-      return;
-    }
-
-    _userCount--;
-    emit SessionNotification(NotificationCode::USER_QUIT);
-  }
-}
-
-void SyncSession::ConsumeMessage(const uint8_t* ptr, size_t len) {
-  const protocol::MessageRoot* message =
-      protocol::GetMessageRoot(static_cast<const void*>(ptr));
-
-  LOG_TRACE("ConsumeMessage() -> {}",
-            protocol::EnumNameMsgType(message->msg_type()));
-
-  switch (message->msg_type()) {
-    case protocol::MsgType_HandshakeAck:
-      return HandleAuthAck(message);
-    case protocol::MsgType_UserEvent:
-      return HandleUserEvent(message);
-    default:
-      break;
-  }
-
-  // if the message could be applied successfully we mark it in the IDB storage.
-  bool result = _service.ProcessNetMessage(message);
-  if (result) {
-    _storage.BumpVersion();
-  }
 }

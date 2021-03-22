@@ -26,7 +26,7 @@ class SqliteStatement {
   int64_t ColumnBigInt(int col) const;
 
   [[nodiscard]] bool Run();
-  [[nodiscard]] inline bool Good() const { return _good; }
+  [[nodiscard]] inline bool Good() const { return good_; }
 
   bool Step();
 
@@ -44,9 +44,9 @@ class SqliteStatement {
   }
 
  private:
-  sqlite3_stmt* _st;
-  bool _good;
-  int _idx = 1;
+  sqlite3_stmt* st_;
+  bool good_;
+  int idx_ = 1;
 };
 
 }  // namespace database

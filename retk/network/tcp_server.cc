@@ -5,17 +5,21 @@
 #include <ctime>
 
 namespace network {
-TCPServer::TCPServer(TCPServerConsumer& consumer) : _consumer(consumer) {
-  _seed = GetMartinsRandomSeed();
-}
-
-uint32_t TCPServer::GetMartinsRandomSeed() {
-  uintptr_t address = reinterpret_cast<uintptr_t>(this);
+namespace {
+uint32_t GetMartinSeed(void* noise) {
+  uintptr_t address = reinterpret_cast<uintptr_t>(noise);
   uint32_t lower = static_cast<uint32_t>(address);
 
   lower += static_cast<uint32_t>(std::time(nullptr));
   return (lower << 16) | (lower >> 16);
 }
+}
+
+TCPServer::TCPServer(TCPServerDelegate& delegate) : delegate_(delegate) {
+  // 10/10 way of doing this..!
+  _seed = GetMartinSeed(this);
+}
+
 
 int16_t TCPServer::Host(int16_t port) {
   _port = -1;
@@ -47,21 +51,6 @@ bool TCPServer::DropPeer(connectid_t cid) {
   return false;
 }
 
-void TCPServer::SendPacket(connectid_t cid,
-                           protocol::MsgType type,
-                           FbsBuffer& buf,
-                           FbsRef<void> ref) {
-  const auto packet = protocol::CreateMessageRoot(buf, type, ref);
-  buf.Finish(packet);
-
-  // only store ID to keep things thread safe..
-  Packet* item = _packetPool.construct();
-  item->buffer = std::move(buf);
-  item->cid = cid;
-
-  _queue.push(&item->key);
-}
-
 void TCPServer::BroadcastPacket(const uint8_t* data,
                                 size_t size,
                                 connectid_t excluder /* = invalidid_t */) {
@@ -91,47 +80,21 @@ void TCPServer::Tick() {
     peer.id = ++_seed;
     peer.addr = _addr;
 
-    _consumer.OnConnection(peer.id);
+    delegate_.OnConnection(peer.id);
   }
 
   // process peers
   for (auto it = _peers.begin(); it != _peers.end(); ++it) {
     if (!it->open()) {
-      _consumer.OnDisconnection(it->id);
+      delegate_.OnDisconnection(it->id);
       it = _peers.erase(it);
     } else {
       ssize_t n;
 
-      while ((n = it->sock.read(_workbuf, sizeof(_workbuf))) > 0) {
-        _consumer.ConsumeMessage(it->id, _workbuf, n);
+      while ((n = it->sock.read(workbuf_, sizeof(workbuf_))) > 0) {
+        delegate_.ProcessData(it->id, workbuf_, n);
       }
     }
-  }
-
-  // work out queue
-  while (auto* packet = _queue.pop(&Packet::key)) {
-    // dispatch to everyone
-    /*  if(packet->cid == kAllConnectId) {
-            for(auto &peer : _peers) {
-              peer.sock.write_n(
-                  packet->buffer.GetBufferPointer(),
-                  packet->buffer.GetSize());
-            }
-      }
-      else {
-            if(TCPPeer *peer = PeerById(packet->cid)) {
-              peer->sock.write_n(
-                  packet->buffer.GetBufferPointer(),
-                  packet->buffer.GetSize());
-            }
-      }*/
-
-    if (TCPPeer* peer = PeerById(packet->cid)) {
-      peer->sock.write_n(packet->buffer.GetBufferPointer(),
-                         packet->buffer.GetSize());
-    }
-
-    _packetPool.destruct(packet);
   }
 }
 }  // namespace network
