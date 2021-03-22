@@ -10,7 +10,7 @@ namespace sync_server {
 
 ServerImpl::ServerImpl(int16_t port)
     : server_(*this),
-      _dataHandler(*this),
+      dbService_(*this),
       timestamp_(std::chrono::high_resolution_clock::now()) {
   server_.Host(port == 0 ? network::kDefaultServerPort : port);
 }
@@ -22,13 +22,10 @@ Server::ResultStatus ServerImpl::Initialize(bool useStorage) {
   LOG_INFO("Welcome to Sync Server (port: {})", server_.Port());
 
   if (useStorage) {
-    // TODO: more result codes
-    const auto res = _dataHandler.Initialize();
-    switch (res) {
-      case DataHandler::Status::HiveError:
-        return Server::ResultStatus::kErrorStorage;
-      default:
-        break;
+    const auto res = dbService_.Initialize();
+    if (res != DbService::Status::Success) {
+      LOG_ERROR("Failed to initialize db service: {}", static_cast<int>(res));
+      return Server::ResultStatus::kErrorStorage;
     }
   }
 
@@ -43,9 +40,11 @@ void ServerImpl::ConsumeMessage(sync::cid_t sorse2, const protocol::MessageRoot*
   if (root->msg_type() == protocol::MsgType_HandshakeRequest)
     return HandleAuth(sorse2, root);
 
+  //dbService_.SendCommand(sorse2, root);
+
   // this bit sucks 
-  _dataHandler.QueueTask(cid, ptr, size);
-  _server.BroadcastPacket(ptr, size, cid);
+  //_dataHandler.QueueTask(cid, ptr, size);
+  //_server.BroadcastPacket(ptr, size, cid);
 }
 
 void ServerImpl::OnDisconnection(network::connectid_t cid) {

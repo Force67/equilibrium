@@ -4,7 +4,7 @@
 
 #include <thread>
 #include <network/tcp_server.h>
-#include "utility/detached_queue.h"
+#include <base/detached_queue.h>
 
 namespace protocol {
 struct MessageRoot;
@@ -19,19 +19,19 @@ namespace sync_server {
 
 class ServerImpl;
 
-class DbHandler {
+class DbService {
  public:
   enum class Status {
     Success,
     HiveError,
   };
 
-  DbHandler(ServerImpl&);
-  ~DbHandler();
+  DbService(ServerImpl&);
+  ~DbService();
 
   Status Initialize();
 
-  void QueueTask(network::connectid_t source, const uint8_t* data, size_t size);
+  void SendCommand(sync::cid_t source, std::unique_ptr<uint8_t[]> &data);
 
   struct Tasklet;
  private:

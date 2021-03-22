@@ -3,8 +3,7 @@
 #pragma once
 
 #include "Server.h"
-
-#include "data_handler.h"
+#include "db_service.h"
 #include "user_registry.h"
 
 #include <sync/engine/sync_server.h>
@@ -41,7 +40,7 @@ class ServerImpl final : public sync::SyncServerDelegate {
   network::Context netContext_;
   sync::SyncServer server_;
   UserRegistry _userRegistry;
-  DataHandler _dataHandler;
+  DbService dbService_;
 
   flatbuffers::FlatBufferBuilder fbb_;
 

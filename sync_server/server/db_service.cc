@@ -3,12 +3,13 @@
 
 #include <filesystem>
 
-#include "db_handler.h"
+#include "db_service.h"
 #include "server_impl.h"
 
 #include <base/thread.h>
 #include "utils/server_logger.h"
 
+#include <sync/storage/main_db.h>
 #include <sync/protocol/generated/message_root_generated.h>
 
 using namespace std::chrono_literals;
@@ -28,46 +29,44 @@ static const fs::path& GetStoragePath() noexcept {
   return s_path;
 }
 
-struct DbHandler::Tasklet {
-  network::connectid_t source;
+struct DbService::Tasklet {
+  sync::cid_t source;
   std::unique_ptr<uint8_t[]> data;
   base::detached_queue_key<Tasklet> key;
 };
 
-static base::object_pool<DbHandler::Tasklet> s_Pool;
+static base::object_pool<DbService::Tasklet> s_Pool;
 
-DbHandler::DbHandler(ServerImpl& server) : _server(server) {
-  worker_ = std::thread(&DbHandler::WorkerThread, this);
+DbService::DbService(ServerImpl& server) : _server(server) {
+  worker_ = std::thread(&DbService::WorkerThread, this);
 }
 
-DbHandler::~DbHandler() {
+DbService::~DbService() {
   running_ = false;
   worker_.join();
 }
 
-DbHandler::Status DbHandler::Initialize() {
+DbService::Status DbService::Initialize() {
+  maindb_ = std::make_unique<sync::storage::MainDb>();
+
   // mount main DB
-  if (!_mainDb.Initialize((GetStoragePath() / "noda.db").u8string()))
+  if (!maindb_->Initialize((GetStoragePath() / "noda.db").u8string()))
     return Status::HiveError;
 
   LOG_INFO("Successfully initialized RootDB");
   return Status::Success;
 }
 
-void DbHandler::QueueTask(network::connectid_t cid,
-                            const uint8_t* data,
-                            size_t size) {
+void DbService::SendCommand(sync::cid_t source, std::unique_ptr<uint8_t[]> &data) {
   auto* item = s_Pool.allocate();
-  item->data = std::make_unique<uint8_t[]>(size);
-  item->source = cid;
+  item->data = std::move(data);
+  item->source = source;
   item->key.next = nullptr;
-
-  std::memcpy(item->data.get(), data, size);
 
   queue_.push(&item->key);
 }
 
-void DbHandler::ProcessTask(Tasklet& task) {
+void DbService::ProcessTask(Tasklet& task) {
   const auto* message =
       protocol::GetMessageRoot(static_cast<const void*>(task.data.get()));
 
@@ -81,7 +80,7 @@ void DbHandler::ProcessTask(Tasklet& task) {
   }
 }
 
-void DbHandler::WorkerThread() {
+void DbService::WorkerThread() {
   base::SetCurrentThreadPriority(base::ThreadPriority::High);
   base::SetCurrentThreadName("[DbThread]");
 
@@ -100,12 +99,12 @@ void DbHandler::WorkerThread() {
   }
 }
 
-void DbHandler::CreateProject(const protocol::MessageRoot* msg) {
+void DbService::CreateProject(const protocol::MessageRoot* msg) {
   auto* m = msg->msg_as_CreateProject();
   //_mainDb.CreateProject();
 }
 
-void DbHandler::CreateWorkspace(const protocol::MessageRoot* msg) {
+void DbService::CreateWorkspace(const protocol::MessageRoot* msg) {
   auto* m = msg->msg_as_CreateWorkspace();
   //_mainDb.CreateWorkspace(m->name()->str(), m->desc()->str());
 }
