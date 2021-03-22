@@ -29,27 +29,24 @@ class ServerImpl final : public sync::SyncServerDelegate {
   UserRegistry& Registry() { return _userRegistry; }
 
  private:
-  // impl for: TCPServerConsumer
+  // impl for: SyncServerDelegate
   void OnDisconnection(network::connectid_t) override;
-  void ConsumeMessage(network::connectid_t,
-                      const uint8_t* ptr,
-                      size_t size) override;
-
+  void ConsumeMessage(sync::cid_t, const protocol::MessageRoot*) override;
   void HandleAuth(network::connectid_t, const protocol::MessageRoot*);
 
  private:
-  bool _listening = false;
+  bool running_ = false;
   std::string _loginToken = "";
 
-  network::Context _context;
-  network::TCPServer _server;
+  network::Context netContext_;
+  sync::SyncServer server_;
   UserRegistry _userRegistry;
   DataHandler _dataHandler;
 
-  flatbuffers::FlatBufferBuilder _fbb;
+  flatbuffers::FlatBufferBuilder fbb_;
 
   using timestamp_t = std::chrono::high_resolution_clock::time_point;
-  timestamp_t _tickTime;
-  float _freeTime = 0;
+  timestamp_t timestamp_;
+  float yieldTime_ = 0;
 };
 }  // namespace sync_server

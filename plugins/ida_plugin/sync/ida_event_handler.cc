@@ -3,8 +3,6 @@
 
 #include "ida_sync.h"
 #include "ida_event_handler.h"
-#include "utils/logger.h"
-
 #include "message_handler.h"
 
 IDAEventHandler::IDAEventHandler(IdaSync& cl) : sync_(cl) {
