@@ -12,7 +12,8 @@ project("dedi_server")
     links({
         "server",
         "network",
-        "fmtlib"
+        "fmtlib",
+        "sync"
     })
     dependson("server")
     includedirs({

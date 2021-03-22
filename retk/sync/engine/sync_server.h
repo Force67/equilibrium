@@ -4,19 +4,22 @@
 
 #include "network/tcp_server.h"
 #include <base/detached_queue.h>
-#include <flatbuffers/flatbuffers.h>
+
+#include "sync_base.h"
 
 namespace protocol {
 struct MessageRoot;
+enum MsgType;
 }
 
 namespace sync {
 using cid_t = network::connectid_t;
+using FbsBuffer = flatbuffers::FlatBufferBuilder;
 
 class SyncServerDelegate : public network::TCPServerDelegate {
  public:
   virtual ~SyncServerDelegate() = default;
-  virtual void ConsumeMessage(cid_t, const protocol::MessageRoot*) = 0;
+  virtual void ConsumeMessage(cid_t, const protocol::MessageRoot*, size_t) = 0;
 
  private:
   void ProcessData(cid_t, const uint8_t*, size_t) final override;
@@ -27,7 +30,10 @@ class SyncServer final : public network::TCPServer {
   explicit SyncServer(SyncServerDelegate&);
   ~SyncServer();
 
-  void QueuePacket(cid_t cid, flatbuffers::FlatBufferBuilder &fbb);
+  void Broadcast(protocol::MsgType, FbsBuffer&, FbsRef<void> ref);
+  void Broadcast(const protocol::MessageRoot*, size_t);
+  void Send(cid_t cid, protocol::MsgType, FbsBuffer&, FbsRef<void> ref);
+
   void Process();
 
  public:

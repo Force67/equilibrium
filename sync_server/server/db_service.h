@@ -3,8 +3,8 @@
 #pragma once
 
 #include <thread>
-#include <network/tcp_server.h>
 #include <base/detached_queue.h>
+#include <sync/engine/sync_server.h>
 
 namespace protocol {
 struct MessageRoot;
@@ -31,7 +31,7 @@ class DbService {
 
   Status Initialize();
 
-  void SendCommand(sync::cid_t source, std::unique_ptr<uint8_t[]> &data);
+  void UploadMessage(sync::cid_t src, const protocol::MessageRoot*, size_t len);
 
   struct Tasklet;
  private:
@@ -49,8 +49,9 @@ class DbService {
 
   bool running_ = true;
   std::thread worker_;
+  sync::FbsBuffer fbb_;
   std::unique_ptr<sync::storage::MainDb> maindb_;
-  std::unique_ptr<sync::storage::ProjectDb> project_;
+  //std::unique_ptr<sync::storage::ProjectDb> project_;
   base::detached_mpsc_queue<Tasklet> queue_;
 };
 }  // namespace sync_server

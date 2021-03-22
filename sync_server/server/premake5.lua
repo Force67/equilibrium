@@ -12,7 +12,7 @@ project("Server")
         "network",
         "fmtlib",
         "database",
-        "utility"
+        "base"
     })
     includedirs({
         ".",

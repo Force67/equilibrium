@@ -10,19 +10,19 @@ namespace sync_server {
 
 ServerImpl::ServerImpl(int16_t port)
     : server_(*this),
-      dbService_(*this),
       timestamp_(std::chrono::high_resolution_clock::now()) {
   server_.Host(port == 0 ? network::kDefaultServerPort : port);
 }
 
-Server::ResultStatus ServerImpl::Initialize(bool useStorage) {
+Server::ResultStatus ServerImpl::Initialize(bool withStorage) {
   if (server_.Port() == -1)
     return Server::ResultStatus::kErrorNotInitalized;
 
   LOG_INFO("Welcome to Sync Server (port: {})", server_.Port());
 
-  if (useStorage) {
-    const auto res = dbService_.Initialize();
+  if (withStorage) {
+    dbService_ = std::make_unique<DbService>(*this);
+    const auto res = dbService_->Initialize();
     if (res != DbService::Status::Success) {
       LOG_ERROR("Failed to initialize db service: {}", static_cast<int>(res));
       return Server::ResultStatus::kErrorStorage;
@@ -33,34 +33,31 @@ Server::ResultStatus ServerImpl::Initialize(bool useStorage) {
   return Server::ResultStatus::kSuccess;
 }
 
-void ServerImpl::ConsumeMessage(sync::cid_t sorse2, const protocol::MessageRoot* root) {
-  LOG_TRACE("ConsumeMessage() -> {}",
-            protocol::EnumNameMsgType(root->msg_type()));
-
-  if (root->msg_type() == protocol::MsgType_HandshakeRequest)
-    return HandleAuth(sorse2, root);
-
-  //dbService_.SendCommand(sorse2, root);
-
-  // this bit sucks 
-  //_dataHandler.QueueTask(cid, ptr, size);
-  //_server.BroadcastPacket(ptr, size, cid);
-}
-
 void ServerImpl::OnDisconnection(network::connectid_t cid) {
   const std::string name = _userRegistry.UserById(cid)->Name();
 
   LOG_INFO("User {} left", name);
   _userRegistry.RemoveUser(cid);
 
-  for (auto& it : _userRegistry) {
-    // yes this sucks, and buffers should be *refcounted* instead
-    auto pack = protocol::CreateAnnouncement(
-        fbb_, protocol::AnnounceType_Disconnect, fbb_.CreateString(name));
+  auto pack = protocol::CreateUserEvent(fbb_, protocol::UserEventType_Quit,
+                                        _userRegistry.UserCount(),
+                                        fbb_.CreateString(name));
 
-    _server.SendPacket(it->Id(), protocol::MsgType_Announcement, buffer,
-                       pack.Union());
-  }
+  server_.Broadcast(protocol::MsgType_UserEvent, fbb_, pack.Union());
+}
+
+void ServerImpl::ConsumeMessage(sync::cid_t originSucks, const protocol::MessageRoot* root, size_t len) {
+  LOG_TRACE("ConsumeMessage() -> {}",
+            protocol::EnumNameMsgType(root->msg_type()));
+
+  if (root->msg_type() == protocol::MsgType_HandshakeRequest)
+    return HandleAuth(originSucks, root);
+
+  if (dbService_)
+    dbService_->UploadMessage(originSucks, root, len);
+
+  // direct copy of message source.
+  server_.Broadcast(root, len);
 }
 
 void ServerImpl::HandleAuth(network::connectid_t cid,
@@ -83,26 +80,18 @@ void ServerImpl::HandleAuth(network::connectid_t cid,
     return;
   }
 
-  flatbuffers::FlatBufferBuilder buf;
-
-  for (auto& it : _userRegistry) {
-    auto pack = protocol::CreateUserEvent(
-        buf, protocol::UserEventType_Join, _userRegistry.UserCount() + 1,
-        buf.CreateString(packet->name()->str()));
-
-    _server.SendPacket(it->Id(), protocol::MsgType_UserEvent, buf,
-                       pack.Union());
-  }
+  auto pack = protocol::CreateUserEvent(
+      fbb_, protocol::UserEventType_Join, _userRegistry.UserCount() + 1,
+      fbb_.CreateString(packet->name()->str()));
+  server_.Broadcast(protocol::MsgType_UserEvent, fbb_, pack.Union());
 
   userptr_t user =
       _userRegistry.AddUser(cid, packet->name()->str(), packet->guid()->str());
-
   LOG_INFO("User {} joined with id {}", user->Name(), cid);
 
-  auto pack = protocol::CreateHandshakeAck(
-      buf, protocol::UserPermissions_NONE, _userRegistry.UserCount());
-
-  _server.SendPacket(cid, protocol::MsgType_HandshakeAck, buf, pack.Union());
+  auto hsAck = protocol::CreateHandshakeAck(
+      fbb_, protocol::UserPermissions_NONE, _userRegistry.UserCount());
+  server_.Send(cid, protocol::MsgType_HandshakeAck, fbb_, hsAck.Union());
 }
 
 void ServerImpl::Update() {

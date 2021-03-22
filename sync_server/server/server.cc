@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "server_impl.h"
-#include "utils/logger.h"
+#include "utils/server_logger.h"
 
 namespace sync_server {
 Server::Server(int16_t port) : _impl{std::make_unique<ServerImpl>(port)} {}
@@ -18,11 +18,11 @@ void Server::Update() {
 }
 
 bool Server::IsListening() const {
-  return _impl->_listening;
+  return _impl->running_;
 }
 
 int16_t Server::GetPort() const {
-  return _impl->_server.Port();
+  return _impl->server_.Port();
 }
 
 void Server::SetLogCallback(logcallback_t cb) {

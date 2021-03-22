@@ -4,7 +4,8 @@
 
 #include "network/tcp_client.h"
 #include <base/detached_queue.h>
-#include <flatbuffers/flatbuffers.h>
+
+#include "sync_base.h"
 
 namespace protocol {
 struct MessageRoot;

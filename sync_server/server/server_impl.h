@@ -21,7 +21,7 @@ class ServerImpl final : public sync::SyncServerDelegate {
   ServerImpl(int16_t port);
   ~ServerImpl() = default;
 
-  Server::ResultStatus Initialize(bool useStorage);
+  Server::ResultStatus Initialize(bool withStorage);
 
   void Update();
 
@@ -30,7 +30,7 @@ class ServerImpl final : public sync::SyncServerDelegate {
  private:
   // impl for: SyncServerDelegate
   void OnDisconnection(network::connectid_t) override;
-  void ConsumeMessage(sync::cid_t, const protocol::MessageRoot*) override;
+  void ConsumeMessage(sync::cid_t, const protocol::MessageRoot*, size_t) override;
   void HandleAuth(network::connectid_t, const protocol::MessageRoot*);
 
  private:
@@ -40,8 +40,7 @@ class ServerImpl final : public sync::SyncServerDelegate {
   network::Context netContext_;
   sync::SyncServer server_;
   UserRegistry _userRegistry;
-  DbService dbService_;
-
+  std::unique_ptr<DbService> dbService_;
   flatbuffers::FlatBufferBuilder fbb_;
 
   using timestamp_t = std::chrono::high_resolution_clock::time_point;

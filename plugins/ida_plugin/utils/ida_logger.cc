@@ -1,9 +1,6 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "pch.h"
-#include "logger.h"
-
 namespace utils {
 static const char* GetLevelName(LogLevel log_level) {
 #define LVL(x)      \

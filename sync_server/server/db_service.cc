@@ -53,17 +53,18 @@ DbService::Status DbService::Initialize() {
   if (!maindb_->Initialize((GetStoragePath() / "noda.db").u8string()))
     return Status::HiveError;
 
+  // initialize it to something
+
   LOG_INFO("Successfully initialized RootDB");
   return Status::Success;
 }
 
-void DbService::SendCommand(sync::cid_t source, std::unique_ptr<uint8_t[]> &data) {
-  auto* item = s_Pool.allocate();
-  item->data = std::move(data);
-  item->source = source;
-  item->key.next = nullptr;
-
-  queue_.push(&item->key);
+void DbService::UploadMessage(sync::cid_t src, const protocol::MessageRoot*, size_t len) {
+  auto* tasklet = s_Pool.allocate();
+  tasklet->key.next = nullptr;
+  tasklet->data = std::make_unique<uint8_t[]>(len);
+  tasklet->source = src;
+  queue_.push(&tasklet->key);
 }
 
 void DbService::ProcessTask(Tasklet& task) {

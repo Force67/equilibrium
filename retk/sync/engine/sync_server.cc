@@ -8,6 +8,8 @@
 
 namespace sync {
 
+constexpr cid_t kAtAllId = std::numeric_limits<uint32_t>::max() - 1;
+
 struct SyncServer::Packet {
   cid_t cid;
   uint32_t dataSize;
@@ -26,7 +28,7 @@ void SyncServerDelegate::ProcessData(cid_t src, const uint8_t* data, size_t len)
   const protocol::MessageRoot* root =
       protocol::GetMessageRoot(static_cast<const void*>(data));
 
-  ConsumeMessage(src, root);
+  ConsumeMessage(src, root, len);
 }
 
 SyncServer::SyncServer(SyncServerDelegate& d) : 
@@ -37,13 +39,28 @@ SyncServer::~SyncServer() {
 
 }
 
-void SyncServer::QueuePacket(cid_t cid, flatbuffers::FlatBufferBuilder& fbb) {
+void SyncServer::Broadcast(protocol::MsgType t, FbsBuffer& buf, FbsRef<void> ref) {
+  Send(kAtAllId, t, buf, ref);
+}
+
+void SyncServer::Broadcast(const protocol::MessageRoot* root, size_t len) {
+  Packet* item = s_Pool.construct();
+  item->cid = kAtAllId;
+  item->dataSize = static_cast<uint32_t>(len);
+  item->data = std::make_unique<uint8_t[]>(len);
+  std::memcpy(item->data.get(), root->msg(), len);
+}
+
+void SyncServer::Send(cid_t cid, protocol::MsgType type, FbsBuffer& buf, FbsRef<void> ref) {
+  const auto packet = protocol::CreateMessageRoot(buf, type, ref);
+  buf.Finish(packet);
+
   // only store ID to keep things thread safe..
   Packet* item = s_Pool.construct();
   item->cid = cid;
-  item->dataSize = static_cast<uint32_t>(fbb.GetSize());
-  item->data = std::make_unique<uint8_t[]>(fbb.GetSize());
-  std::memcpy(item->data.get(), fbb.GetBufferPointer(), fbb.GetSize());
+  item->dataSize = static_cast<uint32_t>(buf.GetSize());
+  item->data = std::make_unique<uint8_t[]>(buf.GetSize());
+  std::memcpy(item->data.get(), buf.GetBufferPointer(), buf.GetSize());
 
   queue_.push(&item->key);
 }
@@ -53,7 +70,12 @@ void SyncServer::Process() {
 
     // work out queue
   while (auto* packet = queue_.pop(&Packet::key)) {
-    if (auto* peer = PeerById(packet->cid)) {
+    if (packet->cid == kAtAllId) {
+      for (auto& p : _peers)
+        p.sock.write_n(static_cast<const void*>(packet->data.get()),
+                       static_cast<size_t>(packet->dataSize));
+    }
+    else if (auto* peer = PeerById(packet->cid)) {
       peer->sock.write_n(
           static_cast<const void*>(packet->data.get()),
           static_cast<size_t>(packet->dataSize));
