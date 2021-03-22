@@ -53,19 +53,14 @@ class PluginUi final : public QObject {
   static ssize_t idaapi StaticEvent(void*, int, va_list);
   void HandleEvent(int, va_list);
 
-  Plugin& _plugin;
+  Plugin& plugin_;
   UiData data_;
-  ShellState _state{ShellState::NO_DB};
+  ShellState state_{ShellState::NO_DB};
 
-  enum class IdbState {
-    Opening,
-    Closing,
-  };
+  QScopedPointer<QLabel> wastedTime_;
+  QScopedPointer<QTimer> timer_;
 
-  QScopedPointer<QLabel> _wastedTime;
-  QScopedPointer<QTimer> _timer;
-
-  QScopedPointer<forms::StatusWidget> _statusForm;
-  QAction* _cnAct = nullptr;
-  QAction* _stAct = nullptr;
+  QScopedPointer<forms::StatusWidget> statusForm_;
+  QAction* cnAct_ = nullptr;
+  QAction* stAct_ = nullptr;
 };

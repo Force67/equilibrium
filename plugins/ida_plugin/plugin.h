@@ -19,7 +19,7 @@ class Plugin final : public QObject, public plugmod_t {
   bool Init(); 
   bool run(size_t arg);
 
-  bool ToggleNet();
+  bool SyncToggle();
 
   inline auto& Sync() { return sync_; }
   inline auto& Ui() { return ui_; }

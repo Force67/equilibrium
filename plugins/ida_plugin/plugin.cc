@@ -9,8 +9,8 @@
 namespace {
 Plugin* g_Plugin = nullptr;
 
-constexpr char kPluginComment[] = "Nomad Ida Plugin";
-constexpr char kPluginName[] = "NODAForIDA";
+constexpr char kPluginComment[] = "Reverse Engineering Toolkit for IDA Pro";
+constexpr char kPluginName[] = "RETKForIDA";
 constexpr char kPluginHotkey[] = "Ctrl-Y";
 }  // namespace
 
@@ -24,7 +24,7 @@ Plugin::~Plugin() {
   utils::OptRegistry::Save();
 }
 
-bool Plugin::ToggleNet() {
+bool Plugin::SyncToggle() {
   if (_client.Connected()) {
     LOG_TRACE("Plugin::ToggleNet() -> Disconnect");
 

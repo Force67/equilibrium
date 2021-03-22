@@ -17,8 +17,6 @@
 #include "forms/settings.h"
 #include "forms/status_widget.h"
 
-#include "utils/Logger.h"
-
 QT::QWidget* GetTopWidget() {
   return qobject_cast<QMainWindow*>(
       QApplication::activeWindow()->topLevelWidget());
@@ -48,7 +46,7 @@ constexpr char kWhyAreYouWastingYourTimeText[] =
 // global plugin description
 extern plugin_t PLUGIN;
 
-PluginUi::PluginUi(Plugin& plugin) : _plugin(plugin) {
+PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   QMainWindow* window = GetMainWindow();
   assert(window != nullptr);
 
@@ -56,47 +54,47 @@ PluginUi::PluginUi(Plugin& plugin) : _plugin(plugin) {
 
   // register a new menu bar for the sync stuff
   QMenu* syncMenu = window->menuBar()->addMenu("RESync");
-  _cnAct = syncMenu->addAction("Connect");
+  cnAct_ = syncMenu->addAction("Connect");
   syncMenu->addSeparator();
-  _stAct = syncMenu->addAction(QIcon(":/cog"), "Settings");
+  stAct_ = syncMenu->addAction(QIcon(":/cog"), "Settings");
 
-  _wastedTime.reset(new QLabel(""));
-  _statusForm.reset(new forms::StatusWidget(window->statusBar(), plugin));
+  wastedTime_.reset(new QLabel(""));
+  statusForm_.reset(new forms::StatusWidget(window->statusBar(), plugin));
 
-  _wastedTime->hide();
-  _cnAct->setEnabled(false);
+  wastedTime_->hide();
+  cnAct_->setEnabled(false);
 
-  _timer.reset(new QTimer());
+  timer_.reset(new QTimer());
 
   // register tray widgets
-  window->statusBar()->addPermanentWidget(_wastedTime.data());
-  window->statusBar()->addPermanentWidget(_statusForm.data());
+  window->statusBar()->addPermanentWidget(wastedTime_.data());
+  window->statusBar()->addPermanentWidget(statusForm_.data());
 
   // and connect everything
-  connect(_timer.data(), &QTimer::timeout, this, &PluginUi::Tick);
-  connect(_cnAct, &QAction::triggered, &_plugin, &Plugin::ToggleNet);
+  connect(timer_.data(), &QTimer::timeout, this, &PluginUi::Tick);
+  connect(cnAct_, &QAction::triggered, &plugin_, &Plugin::ToggleNet);
 
-  connect(_stAct, &QAction::triggered, this, [&]() {
+  connect(stAct_, &QAction::triggered, this, [&]() {
     forms::Settings dia(plugin.client().Connected(), GetTopWidget());
     dia.exec();
   });
 
   connect(this, &PluginUi::ShellStateChange, this, [&](ShellState newState) {
     if (newState == ShellState::IN_DB)
-      _cnAct->setEnabled(true);
+      cnAct_->setEnabled(true);
 
     if (newState == ShellState::NO_DB)
-      _cnAct->setEnabled(false);
+      cnAct_->setEnabled(false);
   });
 
   connect(
-      &_plugin.session(), &SyncSession::TransportStateChange, this,
-      [&](SyncSession::TransportState newState) {
-        if (newState == SyncSession::TransportState::ACTIVE)
-          _cnAct->setText("Disconnect");
+      &plugin_.Sync(), &IdaSync::StateChange, this,
+      [&](IdaSync::State state) {
+        if (state == IdaSync::State::kActive)
+          cnAct_->setText("Disconnect");
 
-        if (newState == SyncSession::TransportState::DISABLED)
-          _cnAct->setText("Connect");
+        if (state == IdaSync::State::kDisabled)
+          cnAct_->setText("Connect");
       },
       Qt::QueuedConnection);
 }
@@ -110,11 +108,11 @@ void PluginUi::HandleEvent(int code, va_list args) {
     case ui_notification_t::ui_database_closed:
       SetShellState(ShellState::NO_DB);
 
-      _timer->stop();
+      timer_->stop();
       break;
     case ui_notification_t::ui_database_inited: {
-      _wastedTime->show();
-      _timer->start(1000);
+      wastedTime_->show();
+      timer_->start(1000);
 
       SetShellState(ShellState::IN_DB);
       break;
@@ -132,21 +130,21 @@ void PluginUi::HandleEvent(int code, va_list args) {
 }
 
 void PluginUi::SetShellState(ShellState newState) {
-  if (newState != _state) {
-    _state = newState;
+  if (newState != state_) {
+    state_ = newState;
 
     emit ShellStateChange(newState);
   }
 }
 
 PluginUi::ShellState PluginUi::GetShellState() const {
-  return _state;
+  return state_;
 }
 
 void PluginUi::ClenseTheShell() {
   // manually kill the statusform here, in order to prevent QT from freeing it,
   // which would result in a crash and leave the idb broken...
-  _statusForm.reset();
+  statusForm_.reset();
 }
 
 void PluginUi::Tick() {
@@ -160,12 +158,12 @@ void PluginUi::Tick() {
                      .arg(minutes, 2, 10, QLatin1Char('0'))
                      .arg(seconds, 2, 10, QLatin1Char('0'));
 
-  _wastedTime->setText(text);
+  wastedTime_->setText(text);
   data_.tick_++;
 }
 
 void PluginUi::RunFeature() {
-  if (_state == ShellState::NO_DB) {
+  if (state_ == ShellState::NO_DB) {
     LOG_ERROR("Open an IDB to run features");
     return;
   }
@@ -179,7 +177,7 @@ void PluginUi::RunFeature() {
   }
 
   if (index != tools::Toolbox::FeatureCode::kNone) {
-    _plugin.Tools().TriggerFeature(index);
+    plugin_.Tools().TriggerFeature(index);
   }
 }
 
