@@ -4,7 +4,7 @@ function network_include()
     links({
         "sockpp",
         "fmtlib",
-        "utility",
+        "base",
     })
     includedirs({
         ".",

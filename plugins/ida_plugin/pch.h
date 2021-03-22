@@ -18,6 +18,8 @@
 #include <netnode.hpp>
 #include <struct.hpp>
 
+#include "utils/ida_logger.h"
+
 #pragma warning(pop)
 
 #ifdef wait

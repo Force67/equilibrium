@@ -5,19 +5,12 @@
 #include "context.h"
 
 namespace network {
-namespace pt = protocol;
 
-// TODO: discard this when netbuffer is done.
-using FbsBuffer = flatbuffers::FlatBufferBuilder;
-
-// Flat buffer aliases
-template <typename T>
-using FbsRef = flatbuffers::Offset<T>;
-using FbsStringRef = flatbuffers::Offset<flatbuffers::String>;
-
+	#if 0
 class NetBuffer final : public flatbuffers::FlatBufferBuilder {
  public:
   NetBuffer();
   ~NetBuffer();
 };
+#endif
 }  // namespace network

@@ -3,8 +3,6 @@
 // Entry point of the sync plugin
 
 #include "plugin.h"
-#include "utils/logger.h"
-
 #include <QSettings>
 #include <utils/opt.h>
 
@@ -16,7 +14,8 @@ constexpr char kPluginName[] = "NODAForIDA";
 constexpr char kPluginHotkey[] = "Ctrl-Y";
 }  // namespace
 
-Plugin::Plugin() : sync_(*this), _shell(*this) {
+Plugin::Plugin() : sync_(*this), ui_(*this) {
+
   LOG_INFO("Loaded RETK, version " GIT_BRANCH "@" GIT_COMMIT
            " Created by Force67 <github.com/Force67>.");
 }
@@ -49,17 +48,12 @@ bool Plugin::Init() {
 }
 
 bool Plugin::run(size_t arg) {
-  /*if (arg != -1) {
-    LOG_TRACE("Plugin::run() -> Arg : {}", arg);
-    return false;
-  }*/
-
   if (!auto_is_ok()) {
     LOG_ERROR("Must wait for Autoanalysis to finish before running.");
     return false;
   }
 
-  _shell.RunFeature();
+  ui_.RunFeature();
   return true;
 }
 

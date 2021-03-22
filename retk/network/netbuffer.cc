@@ -5,6 +5,7 @@
 
 namespace network {
 
+#if 0
 class NetAllocator final : public flatbuffers::Allocator {
  public:
   uint8_t* allocate(size_t size) override {
@@ -19,4 +20,5 @@ class NetAllocator final : public flatbuffers::Allocator {
 NetBuffer::NetBuffer() : flatbuffers::FlatBufferBuilder() {}
 
 NetBuffer::~NetBuffer() {}
+#endif
 }  // namespace network

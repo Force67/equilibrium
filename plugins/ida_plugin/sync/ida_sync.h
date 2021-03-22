@@ -18,10 +18,33 @@ struct StaticHandler;
 
 class Plugin;
 
-class IdaSync final : public sync::SyncClientDelegate {
-public:
+class RequestContext {
+ public:
+
+};
+
+class IdaSync final : public sync::SyncClientDelegate, public QObject {
+  Q_OBJECT;
+ public:
+
   explicit IdaSync(Plugin&);
  ~IdaSync();
+
+ enum class State {
+   kDisabled,
+   kInitialized,
+   kPending,
+   kConfiguring,
+   kActive
+ };
+
+ enum class Notification {
+   kUserJoined,
+   kUsersJoined,
+   kUserQuit,
+   kUserHint,
+   kReserved
+ };
 
 private:
  void OnConnection(const sockpp::inet_address&) override;
@@ -32,6 +55,11 @@ private:
  void HandleUserEvent(const protocol::MessageRoot*);
 
  void BindStaticHandlers();
+ void SetState(State);
+
+signals:
+ void StateChange(State);
+ void Notify(Notification);
 
 public:
  struct Stats {
@@ -49,6 +77,7 @@ public:
 
 private:
  sync::SyncClient client_;
+ flatbuffers::FlatBufferBuilder fbb_;
  ClientRunner netRunner_;
  RequestRunner reqRunner_;
  SyncData data_;
@@ -58,4 +87,10 @@ private:
  IDAEvents_t idaEvents_;
  NetEvents_t netEvents_;
  IDAEventHandler idaHandler_;
+ State state_;
+ Notification notf_;
+
+private:
+ Q_ENUM(IdaSync::State)
+ Q_ENUM(IdaSync::Notification)
 };

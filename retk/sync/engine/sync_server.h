@@ -7,7 +7,7 @@
 #include <flatbuffers/flatbuffers.h>
 
 namespace protocol {
-class MessageRoot;
+struct MessageRoot;
 }
 
 namespace sync {

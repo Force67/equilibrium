@@ -29,4 +29,6 @@ project("sync")
         blu.extdir .. "/sqlite",
         blu.extdir .. "/fmt/include",
         blu.extdir .. "/flatbuffers/include",
+        blu.extdir .. "/sockpp/include",
+        blu.extdir .. "/xenium",
     })

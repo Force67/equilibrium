@@ -53,9 +53,10 @@ void SyncServer::Process() {
 
     // work out queue
   while (auto* packet = queue_.pop(&Packet::key)) {
-    if (const auto* peer = PeerById(packet->cid)) {
-      peer->sock.write_n(packet->data.get(),
-                         packet->dataSize);
+    if (auto* peer = PeerById(packet->cid)) {
+      peer->sock.write_n(
+          static_cast<const void*>(packet->data.get()),
+          static_cast<size_t>(packet->dataSize));
     }
 
     s_Pool.destruct(packet);

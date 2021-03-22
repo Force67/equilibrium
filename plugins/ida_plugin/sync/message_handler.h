@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Pch.h"
 #include "sync/sync_service.h"
 #include "sync/sync_client.h"
 #include "utils/Logger.h"
