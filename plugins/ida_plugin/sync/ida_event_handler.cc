@@ -1,13 +1,13 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include "ida_sync.h"
 #include "ida_event_handler.h"
-#include "ida_sync_client.h"
 #include "utils/logger.h"
 
 #include "message_handler.h"
 
-IDAEventHandler::IDAEventHandler(IDASyncClient& cl) : client_(cl) {
+IDAEventHandler::IDAEventHandler(IdaSync& cl) : sync_(cl) {
   hook_to_notification_point(hook_type_t::HT_IDB, IdbEvent, this);
   hook_to_notification_point(hook_type_t::HT_IDP, IdpEvent, this);
 }
@@ -18,7 +18,7 @@ IDAEventHandler::~IDAEventHandler() {
 }
 
 void IDAEventHandler::HandleEvent(hook_type_t type, int code, va_list args) {
-  auto& events = client_.IdaEvents();
+  auto& events = sync_.IdaEvents();
 
   const auto it = events.find(std::make_pair(type, code));
 
@@ -36,7 +36,7 @@ void IDAEventHandler::HandleEvent(hook_type_t type, int code, va_list args) {
   }
 
   LOG_TRACE("HandleEvent() -> Executed handler {}", code);
-  client_.stats.idaEventNum_++;
+  sync_.stats.idaEventNum_++;
 }
 
 ssize_t IDAEventHandler::IdbEvent(void* ptr, int code, va_list args) {

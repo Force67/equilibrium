@@ -25,9 +25,7 @@ class SyncService : QObject, exec_request_t {
   ~SyncService();
 
  private:
-  void HandleIDAEvent(hook_type_t, int code, va_list args);
 
-  void BindStaticHandlers();
   void SendSessionInfo();
 
 };

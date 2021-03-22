@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-class IdaPlugin;
+class Plugin;
 
 #include "storage/ui_data.h"
 
@@ -31,7 +31,7 @@ class PluginUi final : public QObject {
   Q_OBJECT;
 
  public:
-  explicit PluginUi(IdaPlugin&);
+  explicit PluginUi(Plugin&);
   ~PluginUi();
 
   enum class ShellState {
@@ -53,7 +53,7 @@ class PluginUi final : public QObject {
   static ssize_t idaapi StaticEvent(void*, int, va_list);
   void HandleEvent(int, va_list);
 
-  IdaPlugin& _plugin;
+  Plugin& _plugin;
   UiData data_;
   ShellState _state{ShellState::NO_DB};
 

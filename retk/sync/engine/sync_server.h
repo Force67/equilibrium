@@ -27,7 +27,7 @@ class SyncServer final : public network::TCPServer {
   explicit SyncServer(SyncServerDelegate&);
   ~SyncServer();
 
-  void QueuePacket(network::connectid_t cid, flatbuffers::FlatBufferBuilder &fbb);
+  void QueuePacket(cid_t cid, flatbuffers::FlatBufferBuilder &fbb);
   void Process();
 
  public:

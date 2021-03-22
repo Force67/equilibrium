@@ -1,9 +1,8 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include "ida_sync.h"
 #include "request_runner.h"
-#include "ida_sync_client.h"
-
 #include "sync/protocol/generated/message_root_generated.h"
 
 #include <base/object_pool.h>
@@ -16,7 +15,7 @@ struct RequestRunner::Packet {
 
 static base::object_pool<RequestRunner::Packet> s_Pool;
 
-RequestRunner::RequestRunner(IDASyncClient &cl) : client_(cl) {
+RequestRunner::RequestRunner(IdaSync& cl) : sync_(cl) {
 
 }
 
@@ -38,7 +37,7 @@ void RequestRunner::Queue(const uint8_t* data, size_t size) {
 }
 
 int RequestRunner::execute() {
-  auto&& events = client_.NetEvents();
+  auto&& events = sync_.NetEvents();
 
   while (auto* item = queue_.pop(&Packet::key)) {
     queueSize_--;

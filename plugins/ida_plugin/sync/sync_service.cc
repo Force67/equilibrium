@@ -8,8 +8,6 @@
 #include "sync/sync_session.h"
 
 SyncService::SyncService(SyncSession& session) : _session(session) {
-  BindStaticHandlers();
-
   connect(
       &session, &SyncSession::TransportStateChange, this,
       [&](SyncSession::TransportState newState) {
@@ -24,24 +22,6 @@ SyncService::SyncService(SyncSession& session) : _session(session) {
       Qt::QueuedConnection);
 }
 
-void SyncService::BindStaticHandlers() {
-  size_t count = 0;
-
-  for (auto* i = sync::StaticHandler::ROOT(); i;) {
-    if (auto* it = i->item) {
-      _idaEvents[std::make_pair(it->hookType, it->hookEvent)] = it;
-      _netEvents[it->msgType] = it;
-    }
-
-    auto* j = i->next;
-    i->next = nullptr;
-    i = j;
-
-    ++count;
-  }
-
-  LOG_TRACE("BindStaticHandlers() -> count: {}", count);
-}
 
 void SyncService::SendSessionInfo() {
   assert(!IsOnNetThread());

@@ -1,8 +1,7 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "Pch.h"
-#include "ida_plugin.h"
+#include "plugin.h"
 #include "plugin_ui.h"
 
 #include <QApplication>
@@ -49,7 +48,7 @@ constexpr char kWhyAreYouWastingYourTimeText[] =
 // global plugin description
 extern plugin_t PLUGIN;
 
-PluginUi::PluginUi(IdaPlugin& plugin) : _plugin(plugin) {
+PluginUi::PluginUi(Plugin& plugin) : _plugin(plugin) {
   QMainWindow* window = GetMainWindow();
   assert(window != nullptr);
 
@@ -75,7 +74,7 @@ PluginUi::PluginUi(IdaPlugin& plugin) : _plugin(plugin) {
 
   // and connect everything
   connect(_timer.data(), &QTimer::timeout, this, &PluginUi::Tick);
-  connect(_cnAct, &QAction::triggered, &_plugin, &IdaPlugin::ToggleNet);
+  connect(_cnAct, &QAction::triggered, &_plugin, &Plugin::ToggleNet);
 
   connect(_stAct, &QAction::triggered, this, [&]() {
     forms::Settings dia(plugin.client().Connected(), GetTopWidget());
@@ -180,7 +179,7 @@ void PluginUi::RunFeature() {
   }
 
   if (index != tools::Toolbox::FeatureCode::kNone) {
-    _plugin.toolbox().TriggerFeature(index);
+    _plugin.Tools().TriggerFeature(index);
   }
 }
 

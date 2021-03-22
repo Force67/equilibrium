@@ -2,11 +2,11 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-class IDASyncClient;
+class IdaSync;
 
 class IDAEventHandler final {
  public:
-  explicit IDAEventHandler(IDASyncClient&);
+  explicit IDAEventHandler(IdaSync&);
   ~IDAEventHandler();
 
  private:
@@ -16,5 +16,5 @@ class IDAEventHandler final {
   static ssize_t IdpEvent(void* userData, int code, va_list args);
 
  private:
-  IDASyncClient& client_;
+  IdaSync& sync_;
 };

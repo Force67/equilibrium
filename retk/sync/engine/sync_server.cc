@@ -37,7 +37,7 @@ SyncServer::~SyncServer() {
 
 }
 
-void SyncServer::QueuePacket(network::connectid_t cid, flatbuffers::FlatBufferBuilder& fbb) {
+void SyncServer::QueuePacket(cid_t cid, flatbuffers::FlatBufferBuilder& fbb) {
   // only store ID to keep things thread safe..
   Packet* item = s_Pool.construct();
   item->cid = cid;

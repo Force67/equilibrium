@@ -4,9 +4,9 @@
 
 #include "database/sqlite_db.h"
 
-namespace syncer {
+namespace sync::storage {
 
-class RootDB {
+class MainDb {
  public:
   bool Initialize(const std::string& path);
 
@@ -20,18 +20,4 @@ class RootDB {
  private:
   database::SqliteDB _db;
 };
-
-class NodaDB {
- public:
-  bool Initialize(const std::string& path);
-
-  bool AddUser(const std::string& name, const std::string& guid);
-  bool AddUpdate(int32_t type,
-                 int32_t user_id,
-                 const void* data,
-                 size_t dataLen);
-
- private:
-  database::SqliteDB _db;
-};
-}  // namespace database
+}

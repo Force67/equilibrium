@@ -16,10 +16,12 @@ namespace sync {
 struct StaticHandler;
 }
 
-class IDASyncClient final : public sync::SyncClientDelegate {
+class Plugin;
+
+class IdaSync final : public sync::SyncClientDelegate {
 public:
-  IDASyncClient();
- ~IDASyncClient();
+  explicit IdaSync(Plugin&);
+ ~IdaSync();
 
 private:
  void OnConnection(const sockpp::inet_address&) override;
@@ -28,6 +30,8 @@ private:
 
  void HandleAuthAck(const protocol::MessageRoot*);
  void HandleUserEvent(const protocol::MessageRoot*);
+
+ void BindStaticHandlers();
 
 public:
  struct Stats {
@@ -49,6 +53,7 @@ private:
  RequestRunner reqRunner_;
  SyncData data_;
  QTimer timer_;
+ Plugin& plugin_;
 
  IDAEvents_t idaEvents_;
  NetEvents_t netEvents_;

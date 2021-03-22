@@ -1,25 +1,50 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "ida_sync_client.h"
+#include "ida_sync.h"
+#include "message_handler.h"
 #include "utils/logger.h"
 
 #include <sync/protocol/generated/message_root_generated.h>
 
-IDASyncClient::IDASyncClient() : 
-	client_(*this), netRunner_(client_), reqRunner_(client_), idaHandler_(client_) {}
+IdaSync::IdaSync(Plugin& plugin) : 
+	client_(*this),
+    netRunner_(client_),
+    reqRunner_(client_),
+    idaHandler_(client_),
+    plugin_(plugin),{
+  BindStaticHandlers();
+}
 
-IDASyncClient::~IDASyncClient() = default;
+IdaSync::~IdaSync() = default;
 
-void IDASyncClient::OnConnection(const sockpp::inet_address&) {
+void IdaSync::BindStaticHandlers() {
+  size_t count = 0;
+
+  for (auto* i = sync::StaticHandler::ROOT(); i;) {
+    if (auto* it = i->item) {
+      idaEvents_[std::make_pair(it->hookType, it->hookEvent)] = it;
+      netEvents_[it->msgType] = it;
+    }
+
+    auto* j = i->next;
+    i = j;
+
+    ++count;
+  }
+
+  LOG_TRACE("BindStaticHandlers() -> count: {}", count);
+}
+
+void IdaSync::OnConnection(const sockpp::inet_address&) {
   
 }
 
-void IDASyncClient::OnDisconnected(int reason) {
+void IdaSync::OnDisconnected(int reason) {
   
 }
 
-void IDASyncClient::HandleAuthAck(const protocol::MessageRoot* root) {
+void IdaSync::HandleAuthAck(const protocol::MessageRoot* root) {
   timer_.stop();
   //SetTransportState(TransportState::ACTIVE);
 
@@ -31,7 +56,7 @@ void IDASyncClient::HandleAuthAck(const protocol::MessageRoot* root) {
   //emit SessionNotification(NotificationCode::USERS_JOIN);
 }
 
-void IDASyncClient::HandleUserEvent(const protocol::MessageRoot* root) {
+void IdaSync::HandleUserEvent(const protocol::MessageRoot* root) {
   const protocol::UserEvent* msg = root->msg_as_UserEvent();
 
   LOG_TRACE("HandleUserEvent() -> {}",
@@ -54,7 +79,7 @@ void IDASyncClient::HandleUserEvent(const protocol::MessageRoot* root) {
   }
 }
 
-void IDASyncClient::ConsumeMessage(const protocol::MessageRoot *root) {
+void IdaSync::ConsumeMessage(const protocol::MessageRoot *root) {
   LOG_TRACE("ConsumeMessage() -> {}",
             protocol::EnumNameMsgType(root->msg_type()));
 
