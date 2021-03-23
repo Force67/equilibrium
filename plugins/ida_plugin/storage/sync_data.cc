@@ -14,7 +14,7 @@ const char* const SyncData::GetName() {
 }
 
 void SyncData::Load() {
-  _node = noda::NetNode(kSyncDataName);
+  _node = utils::NetNode(kSyncDataName);
 
   int version = _node.LoadScalar<int>(NodeIndex::StorageVersion, -1);
   if (version < kSessionStoreVersion) {

@@ -3,6 +3,7 @@
 
 #include "ida_sync.h"
 #include "message_handler.h"
+#include "utils/ida_plus.h"
 
 #include <QSettings>
 #include <sync/utils/user_info.h>
@@ -13,7 +14,8 @@ IdaSync::IdaSync(Plugin& plugin)
       netRunner_(client_),
       reqRunner_(*this),
       idaHandler_(*this),
-      plugin_(plugin) {
+      plugin_(plugin),
+      context_(*this) {
   BindStaticHandlers();
   state_ = State::kDisabled;
 
@@ -48,15 +50,15 @@ void IdaSync::BindStaticHandlers() {
 
 void IdaSync::SetState(State newState) {
   if (newState != state_) {
-    LOG_TRACE("Updated transport state {} -> {}",
-              static_cast<int>(state_),
+    LOG_TRACE("Updated transport state {} -> {}", static_cast<int>(state_),
               static_cast<int>(newState));
 
     state_ = newState;
 
-    switch (newState) { 
-    case State::kActive:
-
+    if (newState == State::kActive) {
+      std::function<void(void)> func =
+          std::bind(&IdaSync::SendProjectInfo, this);
+      utils::RequestFunctor functor(func, MFF_READ);
     }
 
     emit StateChange(state_);
@@ -80,7 +82,7 @@ void IdaSync::OnConnection(const sockpp::inet_address& address) {
       fbb_.CreateString(sync::utils::GetUniqueUserId()),
       fbb_.CreateString(username));
 
-  client_.Send(protocol::MsgType_HandshakeRequest, fbb_, request.Union());
+  client_.Send(fbb_, protocol::MsgType_HandshakeRequest, request.Union());
 
   SetState(State::kPending);
   // and we give the timer 5 seconds to respond
@@ -94,14 +96,15 @@ void IdaSync::OnDisconnected(int reason) {
 }
 
 void IdaSync::SendProjectInfo() {
-    auto md5 = 
+  auto md5 = utils::InputFile::RetrieveInputFileNameMD5();
+  auto name = utils::InputFile::GetInputFileName();
 
-  LOG_TRACE("SendProjectInfo() -> md5: {} fileName: {}", md5Str, fileName);
+  LOG_TRACE("SendProjectInfo() -> md5: {} fileName: {}", md5, fileName);
 
   auto request = protocol::CreateLocalProjectInfoDirect(
-      fbb_, md5Str, fileName, _session.Store().LocalVersion());
+      fbb_, md5.c_str(), name.c_str(), data_.version_);
 
-  client_.Send(protocol::MsgType_LocalProjectInfo, fbb_, request.Union());
+  client_.Send(fbb_, protocol::MsgType_LocalProjectInfo, request.Union());
 }
 
 void IdaSync::HandleAuthAck(const protocol::MessageRoot* root) {
@@ -139,19 +142,18 @@ void IdaSync::HandleUserEvent(const protocol::MessageRoot* root) {
   }
 }
 
-void IdaSync::ConsumeMessage(const protocol::MessageRoot *root, size_t len) {
+void IdaSync::ConsumeMessage(const protocol::MessageRoot* root, size_t len) {
   LOG_TRACE("ConsumeMessage() -> {}",
             protocol::EnumNameMsgType(root->msg_type()));
 
-   switch (root->msg_type()) {
+  switch (root->msg_type()) {
     case protocol::MsgType_HandshakeAck:
-       return HandleAuthAck(root);
+      return HandleAuthAck(root);
     case protocol::MsgType_UserEvent:
       return HandleUserEvent(root);
     default:
+      // dispatch the message to the IDA thread
+      reqRunner_.Queue(static_cast<const uint8_t*>(root->msg()), len);
       break;
   }
-   
-  // dispatch the message to the IDA thread
-  reqRunner_.Queue(static_cast<const uint8_t*>(root->msg()), len);
 }

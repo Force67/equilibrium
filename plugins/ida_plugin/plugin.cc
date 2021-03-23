@@ -25,20 +25,16 @@ Plugin::~Plugin() {
 }
 
 bool Plugin::SyncToggle() {
-  if (_client.Connected()) {
+  if (sync_.Connected()) {
     LOG_TRACE("Plugin::ToggleNet() -> Disconnect");
 
-    _session.LogOff();
-    _client.Stop();
+    // TBD.
+    sync_.Stop();
     return true;
   }
 
-  bool result = _client.Start();
+  bool result = sync_.Start();
   LOG_TRACE("Plugin::ToggleNet() -> Connect {}", result);
-
-  if (result) {
-    _session.LoginUser();
-  }
 
   return result;
 }

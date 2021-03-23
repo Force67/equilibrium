@@ -17,13 +17,29 @@ struct StaticHandler;
 }
 
 class Plugin;
+class IdaSync;
 
-class RequestContext {
- public:
+struct MsgContext {
+  inline explicit MsgContext(IdaSync& s) : sync(s) {}
 
+  IdaSync& sync;
+  sync::FbsBuffer idbBuf;
+  sync::FbsBuffer idpBuf;
+
+  template<typename... Args>
+  bool SendIdb(Args&&... args) {
+    sync.Client().Send(idbBuf, args...);
+    return true;
+  }
+
+  template <typename... Args>
+  bool SendIdp(Args&&... args) {
+    sync.Client().Send(idpBuf, args...);
+    return true;
+  }
 };
 
-class IdaSync final : public sync::SyncClientDelegate, public QObject {
+class IdaSync final : public QObject, public sync::SyncClientDelegate {
   Q_OBJECT;
  public:
 
@@ -45,6 +61,10 @@ class IdaSync final : public sync::SyncClientDelegate, public QObject {
    kUserHint,
    kReserved
  };
+
+ bool Connected() const { return client_.Connected(); }
+ void Stop() { netRunner_.Stop(); }
+ bool Start() { return netRunner_.Start(); }
 
 private:
  void OnConnection(const sockpp::inet_address&) override;
@@ -70,15 +90,21 @@ public:
  int userCount = 1;
 
  using IdaEventType_t = std::pair<hook_type_t, int>;
- using IDAEvents_t = std::unordered_map<IdaEventType_t, sync::StaticHandler*>;
+ // needs to be fixed eventually back to unoredered map
+ using IDAEvents_t = std::map<IdaEventType_t, sync::StaticHandler*>;
  using NetEvents_t = std::unordered_map<int, sync::StaticHandler*>;
 
  inline NetEvents_t& NetEvents() { return netEvents_; }
  inline IDAEvents_t& IdaEvents() { return idaEvents_; }
+ inline auto& Client() { return client_; }
+ inline MsgContext& Context() { return context_; }
+ inline auto& Data() { return data_; }
 
 private:
+ network::Context netCtx_;
  sync::SyncClient client_;
- flatbuffers::FlatBufferBuilder fbb_;
+ sync::FbsBuffer fbb_;
+ MsgContext context_;
  ClientRunner netRunner_;
  RequestRunner reqRunner_;
  SyncData data_;

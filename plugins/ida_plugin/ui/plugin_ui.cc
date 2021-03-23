@@ -72,10 +72,12 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
 
   // and connect everything
   connect(timer_.data(), &QTimer::timeout, this, &PluginUi::Tick);
-  connect(cnAct_, &QAction::triggered, &plugin_, &Plugin::ToggleNet);
+  connect(cnAct_, &QAction::triggered, &plugin_, &Plugin::SyncToggle);
 
   connect(stAct_, &QAction::triggered, this, [&]() {
-    forms::Settings dia(plugin.client().Connected(), GetTopWidget());
+    bool isOnline = plugin.Sync().Client().Connected();
+
+    forms::Settings dia(isOnline, GetTopWidget());
     dia.exec();
   });
 

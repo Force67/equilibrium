@@ -4,7 +4,6 @@
 #include "pch.h"
 #include "toolbox.h"
 #include "utils/Opt.h"
-#include "utils/logger.h"
 
 #include "signature/sigmaker.h"
 

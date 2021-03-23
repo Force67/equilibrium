@@ -3,7 +3,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <vector>
-#include "utils/net_node.h"
+#include "utils/ida_plus.h"
 
 class NodeTraits {
  public:
@@ -17,7 +17,7 @@ class NodeTraits {
   virtual void Load() = 0;
 
  protected:
-  noda::NetNode _node{};
+  utils::NetNode _node{};
 };
 
 class DataStore {

@@ -30,7 +30,7 @@ void SyncClientDelegate::ProcessData(const uint8_t* data, size_t len) {
 SyncClient::SyncClient(SyncClientDelegate &d) : 
     delegate_(d), network::TCPClient(d) {}
 
-void SyncClient::Send(protocol::MsgType type, FbsBuffer& buf, FbsRef<void> ref) {
+void SyncClient::Send(FbsBuffer& buf, protocol::MsgType type, FbsRef<void> ref) {
   const auto packet = protocol::CreateMessageRoot(buf, type, ref);
   buf.Finish(packet);
 

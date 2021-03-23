@@ -18,15 +18,16 @@ IDAEventHandler::~IDAEventHandler() {
 void IDAEventHandler::HandleEvent(hook_type_t type, int code, va_list args) {
   auto& events = sync_.IdaEvents();
 
-  const auto it = events.find(std::make_pair(type, code));
+  const IdaSync::IdaEventType_t pair{type, code};
 
+  auto it = events.find(pair);
   if (it == events.end()) {
     LOG_WARNING("HandleEvent() -> Unknown event! {}", code);
     return;
   }
 
   const auto& handler = it->second->delegates;
-  const bool result = handler.react(*this, args);
+  const bool result = handler.react(sync_.Context(), args);
 
   if (!result) {
     LOG_ERROR("HandleEvent() -> Failed to execute handler {}", code);

@@ -40,14 +40,14 @@ StatusWidget::StatusWidget(QWidget* parent, Plugin& plugin) : QWidget(parent) {
   SetDisconnected();
 
   connect(
-      &plugin.session(), &SyncSession::TransportStateChange, this,
-      [&](SyncSession::TransportState newState) {
+      &plugin.Sync(), &IdaSync::StateChange, this,
+      [&](IdaSync::State newState) {
         switch (newState) {
-          case SyncSession::TransportState::ACTIVE:
+          case IdaSync::State::kActive:
             return SetConnected();
-          case SyncSession::TransportState::DISABLED:
+          case IdaSync::State::kDisabled:
             return SetDisconnected();
-          case SyncSession::TransportState::PENDING:
+          case IdaSync::State::kPending:
             return SetPending();
           default:
             break;
@@ -56,13 +56,13 @@ StatusWidget::StatusWidget(QWidget* parent, Plugin& plugin) : QWidget(parent) {
       Qt::QueuedConnection);
 
   connect(
-      &plugin.session(), &SyncSession::SessionNotification, this,
-      [&](SyncSession::NotificationCode code) {
-        if (code == SyncSession::NotificationCode::USER_JOIN ||
-            code == SyncSession::NotificationCode::USERS_JOIN ||
-            code == SyncSession::NotificationCode::USER_QUIT) {
+      &plugin.Sync(), &IdaSync::Notify, this,
+      [&](IdaSync::Notification code) {
+        if (code == IdaSync::Notification::kUserJoined ||
+            code == IdaSync::Notification::kUsersJoined ||
+            code == IdaSync::Notification::kUserQuit) {
           _labelUserText->setText(
-              QString::number(plugin.session().UserCount()));
+              QString::number(plugin.Sync().userCount));
         }
       },
       Qt::QueuedConnection);

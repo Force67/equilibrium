@@ -1,10 +1,8 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "pch.h"
 #include "settings.h"
-#include "network/netbase.h"
-#include "sync/sync_utils.h"
+#include <sync/utils/user_info.h>
 
 namespace forms {
 Settings::Settings(bool connected, QWidget* pParent) : QDialog(pParent) {
@@ -34,9 +32,17 @@ Settings::Settings(bool connected, QWidget* pParent) : QDialog(pParent) {
   editPort->setText(
       _settings.value("Nd_SyncPort", network::kDefaultServerPort).toString());
   editPass->setText(_settings.value("Nd_SyncPass", "").toString());
-  editUser->setText(
-      _settings.value("Nd_SyncUser", sync_utils::GetDefaultUserName())
-          .toString());
+
+  std::string username;
+  {
+    QSettings settings;
+    username = settings.value("RETK_SyncUser", "").toString().toUtf8();
+  }
+
+  if (username.empty())
+    username = sync::utils::GetSysUserName();
+
+  editUser->setText(username.c_str());
 
   editTimeout->setText(
       _settings.value("Nd_NetTimeout", network::kTimeout).toString());

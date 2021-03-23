@@ -14,7 +14,7 @@ project("ida_plugin")
         "**.h",
         "ui/**.ui",
         "resources.qrc",
-        "Plugin.rc",
+        "plugin.rc",
         "premake5.lua"
     })
     pchheader("pch.h")
@@ -32,14 +32,15 @@ project("ida_plugin")
         "Qt5PrintSupport.lib",
         "Qt5Widgets.lib",
         
+        -- third party
         "network",
         "fmtlib",
         "server",
 
-        -- common
-        "netlib",
-        "storage",
-        "utility"
+        "network",
+        "database",
+        "base",
+        "sync"
     })
     defines({
         "__NT__",            -- < Windows NT Target

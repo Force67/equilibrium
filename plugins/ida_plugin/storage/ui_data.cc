@@ -3,7 +3,6 @@
 
 #include "Pch.h"
 #include "ui_data.h"
-#include "utils/Logger.h"
 
 namespace {
 constexpr char kStorageNodeId[] = "$ noda_ui_storage";
@@ -15,7 +14,7 @@ const char* const UiData::GetName() {
 }
 
 bool UiData::SeenBefore() {
-  return noda::NetNode(kStorageNodeId, false).open();
+  return utils::NetNode(kStorageNodeId, false).open();
 }
 
 void UiData::Save() {
@@ -26,7 +25,7 @@ void UiData::Save() {
 }
 
 void UiData::Load() {
-  _node = noda::NetNode(kStorageNodeId);
+  _node = utils::NetNode(kStorageNodeId);
 
   int v1 = _node.LoadScalar(StorageVersion, -1);
   // mark the node version

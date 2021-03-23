@@ -1,5 +1,5 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'ui_shell.h'
+** Meta object code from reading C++ file 'plugin_ui.h'
 **
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.6.3)
 **
@@ -7,11 +7,11 @@
 *****************************************************************************/
 
 #include "pch.h"
-#include "../ui_shell.h"
+#include "../plugin_ui.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'ui_shell.h' doesn't include <QObject>."
+#error "The header file 'plugin_ui.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.6.3. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -19,30 +19,30 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_UiShell_t {
+struct qt_meta_stringdata_PluginUi_t {
     QByteArrayData data[5];
-    char stringdata0[46];
+    char stringdata0[47];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_UiShell_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_PluginUi_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_UiShell_t qt_meta_stringdata_UiShell = {
+static const qt_meta_stringdata_PluginUi_t qt_meta_stringdata_PluginUi = {
     {
-QT_MOC_LITERAL(0, 0, 7), // "UiShell"
-QT_MOC_LITERAL(1, 8, 16), // "ShellStateChange"
-QT_MOC_LITERAL(2, 25, 0), // ""
-QT_MOC_LITERAL(3, 26, 10), // "ShellState"
-QT_MOC_LITERAL(4, 37, 8) // "newState"
+QT_MOC_LITERAL(0, 0, 8), // "PluginUi"
+QT_MOC_LITERAL(1, 9, 16), // "ShellStateChange"
+QT_MOC_LITERAL(2, 26, 0), // ""
+QT_MOC_LITERAL(3, 27, 10), // "ShellState"
+QT_MOC_LITERAL(4, 38, 8) // "newState"
 
     },
-    "UiShell\0ShellStateChange\0\0ShellState\0"
+    "PluginUi\0ShellStateChange\0\0ShellState\0"
     "newState"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_UiShell[] = {
+static const uint qt_meta_data_PluginUi[] = {
 
  // content:
        7,       // revision
@@ -64,10 +64,10 @@ static const uint qt_meta_data_UiShell[] = {
        0        // eod
 };
 
-void UiShell::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void PluginUi::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
-        UiShell *_t = static_cast<UiShell *>(_o);
+        PluginUi *_t = static_cast<PluginUi *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->ShellStateChange((*reinterpret_cast< ShellState(*)>(_a[1]))); break;
@@ -77,8 +77,8 @@ void UiShell::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         int *result = reinterpret_cast<int *>(_a[0]);
         void **func = reinterpret_cast<void **>(_a[1]);
         {
-            typedef void (UiShell::*_t)(ShellState );
-            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&UiShell::ShellStateChange)) {
+            typedef void (PluginUi::*_t)(ShellState );
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&PluginUi::ShellStateChange)) {
                 *result = 0;
                 return;
             }
@@ -86,26 +86,26 @@ void UiShell::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
     }
 }
 
-const QMetaObject UiShell::staticMetaObject = {
-    { &QObject::staticMetaObject, qt_meta_stringdata_UiShell.data,
-      qt_meta_data_UiShell,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject PluginUi::staticMetaObject = {
+    { &QObject::staticMetaObject, qt_meta_stringdata_PluginUi.data,
+      qt_meta_data_PluginUi,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *UiShell::metaObject() const
+const QMetaObject *PluginUi::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *UiShell::qt_metacast(const char *_clname)
+void *PluginUi::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_UiShell.stringdata0))
-        return static_cast<void*>(const_cast< UiShell*>(this));
+    if (!strcmp(_clname, qt_meta_stringdata_PluginUi.stringdata0))
+        return static_cast<void*>(const_cast< PluginUi*>(this));
     return QObject::qt_metacast(_clname);
 }
 
-int UiShell::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int PluginUi::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QObject::qt_metacall(_c, _id, _a);
     if (_id < 0)
@@ -123,7 +123,7 @@ int UiShell::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void UiShell::ShellStateChange(ShellState _t1)
+void PluginUi::ShellStateChange(ShellState _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);

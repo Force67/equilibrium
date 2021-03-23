@@ -66,14 +66,21 @@ class InputFile {
 
     return buf;
   }
+
+  static inline std::string GetInputFileName() { 
+    char fileName[128]{};
+    get_root_filename(fileName, sizeof(fileName) - 1);
+
+    return fileName;
+  }
 };
 
 template<typename T>
 struct RequestFunctor final : exec_request_t {
  public:
-  RequestFunctor(std::function<T> callback) { 
+  RequestFunctor(std::function<T> callback, int flags) { 
       callback_ = callback;
-    execute_sync(*this, MFF_WRITE | MFF_NOWAIT);
+    execute_sync(*this, flags);
   }
 
   int execute() override { 

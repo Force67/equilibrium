@@ -1,9 +1,7 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "pch.h"
 #include "run_dialog.h"
-#include "utils/Logger.h"
 
 #include <QAbstractItemModel>
 #include <QModelIndex>

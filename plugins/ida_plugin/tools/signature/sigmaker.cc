@@ -3,7 +3,6 @@
 
 #include "Pch.h"
 #include "sigmaker.h"
-#include "utils/Logger.h"
 
 #include <QVector>
 #include <array>

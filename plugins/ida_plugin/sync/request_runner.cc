@@ -3,6 +3,7 @@
 
 #include "ida_sync.h"
 #include "request_runner.h"
+#include "message_handler.h"
 #include "sync/protocol/generated/message_root_generated.h"
 
 #include <base/object_pool.h>
@@ -37,7 +38,7 @@ void RequestRunner::Queue(const uint8_t* data, size_t size) {
 }
 
 int RequestRunner::execute() {
-  auto&& events = sync_.NetEvents();
+  auto& events = sync_.NetEvents();
 
   while (auto* item = queue_.pop(&Packet::key)) {
     queueSize_--;
@@ -46,10 +47,11 @@ int RequestRunner::execute() {
     const protocol::MessageRoot* root =
         protocol::GetMessageRoot(item->data.get());
 
-    auto it = events.find(root->msg_type());
+    int tt = static_cast<int>(root->msg_type());
+    auto it = events.find(tt);
     if (it != events.end()) {
-      if (it->second->delegates.apply(_sc, root->msg()))
-        sync_.data_.version_++;
+      if (it->second->delegates.apply(sync_.Context(), root->msg()))
+        sync_.Data().version_++;
     }
 
     s_Pool.destruct(item);

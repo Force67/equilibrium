@@ -1,14 +1,10 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
-
 #pragma once
 
-#include "sync/sync_service.h"
-#include "sync/sync_client.h"
-#include "utils/Logger.h"
-
-#include "protocol/generated/IdaSync_generated.h"
-#include "protocol/generated/MessageRoot_generated.h"
+#include "sync/ida_sync.h"
+#include <sync/protocol/generated/ida_sync_generated.h>
+#include <sync/protocol/generated/message_root_generated.h>
 
 namespace sync {
 using namespace protocol::sync;
@@ -41,8 +37,8 @@ struct StaticHandler final : TaskHandlerRegistry {
   // Networking
   protocol::MsgType msgType = protocol::MsgType_NONE;
 
-  using apply_t = bool (*)(SyncService&, const void*);
-  using react_t = bool (*)(SyncService&, va_list);
+  using apply_t = bool (*)(MsgContext&, const void*);
+  using react_t = bool (*)(MsgContext&, va_list);
 
   // Delegate
   struct BaseHandler {
@@ -54,7 +50,7 @@ struct StaticHandler final : TaskHandlerRegistry {
 
   template <typename T>
   struct Handlers : BaseHandler {
-    using apply_t = bool (*)(SyncService&, const T&);
+    using apply_t = bool (*)(MsgContext&, const T&);
 
     explicit Handlers(apply_t apply_impl, react_t react_impl) {
       apply = reinterpret_cast<StaticHandler::apply_t>(

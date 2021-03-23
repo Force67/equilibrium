@@ -1,17 +1,17 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "sync/sync_handler.h"
+#include "sync/message_handler.h"
 
 using namespace protocol::sync;
 
 namespace sync::change_item_comment {
-static bool Apply(SyncService&, const ChangeItemComment& pack) {
+static bool Apply(MsgContext&, const ChangeItemComment& pack) {
   LOG_TRACE("Changed Item comment {}", pack.comment()->c_str());
   return set_cmt(pack.ea(), pack.comment()->c_str(), pack.repeatable());
 }
 
-static bool React(SyncService& sc, va_list list) {
+static bool React(MsgContext& sc, va_list list) {
   ea_t ea = va_arg(list, ea_t);
   bool rpt = va_arg(list, bool);
   auto* newComment = va_arg(list, const char*);
@@ -19,11 +19,8 @@ static bool React(SyncService& sc, va_list list) {
   if (!newComment)
     return false;
 
-  network::FbsBuffer buf;
-  auto pack = CreateChangeItemCommentDirect(buf, ea, newComment, rpt);
-
-  return GNetClient()->SendPacket(protocol::MsgType_sync_ChangeItemComment, buf,
-                                  pack.Union());
+  auto pack = CreateChangeItemCommentDirect(sc.idbBuf, ea, newComment, rpt);
+  return sc.SendIdb(protocol::MsgType_sync_ChangeItemComment, pack.Union());
 }
 
 static StaticHandler handler{
@@ -33,7 +30,7 @@ static StaticHandler handler{
 }  // namespace sync::change_item_comment
 
 namespace sync::change_range_comment {
-static bool Apply(SyncService&, const ChangeRangeComment& pack) {
+static bool Apply(MsgContext&, const ChangeRangeComment& pack) {
   if (pack.kind() == RANGE_KIND_FUNC) {
     func_t* func = get_func(pack.ea());
 
@@ -50,7 +47,7 @@ static bool Apply(SyncService&, const ChangeRangeComment& pack) {
   return false;
 }
 
-static bool React(SyncService& sc, va_list list) {
+static bool React(MsgContext& sc, va_list list) {
   auto kind = va_arg(list, ::range_kind_t);
   const range_t* range = va_arg(list, const range_t*);
   const char* comment = va_arg(list, const char*);
@@ -59,12 +56,10 @@ static bool React(SyncService& sc, va_list list) {
   if (!range)
     return false;
 
-  network::FbsBuffer buf;
-  auto pack =
-      CreateChangeRangeCommentDirect(buf, range->start_ea, kind, comment, rpt);
+  auto pack = CreateChangeRangeCommentDirect(sc.idbBuf, range->start_ea, kind,
+                                             comment, rpt);
 
-  return GNetClient()->SendPacket(protocol::MsgType_sync_ChangeRangeComment,
-                                  buf, pack.Union());
+  return sc.SendIdb(protocol::MsgType_sync_ChangeRangeComment, pack.Union());
 }
 
 static StaticHandler handler{
@@ -74,7 +69,7 @@ static StaticHandler handler{
 }  // namespace sync::change_range_comment
 
 namespace sync::change_extra_comment {
-static bool Apply(SyncService&, const ChangeExtraComment& pack) {
+static bool Apply(MsgContext&, const ChangeExtraComment& pack) {
   del_extra_cmt(pack.ea(), pack.line());
 
   if (!pack.comment()->c_str())
@@ -84,7 +79,7 @@ static bool Apply(SyncService&, const ChangeExtraComment& pack) {
   return add_extra_cmt(pack.ea(), isPrev, pack.comment()->c_str());
 }
 
-static bool React(SyncService& sc, va_list list) {
+static bool React(MsgContext& sc, va_list list) {
   ea_t ea = va_arg(list, ea_t);
   int line = va_arg(list, int);
   const char* comment = va_arg(list, const char*);
@@ -92,11 +87,9 @@ static bool React(SyncService& sc, va_list list) {
   if (!comment)
     return false;
 
-  network::FbsBuffer buf;
-  auto pack = CreateChangeExtraCommentDirect(buf, ea, line, comment);
+  auto pack = CreateChangeExtraCommentDirect(sc.idbBuf, ea, line, comment);
 
-  return GNetClient()->SendPacket(protocol::MsgType_sync_ChangeExtraComment,
-                                  buf, pack.Union());
+  return sc.SendIdb(protocol::MsgType_sync_ChangeExtraComment, pack.Union());
 }
 
 static StaticHandler handler{

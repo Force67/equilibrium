@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "data_store.h"
-#include "utils/logger.h"
 
 static DataStore* s_Store = nullptr;
 

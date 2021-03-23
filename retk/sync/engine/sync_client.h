@@ -27,7 +27,7 @@ class SyncClient final : public network::TCPClient {
  public:
   explicit SyncClient(SyncClientDelegate&);
 
-  void Send(protocol::MsgType type, FbsBuffer& buf, FbsRef<void> ref);
+  void Send(FbsBuffer& buf, protocol::MsgType type, FbsRef<void> ref);
   void Process();
 
   struct Packet;
