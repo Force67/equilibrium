@@ -2,11 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "netbuffer.h"
-#include "context.h"
-
 #include <sockpp/tcp_connector.h>
 #include <base/detached_queue.h>
+#include <network/core/network_base.h>
 
 namespace network {
 
@@ -42,7 +40,8 @@ class TCPClient {
   sockpp::tcp_connector connection_;
 
  private:
-  uint8_t workbuf_[kTCPBufSize]{};
+  uint8_t workbuf_[kWorkBufSize]{};
   TCPClientDelegate& delegate_;
+  std::chrono::milliseconds timestamp_;
 };
 }  // namespace network

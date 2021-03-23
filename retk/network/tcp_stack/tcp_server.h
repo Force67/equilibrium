@@ -2,11 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "netbuffer.h"
-#include "tcp_peer.h"
-
 #include <base/detached_queue.h>
 #include <base/object_pool.h>
+#include <network/core/network_base.h>
+#include "tcp_peer.h"
 
 namespace network {
 
@@ -45,7 +44,7 @@ class TCPServer {
 
  private:
   TCPServerDelegate& delegate_;
-  uint8_t workbuf_[kTCPBufSize]{};
+  uint8_t workbuf_[kWorkBufSize]{};
 
   int16_t _port = 0;
   uint32_t _seed;

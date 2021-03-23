@@ -11,7 +11,7 @@ namespace sync_server {
 ServerImpl::ServerImpl(int16_t port)
     : server_(*this),
       timestamp_(std::chrono::high_resolution_clock::now()) {
-  server_.Host(port == 0 ? network::kDefaultServerPort : port);
+  server_.Host(port == 0 ? network::kDefaultPort : port);
 }
 
 Server::ResultStatus ServerImpl::Initialize(bool withStorage) {

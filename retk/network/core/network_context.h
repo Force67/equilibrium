@@ -2,15 +2,15 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "context.h"
+#include <sockpp/socket.h>
+#include <limits>
 
 namespace network {
+// Required to be created before using any network functions
+struct Context {
+  Context();
+  ~Context();
 
-	#if 0
-class NetBuffer final : public flatbuffers::FlatBufferBuilder {
- public:
-  NetBuffer();
-  ~NetBuffer();
+  static bool Initialized();
 };
-#endif
 }  // namespace network

@@ -5,8 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-#include <network/tcp_server.h>
+#include <network/tcp_stack/tcp_server.h>
 
 namespace sync_server {
 

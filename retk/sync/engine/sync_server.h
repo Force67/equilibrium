@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "network/tcp_server.h"
 #include <base/detached_queue.h>
+#include <network/tcp_stack/tcp_server.h>
 
 #include "sync_base.h"
 

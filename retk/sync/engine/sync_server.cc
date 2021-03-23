@@ -67,18 +67,14 @@ void SyncServer::Send(cid_t cid, protocol::MsgType type, FbsBuffer& buf, FbsRef<
 
 void SyncServer::Process() {
   network::TCPServer::Tick();
-
-    // work out queue
+  // work out queue
   while (auto* packet = queue_.pop(&Packet::key)) {
     if (packet->cid == kAtAllId) {
       for (auto& p : _peers)
-        p.sock.write_n(static_cast<const void*>(packet->data.get()),
-                       static_cast<size_t>(packet->dataSize));
+        p.Send(packet->data.get(), packet->dataSize);
     }
     else if (auto* peer = PeerById(packet->cid)) {
-      peer->sock.write_n(
-          static_cast<const void*>(packet->data.get()),
-          static_cast<size_t>(packet->dataSize));
+      peer->Send(packet->data.get(), packet->dataSize);
     }
 
     s_Pool.destruct(packet);
