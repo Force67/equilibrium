@@ -49,7 +49,8 @@ void TCPClient::Disconnect() {
   delegate_.OnDisconnected(1);
 
   // Disconnect by force
-  connection_.reset();
+  connection_.close();
+  //connection_.reset();
 }
 
 bool TCPClient::Update() {

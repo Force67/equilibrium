@@ -25,7 +25,7 @@ class ServerImpl final : public sync::SyncServerDelegate {
 
   void Update();
 
-  UserRegistry& Registry() { return _userRegistry; }
+  UserRegistry& Registry() { return users_; }
 
  private:
   // impl for: SyncServerDelegate
@@ -39,7 +39,7 @@ class ServerImpl final : public sync::SyncServerDelegate {
 
   network::Context netContext_;
   sync::SyncServer server_;
-  UserRegistry _userRegistry;
+  UserRegistry users_;
   std::unique_ptr<DbService> dbService_;
   flatbuffers::FlatBufferBuilder fbb_;
 

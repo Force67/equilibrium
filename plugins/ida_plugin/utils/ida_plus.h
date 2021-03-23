@@ -55,7 +55,7 @@ class InputFile {
     assert(result != false);
 
     // cxx string will null terminate
-    char buf[32];
+    char buf[32 + 1]{};
 
     // convert bytes to str
     constexpr char lookup[] = "0123456789abcdef";

@@ -44,6 +44,8 @@ void ClientRunner::Stop() {
   // ensure thread is killed properly
   QThread::quit();
   QThread::wait();
+
+  LOG_TRACE("ClientRunner::Stop");
 }
 
 void ClientRunner::run() {
@@ -54,6 +56,7 @@ void ClientRunner::run() {
     QThread::msleep(idletime_);
   }
 
+  LOG_TRACE("ClientRunner thread quit!");
   s_Tid = nullptr;
 }
 
