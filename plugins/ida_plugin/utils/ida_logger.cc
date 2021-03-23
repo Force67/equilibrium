@@ -32,7 +32,7 @@ void PrintLogMessageImpl(LogLevel ll,
   const char* levelName = GetLevelName(ll);
 
   auto fmt =
-      fmt::format("[Noda] <{}>: {}\n", levelName, fmt::vformat(text, args));
+      fmt::format("[ReTK] <{}>: {}\n", levelName, fmt::vformat(text, args));
   callui(ui_msg, fmt.c_str());
 }
 }  // namespace noda

@@ -1,6 +1,10 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#if defined(OS_WIN)
+#include <Windows.h>
+#endif
+
 #include <Server.h>
 
 #include <chrono>
@@ -27,6 +31,10 @@ static const char* LogLevelToString(LogLevel ll) {
 }
 
 int main(int argc, char** argv) {
+#if defined(OS_WIN)
+  SetConsoleTitleW(L"ReTK server");
+#endif
+
   fmt::print("<<<- DedicatedMain Init ->>>\n");
 
   // pretty print the log to terminal

@@ -99,7 +99,7 @@ void IdaSync::SendProjectInfo() {
   auto md5 = utils::InputFile::RetrieveInputFileNameMD5();
   auto name = utils::InputFile::GetInputFileName();
 
-  LOG_TRACE("SendProjectInfo() -> md5: {} fileName: {}", md5, fileName);
+  LOG_TRACE("SendProjectInfo() -> md5: {} fileName: {}", md5, name);
 
   auto request = protocol::CreateLocalProjectInfoDirect(
       fbb_, md5.c_str(), name.c_str(), data_.version_);

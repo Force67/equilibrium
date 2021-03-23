@@ -16,6 +16,9 @@ IDAEventHandler::~IDAEventHandler() {
 }
 
 void IDAEventHandler::HandleEvent(hook_type_t type, int code, va_list args) {
+  if (!sync_.Connected())
+    return;
+
   auto& events = sync_.IdaEvents();
 
   const IdaSync::IdaEventType_t pair{type, code};
