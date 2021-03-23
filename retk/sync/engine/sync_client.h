@@ -9,6 +9,7 @@
 
 namespace protocol {
 struct MessageRoot;
+enum MsgType;
 }
 
 namespace sync {
@@ -16,24 +17,23 @@ namespace sync {
 class SyncClientDelegate : public network::TCPClientDelegate {
  public:
   virtual ~SyncClientDelegate() = default;
-  virtual void ConsumeMessage(const protocol::MessageRoot*) = 0;
+  virtual void ConsumeMessage(const protocol::MessageRoot*, size_t len) = 0;
 
  private:
   void ProcessData(const uint8_t* ptr, size_t len) final override;
 };
 
 class SyncClient final : public network::TCPClient {
-public:
+ public:
   explicit SyncClient(SyncClientDelegate&);
 
-  void QueuePacket(flatbuffers::FlatBufferBuilder& fbb);
-
+  void Send(protocol::MsgType type, FbsBuffer& buf, FbsRef<void> ref);
   void Process();
 
   struct Packet;
  private:
-	 base::detached_mpsc_queue<Packet> queue_;
-  uint32_t userCount_;
-         SyncClientDelegate& delegate_;
+  base::detached_mpsc_queue<Packet> queue_;
+  uint32_t userCount_ = 1;
+  SyncClientDelegate& delegate_;
 };
-}
+}  // namespace sync

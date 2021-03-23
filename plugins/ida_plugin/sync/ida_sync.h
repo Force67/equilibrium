@@ -49,13 +49,14 @@ class IdaSync final : public sync::SyncClientDelegate, public QObject {
 private:
  void OnConnection(const sockpp::inet_address&) override;
  void OnDisconnected(int reason) override;
- void ConsumeMessage(const protocol::MessageRoot*) override;
+ void ConsumeMessage(const protocol::MessageRoot*, size_t) override;
 
  void HandleAuthAck(const protocol::MessageRoot*);
  void HandleUserEvent(const protocol::MessageRoot*);
 
  void BindStaticHandlers();
  void SetState(State);
+ void SendProjectInfo();
 
 signals:
  void StateChange(State);

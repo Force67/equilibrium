@@ -24,17 +24,21 @@ void SyncClientDelegate::ProcessData(const uint8_t* data, size_t len) {
   const protocol::MessageRoot* root =
       protocol::GetMessageRoot(static_cast<const void*>(data));
 
-  ConsumeMessage(root);
+  ConsumeMessage(root, len);
 }
 
 SyncClient::SyncClient(SyncClientDelegate &d) : 
     delegate_(d), network::TCPClient(d) {}
 
-void SyncClient::QueuePacket(flatbuffers::FlatBufferBuilder& fbb) {
-  auto* item = s_Pool.construct();
-  item->dataSize = static_cast<uint32_t>(fbb.GetSize());
-  item->data = std::make_unique<uint8_t[]>(fbb.GetSize());
-  std::memcpy(item->data.get(), fbb.GetBufferPointer(), fbb.GetSize());
+void SyncClient::Send(protocol::MsgType type, FbsBuffer& buf, FbsRef<void> ref) {
+  const auto packet = protocol::CreateMessageRoot(buf, type, ref);
+  buf.Finish(packet);
+
+  // only store ID to keep things thread safe..
+  Packet* item = s_Pool.construct();
+  item->dataSize = static_cast<uint32_t>(buf.GetSize());
+  item->data = std::make_unique<uint8_t[]>(buf.GetSize());
+  std::memcpy(item->data.get(), buf.GetBufferPointer(), buf.GetSize());
 
   queue_.push(&item->key);
 }

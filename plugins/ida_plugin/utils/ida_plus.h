@@ -55,7 +55,7 @@ class InputFile {
     assert(result != false);
 
     // cxx string will null terminate
-    char buf[22];
+    char buf[32];
 
     // convert bytes to str
     constexpr char lookup[] = "0123456789abcdef";
@@ -66,6 +66,23 @@ class InputFile {
 
     return buf;
   }
+};
+
+template<typename T>
+struct RequestFunctor final : exec_request_t {
+ public:
+  RequestFunctor(std::function<T> callback) { 
+      callback_ = callback;
+    execute_sync(*this, MFF_WRITE | MFF_NOWAIT);
+  }
+
+  int execute() override { 
+     callback_();
+     return 0;
+  }
+
+ private:
+  std::function<T> callback_;
 };
 
 }

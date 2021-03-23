@@ -48,7 +48,8 @@ int RequestRunner::execute() {
 
     auto it = events.find(root->msg_type());
     if (it != events.end()) {
-      it->second->delegates.apply(_sc, root->msg());
+      if (it->second->delegates.apply(_sc, root->msg()))
+        sync_.data_.version_++;
     }
 
     s_Pool.destruct(item);
