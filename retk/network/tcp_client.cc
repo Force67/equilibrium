@@ -43,15 +43,20 @@ std::string TCPClient::LastError() const {
 }
 
 void TCPClient::Disconnect() {
+    // TODO: host the server for a bit
   // Update();
+
+  delegate_.OnDisconnected(1);
 
   // Disconnect by force
   connection_.reset();
 }
 
 bool TCPClient::Update() {
-  if (!connection_.is_connected())
+  if (!connection_.is_connected()) {
+    delegate_.OnDisconnected(1337);
     return false;
+  }
 
   ssize_t n = 0;
   while ((n = connection_.read(workbuf_, sizeof(workbuf_))) > 0) {

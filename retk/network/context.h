@@ -20,9 +20,9 @@ constexpr uint32_t kTimeout = 3000;
 constexpr uint16_t kClientVersion = 1;
 
 constexpr char kDefaultServerIp[] = "127.0.0.1";
-constexpr int16_t kDefaultServerPort = 4523;
+constexpr int kDefaultServerPort = 4523;
 
 // port + range will be checked to host on
-constexpr int32_t kDefaultPortRange = 10;
+constexpr int kDefaultPortRange = 10;
 
 }  // namespace network

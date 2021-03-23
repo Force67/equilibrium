@@ -53,7 +53,7 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   hook_to_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 
   // register a new menu bar for the sync stuff
-  QMenu* syncMenu = window->menuBar()->addMenu("RESync");
+  QMenu* syncMenu = window->menuBar()->addMenu("ReTK");
   cnAct_ = syncMenu->addAction("Connect");
   syncMenu->addSeparator();
   stAct_ = syncMenu->addAction(QIcon(":/cog"), "Settings");

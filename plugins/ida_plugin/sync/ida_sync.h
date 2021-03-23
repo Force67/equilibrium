@@ -63,6 +63,7 @@ class IdaSync final : public QObject, public sync::SyncClientDelegate {
  };
 
  bool Connected() const { return client_.Connected(); }
+ bool IsOnline() const { return state_ == State::kActive; }
  void Stop() { netRunner_.Stop(); }
  bool Start() { return netRunner_.Start(); }
 
@@ -99,7 +100,6 @@ public:
  inline auto& Client() { return client_; }
  inline MsgContext& Context() { return context_; }
  inline auto& Data() { return data_; }
-
 private:
  network::Context netCtx_;
  sync::SyncClient client_;

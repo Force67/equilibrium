@@ -43,13 +43,15 @@ void SyncClient::Send(FbsBuffer& buf, protocol::MsgType type, FbsRef<void> ref) 
   queue_.push(&item->key);
 }
 
-void SyncClient::Process() {
+bool SyncClient::Process() {
   if (!network::TCPClient::Update())
-    return;
+    return false;
 
   while (auto* packet = queue_.pop(&Packet::key)) {
     connection_.write_n(packet->data.get(), packet->dataSize);
     s_Pool.destruct(packet);
   }
+
+  return true;
 }
 }

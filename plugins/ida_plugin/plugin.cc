@@ -25,6 +25,11 @@ Plugin::~Plugin() {
 }
 
 bool Plugin::SyncToggle() {
+  if (!auto_is_ok() && !sync_.IsOnline()) {
+    LOG_ERROR("Must wait for Autoanalysis to finish before connecting.");
+    return false;
+  }
+
   if (sync_.Connected()) {
     LOG_TRACE("Plugin::ToggleNet() -> Disconnect");
 

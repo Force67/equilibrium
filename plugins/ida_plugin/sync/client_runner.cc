@@ -50,7 +50,7 @@ void ClientRunner::run() {
   s_Tid = QThread::currentThreadId();
 
   while (running_) {
-    running_ = client_.Update();
+    running_ = client_.Process();
     QThread::msleep(idletime_);
   }
 

@@ -16,7 +16,7 @@ IDAEventHandler::~IDAEventHandler() {
 }
 
 void IDAEventHandler::HandleEvent(hook_type_t type, int code, va_list args) {
-  if (!sync_.Connected())
+  if (!sync_.IsOnline())
     return;
 
   auto& events = sync_.IdaEvents();

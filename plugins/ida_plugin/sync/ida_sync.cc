@@ -89,6 +89,8 @@ void IdaSync::OnConnection(const sockpp::inet_address& address) {
   timer_.start(5000);
   // i don't even remember why i did this
   timer_.moveToThread(&netRunner_);
+
+  LOG_TRACE("Connecting to {}", address.to_string());
 }
 
 void IdaSync::OnDisconnected(int reason) {

@@ -24,8 +24,6 @@ class TCPClient {
  public:
   explicit TCPClient(TCPClientDelegate&);
 
-  bool Update();
-
   // the connect call is blocking.
   bool Connect(const char* addr, int port);
   void Disconnect();
@@ -34,6 +32,10 @@ class TCPClient {
 
   bool Connected() const { return connection_.is_connected(); }
   const auto GetAddress() const { return address_; }
+
+ protected:
+  // you are supposed to wrap this stuff
+  bool Update();
 
  protected:
   sockpp::inet_address address_;
