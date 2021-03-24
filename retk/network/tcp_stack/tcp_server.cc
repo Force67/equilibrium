@@ -2,6 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "tcp_server.h"
+#include <network/core/network_packet.h>
+
 #include <ctime>
 
 namespace network {
@@ -14,6 +16,15 @@ uint32_t GetMartinSeed(void* noise) {
   return (lower << 16) | (lower >> 16);
 }
 }
+
+struct TCPServer::Packet {
+  connectid_t cid;
+  uint32_t dataSize;
+  std::unique_ptr<uint8_t[]> data;
+  base::detached_queue_key<Packet> key;
+};
+
+static base::object_pool<TCPServer::Packet> s_Pool;
 
 TCPServer::TCPServer(TCPServerDelegate& delegate) : delegate_(delegate) {
   // 10/10 way of doing this..!
@@ -74,6 +85,28 @@ TCPPeer* TCPServer::PeerById(connectid_t id) {
   return &(*it);
 }
 
+void TCPServer::Send(OpCode op, connectid_t id, const uint8_t* ptr, size_t len) {
+  len += sizeof(PacketHeader);
+  auto data = std::make_unique<uint8_t[]>(len);
+
+  auto* header = reinterpret_cast<PacketHeader*>(data[0]);
+  header->op = op;
+  header->flags = 0;
+  header->crc = 0;
+
+  std::memcpy(data.get() + sizeof(PacketHeader), ptr, len);
+
+  Packet* item = s_Pool.construct();
+  item->cid = id;
+  item->dataSize = static_cast<uint32_t>(len);
+  item->data = std::move(data);
+  queue_.push(&item->key);
+}
+
+void TCPServer::Broadcast(OpCode op, const uint8_t* ptr, size_t len) {
+  Send(op, kAllConnectId, ptr, len);
+}
+
 void TCPServer::Tick() {
   // listen for incoming connections
   sockpp::tcp_socket sock = _acc.accept(&_addr);
@@ -88,7 +121,6 @@ void TCPServer::Tick() {
 
   // process peers
   for (auto peer = _peers.begin(); peer != _peers.end(); ++peer) {
-
     // we either killed the client or it timed out
     if (!peer->Open() || peer->HasDied()) {
       delegate_.OnDisconnection(peer->Id());
@@ -104,6 +136,19 @@ void TCPServer::Tick() {
 
       delegate_.ProcessData(peer->Id(), workbuf_, n);
     }
+  }
+
+  while (auto* packet = queue_.pop(&Packet::key)) {
+    // broadcast
+    if (packet->cid == kAllConnectId) {
+      for (auto& p : _peers)
+        p.Send(packet->data.get(), packet->dataSize);
+    // send @ peer
+    } else if (auto* peer = PeerById(packet->cid)) {
+      peer->Send(packet->data.get(), packet->dataSize);
+    }
+
+    s_Pool.destruct(packet);
   }
 }
 }  // namespace network

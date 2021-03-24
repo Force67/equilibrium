@@ -21,19 +21,17 @@ constexpr int kDefaultPort = 4523;
 constexpr int kDefaultPortRange = 10;
 } // namespace
 
-#if 0
-// precedes any message, jenkis hashed
 // (https://sha256calc.com/hash/joaat)
-enum class FragCode : uint32_t {
-    // system ops
-    kQuit = 0xb9d273f2,  
-    kJoin = 0x781aa8ec,      
-    kHeartbeat = 0x7440ad27, 
+enum class OpCode : uint32_t {
+  // system ops
+  kQuit = 0xb9d273f2,
+  kJoin = 0x781aa8ec,
+  kHeartbeat = 0x7440ad27,
 
-    // user ops
-    kData = 0xb36fcb5c 
-};
-#endif
+  // user ops
+  kData = 0xb36fcb5c
+} op;
+
 
 // your friendly one liner
 inline auto msec() {

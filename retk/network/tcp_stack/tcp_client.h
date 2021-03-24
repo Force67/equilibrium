@@ -31,6 +31,9 @@ class TCPClient {
   bool Connected() const { return connection_.is_connected(); }
   const auto GetAddress() const { return address_; }
 
+  void Send(OpCode op, const uint8_t* ptr, size_t len);
+
+  struct Entry;
  protected:
   // you are supposed to wrap this stuff
   bool Update();
@@ -42,6 +45,7 @@ class TCPClient {
  private:
   uint8_t workbuf_[kWorkBufSize]{};
   TCPClientDelegate& delegate_;
-  std::chrono::milliseconds timestamp_;
+  std::chrono::milliseconds timestamp_{};
+  base::detached_mpsc_queue<Entry> queue_;
 };
 }  // namespace network

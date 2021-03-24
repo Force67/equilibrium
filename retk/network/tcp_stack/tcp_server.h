@@ -34,6 +34,11 @@ class TCPServer {
                        connectid_t excluder = kInvalidConnectId);
 
   int16_t Port() const { return _port; }
+
+  void Send(OpCode, connectid_t, const uint8_t* ptr, size_t len);
+  void Broadcast(OpCode, const uint8_t* ptr, size_t len);
+
+  struct Packet;
  protected:
   void Tick();
 
@@ -45,6 +50,7 @@ class TCPServer {
  private:
   TCPServerDelegate& delegate_;
   uint8_t workbuf_[kWorkBufSize]{};
+  base::detached_mpsc_queue<Packet> queue_;
 
   int16_t _port = 0;
   uint32_t _seed;

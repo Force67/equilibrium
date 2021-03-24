@@ -14,8 +14,6 @@ struct SyncClient::Packet {
   base::detached_queue_key<Packet> key;
 };
 
-static base::object_pool<SyncClient::Packet> s_Pool;
-
 void SyncClientDelegate::ProcessData(const uint8_t* data, size_t len) {
   flatbuffers::Verifier verifier(data, len);
   if (!protocol::VerifyMessageRootBuffer(verifier))
@@ -33,24 +31,15 @@ SyncClient::SyncClient(SyncClientDelegate &d) :
 void SyncClient::Send(FbsBuffer& buf, protocol::MsgType type, FbsRef<void> ref) {
   const auto packet = protocol::CreateMessageRoot(buf, type, ref);
   buf.Finish(packet);
-
-  // only store ID to keep things thread safe..
-  Packet* item = s_Pool.construct();
-  item->dataSize = static_cast<uint32_t>(buf.GetSize());
-  item->data = std::make_unique<uint8_t[]>(buf.GetSize());
-  std::memcpy(item->data.get(), buf.GetBufferPointer(), buf.GetSize());
-
-  queue_.push(&item->key);
+  
+  TCPClient::Send(network::OpCode::kData, buf.GetBufferPointer(), buf.GetSize());
 }
 
 bool SyncClient::Process() {
   if (!network::TCPClient::Update())
     return false;
 
-  while (auto* packet = queue_.pop(&Packet::key)) {
-    connection_.write_n(packet->data.get(), packet->dataSize);
-    s_Pool.destruct(packet);
-  }
+
 
   return true;
 }
