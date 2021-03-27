@@ -11,8 +11,6 @@
 
 namespace network {
 
-using connectid_t = uint32_t;
-
 // invalid connection
 constexpr uint32_t kInvalidConnectId = std::numeric_limits<uint32_t>::max();
 

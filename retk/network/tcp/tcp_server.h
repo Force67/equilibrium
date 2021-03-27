@@ -4,23 +4,15 @@
 
 #include <base/detached_queue.h>
 #include <base/object_pool.h>
+#include <network/base/network_host.h>
 #include <network/base/network_base.h>
 #include "tcp_peer.h"
 
 namespace network {
 
-class TCPServerDelegate {
+class TCPServer : public NetworkHost {
  public:
-  virtual ~TCPServerDelegate() = default;
-
-  virtual void OnConnection(connectid_t){};
-  virtual void OnDisconnection(connectid_t) = 0;
-  virtual void ProcessData(connectid_t cid, const uint8_t* data, size_t len) = 0;
-};
-
-class TCPServer {
- public:
-  explicit TCPServer(TCPServerDelegate&);
+  explicit TCPServer(ServerDelegate&);
 
   // returns the actual host within the port range
   int16_t TryHost(int16_t port);
@@ -33,26 +25,32 @@ class TCPServer {
                        size_t size,
                        connectid_t excluder = kInvalidConnectId);
 
-  int16_t Port() const { return _port; }
+  int16_t Port() const { return port_; }
 
-  void Send(OpCode, connectid_t, const uint8_t* ptr, size_t len);
-  void Broadcast(OpCode, const uint8_t* ptr, size_t len);
+  template <typename T>
+  void QueueOutgoingCommand(CommandId id, connectid_t cid, const T& val) {
+    QueueCommand(id, cid, reinterpret_cast<const uint8_t*>(&val), sizeof(val));
+  }
 
-  struct Packet;
+  template <typename T>
+  void QueueBroadcast(CommandId id, const T& val) {
+    QueueOutgoingCommand(id, kAllConnectId, val);
+  }
+
+  struct Entry;
  protected:
-  void Tick();
+  void Update();
 
+  void QueueCommand(CommandId, connectid_t, const uint8_t* ptr, size_t len);
  protected:
   sockpp::tcp_acceptor acceptor_;
-  sockpp::inet_address address_;
   std::vector<TCPPeer> peers_;
 
  private:
-  TCPServerDelegate& delegate_;
-  uint8_t workbuf_[kWorkBufSize]{};
-  base::detached_mpsc_queue<Packet> queue_;
+  ServerDelegate& delegate_;
+  base::detached_mpsc_queue<Entry> outgoingQueue_;
 
-  int16_t _port = 0;
-  uint32_t _seed;
+  int16_t port_ = 0;
+  uint32_t seed_;
 };
 }  // namespace network

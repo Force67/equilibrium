@@ -3,57 +3,43 @@
 
 #include "tcp_server.h"
 #include <network/util/sock_util.h>
-#include <network/base/network_packet.h>
-
 #include <ctime>
 
 namespace network {
 
-constexpr int kTCPKeepAliveSeconds = 45;
+constexpr int kKeepAliveSeconds = 45;
+constexpr int kDefaultPortRange = 10;
 
-namespace {
-uint32_t GetMartinSeed(void* noise) {
-  uintptr_t address = reinterpret_cast<uintptr_t>(noise);
-  uint32_t lower = static_cast<uint32_t>(address);
-
-  lower += static_cast<uint32_t>(std::time(nullptr));
-  return (lower << 16) | (lower >> 16);
-}
-}
-
-struct TCPServer::Packet {
+struct TCPServer::Entry {
   connectid_t cid;
   uint32_t dataSize;
   std::unique_ptr<uint8_t[]> data;
-  base::detached_queue_key<Packet> key;
+  base::detached_queue_key<Entry> key;
 };
 
-static base::object_pool<TCPServer::Packet> s_Pool;
+static base::object_pool<TCPServer::Entry> s_Pool;
 
-TCPServer::TCPServer(TCPServerDelegate& delegate) : delegate_(delegate) {
-  // 10/10 way of doing this..!
-  _seed = GetMartinSeed(this);
-}
-
+TCPServer::TCPServer(ServerDelegate& delegate)
+    : delegate_(delegate), NetworkHost(acceptor_), seed_(GetSeed()) {}
 
 int16_t TCPServer::TryHost(int16_t port) {
-  _port = -1;
+  port_ = -1;
 
   for (int32_t i = 0; i < kDefaultPortRange; i++) {
     if (acceptor_.open(port)) {
-      _port = port;
+      port_ = port;
       break;
     }
 
     port++;
   }
 
-  if (_port != -1) {
+  if (port_ != -1) {
     acceptor_.set_non_blocking();
-    util::SetTCPKeepAlive(acceptor_, true, kTCPKeepAliveSeconds);
+    util::SetTCPKeepAlive(acceptor_, true, kKeepAliveSeconds);
   }
 
-  return _port;
+  return port_;
 }
 
 bool TCPServer::DropPeer(connectid_t cid) {
@@ -89,38 +75,38 @@ TCPPeer* TCPServer::PeerById(connectid_t id) {
   return &(*it);
 }
 
-void TCPServer::Send(OpCode op, connectid_t id, const uint8_t* ptr, size_t len) {
-  len += sizeof(PacketHeader);
+void TCPServer::QueueCommand(CommandId commandId,
+                             connectid_t connectId,
+                             const uint8_t* ptr,
+                             size_t len) {
+  len += sizeof(Chunkheader);
   auto data = std::make_unique<uint8_t[]>(len);
 
-  auto* header = reinterpret_cast<PacketHeader*>(data[0]);
-  header->op = op;
-  header->flags = 0;
+  auto* header = reinterpret_cast<Chunkheader*>(data[0]);
+  header->id = commandId;
   header->crc = 0;
 
-  std::memcpy(data.get() + sizeof(PacketHeader), ptr, len);
+  std::memcpy(data.get() + sizeof(Chunkheader), ptr, len);
 
-  Packet* item = s_Pool.construct();
-  item->cid = id;
+  Entry* item = s_Pool.construct();
+  item->cid = connectId;
   item->dataSize = static_cast<uint32_t>(len);
   item->data = std::move(data);
-  queue_.push(&item->key);
+  outgoingQueue_.push(&item->key);
 }
 
-void TCPServer::Broadcast(OpCode op, const uint8_t* ptr, size_t len) {
-  Send(op, kAllConnectId, ptr, len);
-}
+void TCPServer::Update() {
+  {
+    // listen for incoming connections
+    sockpp::tcp_socket sock = acceptor_.accept(&address_);
+    if (sock.is_open()) {
+      auto myId = ++seed_;
 
-void TCPServer::Tick() {
-  // listen for incoming connections
-  sockpp::tcp_socket sock = acceptor_.accept(&address_);
-  if (sock.is_open()) {
-    auto myId = ++_seed;
+      TCPPeer& peer = peers_.emplace_back(sock, myId, address_);
+      peer.Touch();
 
-    TCPPeer& peer = peers_.emplace_back(sock, myId, address_);
-    peer.Touch();
-
-    delegate_.OnConnection(myId);
+      delegate_.OnConnection(myId);
+    }
   }
 
   // process peers
@@ -131,28 +117,28 @@ void TCPServer::Tick() {
 
       peer = peers_.erase(peer);
       continue;
-    } 
-    
+    }
+
     ssize_t n;
-    while ((n = peer->sock_.read(workbuf_, sizeof(workbuf_))) > 0) {
+    while ((n = peer->sock_.read(chunkbuf_, sizeof(chunkbuf_))) > 0) {
       // still alive
       peer->Touch();
 
-      delegate_.ProcessData(peer->Id(), workbuf_, n);
+      delegate_.ProcessData(peer->Id(), chunkbuf_, n);
     }
   }
 
-  while (auto* packet = queue_.pop(&Packet::key)) {
+  while (auto* entry = outgoingQueue_.pop(&Entry::key)) {
     // broadcast
-    if (packet->cid == kAllConnectId) {
+    if (entry->cid == kAllConnectId) {
       for (auto& p : peers_)
-        p.Send(packet->data.get(), packet->dataSize);
-    // send @ peer
-    } else if (auto* peer = PeerById(packet->cid)) {
-      peer->Send(packet->data.get(), packet->dataSize);
+        p.Send(entry->data.get(), entry->dataSize);
+      // send @ peer
+    } else if (auto* peer = PeerById(entry->cid)) {
+      peer->Send(entry->data.get(), entry->dataSize);
     }
 
-    s_Pool.destruct(packet);
+    s_Pool.destruct(entry);
   }
 }
 }  // namespace network

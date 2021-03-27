@@ -4,23 +4,25 @@
 #include "tcp_client.h"
 #include <base/object_pool.h>
 #include <network/util/sock_util.h>
-#include <network/base/network_packet.h>
+#include <network/base/network_encoding.h>
 
 using namespace std::chrono_literals;
 
 namespace network {
 
 constexpr int kTCPKeepAliveSeconds = 45;
+constexpr auto kTCPClientPingRate = 500ms;
 
 struct TCPClient::Entry {
-  //Packet packet;
+  // Packet packet;
   uint32_t dataSize;
   std::unique_ptr<uint8_t[]> data;
   base::detached_queue_key<Entry> key;
 };
 static base::object_pool<TCPClient::Entry> s_Pool;
 
-TCPClient::TCPClient(TCPClientDelegate& delegate) : delegate_(delegate) {}
+TCPClient::TCPClient(ClientDelegate& delegate)
+    : delegate_(delegate), NetworkHost(connection_) {}
 
 bool TCPClient::Connect(const char* addr, int port) {
   if (!addr)
@@ -31,8 +33,6 @@ bool TCPClient::Connect(const char* addr, int port) {
   bool result;
   result = connection_.connect(address_);
   result = connection_.set_non_blocking(true);
-
-  // no timeouts
   connection_.read_timeout(0ms);
   connection_.write_timeout(0ms);
 
@@ -43,65 +43,71 @@ bool TCPClient::Connect(const char* addr, int port) {
     return false;
   }
 
+  JoinCommand command{kEncodingVersion};
+  QueueOutgoingCommand(CommandId::kIQuit, command);
+
   delegate_.OnConnection(address_);
   return result;
 }
 
-std::string TCPClient::LastError() const {
-  return connection_.last_error_str();
-}
-
 void TCPClient::Disconnect() {
-
-
-  //Send(OpCode::kQuit, )
-
-    // TODO: host the server for a bit
-  // Update();
-
-  //connection_.reset();
+  // quit processing on the next frame, after we made sure the
+  // server got the message
+  QuitCommand command{QuitReason::kIWantToQuit};
+  QueueOutgoingCommand(CommandId::kIQuit, command);
 }
 
-void TCPClient::Send(OpCode op, const uint8_t* ptr, size_t len) {
-  len += sizeof(PacketHeader);
-  auto data = std::make_unique<uint8_t[]>(len);
+void TCPClient::QueueCommand(CommandId commandId,
+                             const uint8_t* ptr,
+                             size_t length) {
+  // allocate everything in one go for speed reasons.
+  length += sizeof(Chunkheader);
+  auto data = std::make_unique<uint8_t[]>(length);
 
-  auto *header = reinterpret_cast<PacketHeader*>(data[0]);
-  header->op = op;
-  header->flags = 0;
+  auto* header = reinterpret_cast<Chunkheader*>(data[0]);
+  header->id = commandId;
   header->crc = 0;
 
-  std::memcpy(data.get() + sizeof(PacketHeader), ptr, len);
+  if (ptr && length > 0)
+    std::memcpy(data.get() + sizeof(Chunkheader), ptr, length);
 
   Entry* item = s_Pool.construct();
-  item->dataSize = static_cast<uint32_t>(len);
+  item->dataSize = static_cast<uint32_t>(length);
   item->data = std::move(data);
-  queue_.push(&item->key);
+  outgoingQueue_.push(&item->key);
 }
 
 bool TCPClient::Update() {
+
+    // we got booted by the server
   if (!connection_.is_connected()) {
-    delegate_.OnDisconnected(1337);
+    delegate_.OnDisconnected(QuitReason::kIGotKicked);
     return false;
   }
 
+  // todo: fragmented headers...
   ssize_t n = 0;
-  while ((n = connection_.read(workbuf_, sizeof(workbuf_))) > 0) {
-    delegate_.ProcessData(workbuf_, n);
+  while ((n = connection_.read(chunkbuf_, sizeof(chunkbuf_))) > 0) {
+    delegate_.ProcessData(chunkbuf_, n);
   }
 
-  while (auto* entry = queue_.pop(&Entry::key)) {
+  while (auto* entry = outgoingQueue_.pop(&Entry::key)) {
     uint8_t* data = entry->data.get();
     // shitcode...
-    bool hasQuit = reinterpret_cast<PacketHeader*>(data)->op == OpCode::kQuit;
+    bool hasQuit = reinterpret_cast<Chunkheader*>(data)->id == CommandId::kIQuit;
     connection_.write_n(data, entry->dataSize);
 
     s_Pool.destruct(entry);
 
     if (hasQuit) {
-      delegate_.OnDisconnected(1);
+      delegate_.OnDisconnected(QuitReason::kIWantToQuit);
       connection_.close();
     }
+  }
+
+  // let the server know that we are still alive
+  if (timer_ >= kTCPClientPingRate) {
+    QueueCommand(CommandId::kIPing, nullptr, 0);
   }
 
   return true;
