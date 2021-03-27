@@ -2,11 +2,15 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "tcp_server.h"
-#include <network/core/network_packet.h>
+#include <network/util/sock_util.h>
+#include <network/base/network_packet.h>
 
 #include <ctime>
 
 namespace network {
+
+constexpr int kTCPKeepAliveSeconds = 45;
+
 namespace {
 uint32_t GetMartinSeed(void* noise) {
   uintptr_t address = reinterpret_cast<uintptr_t>(noise);
@@ -32,11 +36,11 @@ TCPServer::TCPServer(TCPServerDelegate& delegate) : delegate_(delegate) {
 }
 
 
-int16_t TCPServer::Host(int16_t port) {
+int16_t TCPServer::TryHost(int16_t port) {
   _port = -1;
 
   for (int32_t i = 0; i < kDefaultPortRange; i++) {
-    if (_acc.open(port)) {
+    if (acceptor_.open(port)) {
       _port = port;
       break;
     }
@@ -45,8 +49,8 @@ int16_t TCPServer::Host(int16_t port) {
   }
 
   if (_port != -1) {
-    _acc.set_non_blocking();
-    _acc.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
+    acceptor_.set_non_blocking();
+    util::SetTCPKeepAlive(acceptor_, true, kTCPKeepAliveSeconds);
   }
 
   return _port;
@@ -67,7 +71,7 @@ bool TCPServer::DropPeer(connectid_t cid) {
 void TCPServer::BroadcastPacket(const uint8_t* data,
                                 size_t size,
                                 connectid_t excluder /* = invalidid_t */) {
-  for (auto& it : _peers) {
+  for (auto& it : peers_) {
     if (it.Id() == excluder)
       continue;
 
@@ -76,10 +80,10 @@ void TCPServer::BroadcastPacket(const uint8_t* data,
 }
 
 TCPPeer* TCPServer::PeerById(connectid_t id) {
-  auto it = std::find_if(_peers.begin(), _peers.end(),
+  auto it = std::find_if(peers_.begin(), peers_.end(),
                          [&](TCPPeer& it) { return it.Id() == id; });
 
-  if (it == _peers.end())
+  if (it == peers_.end())
     return nullptr;
 
   return &(*it);
@@ -109,23 +113,23 @@ void TCPServer::Broadcast(OpCode op, const uint8_t* ptr, size_t len) {
 
 void TCPServer::Tick() {
   // listen for incoming connections
-  sockpp::tcp_socket sock = _acc.accept(&_addr);
+  sockpp::tcp_socket sock = acceptor_.accept(&address_);
   if (sock.is_open()) {
     auto myId = ++_seed;
 
-    TCPPeer& peer = _peers.emplace_back(sock, myId, _addr);
+    TCPPeer& peer = peers_.emplace_back(sock, myId, address_);
     peer.Touch();
 
     delegate_.OnConnection(myId);
   }
 
   // process peers
-  for (auto peer = _peers.begin(); peer != _peers.end(); ++peer) {
+  for (auto peer = peers_.begin(); peer != peers_.end(); ++peer) {
     // we either killed the client or it timed out
     if (!peer->Open() || peer->HasDied()) {
       delegate_.OnDisconnection(peer->Id());
 
-      peer = _peers.erase(peer);
+      peer = peers_.erase(peer);
       continue;
     } 
     
@@ -141,7 +145,7 @@ void TCPServer::Tick() {
   while (auto* packet = queue_.pop(&Packet::key)) {
     // broadcast
     if (packet->cid == kAllConnectId) {
-      for (auto& p : _peers)
+      for (auto& p : peers_)
         p.Send(packet->data.get(), packet->dataSize);
     // send @ peer
     } else if (auto* peer = PeerById(packet->cid)) {

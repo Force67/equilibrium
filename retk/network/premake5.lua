@@ -20,18 +20,21 @@ end
 project("network")
     kind("StaticLib")
     files({
-        "core/*.cc",
-        "core/*.h",
-        "tcp_stack/*.cc",
-        "tcp_stack/*.h"
+        "base/*.cc",
+        "base/*.h",
+        "tcp/*.cc",
+        "tcp/*.h",
+        "util/*.cc",
+        "util/*.h"
     })
     network_include()
 
+group("Tests")
 project("testclient")
     kind("ConsoleApp")
     include_meta()
     files({
-        "tests/client/main.cc",
+        "test/client/main.cc",
     })
     network_include()
     links({
@@ -39,14 +42,15 @@ project("testclient")
         "network"
     })
     includedirs({
-        "tests/client"
+        "test/client"
     })
 
+group("Tests")
 project("testserver")
     kind("ConsoleApp")
     include_meta()
     files({
-        "tests/server/main.cc",
+        "test/server/main.cc",
     })
     network_include()
     links({
@@ -54,5 +58,5 @@ project("testserver")
         "network"
     })
     includedirs({
-        "tests/server"
+        "test/server"
     })

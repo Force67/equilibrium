@@ -3,7 +3,7 @@
 #pragma once
 
 #include <sockpp/tcp_acceptor.h>
-#include <network/core/network_base.h>
+#include <network/base/network_base.h>
 
 #if defined(max)
 #undef max

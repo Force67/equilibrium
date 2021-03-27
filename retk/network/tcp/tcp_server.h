@@ -4,7 +4,7 @@
 
 #include <base/detached_queue.h>
 #include <base/object_pool.h>
-#include <network/core/network_base.h>
+#include <network/base/network_base.h>
 #include "tcp_peer.h"
 
 namespace network {
@@ -23,7 +23,7 @@ class TCPServer {
   explicit TCPServer(TCPServerDelegate&);
 
   // returns the actual host within the port range
-  int16_t Host(int16_t port);
+  int16_t TryHost(int16_t port);
 
   bool DropPeer(connectid_t);
   TCPPeer* PeerById(connectid_t);
@@ -43,9 +43,9 @@ class TCPServer {
   void Tick();
 
  protected:
-  sockpp::tcp_acceptor _acc;
-  sockpp::inet_address _addr;
-  std::vector<TCPPeer> _peers;
+  sockpp::tcp_acceptor acceptor_;
+  sockpp::inet_address address_;
+  std::vector<TCPPeer> peers_;
 
  private:
   TCPServerDelegate& delegate_;

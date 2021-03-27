@@ -3,7 +3,7 @@
 #pragma once
 
 #include <base/detached_queue.h>
-#include <network/tcp_stack/tcp_client.h>
+#include <network/tcp/tcp_client.h>
 
 #include "sync_base.h"
 

@@ -9,15 +9,11 @@ namespace network {
 
 enum class OpCode {
   // system ops
-  kQuit = 0xb9d273f2,
-  kJoin = 0x781aa8ec,
+  kIQuit = 0xb9d273f2,
+  kIJoin = 0x781aa8ec,
   kHeartbeat = 0x7440ad27,
-
   // user ops
   kData = 0xb36fcb5c
-};
-
-enum class OpStatus {
 };
 
 struct PacketHeader {

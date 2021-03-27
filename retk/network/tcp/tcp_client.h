@@ -4,7 +4,7 @@
 
 #include <sockpp/tcp_connector.h>
 #include <base/detached_queue.h>
-#include <network/core/network_base.h>
+#include <network/base/network_base.h>
 
 namespace network {
 

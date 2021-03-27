@@ -2,13 +2,15 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "tcp_client.h"
-
-#include <network/core/network_packet.h>
 #include <base/object_pool.h>
+#include <network/util/sock_util.h>
+#include <network/base/network_packet.h>
 
 using namespace std::chrono_literals;
 
 namespace network {
+
+constexpr int kTCPKeepAliveSeconds = 45;
 
 struct TCPClient::Entry {
   //Packet packet;
@@ -34,10 +36,7 @@ bool TCPClient::Connect(const char* addr, int port) {
   connection_.read_timeout(0ms);
   connection_.write_timeout(0ms);
 
-  /*int32_t val = 0;
-  _conn.get_option(IPPROTO_TCP, TCP_KEEPCNT, &val);*/
-
-  result = connection_.set_option(SOL_SOCKET, SO_KEEPALIVE, 1);
+  result = util::SetTCPKeepAlive(connection_, true, kTCPKeepAliveSeconds);
 
   if (!result && connection_.is_connected()) {
     connection_.reset();
@@ -55,7 +54,7 @@ std::string TCPClient::LastError() const {
 void TCPClient::Disconnect() {
 
 
-  Send(OpCode::kQuit, )
+  //Send(OpCode::kQuit, )
 
     // TODO: host the server for a bit
   // Update();

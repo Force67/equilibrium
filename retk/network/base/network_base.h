@@ -10,7 +10,6 @@ namespace {
 using namespace std::literals::chrono_literals;
 
 constexpr const auto kGlobalTimeout = 6000ms;
-constexpr const auto kHeartbeatRate = 2000ms;
 
 constexpr int kClientVersion = 1;
 constexpr int kWorkBufSize = 2048;
@@ -21,7 +20,6 @@ constexpr int kDefaultPort = 4523;
 constexpr int kDefaultPortRange = 10;
 } // namespace
 
-// (https://sha256calc.com/hash/joaat)
 enum class OpCode : uint32_t {
   // system ops
   kQuit = 0xb9d273f2,
@@ -30,7 +28,7 @@ enum class OpCode : uint32_t {
 
   // user ops
   kData = 0xb36fcb5c
-} op;
+};
 
 
 // your friendly one liner
