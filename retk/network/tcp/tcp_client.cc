@@ -47,6 +47,8 @@ bool TCPClient::Connect(const char* addr, int port) {
   QueueOutgoingCommand(CommandId::kIQuit, command);
 
   delegate_.OnConnection(address_);
+  lastPinged_ = msec();
+
   return result;
 }
 
@@ -93,21 +95,22 @@ bool TCPClient::Update() {
 
   while (auto* entry = outgoingQueue_.pop(&Entry::key)) {
     uint8_t* data = entry->data.get();
-    // shitcode...
-    bool hasQuit = reinterpret_cast<Chunkheader*>(data)->id == CommandId::kIQuit;
     connection_.write_n(data, entry->dataSize);
+
+    bool doQuit = reinterpret_cast<Chunkheader*>(data)->id == CommandId::kIQuit;
 
     s_Pool.destruct(entry);
 
-    if (hasQuit) {
+    if (doQuit) {
       delegate_.OnDisconnected(QuitReason::kIWantToQuit);
       connection_.close();
     }
   }
 
   // let the server know that we are still alive
-  if (timer_ >= kTCPClientPingRate) {
+  if ((msec() - lastPinged_) >= kTCPClientPingRate) {
     QueueCommand(CommandId::kIPing, nullptr, 0);
+    lastPinged_ = msec();
   }
 
   return true;

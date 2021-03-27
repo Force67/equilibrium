@@ -36,7 +36,7 @@ class TCPClient : public NetworkHost {
 
  private:
   ClientDelegate& delegate_;
-  std::chrono::milliseconds timer_{};
+  std::chrono::milliseconds lastPinged_{};
   base::detached_mpsc_queue<Entry> outgoingQueue_;
 };
 }  // namespace network

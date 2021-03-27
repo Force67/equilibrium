@@ -32,11 +32,16 @@ void SyncServer::Broadcast(protocol::MsgType type,
   const auto packet = protocol::CreateMessageRoot(buf, type, ref);
   buf.Finish(packet);
 
+  QueueBroadcast(network::CommandId::kData, )
+
   TCPServer::Broadcast(network::OpCode::kData, buf.GetBufferPointer(),
                        buf.GetSize());
 }
 
 void SyncServer::Broadcast(const protocol::MessageRoot* root, size_t len) {
+
+   Queue();
+
   TCPServer::Broadcast(network::OpCode::kData,
                        static_cast<const uint8_t*>(root->msg()), len);
 }
