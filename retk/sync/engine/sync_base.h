@@ -5,6 +5,9 @@
 #include <flatbuffers/flatbuffers.h>
 
 namespace sync {
+
+constexpr int kDefaultSyncPort = 4523;
+
 using FbsBuffer = flatbuffers::FlatBufferBuilder;
 
 // Flat buffer aliases

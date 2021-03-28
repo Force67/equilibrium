@@ -14,6 +14,12 @@ constexpr uint32_t kInvalidConnectId = UINT_MAX;
 // address all peers
 constexpr uint32_t kAllConnectId = kInvalidConnectId - 1;
 
+// your friendly one liner
+inline auto msec() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::high_resolution_clock::now().time_since_epoch());
+}
+
 class NetworkPeer {
  public:
   explicit NetworkPeer(sockpp::stream_socket&, connectid_t, sockpp::inet_address);

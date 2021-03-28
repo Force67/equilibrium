@@ -7,7 +7,6 @@
 #include <sockpp/tcp_acceptor.h>
 
 #include <network/base/network_host.h>
-#include <network/base/network_base.h>
 #include <network/base/network_peer.h>
 
 namespace network {
@@ -18,6 +17,7 @@ class TCPServer : public NetworkHost {
 
   // returns the actual host within the port range
   int16_t TryHost(int16_t port);
+  void Update();
 
   bool DropPeer(connectid_t);
   NetworkPeer* PeerById(connectid_t);
@@ -41,7 +41,6 @@ class TCPServer : public NetworkHost {
 
   struct Entry;
  protected:
-  void Update();
 
   void QueueCommand(CommandId, connectid_t, const uint8_t* ptr, size_t len);
  protected:

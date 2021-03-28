@@ -4,7 +4,6 @@
 
 #include <memory>
 #include <sockpp/tcp6_acceptor.h>
-#include <network/base/network_base.h>
 #include <network/base/network_encoding.h>
 
 #include <base/detached_queue.h>
