@@ -68,7 +68,6 @@ void TCPClient::QueueCommand(CommandId commandId,
 
   auto* header = reinterpret_cast<Chunkheader*>(data[0]);
   header->id = commandId;
-  header->crc = 0;
 
   if (ptr && length > 0)
     std::memcpy(data.get() + sizeof(Chunkheader), ptr, length);

@@ -17,6 +17,7 @@ function network_include()
     })
 end
 
+group("Network")
 project("network")
     kind("StaticLib")
     files({
@@ -29,7 +30,7 @@ project("network")
     })
     network_include()
 
-group("Tests")
+group("Network/Tests")
 project("testclient")
     kind("ConsoleApp")
     include_meta()
@@ -45,7 +46,7 @@ project("testclient")
         "test/client"
     })
 
-group("Tests")
+group("Network/Tests")
 project("testserver")
     kind("ConsoleApp")
     include_meta()

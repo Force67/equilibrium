@@ -1,107 +1,66 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <thread>
-
-#include <TCPClient.h>
 #include <fmt/format.h>
+#include <network/tcp/tcp_client.h>
+#include <network/base/network_context.h>
 
-#include "flatbuffers/flatbuffers.h"
-#include "protocol/generated/MessageRoot_generated.h"
+using namespace network;
 
-#include "utility/Thread.h"
-
-using namespace std::chrono_literals;
-
-class TestClient2 final : public network::NetworkedClientComponent {
+class TestClient final : public ClientDelegate {
  public:
-  TestClient2();
-  ~TestClient2();
+  TestClient();
 
-  void Logon();
+  void OnConnection(const sockpp::inet_address&) override;
+  void OnDisconnected(QuitReason) override;
+  void ProcessData(const uint8_t* ptr, size_t len) override;
 
-  void ConsumeMessage(const uint8_t* data, size_t len) override {
-    flatbuffers::Verifier verifier(data, len);
-    if (!protocol::VerifyMessageRootBuffer(verifier))
-      return;
-
-    const protocol::MessageRoot* root =
-        protocol::GetMessageRoot(static_cast<const void*>(data));
-
-    fmt::print("ConsumeMessage() -> {}\n",
-               protocol::EnumNameMsgType(root->msg_type()));
-
-    switch (root->msg_type()) {
-      case protocol::MsgType_HandshakeAck:
-        return HandleAuth(root);
-      case protocol::MsgType_UserEvent:
-        return HandleUserEvent(root);
-    }
-  }
-
-  void HandleUserEvent(const protocol::MessageRoot* root) {
-    auto* msg = root->msg_as_UserEvent();
-    fmt::print("UserEvent() -> Type: {} User: {}\n",
-               protocol::EnumNameUserEventType(msg->type()),
-               msg->userName()->str());
-  }
-
-  void HandleAuth(const protocol::MessageRoot* root) {
-    auto* msg = root->msg_as_HandshakeAck();
-    fmt::print("Recieved handshake ack, active users: {}\n", msg->numUsers());
-  }
-
-  void OnDisconnected(int reason) override {}
-
-  bool ShouldRun() const { return _run; }
-
-  void Tick() { _run = _client.Update(); }
+  void Run();
 
  private:
-  bool _run;
-  network::TCPClient _client;
+  TCPClient client_;
+  bool running_;
 };
 
-TestClient2::TestClient2() {
-  _client.RegisterComponent(this);
+TestClient::TestClient() : client_(*this) {
+  running_ = client_.Connect("localhost", 1337);
 
-  _run = _client.Connect(nullptr, network::kDefaultServerPort);
-
-  if (!_run)
-    fmt::print("Oh no! connect() failed with '{}'\n", _client.LastError());
-  else {
-    fmt::print("Connection: OK!\n");
-
-    Logon();
+  if (!running_) {
+    fmt::print("Failed to connect!\n");
   }
 }
 
-TestClient2::~TestClient2() {
-  if (_run)
-    _client.Disconnect();
+void TestClient::OnConnection(const sockpp::inet_address& address) {
+  fmt::print("OnConnection() -> connected to {}\n", address.to_string());
 }
 
-void TestClient2::Logon() {
-  network::FbsBuffer buffer;
-
-  auto request = protocol::CreateHandshakeRequestDirect(
-      buffer, 1337, "", "{1337-1337-1337}", "TestClient");
-
-  _client.SendPacket(protocol::MsgType_HandshakeRequest, buffer,
-                     request.Union());
+void TestClient::OnDisconnected(QuitReason reason) {
+  fmt::print("OnDisconnected() -> disconnected with reason {}",
+             static_cast<int>(reason));
 }
 
-int main() {
-  network::Context netCtx;
+void TestClient::ProcessData(const uint8_t* data, size_t len) {
+  fmt::print("ProcessData() -> length: {}\n", len);
 
-  fmt::print("Initializing test_client\n");
-  TestClient2 client;
+  auto* header = reinterpret_cast<const Chunkheader*>(data);
+  fmt::print("Message id: {}\n", static_cast<int>(header->id));
+}
 
-  while (client.ShouldRun()) {
-    client.Tick();
-    std::this_thread::sleep_for(1ms);
+void TestClient::Run() {
+  fmt::print("Run() -> before run\n");
+
+  while (running_) {
+    running_ = client_.Update();
   }
 
-  fmt::print("Exiting test_client\n");
+  fmt::print("Run() -> after run\n");
+}
+
+int main(int argc, char** argv) {
+  Context netContext;
+
+  TestClient client;
+  client.Run();
+
   return 0;
 }

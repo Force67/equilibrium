@@ -42,6 +42,5 @@ struct QuitCommand {
 
 struct Chunkheader {
   CommandId id;
-  uint32_t crc;
 };
 }

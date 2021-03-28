@@ -83,8 +83,7 @@ void TCPServer::QueueCommand(CommandId commandId,
 
   auto* header = reinterpret_cast<Chunkheader*>(data[0]);
   header->id = commandId;
-  header->crc = 0;
-
+  
   std::memcpy(data.get() + sizeof(Chunkheader), ptr, len);
 
   Entry* item = s_Pool.construct();

@@ -17,6 +17,7 @@ class TCPClient : public NetworkHost {
   // the connect call is blocking.
   bool Connect(const char* addr, int port);
   void Disconnect();
+  bool Update();
 
   bool Connected() const { return connection_.is_connected(); }
 
@@ -27,8 +28,6 @@ class TCPClient : public NetworkHost {
 
   struct Entry;
  protected:
-  // call this from your implementation
-  bool Update();
 
   void QueueCommand(CommandId op, const uint8_t* ptr, size_t length);
  protected:
