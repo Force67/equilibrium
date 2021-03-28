@@ -4,9 +4,11 @@
 
 #include <base/detached_queue.h>
 #include <base/object_pool.h>
+#include <sockpp/tcp_acceptor.h>
+
 #include <network/base/network_host.h>
 #include <network/base/network_base.h>
-#include "tcp_peer.h"
+#include <network/base/network_peer.h>
 
 namespace network {
 
@@ -18,7 +20,7 @@ class TCPServer : public NetworkHost {
   int16_t TryHost(int16_t port);
 
   bool DropPeer(connectid_t);
-  TCPPeer* PeerById(connectid_t);
+  NetworkPeer* PeerById(connectid_t);
 
   // not thread safe
   void BroadcastPacket(const uint8_t* data,
@@ -44,7 +46,7 @@ class TCPServer : public NetworkHost {
   void QueueCommand(CommandId, connectid_t, const uint8_t* ptr, size_t len);
  protected:
   sockpp::tcp_acceptor acceptor_;
-  std::vector<TCPPeer> peers_;
+  std::vector<NetworkPeer> peers_;
 
  private:
   ServerDelegate& delegate_;

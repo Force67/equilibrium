@@ -20,15 +20,15 @@ namespace network::util {
 // TODO: these should base_LOG!
 bool SetTCPKeepAlive(sockpp::socket& sock, bool toggle, int delay) {
   unsigned scaledDelay = delay * 1000;
-  struct tcp_keepalive keepalive_vals = {
+  struct tcp_keepalive Desc = {
       toggle ? 1u : 0u,
       scaledDelay,
       scaledDelay,
   };
 
   DWORD bytes_returned = 0xABAB;
-  int rv = WSAIoctl(sock.handle(), SIO_KEEPALIVE_VALS, &keepalive_vals,
-                    sizeof(keepalive_vals), nullptr, 0, &bytes_returned,
+  int rv = WSAIoctl(sock.handle(), SIO_KEEPALIVE_VALS, &Desc, sizeof(Desc),
+                    nullptr, 0, &bytes_returned,
                     nullptr, nullptr);
 
   return rv == 0;

@@ -22,7 +22,7 @@ class TCPClient : public NetworkHost {
 
   template<typename T>
   void QueueOutgoingCommand(CommandId id, const T& val) {
-    QueueCommand(id, reinterpret_cast<const uint8_t*>(ptr), sizeof(val));
+    QueueCommand(id, reinterpret_cast<const uint8_t*>(&val), sizeof(val));
   }
 
   struct Entry;

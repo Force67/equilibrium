@@ -43,11 +43,10 @@ int16_t TCPServer::TryHost(int16_t port) {
 }
 
 bool TCPServer::DropPeer(connectid_t cid) {
-  if (TCPPeer* peer = PeerById(cid)) {
+  if (NetworkPeer* peer = PeerById(cid)) {
     // trigger the disconnection event on the next frame
     peer->Kill();
-    // free the socket
-    peer->sock_.close();
+    peer->Close();
     return true;
   }
 
@@ -58,16 +57,16 @@ void TCPServer::BroadcastPacket(const uint8_t* data,
                                 size_t size,
                                 connectid_t excluder /* = invalidid_t */) {
   for (auto& it : peers_) {
-    if (it.Id() == excluder)
+    if (it.ConnectId() == excluder)
       continue;
 
-    it.sock_.write_n(static_cast<const void*>(data), size);
+    it.Send(data, size);
   }
 }
 
-TCPPeer* TCPServer::PeerById(connectid_t id) {
+NetworkPeer* TCPServer::PeerById(connectid_t id) {
   auto it = std::find_if(peers_.begin(), peers_.end(),
-                         [&](TCPPeer& it) { return it.Id() == id; });
+                         [&](NetworkPeer& it) { return it.ConnectId() == id; });
 
   if (it == peers_.end())
     return nullptr;
@@ -99,32 +98,36 @@ void TCPServer::Update() {
   {
     // listen for incoming connections
     sockpp::tcp_socket sock = acceptor_.accept(&address_);
-    if (sock.is_open()) {
-      auto myId = ++seed_;
+    if (sock) {
+      connectid_t nextId = ++seed_;
 
-      TCPPeer& peer = peers_.emplace_back(sock, myId, address_);
-      peer.Touch();
-
-      delegate_.OnConnection(myId);
+      peers_.emplace_back(sock, nextId, address_);
+      delegate_.OnConnection(nextId);
     }
   }
 
   // process peers
   for (auto peer = peers_.begin(); peer != peers_.end(); ++peer) {
+    bool dead = peer->HasDied();
+
     // we either killed the client or it timed out
-    if (!peer->Open() || peer->HasDied()) {
-      delegate_.OnDisconnection(peer->Id());
+    if (!peer->Open() || dead) {
+      delegate_.OnDisconnection(peer->ConnectId());
+
+      // client is most likely dead. no point in sending confirmation.
+      if (dead)
+        peer->Close();
 
       peer = peers_.erase(peer);
       continue;
     }
 
     ssize_t n;
-    while ((n = peer->sock_.read(chunkbuf_, sizeof(chunkbuf_))) > 0) {
+    while ((n = peer->Receive(chunkbuf_, sizeof(chunkbuf_))) > 0) {
       // still alive
       peer->Touch();
 
-      delegate_.ProcessData(peer->Id(), chunkbuf_, n);
+      delegate_.ProcessData(peer->ConnectId(), chunkbuf_, n);
     }
   }
 
