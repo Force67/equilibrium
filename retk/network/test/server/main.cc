@@ -12,7 +12,7 @@ class TestServer final : public ServerDelegate {
   TestServer();
 
   void OnConnection(connectid_t) override;
-  void OnDisconnection(connectid_t) override;
+  void OnDisconnection(connectid_t, QuitReason) override;
   void ProcessData(connectid_t cid, const uint8_t* data, size_t len) override;
 
   void Run();
@@ -35,10 +35,11 @@ void TestServer::OnConnection(connectid_t connectId) {
   fmt::print("OnConnection() -> connectId ({})\n", connectId);
 }
 
-void TestServer::OnDisconnection(connectid_t connectId) {
+void TestServer::OnDisconnection(connectid_t connectId, QuitReason exitCode) {
   if (auto* peer = server_.PeerById(connectId)) {
-    fmt::print("OnDisconnection() -> connectid ({}) address: {}\n", connectId,
-               peer->Address().to_string());
+    fmt::print(
+        "OnDisconnection() -> connectid ({}) address: {}, exitcode: {}\n",
+        connectId, peer->Address().to_string(), static_cast<int>(exitCode));
   } else {
     fmt::print("Error!!!!");
   }
@@ -47,10 +48,22 @@ void TestServer::OnDisconnection(connectid_t connectId) {
 void TestServer::ProcessData(connectid_t connectId,
                              const uint8_t* data,
                              size_t len) {
-  fmt::print("ProcessData() -> connectId ({}), length: {}\n", connectId, len);
+  fmt::print("ProcessData() -> connectId ({}), length: {}", connectId, len);
 
   auto* header = reinterpret_cast<const Chunkheader*>(data);
-  fmt::print("Message id: {}\n", static_cast<int>(header->id));
+
+  switch (header->id) {
+    case CommandId::kPing:
+      fmt::print(" -> Got Ping after {} ms\n",
+                 server_.PeerById(connectId)->GetPing().count());
+      break;
+    case CommandId::kData:
+      fmt::print(" -> Got Data\n");
+      break;
+    default:
+      fmt::print(" -> Got Message id: {}\n", static_cast<int>(header->id));
+      break;
+  }
 }
 
 void TestServer::Run() {

@@ -45,7 +45,7 @@ bool TCPClient::Connect(const char* addr, int port) {
   }
 
   JoinCommand command{kEncodingVersion};
-  QueueOutgoingCommand(CommandId::kIQuit, command);
+  QueueOutgoingCommand(CommandId::kIJoin, command);
 
   delegate_.OnConnection(address_);
   lastPinged_ = msec();
@@ -82,7 +82,7 @@ void TCPClient::QueueCommand(CommandId commandId,
 bool TCPClient::Update() {
   // we got booted by the server
   if (!connection_.is_connected()) {
-    delegate_.OnDisconnected(QuitReason::kIGotKicked);
+    delegate_.OnDisconnected(QuitReason::kConnectionLost);
     return false;
   }
 
@@ -108,7 +108,7 @@ bool TCPClient::Update() {
 
   // let the server know that we are still alive
   if ((msec() - lastPinged_) >= kTCPClientPingRate) {
-    QueueCommand(CommandId::kIPing, nullptr, 0);
+    QueueCommand(CommandId::kPing, nullptr, 0);
     lastPinged_ = msec();
   }
 

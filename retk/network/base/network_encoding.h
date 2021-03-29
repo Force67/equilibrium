@@ -21,7 +21,7 @@ enum class CommandId : uint32_t {
   // system commands
   kIQuit = 0xb9d273f2, // QuitCommand
   kIJoin = 0x781aa8ec, // JoinCommand
-  kIPing = 0x7440ad27, // No data
+  kPing = 0x7440ad27, // No data
   // user commands
   kData = 0xb36fcb5c
 };
@@ -31,9 +31,10 @@ struct JoinCommand {
 };
 
 enum class QuitReason : uint16_t {
-	kIWantToQuit,
-	kIGotKicked,
-	kBrokenProtocol
+  kIWantToQuit,
+  kBrokenProtocol,
+  kConnectionLost,
+  kTimedOut
 };
 
 struct QuitCommand {

@@ -99,7 +99,7 @@ void TCPServer::Update() {
     sockpp::tcp_socket sock = acceptor_.accept(&address_);
     if (sock) {
       connectid_t nextId = ++seed_;
-      auto peer = std::make_unique<NetworkPeer>(sock, nextId, address_);
+      auto peer = std::make_unique<NetworkPeer>(std::move(sock), nextId, address_);
 
       peer->Touch();
       peers_.push_back(std::move(peer));
@@ -113,15 +113,16 @@ void TCPServer::Update() {
   while (it != peers_.end()) {
     auto& peer = (*it);
 
-    bool dead = peer->HasDied();
+    if (!peer->Open()) {
+      delegate_.OnDisconnection(peer->ConnectId(), QuitReason::kConnectionLost);
 
-    // we either killed the client or it timed out
-    if (!peer->Open() || dead) {
-      delegate_.OnDisconnection(peer->ConnectId());
+      it = peers_.erase(it);
+      continue;
+    }
 
-      // client is most likely dead. no point in sending confirmation.
-      if (dead)
-        peer->Close();
+    if (peer->HasDied()) {
+      delegate_.OnDisconnection(peer->ConnectId(), QuitReason::kTimedOut);
+      peer->Close();
 
       it = peers_.erase(it);
       continue;

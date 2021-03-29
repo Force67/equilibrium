@@ -52,6 +52,9 @@ void TestClient::Run() {
 
   while (running_) {
     running_ = client_.Update();
+
+    if (!running_)
+      fmt::print("Run() -> update function requested quit\n");
   }
 
   fmt::print("Run() -> after run\n");
