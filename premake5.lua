@@ -3,10 +3,29 @@
 
 include("./build")
 
+local function insertASAN(prj)
+	premake.w('<EnableASAN>true</EnableASAN>')
+end
+
+-- todo: move this
+premake.override(premake.vstudio.vc2010.elements, "configurationProperties", function(base, cfg)
+	local calls = base(cfg)
+
+    if premake.vstudio.projectPlatform(cfg) == "DebugAsan" then
+        table.insertafter(calls, premake.vstudio.vc2010.useDebugLibraries, insertASAN)
+    end
+
+	return calls
+end)
+
 filter("architecture:x86_64")
     targetsuffix("_64")
 
-filter ("configurations:Debug")
+filter("configurations:Debug")
+    defines("ND_DEBUG")
+    flags("NoIncrementalLink")
+
+filter("configurations:DebugAsan")
     defines("ND_DEBUG")
 
 filter("configurations:Release")
@@ -32,8 +51,9 @@ filter("system:windows")
 workspace("RETK")
     configurations({
         "Debug",
+        "DebugAsan",
         "Release",
-        "Shipping"
+        "Shipping",
     })
     flags {
         "MultiProcessorCompile"
