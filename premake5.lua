@@ -23,10 +23,10 @@ filter("architecture:x86_64")
 
 filter("configurations:Debug")
     defines("ND_DEBUG")
-    flags("NoIncrementalLink")
 
 filter("configurations:DebugAsan")
     defines("ND_DEBUG")
+    flags("NoIncrementalLink")
 
 filter("configurations:Release")
     runtime("Release")
