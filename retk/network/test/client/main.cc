@@ -3,7 +3,7 @@
 
 #include <fmt/format.h>
 #include <network/tcp/tcp_client.h>
-#include <network/base/network_context.h>
+#include <network/base/context_holder.h>
 
 using namespace network;
 
@@ -23,11 +23,12 @@ class TestClient final : public ClientDelegate {
 };
 
 TestClient::TestClient() : client_(*this) {
-  running_ = client_.Connect("localhost", 1337);
+  running_ = client_.Connect("localhost", 4434);
 
-  if (!running_) {
+  if (!running_)
     fmt::print("Failed to connect!\n");
-  }
+  else
+    fmt::print("Connected to {}\n", client_.Address().to_string());
 }
 
 void TestClient::OnConnection(const sockpp::inet_address& address) {
@@ -35,7 +36,7 @@ void TestClient::OnConnection(const sockpp::inet_address& address) {
 }
 
 void TestClient::OnDisconnected(QuitReason reason) {
-  fmt::print("OnDisconnected() -> disconnected with reason {}",
+  fmt::print("OnDisconnected() -> disconnected with reason {}\n",
              static_cast<int>(reason));
 }
 
@@ -57,7 +58,8 @@ void TestClient::Run() {
 }
 
 int main(int argc, char** argv) {
-  Context netContext;
+  ContextHolder netContext;
+  fmt::print("Initializing test_client\n");
 
   TestClient client;
   client.Run();

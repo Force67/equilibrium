@@ -5,6 +5,7 @@
 #include <base/object_pool.h>
 #include <network/util/sock_util.h>
 #include <network/base/network_encoding.h>
+#include <network/base/network_peer.h>
 
 using namespace std::chrono_literals;
 
@@ -38,7 +39,7 @@ bool TCPClient::Connect(const char* addr, int port) {
 
   result = util::SetTCPKeepAlive(connection_, true, kTCPKeepAliveSeconds);
 
-  if (!result && connection_.is_connected()) {
+  if (!result) {
     connection_.reset();
     return false;
   }
@@ -66,7 +67,7 @@ void TCPClient::QueueCommand(CommandId commandId,
   length += sizeof(Chunkheader);
   auto data = std::make_unique<uint8_t[]>(length);
 
-  auto* header = reinterpret_cast<Chunkheader*>(data[0]);
+  auto* header = reinterpret_cast<Chunkheader*>(data.get());
   header->id = commandId;
 
   if (ptr && length > 0)
@@ -79,8 +80,7 @@ void TCPClient::QueueCommand(CommandId commandId,
 }
 
 bool TCPClient::Update() {
-
-    // we got booted by the server
+  // we got booted by the server
   if (!connection_.is_connected()) {
     delegate_.OnDisconnected(QuitReason::kIGotKicked);
     return false;

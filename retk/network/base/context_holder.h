@@ -7,9 +7,9 @@
 
 namespace network {
 // Required to be created before using any network functions
-struct Context {
-  Context();
-  ~Context();
+struct ContextHolder {
+  ContextHolder();
+  ~ContextHolder();
 
   static bool Initialized();
 };

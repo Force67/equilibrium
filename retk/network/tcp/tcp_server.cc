@@ -57,21 +57,21 @@ void TCPServer::BroadcastPacket(const uint8_t* data,
                                 size_t size,
                                 connectid_t excluder /* = invalidid_t */) {
   for (auto& it : peers_) {
-    if (it.ConnectId() == excluder)
+    if (it->ConnectId() == excluder)
       continue;
 
-    it.Send(data, size);
+    it->Send(data, size);
   }
 }
 
 NetworkPeer* TCPServer::PeerById(connectid_t id) {
   auto it = std::find_if(peers_.begin(), peers_.end(),
-                         [&](NetworkPeer& it) { return it.ConnectId() == id; });
+                         [&](auto& it) { return (*it).ConnectId() == id; });
 
   if (it == peers_.end())
     return nullptr;
 
-  return &(*it);
+  return (*it).get();
 }
 
 void TCPServer::QueueCommand(CommandId commandId,
@@ -99,14 +99,20 @@ void TCPServer::Update() {
     sockpp::tcp_socket sock = acceptor_.accept(&address_);
     if (sock) {
       connectid_t nextId = ++seed_;
+      auto peer = std::make_unique<NetworkPeer>(sock, nextId, address_);
 
-      peers_.emplace_back(sock, nextId, address_);
+      peer->Touch();
+      peers_.push_back(std::move(peer));
+
       delegate_.OnConnection(nextId);
     }
   }
 
   // process peers
-  for (auto peer = peers_.begin(); peer != peers_.end(); ++peer) {
+  auto it = peers_.begin();
+  while (it != peers_.end()) {
+    auto& peer = (*it);
+
     bool dead = peer->HasDied();
 
     // we either killed the client or it timed out
@@ -117,7 +123,7 @@ void TCPServer::Update() {
       if (dead)
         peer->Close();
 
-      peer = peers_.erase(peer);
+      it = peers_.erase(it);
       continue;
     }
 
@@ -128,13 +134,15 @@ void TCPServer::Update() {
 
       delegate_.ProcessData(peer->ConnectId(), chunkbuf_, n);
     }
+
+    ++it;
   }
 
   while (auto* entry = outgoingQueue_.pop(&Entry::key)) {
     // broadcast
     if (entry->cid == kAllConnectId) {
       for (auto& p : peers_)
-        p.Send(entry->data.get(), entry->dataSize);
+        p->Send(entry->data.get(), entry->dataSize);
       // send @ peer
     } else if (auto* peer = PeerById(entry->cid)) {
       peer->Send(entry->data.get(), entry->dataSize);

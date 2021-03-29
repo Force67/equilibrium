@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "network_peer.h"
-#include <network/base/network_base.h>
 
 namespace network {
 

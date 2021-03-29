@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <fmt/format.h>
-#include <network/base/network_context.h>
+#include <network/base/context_holder.h>
 #include <network/tcp/tcp_server.h>
 
 using namespace network;
@@ -23,7 +23,7 @@ class TestServer final : public ServerDelegate {
 };
 
 TestServer::TestServer() : server_(*this) {
-  auto port = server_.TryHost(1337);
+  auto port = server_.TryHost(4434);
   running_ = port != -1;
 
   if (running_) {
@@ -64,7 +64,7 @@ void TestServer::Run() {
 }
 
 int main(int argc, char**) {
-  Context netContext;
+  ContextHolder netContext;
   fmt::print("Initializing test_server\n");
 
   TestServer server;

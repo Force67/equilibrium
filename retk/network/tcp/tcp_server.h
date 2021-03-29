@@ -45,7 +45,7 @@ class TCPServer : public NetworkHost {
   void QueueCommand(CommandId, connectid_t, const uint8_t* ptr, size_t len);
  protected:
   sockpp::tcp_acceptor acceptor_;
-  std::vector<NetworkPeer> peers_;
+  std::vector<std::unique_ptr<NetworkPeer>> peers_;
 
  private:
   ServerDelegate& delegate_;

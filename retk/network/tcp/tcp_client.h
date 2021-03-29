@@ -5,7 +5,6 @@
 #include <sockpp/tcp_connector.h>
 #include <base/detached_queue.h>
 
-#include <network/base/network_base.h>
 #include <network/base/network_host.h>
 
 namespace network {
