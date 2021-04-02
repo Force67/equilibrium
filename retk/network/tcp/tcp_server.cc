@@ -83,7 +83,7 @@ void TCPServer::QueueCommand(CommandId commandId,
 
   auto* header = reinterpret_cast<Chunkheader*>(data[0]);
   header->id = commandId;
-  
+
   std::memcpy(data.get() + sizeof(Chunkheader), ptr, len);
 
   Entry* item = s_Pool.construct();
@@ -99,7 +99,8 @@ void TCPServer::Tick() {
     sockpp::tcp_socket sock = acceptor_.accept(&address_);
     if (sock) {
       PeerId nextId = ++seed_;
-      auto peer = std::make_unique<NetworkPeer>(std::move(sock), nextId, address_);
+      auto peer =
+          std::make_unique<NetworkPeer>(std::move(sock), nextId, address_);
 
       peer->Touch();
       peers_.push_back(std::move(peer));
@@ -128,12 +129,15 @@ void TCPServer::Tick() {
       continue;
     }
 
-    ssize_t n;
-    while ((n = peer->Receive(chunkbuf_, sizeof(chunkbuf_))) > 0) {
+    ssize_t length;
+    // a healthy message is at least 4 bytes big
+    while ((length = peer->Receive(chunkbuf_, sizeof(chunkbuf_))) >= 4) {
       // still alive
       peer->Touch();
 
-      delegate_.ProcessData(peer->ConnectId(), chunkbuf_, n);
+      // only forward messages of type user data
+      if (reinterpret_cast<Chunkheader*>(chunkbuf_)->id == CommandId::kData)
+        delegate_.ProcessData(peer->ConnectId(), chunkbuf_, length);
     }
 
     ++it;

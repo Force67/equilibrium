@@ -30,7 +30,7 @@ class TestClient final : public ClientDelegate {
 };
 
 TestClient::TestClient(int id) : client_(*this), id_(id) {
-  running_ = client_.Connect("localhost", 4434);
+  running_ = client_.Connect("localhost", 4523);
 
   if (!running_)
     fmt::print("Failed to connect!\n");

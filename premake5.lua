@@ -22,10 +22,10 @@ filter("architecture:x86_64")
     targetsuffix("_64")
 
 filter("configurations:Debug")
-    defines("ND_DEBUG")
+    defines("TK_DBG")
 
 filter("configurations:DebugAsan")
-    defines("ND_DEBUG")
+    defines("TK_DBG")
     flags("NoIncrementalLink")
 
 filter("configurations:Release")

@@ -30,7 +30,7 @@ class ServerImpl final : public network::ServerDelegate {
 
  private:
 	 // impl: ServerDelegate
-  void OnConnection(network::PeerId) override{};
+  void OnConnection(network::PeerId) override;
   void OnDisconnection(network::PeerId, network::QuitReason) override;
   void ProcessData(network::PeerId cid,
                    const uint8_t* data,

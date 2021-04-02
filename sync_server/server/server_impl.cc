@@ -31,6 +31,10 @@ Server::ResultStatus ServerImpl::Initialize(bool withStorage) {
   return Server::ResultStatus::kSuccess;
 }
 
+void ServerImpl::OnConnection(network::PeerId pid) {
+  LOG_TRACE("OnConnection() -> {}", pid);
+}
+
 void ServerImpl::OnDisconnection(network::PeerId pid, network::QuitReason exitCode) {
   const std::string name = users_.UserById(pid)->Name();
 
