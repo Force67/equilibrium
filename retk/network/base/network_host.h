@@ -14,9 +14,9 @@ class ServerDelegate {
  public:
   virtual ~ServerDelegate() = default;
 
-  virtual void OnConnection(connectid_t){};
-  virtual void OnDisconnection(connectid_t, QuitReason) = 0;
-  virtual void ProcessData(connectid_t cid,
+  virtual void OnConnection(PeerId){};
+  virtual void OnDisconnection(PeerId, QuitReason) = 0;
+  virtual void ProcessData(PeerId cid,
                            const uint8_t* data,
                            size_t len) = 0;
 };

@@ -5,13 +5,13 @@
 
 namespace sync_server {
 
-User::User(network::connectid_t id, std::string name, std::string guid)
+User::User(network::PeerId id, std::string name, std::string guid)
     : _cid(id) {
   _name = std::move(name);
   _guid = std::move(guid);
 }
 
-userptr_t UserRegistry::UserById(network::connectid_t cid) {
+userptr_t UserRegistry::UserById(network::PeerId cid) {
   auto it = std::find_if(_list.begin(), _list.end(),
                          [&](userptr_t& user) { return user->Id() == cid; });
 
@@ -21,7 +21,7 @@ userptr_t UserRegistry::UserById(network::connectid_t cid) {
   return *it;
 }
 
-userptr_t UserRegistry::AddUser(network::connectid_t cid,
+userptr_t UserRegistry::AddUser(network::PeerId cid,
                                 const std::string& name,
                                 const std::string& guid) {
   userptr_t user = std::make_shared<User>(cid, name, guid);
@@ -30,7 +30,7 @@ userptr_t UserRegistry::AddUser(network::connectid_t cid,
   return _list.emplace_back(user);
 }
 
-void UserRegistry::RemoveUser(network::connectid_t cid) {
+void UserRegistry::RemoveUser(network::PeerId cid) {
   auto it = std::find_if(_list.begin(), _list.end(),
                          [&](userptr_t& user) { return user->Id() == cid; });
 

@@ -11,6 +11,7 @@ project("dedi_server")
     })
     links({
         "server",
+        "base",
         "network",
         "fmtlib",
         "sync"
@@ -18,7 +19,7 @@ project("dedi_server")
     dependson("server")
     includedirs({
         ".",
-        "../../common",
+        "../../",
         "../server",
         blu.extdir .. "/fmt/include",
         blu.extdir .. "/sockpp/include"

@@ -79,7 +79,7 @@ void TCPClient::QueueCommand(CommandId commandId,
   outgoingQueue_.push(&item->key);
 }
 
-bool TCPClient::Update() {
+bool TCPClient::Tick() {
   // we got booted by the server
   if (!connection_.is_connected()) {
     delegate_.OnDisconnected(QuitReason::kConnectionLost);

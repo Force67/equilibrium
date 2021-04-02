@@ -16,7 +16,7 @@ class TCPClient : public NetworkHost {
   // the connect call is blocking.
   bool Connect(const char* addr, int port);
   void Disconnect();
-  bool Update();
+  bool Tick();
 
   bool Connected() const { return connection_.is_connected(); }
 

@@ -11,7 +11,7 @@ constexpr int kKeepAliveSeconds = 45;
 constexpr int kDefaultPortRange = 10;
 
 struct TCPServer::Entry {
-  connectid_t cid;
+  PeerId cid;
   uint32_t dataSize;
   std::unique_ptr<uint8_t[]> data;
   base::detached_queue_key<Entry> key;
@@ -42,7 +42,7 @@ int16_t TCPServer::TryHost(int16_t port) {
   return port_;
 }
 
-bool TCPServer::DropPeer(connectid_t cid) {
+bool TCPServer::DropPeer(PeerId cid) {
   if (NetworkPeer* peer = PeerById(cid)) {
     // trigger the disconnection event on the next frame
     peer->Kill();
@@ -55,7 +55,7 @@ bool TCPServer::DropPeer(connectid_t cid) {
 
 void TCPServer::BroadcastPacket(const uint8_t* data,
                                 size_t size,
-                                connectid_t excluder /* = invalidid_t */) {
+                                PeerId excluder /* = invalidid_t */) {
   for (auto& it : peers_) {
     if (it->ConnectId() == excluder)
       continue;
@@ -64,7 +64,7 @@ void TCPServer::BroadcastPacket(const uint8_t* data,
   }
 }
 
-NetworkPeer* TCPServer::PeerById(connectid_t id) {
+NetworkPeer* TCPServer::PeerById(PeerId id) {
   auto it = std::find_if(peers_.begin(), peers_.end(),
                          [&](auto& it) { return (*it).ConnectId() == id; });
 
@@ -75,7 +75,7 @@ NetworkPeer* TCPServer::PeerById(connectid_t id) {
 }
 
 void TCPServer::QueueCommand(CommandId commandId,
-                             connectid_t connectId,
+                             PeerId connectId,
                              const uint8_t* ptr,
                              size_t len) {
   len += sizeof(Chunkheader);
@@ -93,12 +93,12 @@ void TCPServer::QueueCommand(CommandId commandId,
   outgoingQueue_.push(&item->key);
 }
 
-void TCPServer::Update() {
+void TCPServer::Tick() {
   {
     // listen for incoming connections
     sockpp::tcp_socket sock = acceptor_.accept(&address_);
     if (sock) {
-      connectid_t nextId = ++seed_;
+      PeerId nextId = ++seed_;
       auto peer = std::make_unique<NetworkPeer>(std::move(sock), nextId, address_);
 
       peer->Touch();

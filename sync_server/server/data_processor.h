@@ -13,27 +13,28 @@ struct MessageRoot;
 namespace sync::storage {
 class MainDb;
 class ProjectDb;
-}
+}  // namespace sync::storage
 
 namespace sync_server {
 
 class ServerImpl;
 
-class DbService {
+class DataProcessor {
  public:
   enum class Status {
     Success,
     HiveError,
   };
 
-  DbService(ServerImpl&);
-  ~DbService();
+  DataProcessor(ServerImpl&);
+  ~DataProcessor();
 
   Status Initialize();
 
-  void UploadMessage(sync::cid_t src, const protocol::MessageRoot*, size_t len);
+  void UploadMessage(network::PeerId, const protocol::MessageRoot*, size_t len);
 
   struct Tasklet;
+
  private:
   void WorkerThread();
   void ProcessTask(Tasklet&);
@@ -51,7 +52,7 @@ class DbService {
   std::thread worker_;
   sync::FbsBuffer fbb_;
   std::unique_ptr<sync::storage::MainDb> maindb_;
-  //std::unique_ptr<sync::storage::ProjectDb> project_;
+  // std::unique_ptr<sync::storage::ProjectDb> project_;
   base::detached_mpsc_queue<Tasklet> queue_;
 };
 }  // namespace sync_server

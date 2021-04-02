@@ -14,7 +14,7 @@ const char* LevelToName(LogLevel level) noexcept {
 
 static LogHandler s_callback{nullptr};
 
-void PrintLogMessage(LogLevel ll,
+void Core_PrintLogMessage(LogLevel ll,
                      const char* text,
                      const fmt::format_args& args) {
   auto fmt = fmt::vformat(text, args);

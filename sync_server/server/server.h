@@ -3,17 +3,9 @@
 #pragma once
 
 #include <memory>
+#include <base/logging.h>
 
 namespace sync_server {
-
-enum class LogLevel {
-  kTrace,    // < Debug Only
-  kInfo,     // < Regular
-  kWarning,  // < Minor Error
-  kError     // < Fatal Error
-};
-
-using logcallback_t = void (*)(LogLevel, const char*);
 
 class ServerImpl;
 
@@ -42,7 +34,7 @@ class Server {
   int16_t GetPort() const;
 
   // Sets a log callback
-  static void SetLogCallback(logcallback_t);
+  static void SetLogCallback(base::LogHandler);
 
  private:
   std::unique_ptr<ServerImpl> _impl;

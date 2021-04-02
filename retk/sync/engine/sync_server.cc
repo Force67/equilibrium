@@ -8,23 +8,14 @@
 
 namespace sync {
 
-void SyncServerDelegate::ProcessData(cid_t src,
-                                     const uint8_t* data,
-                                     size_t len) {
-  flatbuffers::Verifier verifier(data, len);
-  if (!protocol::VerifyMessageRootBuffer(verifier))
-    return;
-
-  const protocol::MessageRoot* root =
-      protocol::GetMessageRoot(static_cast<const void*>(data));
-
-  ConsumeMessage(src, root, len);
-}
-
-SyncServer::SyncServer(SyncServerDelegate& d)
-    : delegate_(d), network::TCPServer(d) {}
+SyncServer::SyncServer(network::ServerDelegate& d) : network::TCPServer(d) {}
 
 SyncServer::~SyncServer() {}
+
+void SyncServer::QueueFbsCommand(network::PeerId pid, FbsBuffer& buffer) {
+  QueueCommand(network::CommandId::kData, pid, buffer.GetBufferPointer(),
+               buffer.GetSize());
+}
 
 void SyncServer::Broadcast(protocol::MsgType type,
                            FbsBuffer& buf,
@@ -32,32 +23,21 @@ void SyncServer::Broadcast(protocol::MsgType type,
   const auto packet = protocol::CreateMessageRoot(buf, type, ref);
   buf.Finish(packet);
 
-  QueueBroadcast(network::CommandId::kData, )
-
-  TCPServer::Broadcast(network::OpCode::kData, buf.GetBufferPointer(),
-                       buf.GetSize());
+  QueueFbsCommand(network::kAllConnectId, buf);
 }
 
-void SyncServer::Broadcast(const protocol::MessageRoot* root, size_t len) {
-
-   Queue();
-
-  TCPServer::Broadcast(network::OpCode::kData,
-                       static_cast<const uint8_t*>(root->msg()), len);
+void SyncServer::BroadcastData(const uint8_t* data, size_t len) {
+  QueueCommand(network::CommandId::kData, network::kAllConnectId, data, len);
 }
 
-void SyncServer::Send(cid_t cid,
+void SyncServer::Send(network::PeerId pid,
                       protocol::MsgType type,
-                      FbsBuffer& buf,
+                      FbsBuffer& buffer,
                       FbsRef<void> ref) {
-  const auto packet = protocol::CreateMessageRoot(buf, type, ref);
-  buf.Finish(packet);
+  const auto packet = protocol::CreateMessageRoot(buffer, type, ref);
+  buffer.Finish(packet);
 
-  TCPServer::Send(network::OpCode::kData, cid, buf.GetBufferPointer(),
-                  buf.GetSize());
+  // TODO: think about moving to sync_message_builder
+  QueueFbsCommand(pid, buffer);
 }
-
-void SyncServer::Process() {
-  network::TCPServer::Tick();
-}
-}
+}  // namespace sync

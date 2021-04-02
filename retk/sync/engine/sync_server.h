@@ -10,36 +10,21 @@
 namespace protocol {
 struct MessageRoot;
 enum MsgType;
-}
+}  // namespace protocol
 
 namespace sync {
-using cid_t = network::connectid_t;
-using FbsBuffer = flatbuffers::FlatBufferBuilder;
-
-class SyncServerDelegate : public network::TCPServerDelegate {
- public:
-  virtual ~SyncServerDelegate() = default;
-  virtual void ConsumeMessage(cid_t, const protocol::MessageRoot*, size_t) = 0;
-
- private:
-  void ProcessData(cid_t, const uint8_t*, size_t) final override;
-};
 
 class SyncServer final : public network::TCPServer {
  public:
-  explicit SyncServer(SyncServerDelegate&);
+  explicit SyncServer(network::ServerDelegate&);
   ~SyncServer();
 
   void Broadcast(protocol::MsgType, FbsBuffer&, FbsRef<void> ref);
-  void Broadcast(const protocol::MessageRoot*, size_t);
-  void Send(cid_t cid, protocol::MsgType, FbsBuffer&, FbsRef<void> ref);
+  void BroadcastData(const uint8_t*, size_t);
 
-  void Process();
+  void Send(network::PeerId, protocol::MsgType, FbsBuffer&, FbsRef<void>);
 
- public:
-  struct Packet;
  private:
-  base::detached_mpsc_queue<Packet> queue_;
-  SyncServerDelegate& delegate_;
+  void QueueFbsCommand(network::PeerId, FbsBuffer&);
 };
-}
+}  // namespace sync

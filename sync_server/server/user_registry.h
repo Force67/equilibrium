@@ -5,22 +5,22 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <network/tcp_stack/tcp_server.h>
+
+#include <network/base/network_peer.h>
 
 namespace sync_server {
 
 class User {
  public:
-  explicit User(network::connectid_t cid, std::string name, std::string guid);
+  explicit User(network::PeerId, std::string name, std::string guid);
 
-  network::connectid_t Id() const { return _cid; }
+  network::PeerId Id() const { return _cid; }
 
   auto& Name() const { return _name; }
-
   auto& Guid() const { return _guid; }
 
  private:
-  network::connectid_t _cid;
+  network::PeerId _cid;
 
   std::string _guid;
   std::string _name;
@@ -30,12 +30,12 @@ using userptr_t = std::shared_ptr<User>;
 
 class UserRegistry {
  public:
-  userptr_t UserById(network::connectid_t cid);
-  userptr_t AddUser(network::connectid_t cid,
+  userptr_t UserById(network::PeerId cid);
+  userptr_t AddUser(network::PeerId cid,
                     const std::string& name,
                     const std::string& guid);
 
-  void RemoveUser(network::connectid_t);
+  void RemoveUser(network::PeerId);
 
   // for for loop
   auto begin() { return _list.begin(); }

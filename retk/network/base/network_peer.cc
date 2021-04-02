@@ -9,8 +9,10 @@ using namespace std::chrono_literals;
 
 constexpr auto const kClientDeadTimeout = 2s;
 
-NetworkPeer::NetworkPeer(sockpp::stream_socket sock, connectid_t cid, sockpp::inet_address addr) : 
-	sock_(std::move(sock)), connectId_(cid), address_(std::move(addr)) {}
+NetworkPeer::NetworkPeer(sockpp::stream_socket sock,
+                         PeerId cid,
+                         sockpp::inet_address addr)
+    : sock_(std::move(sock)), connectId_(cid), address_(std::move(addr)) {}
 
 void NetworkPeer::Touch() {
   lastSeen_ = msec();
@@ -33,4 +35,4 @@ size_t NetworkPeer::Receive(uint8_t* buf, size_t buflen) {
   return sock_.read_n(static_cast<void*>(buf), buflen);
 }
 
-}
+}  // namespace network

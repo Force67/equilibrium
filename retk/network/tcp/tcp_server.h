@@ -17,20 +17,20 @@ class TCPServer : public NetworkHost {
 
   // returns the actual host within the port range
   int16_t TryHost(int16_t port);
-  void Update();
+  void Tick();
 
-  bool DropPeer(connectid_t);
-  NetworkPeer* PeerById(connectid_t);
+  bool DropPeer(PeerId);
+  NetworkPeer* PeerById(PeerId);
 
   // not thread safe
   void BroadcastPacket(const uint8_t* data,
                        size_t size,
-                       connectid_t excluder = kInvalidConnectId);
+                       PeerId excluder = kInvalidConnectId);
 
   int16_t Port() const { return port_; }
 
   template <typename T>
-  void QueueOutgoingCommand(CommandId id, connectid_t cid, const T& val) {
+  void QueueOutgoingCommand(CommandId id, PeerId cid, const T& val) {
     QueueCommand(id, cid, reinterpret_cast<const uint8_t*>(&val), sizeof(val));
   }
 
@@ -42,7 +42,7 @@ class TCPServer : public NetworkHost {
   struct Entry;
  protected:
 
-  void QueueCommand(CommandId, connectid_t, const uint8_t* ptr, size_t len);
+  void QueueCommand(CommandId, PeerId, const uint8_t* ptr, size_t len);
  protected:
   sockpp::tcp_acceptor acceptor_;
   std::vector<std::unique_ptr<NetworkPeer>> peers_;

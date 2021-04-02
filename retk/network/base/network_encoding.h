@@ -6,6 +6,7 @@
 
 namespace network {
 
+#pragma pack(push, 1)
 // version of the system encoding (this)
 // of the network stack
 constexpr uint32_t kEncodingVersion = 1;
@@ -15,7 +16,7 @@ constexpr uint32_t kEncodingVersion = 1;
 constexpr uint32_t kChunkSize = 2048;
 
 // identifier for a peer. 
-using connectid_t = uint32_t;
+using PeerId = uint32_t;
 
 enum class CommandId : uint32_t {
   // system commands
@@ -44,4 +45,5 @@ struct QuitCommand {
 struct Chunkheader {
   CommandId id;
 };
+#pragma pack(pop)
 }

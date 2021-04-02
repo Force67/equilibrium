@@ -7,9 +7,15 @@
 
 using namespace network;
 
+// more than one currently crashes the client while
+// attempting to resolve addresses, i'll fix that later
+constexpr int kTestBatchSize = 1;
+
+#define MULTI_BATCH_ENABLED 0
+
 class TestClient final : public ClientDelegate {
  public:
-  TestClient();
+  TestClient(int);
 
   void OnConnection(const sockpp::inet_address&) override;
   void OnDisconnected(QuitReason) override;
@@ -20,9 +26,10 @@ class TestClient final : public ClientDelegate {
  private:
   TCPClient client_;
   bool running_;
+  int id_;
 };
 
-TestClient::TestClient() : client_(*this) {
+TestClient::TestClient(int id) : client_(*this), id_(id) {
   running_ = client_.Connect("localhost", 4434);
 
   if (!running_)
@@ -51,7 +58,7 @@ void TestClient::Run() {
   fmt::print("Run() -> before run\n");
 
   while (running_) {
-    running_ = client_.Update();
+    running_ = client_.Tick();
 
     if (!running_)
       fmt::print("Run() -> update function requested quit\n");
@@ -64,8 +71,18 @@ int main(int argc, char** argv) {
   ContextHolder netContext;
   fmt::print("Initializing test_client\n");
 
-  TestClient client;
+#if MULTI_BATCH_ENABLED
+  std::vector<std::unique_ptr<TestClient>> clients(kTestBatchSize);
+  for (int i = 0; i < kTestBatchSize; i++) {
+    clients.push_back(std::make_unique<TestClient>(i));
+  }
+
+  for (auto& client : clients)
+    client->Run();
+#else
+  TestClient client(1);
   client.Run();
+#endif
 
   return 0;
 }

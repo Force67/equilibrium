@@ -11,9 +11,9 @@ class TestServer final : public ServerDelegate {
  public:
   TestServer();
 
-  void OnConnection(connectid_t) override;
-  void OnDisconnection(connectid_t, QuitReason) override;
-  void ProcessData(connectid_t cid, const uint8_t* data, size_t len) override;
+  void OnConnection(PeerId) override;
+  void OnDisconnection(PeerId, QuitReason) override;
+  void ProcessData(PeerId cid, const uint8_t* data, size_t len) override;
 
   void Run();
 
@@ -31,11 +31,11 @@ TestServer::TestServer() : server_(*this) {
   }
 }
 
-void TestServer::OnConnection(connectid_t connectId) {
+void TestServer::OnConnection(PeerId connectId) {
   fmt::print("OnConnection() -> connectId ({})\n", connectId);
 }
 
-void TestServer::OnDisconnection(connectid_t connectId, QuitReason exitCode) {
+void TestServer::OnDisconnection(PeerId connectId, QuitReason exitCode) {
   if (auto* peer = server_.PeerById(connectId)) {
     fmt::print(
         "OnDisconnection() -> connectid ({}) address: {}, exitcode: {}\n",
@@ -45,7 +45,7 @@ void TestServer::OnDisconnection(connectid_t connectId, QuitReason exitCode) {
   }
 }
 
-void TestServer::ProcessData(connectid_t connectId,
+void TestServer::ProcessData(PeerId connectId,
                              const uint8_t* data,
                              size_t len) {
   fmt::print("ProcessData() -> connectId ({}), length: {}", connectId, len);
@@ -70,7 +70,7 @@ void TestServer::Run() {
   fmt::print("Run() -> Before run\n");
 
   while (running_) {
-    server_.Update();
+    server_.Tick();
   }
 
   fmt::print("Run() -> Run completed\n");

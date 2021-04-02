@@ -6,6 +6,7 @@
 #endif
 
 #include <Server.h>
+#include <base/logging.h>
 
 #include <chrono>
 #include <thread>
@@ -15,21 +16,6 @@
 using namespace std::chrono_literals;
 using namespace sync_server;
 
-static const char* LogLevelToString(LogLevel ll) {
-  switch (ll) {
-    case LogLevel::kTrace:
-      return "Trace";
-    case LogLevel::kInfo:
-      return "Info";
-    case LogLevel::kWarning:
-      return "Warning";
-    case LogLevel::kError:
-      return "Error";
-    default:
-      return "???";
-  }
-}
-
 int main(int argc, char** argv) {
 #if defined(OS_WIN)
   SetConsoleTitleW(L"ReTK server");
@@ -38,24 +24,24 @@ int main(int argc, char** argv) {
   fmt::print("<<<- DedicatedMain Init ->>>\n");
 
   // pretty print the log to terminal
-  Server::SetLogCallback([](LogLevel ll, const char* text) {
-    const char* const name = LogLevelToString(ll);
+  Server::SetLogCallback([](base::LogLevel logLevel, const char* text) {
+    const char* const name = base::LevelToName(logLevel);
 
 #if defined(OS_WIN)
     fmt::print("[{}]: {}\n", name, text);
 #else
     fmt::text_style fg_color;
     switch (ll) {
-      case LogLevel::kTrace:
+      case base::LogLevel::kTrace:
         fg_color = fg(fmt::color::coral) | fmt::emphasis::underline;
         break;
-      case LogLevel::kInfo:
+      case base::LogLevel::kInfo:
         fg_color = fg(fmt::color::white);
         break;
-      case LogLevel::kWarning:
+      case base::LogLevel::kWarning:
         fg_color = fg(fmt::color::yellow) | fmt::emphasis::italic;
         break;
-      case LogLevel::kError:
+      case base::LogLevel::kError:
         fg_color = fg(fmt::color::crimson) | fmt::emphasis::bold;
         break;
     }

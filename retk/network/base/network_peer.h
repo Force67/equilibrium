@@ -22,7 +22,7 @@ inline auto msec() {
 
 class NetworkPeer {
  public:
-  explicit NetworkPeer(sockpp::stream_socket, connectid_t, sockpp::inet_address);
+  explicit NetworkPeer(sockpp::stream_socket, PeerId, sockpp::inet_address);
 
   void Immortalize() { immortal_ = true; }
   void Kill();
@@ -41,14 +41,14 @@ class NetworkPeer {
   void Send(const uint8_t* ptr, size_t len);
   size_t Receive(uint8_t* buf, size_t buflen);
 
-  const connectid_t ConnectId() const { return connectId_; }
+  const PeerId ConnectId() const { return connectId_; }
   const auto Address() const { return address_; }
   const auto GetPing() const { return lastSeen_; }
 
  private:
   sockpp::stream_socket sock_;
   sockpp::inet_address address_;
-  connectid_t connectId_;
+  PeerId connectId_;
   bool immortal_ = false;
   std::chrono::milliseconds lastSeen_{};
 };

@@ -3,8 +3,4 @@
 #pragma once
 
 #include "flatbuffers/flatbuffers.h"
-
-#include "utility/detached_queue.h"
-#include "utility/object_pool.h"
-
 namespace sync_server {}  // namespace sync_server

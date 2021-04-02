@@ -8,39 +8,16 @@
 
 namespace sync {
 
-struct SyncClient::Packet {
-  uint32_t dataSize;
-  std::unique_ptr<uint8_t[]> data;
-  base::detached_queue_key<Packet> key;
-};
+SyncClient::SyncClient(network::ClientDelegate& d) : network::TCPClient(d) {}
 
-void SyncClientDelegate::ProcessData(const uint8_t* data, size_t len) {
-  flatbuffers::Verifier verifier(data, len);
-  if (!protocol::VerifyMessageRootBuffer(verifier))
-    return;
+void SyncClient::Send(FbsBuffer& buffer,
+                      protocol::MsgType type,
+                      FbsRef<void> ref) {
+  const auto packet = protocol::CreateMessageRoot(buffer, type, ref);
+  buffer.Finish(packet);
 
-  const protocol::MessageRoot* root =
-      protocol::GetMessageRoot(static_cast<const void*>(data));
-
-  ConsumeMessage(root, len);
+  QueueCommand(network::CommandId::kData, buffer.GetBufferPointer(),
+               buffer.GetSize());
 }
 
-SyncClient::SyncClient(SyncClientDelegate &d) : 
-    delegate_(d), network::TCPClient(d) {}
-
-void SyncClient::Send(FbsBuffer& buf, protocol::MsgType type, FbsRef<void> ref) {
-  const auto packet = protocol::CreateMessageRoot(buf, type, ref);
-  buf.Finish(packet);
-  
-  TCPClient::Send(network::OpCode::kData, buf.GetBufferPointer(), buf.GetSize());
-}
-
-bool SyncClient::Process() {
-  if (!network::TCPClient::Update())
-    return false;
-
-
-
-  return true;
-}
-}
+}  // namespace sync
