@@ -14,22 +14,5 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
   PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
 }
 
-#ifdef ND_DEBUG
-#define LOG_TRACE(...)                                                   \
-  ::sync_server::utils::PrintLogMessage(::sync_server::LogLevel::kTrace, \
-                                        __VA_ARGS__)
-#else
-#define LOG_TRACE(...)
-#endif
-#define LOG_INFO(...)                                                   \
-  ::sync_server::utils::PrintLogMessage(::sync_server::LogLevel::kInfo, \
-                                        __VA_ARGS__)
-#define LOG_WARNING(...)                                                   \
-  ::sync_server::utils::PrintLogMessage(::sync_server::LogLevel::kWarning, \
-                                        __VA_ARGS__)
-#define LOG_ERROR(...)                                                   \
-  ::sync_server::utils::PrintLogMessage(::sync_server::LogLevel::kError, \
-                                        __VA_ARGS__)
-
 void SetLogCallback(logcallback_t);
 }  // namespace sync_server::utils
