@@ -78,7 +78,7 @@ void IdaSync::OnConnection(const sockpp::inet_address& address) {
     username = sync::utils::GetSysUserName();
 
   auto request = protocol::CreateHandshakeRequest(
-      fbb_, network::kClientVersion, fbb_.CreateSharedString(""),
+      fbb_, 1338, fbb_.CreateSharedString(""),
       fbb_.CreateString(sync::utils::GetUniqueUserId()),
       fbb_.CreateString(username));
 
@@ -93,7 +93,7 @@ void IdaSync::OnConnection(const sockpp::inet_address& address) {
   LOG_TRACE("Connecting to {}", address.to_string());
 }
 
-void IdaSync::OnDisconnected(int reason) {
+void IdaSync::OnDisconnected(network::QuitReason reason) {
   SetState(State::kDisabled);
 }
 
@@ -144,7 +144,9 @@ void IdaSync::HandleUserEvent(const protocol::MessageRoot* root) {
   }
 }
 
-void IdaSync::ConsumeMessage(const protocol::MessageRoot* root, size_t len) {
+void IdaSync::ProcessData(const uint8_t* data, size_t length) {
+  const protocol::MessageRoot* root = sync::UnpackMessage(data, length);
+
   LOG_TRACE("ConsumeMessage() -> {}",
             protocol::EnumNameMsgType(root->msg_type()));
 
@@ -155,7 +157,7 @@ void IdaSync::ConsumeMessage(const protocol::MessageRoot* root, size_t len) {
       return HandleUserEvent(root);
     default:
       // dispatch the message to the IDA thread
-      reqRunner_.Queue(static_cast<const uint8_t*>(root->msg()), len);
+      reqRunner_.Queue(static_cast<const uint8_t*>(root->msg()), length);
       break;
   }
 }

@@ -12,6 +12,7 @@ struct MessageRoot;
 namespace sync {
 
 constexpr int kDefaultSyncPort = 4523;
+constexpr char kDefaultSyncIp[] = "localhost";
 
 using FbsBuffer = flatbuffers::FlatBufferBuilder;
 

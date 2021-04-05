@@ -15,7 +15,7 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
   PrintLogMessageImpl(level, format, fmt::make_format_args(args...));
 }
 
-#if ND_DEBUG
+#if defined (TK_DBG)
 #define LOG_TRACE(...) \
   ::utils::PrintLogMessage(::utils::LogLevel::Trace, __VA_ARGS__)
 #else

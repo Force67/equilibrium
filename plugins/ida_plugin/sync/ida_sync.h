@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include <sync/engine/sync_client.h>
+#include <network/base/context_holder.h>
 
 #include "client_runner.h"
 #include "request_runner.h"
@@ -39,7 +40,7 @@ struct MsgContext {
   }
 };
 
-class IdaSync final : public QObject, public sync::SyncClientDelegate {
+class IdaSync final : public QObject, public network::ClientDelegate {
   Q_OBJECT;
  public:
 
@@ -69,8 +70,8 @@ class IdaSync final : public QObject, public sync::SyncClientDelegate {
 
 private:
  void OnConnection(const sockpp::inet_address&) override;
- void OnDisconnected(int reason) override;
- void ConsumeMessage(const protocol::MessageRoot*, size_t) override;
+ void OnDisconnected(network::QuitReason) override;
+ void ProcessData(const uint8_t*, size_t) override;
 
  void HandleAuthAck(const protocol::MessageRoot*);
  void HandleUserEvent(const protocol::MessageRoot*);
@@ -101,7 +102,7 @@ public:
  inline MsgContext& Context() { return context_; }
  inline auto& Data() { return data_; }
 private:
- network::Context netCtx_;
+ network::ContextHolder netContext_;
  sync::SyncClient client_;
  sync::FbsBuffer fbb_;
  MsgContext context_;

@@ -117,8 +117,8 @@ void *IdaSync::qt_metacast(const char *_clname)
     if (!_clname) return Q_NULLPTR;
     if (!strcmp(_clname, qt_meta_stringdata_IdaSync.stringdata0))
         return static_cast<void*>(const_cast< IdaSync*>(this));
-    if (!strcmp(_clname, "sync::SyncClientDelegate"))
-        return static_cast< sync::SyncClientDelegate*>(const_cast< IdaSync*>(this));
+    if (!strcmp(_clname, "network::ClientDelegate"))
+        return static_cast< network::ClientDelegate*>(const_cast< IdaSync*>(this));
     return QObject::qt_metacast(_clname);
 }
 

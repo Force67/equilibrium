@@ -5,7 +5,7 @@
 #include "ui_data.h"
 
 namespace {
-constexpr char kStorageNodeId[] = "$ noda_ui_storage";
+constexpr char kStorageNodeId[] = "$ retk_ui_data";
 constexpr int kUiStorageVersion = 1;
 }
 

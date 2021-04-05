@@ -16,6 +16,7 @@
 #include "forms/run_dialog.h"
 #include "forms/settings.h"
 #include "forms/status_widget.h"
+#include "forms/address_book_view.h"
 
 QT::QWidget* GetTopWidget() {
   return qobject_cast<QMainWindow*>(
@@ -52,14 +53,24 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
 
   hook_to_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 
+  wastedTime_.reset(new QLabel(""));
+  statusForm_.reset(new forms::StatusWidget(window->statusBar(), plugin));
+  addressView_.reset(new forms::AddressBookView());
+
+  // register the address book selection view toggle
+  QMenu* viewMenu =
+      reinterpret_cast<QMenu*>(window->menuBar()->actions()[4]->parent());
+  QMenu* subViews = reinterpret_cast<QMenu*>(viewMenu->actions()[0]->parent());
+  QAction* before = subViews->actions()[12];
+
+  auto* abAct_ = new QAction(QIcon(":/book"), "Address Book", subViews);
+  subViews->insertAction(before, abAct_);
+
   // register a new menu bar for the sync stuff
   QMenu* syncMenu = window->menuBar()->addMenu("ReTK");
   cnAct_ = syncMenu->addAction("Connect");
   syncMenu->addSeparator();
   stAct_ = syncMenu->addAction(QIcon(":/cog"), "Settings");
-
-  wastedTime_.reset(new QLabel(""));
-  statusForm_.reset(new forms::StatusWidget(window->statusBar(), plugin));
 
   wastedTime_->hide();
   cnAct_->setEnabled(false);
@@ -67,12 +78,15 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   timer_.reset(new QTimer());
 
   // register tray widgets
-  window->statusBar()->addPermanentWidget(wastedTime_.data());
-  window->statusBar()->addPermanentWidget(statusForm_.data());
+  window->statusBar()->addPermanentWidget(wastedTime_.get());
+  window->statusBar()->addPermanentWidget(statusForm_.get());
 
   // and connect everything
-  connect(timer_.data(), &QTimer::timeout, this, &PluginUi::Tick);
+  connect(timer_.get(), &QTimer::timeout, this, &PluginUi::Tick);
   connect(cnAct_, &QAction::triggered, &plugin_, &Plugin::SyncToggle);
+
+  QObject::connect(abAct_, &QAction::triggered, this,
+                   [&]() { addressView_->choose(); });
 
   connect(stAct_, &QAction::triggered, this, [&]() {
     bool isOnline = plugin.Sync().Client().Connected();
@@ -105,6 +119,8 @@ PluginUi::~PluginUi() {
   unhook_from_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 }
 
+static bool g_indb = false;
+
 void PluginUi::HandleEvent(int code, va_list args) {
   switch (code) {
     case ui_notification_t::ui_database_closed:
@@ -115,7 +131,7 @@ void PluginUi::HandleEvent(int code, va_list args) {
     case ui_notification_t::ui_database_inited: {
       wastedTime_->show();
       timer_->start(1000);
-
+      g_indb = true;
       SetShellState(ShellState::IN_DB);
       break;
     }

@@ -32,6 +32,7 @@ Server::ResultStatus ServerImpl::Initialize(bool withStorage) {
 }
 
 void ServerImpl::OnConnection(network::PeerId pid) {
+  // TODO: kick peers by setting their timeout very low until they give us the handshake!
   LOG_TRACE("OnConnection() -> {}", pid);
 }
 

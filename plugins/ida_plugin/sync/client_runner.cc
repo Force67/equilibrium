@@ -7,15 +7,14 @@
 #include <sync/engine/sync_client.h>
 
 namespace {
-utils::Opt<int> NetPort{network::kDefaultServerPort, "Nd_NetPort"};
-utils::Opt<QString> NetIp{network::kDefaultServerIp, "Nd_NetIp"};
+utils::Opt<int> NetPort{sync::kDefaultSyncPort, "Nd_NetPort"};
+utils::Opt<QString> NetIp{"localhost", "Nd_NetIp"};
 utils::Opt<int> NetIdle{1, "Nd_NetThreadIdle"};
-}
+}  // namespace
 
 static Qt::HANDLE s_Tid{nullptr};
 
-ClientRunner::ClientRunner(sync::SyncClient& client) : client_(client) {
-}
+ClientRunner::ClientRunner(sync::SyncClient& client) : client_(client) {}
 
 ClientRunner::~ClientRunner() {
   if (running_)
@@ -52,7 +51,7 @@ void ClientRunner::run() {
   s_Tid = QThread::currentThreadId();
 
   while (running_) {
-    running_ = client_.Process();
+    running_ = client_.Tick();
     QThread::msleep(idletime_);
   }
 

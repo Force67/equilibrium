@@ -19,6 +19,7 @@ class QMainWindow;
 
 namespace forms {
 class StatusWidget;
+class AddressBookView;
 }
 
 // returns the currently most top widget
@@ -57,10 +58,11 @@ class PluginUi final : public QObject {
   UiData data_;
   ShellState state_{ShellState::NO_DB};
 
-  QScopedPointer<QLabel> wastedTime_;
-  QScopedPointer<QTimer> timer_;
+  std::unique_ptr<QLabel> wastedTime_;
+  std::unique_ptr<QTimer> timer_;
+  std::unique_ptr<forms::StatusWidget> statusForm_;
+  std::unique_ptr<forms::AddressBookView> addressView_;
 
-  QScopedPointer<forms::StatusWidget> statusForm_;
   QAction* cnAct_ = nullptr;
   QAction* stAct_ = nullptr;
 };
