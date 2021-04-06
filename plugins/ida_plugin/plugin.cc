@@ -10,12 +10,16 @@ namespace {
 Plugin* g_Plugin = nullptr;
 
 constexpr char kPluginComment[] = "Reverse Engineering Toolkit for IDA Pro";
-constexpr char kPluginName[] = "RETKForIDA";
-constexpr char kPluginHotkey[] = "Ctrl-Y";
+
+// This is the preferred name of the plugin module in the menu system
+// The preferred name may be overridden in plugins.cfg file
+constexpr char kWantedPluginName[] = "RETKForIDA";
+
+// this will bring up the quick menu
+constexpr char kWantedPluginHotkey[] = "Ctrl-Y";
 }  // namespace
 
 Plugin::Plugin() : sync_(*this), ui_(*this) {
-
   LOG_INFO("Loaded RETK, version " GIT_BRANCH "@" GIT_COMMIT
            " Created by Force67 <github.com/Force67>.");
 }
@@ -78,9 +82,5 @@ plugin_t PLUGIN = {
     // application.
     PLUGIN_FIX |       // < plugin is pinned
         PLUGIN_MULTI,  // < plugin works with multiple idbs
-    Plugin::Create, 
-    nullptr, nullptr, 
-    kPluginComment, 
-    kPluginComment, 
-    kPluginName,
-    kPluginHotkey};
+    Plugin::Create, nullptr, nullptr, kPluginComment, kPluginComment,
+    kWantedPluginName, kWantedPluginHotkey};

@@ -45,6 +45,7 @@ project("ida_plugin")
     defines({
         "__NT__",            -- < Windows NT Target
         "__QT__",            -- < We are building with QT
+        --"__UI__",            -- < Define ida types as QT types
         "__EA64__",          -- < Use 64 Bit addressing (Even ida 32 is 64 bit nowadays)
         "NO_OBSOLETE_FUNCS", -- < No depricated functions (Target for latest IDA)
 

@@ -6,12 +6,17 @@
 
 class AddressBookData final : public NodeTraits {
  public:
+  struct Entry {
+
+  };
+
   void Save() override;
   void Load() override;
 
   const char* const GetName() override;
 
  private:
+
   enum NodeIndex : nodeidx_t {
     StorageVersion,
   };

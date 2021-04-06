@@ -1,86 +1,112 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <kernwin.hpp>
-
+#include <QHBoxLayout>
 #include "address_book_view.h"
-#include "ui/plugin_ui.h"
 
 namespace forms {
 
-// TODO: clean this shit up
-constexpr char kTitleName[] = "Address Book";
-
-constexpr auto kColumCount = 3u;
-constexpr int kWidths[kColumCount] = {(8 | CHCOL_HEX), (4 | CHCOL_DEC), 190};
-
-static const char* const kHeader[kColumCount] = {"Address", "Name", "Pattern"};
+constexpr char kViewTitle[] = "Address Book";
 
 struct {
   const char* address;
   const char* name;
   const char* pattern;
-} g_x[] = {{"1400D5Ad2", "FUNC_Veryimportant", "0F B7 79 ? E8"}, 
-    {"1400D5A00", "sub_1400D5A00", "88 4C 24 ? 55"}
+} g_fakeData[] = {{"1400D5AD2", "FUNC_Veryimportant", "0F B7 79 ? E8"},
+                  {"1400D5A00", "sub_1400D5A00", "88 4C 24 ? 55"}
 
 };
 
-AddressBookView::AddressBookView()
-    : chooser_multi_t(CH_QFTYP_DEFAULT,
-                      kColumCount,
-                      kWidths,
-                      kHeader,
-                      kTitleName) {}
+AddressBookView::AddressBookView(AddressBookData& data)
+    : data_(data),
+      wrapper_(create_empty_widget(kViewTitle)) {
+  auto* parent = reinterpret_cast<QWidget*>(wrapper_);
 
-const void* AddressBookView::get_obj_id(size_t* len) const {
-  *len = sizeof(kTitleName);
-  return static_cast<const void*>(kTitleName);
+  auto* layout = new QHBoxLayout(parent);
+  layout->addWidget(&view_);
+
+  QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  sizePolicy.setHorizontalStretch(0);
+  sizePolicy.setVerticalStretch(0);
+  sizePolicy.setHeightForWidth(view_.sizePolicy().hasHeightForWidth());
+
+  view_.setModel(this);
+  view_.setColumnWidth(0, view_.width() / 3);
+  view_.setColumnWidth(1, view_.width() / 2);
+  view_.setColumnWidth(2, view_.width() / 1);
 }
 
-bool idaapi AddressBookView::init() {
-  return true;
+AddressBookView::~AddressBookView() {
+  __debugbreak();
+  if (wrapper_) {
+    Show(false);
+  }
 }
 
-size_t idaapi AddressBookView::get_count() const {
+void AddressBookView::HandleNotification(int code, va_list args) {
+  if (code == ui_widget_invisible) {
+    if (wrapper_ == va_arg(args, TWidget*)) {
+
+
+    }
+  }
+}
+
+void AddressBookView::Cleanup() {
+
+  view_.close();
+}
+
+constexpr int kxxx = WOPN_DP_TAB;
+
+void AddressBookView::Show(bool toggle) {
+  toggle ? display_widget(wrapper_, WOPN_DP_TAB)
+         : close_widget(wrapper_, WOPN_DP_TAB);
+}
+
+int AddressBookView::rowCount(const QModelIndex& parent) const {
   return 2;
 }
 
-#include <ida.hpp>
-#include <idp.hpp>
-#include <loader.hpp>
-#include <kernwin.hpp>
-
-
-void idaapi AddressBookView::get_row(qstrvec_t* cols,
-                                     int* icon_,
-                                     chooser_item_attrs_t* attrs,
-                                     size_t n) const {
-  auto& colums = *cols;
-  colums[0].sprnt(g_x[n].address);
-  colums[1].sprnt(g_x[n].name);
-  colums[2].sprnt(g_x[n].pattern);
-
-  //find_widget();
-  //see: Sample Qt subwindow sample from ida
-  /*
-  bool idaapi plugin_ctx_t::run(size_t)
-{
-  TWidget *g_widget = find_widget("Sample Qt subwindow");
-  if ( g_widget == nullptr )
-  {
-    widget = create_empty_widget("Sample Qt subwindow");
-    display_widget(widget, WOPN_DP_TAB|WOPN_RESTORE);
-  }
-  else
-  {
-    close_widget(g_widget, WCLS_SAVE);
-    widget = nullptr; // make lint happy
-  }
-  return true;
-}
-  */
+int AddressBookView::columnCount(const QModelIndex& parent) const {
+  return 3;
 }
 
-void idaapi AddressBookView::closed() {}
+QVariant AddressBookView::headerData(int section,
+                                     Qt::Orientation orientation,
+                                     int role) const {
+  if (role != Qt::DisplayRole || orientation != Qt::Horizontal)
+    return QVariant();
+
+  switch (section) {
+    case 0:
+      return QObject::tr("Address");
+    case 1:
+      return QObject::tr("Name");
+    case 2:
+      return QObject::tr("Pattern");
+    default:
+      return QVariant();
+  }
+}
+
+QVariant AddressBookView::data(const QModelIndex& index, int role) const {
+  if (!index.isValid() || role != Qt::DisplayRole) {
+    return QVariant();
+  }
+
+  auto& node = g_fakeData[index.row()];
+
+  switch (index.column()) {
+    case 0:
+      return node.address;
+    case 1:
+      return node.name;
+    case 2:
+      return node.pattern;
+    default:
+      return QVariant();
+  }
+}
 
 }  // namespace forms

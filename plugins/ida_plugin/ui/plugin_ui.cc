@@ -53,9 +53,11 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
 
   hook_to_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 
+  static AddressBookData *s_fakeDataTemp = new AddressBookData();
+
   wastedTime_.reset(new QLabel(""));
   statusForm_.reset(new forms::StatusWidget(window->statusBar(), plugin));
-  addressView_.reset(new forms::AddressBookView());
+  addressView_.reset(new forms::AddressBookView(*s_fakeDataTemp));
 
   // register the address book selection view toggle
   QMenu* viewMenu =
@@ -86,7 +88,7 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   connect(cnAct_, &QAction::triggered, &plugin_, &Plugin::SyncToggle);
 
   QObject::connect(abAct_, &QAction::triggered, this,
-                   [&]() { addressView_->choose(); });
+                   [&]() { addressView_->Show(true); });
 
   connect(stAct_, &QAction::triggered, this, [&]() {
     bool isOnline = plugin.Sync().Client().Connected();
@@ -119,8 +121,6 @@ PluginUi::~PluginUi() {
   unhook_from_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 }
 
-static bool g_indb = false;
-
 void PluginUi::HandleEvent(int code, va_list args) {
   switch (code) {
     case ui_notification_t::ui_database_closed:
@@ -131,7 +131,6 @@ void PluginUi::HandleEvent(int code, va_list args) {
     case ui_notification_t::ui_database_inited: {
       wastedTime_->show();
       timer_->start(1000);
-      g_indb = true;
       SetShellState(ShellState::IN_DB);
       break;
     }
@@ -145,6 +144,8 @@ void PluginUi::HandleEvent(int code, va_list args) {
       break;
     }
   }
+
+  addressView_->HandleNotification(code, args);
 }
 
 void PluginUi::SetShellState(ShellState newState) {
