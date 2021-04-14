@@ -6,28 +6,45 @@
 #include <base/object_pool.h>
 #include <sockpp/tcp_acceptor.h>
 
-#include <network/base/network_host.h>
-#include <network/base/network_peer.h>
+#include <network/tksp/tksp_host.h>
 
-namespace network {
+namespace network::tksp {
 
-class TCPServer : public NetworkHost {
+class Server : public tksp::Host {
  public:
-  explicit TCPServer(ServerDelegate&);
+  explicit Server(TkspDelegate& delegate) : tksp::Host(delegate) {}
 
-  // returns the actual host within the port range
-  int16_t TryHost(int16_t port);
+  // attempt to host (between) port + kPortRange
+  bool Host(uint16_t port);
+
+  void Quit();
+
+  // port that we are being hosted on
+  uint16_t Port() { return my_address_.port();}
+
+  bool Process();
+
+  // configure the socket stream
+  virtual bool SetSocketOptions();
+ private:
+  PeerBase::Adress my_address_{};
+  PeerBase::Adress next_address_{};
+  sockpp::tcp_acceptor socket_;
+
   void Tick();
 
+  // send quit msg!
   bool DropPeer(PeerId);
+
+  // immediately kill the peer
+  bool DropPeerNow(PeerId);
+
   NetworkPeer* PeerById(PeerId);
 
   // not thread safe
   void BroadcastPacket(const uint8_t* data,
                        size_t size,
                        PeerId excluder = kInvalidConnectId);
-
-  int16_t Port() const { return port_; }
 
   template <typename T>
   void QueueOutgoingCommand(CommandId id, PeerId cid, const T& val) {
@@ -44,14 +61,8 @@ class TCPServer : public NetworkHost {
 
   void QueueCommand(CommandId, PeerId, const uint8_t* ptr, size_t len);
  protected:
-  sockpp::tcp_acceptor acceptor_;
-  std::vector<std::unique_ptr<NetworkPeer>> peers_;
 
  private:
-  ServerDelegate& delegate_;
-  base::detached_mpsc_queue<Entry> outgoingQueue_;
 
-  int16_t port_ = 0;
-  uint32_t seed_;
 };
 }  // namespace network

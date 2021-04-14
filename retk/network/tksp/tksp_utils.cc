@@ -1,23 +1,15 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <random>
-#include "network_host.h"
+#include <network/tksp/tksp_utils.h>
 
-namespace network {
+namespace network::tksp {
 
-constexpr uint32_t kReservedSeedSpace = 10;
-
-std::string NetworkHost::LastError() const {
-  return sock_.last_error_str();
-}
-
-uint32_t NetworkHost::GetSeed() {
+uint32_t GetRandomSeed(uint32_t reserve) {
   auto mersenneRandom = std::mt19937(std::random_device{}());
   // give us a random value between 0 and limit
   // some of those upper values are reserved for the system.
-  std::uniform_int_distribution<uint32_t> limits(
-            0, UINT_MAX - kReservedSeedSpace);
+  std::uniform_int_distribution<uint32_t> limits(0, UINT_MAX - reserve);
 
   return limits(mersenneRandom);
 }

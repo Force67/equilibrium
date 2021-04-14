@@ -23,8 +23,8 @@ project("network")
     files({
         "base/*.cc",
         "base/*.h",
-        "tcp/*.cc",
-        "tcp/*.h",
+        "tksp/*.h",
+        "tksp/*.cc",
         "util/*.cc",
         "util/*.h"
     })
