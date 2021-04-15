@@ -12,11 +12,10 @@ namespace network::tksp {
 struct Host::OutgoingCommand {
   explicit OutgoingCommand(PeerBase::Id target_id,
                            size_t size,
-                           std::unique_ptr<uint8_t[]> data) {
-    this->target_id = target_id;
-    this->size = size;
-    this->data = std::move(data);
-  }
+                           std::unique_ptr<uint8_t[]> data)
+      : target_id(target_id),
+        size(static_cast<uint32_t>(size)),
+        data(std::move(data)) {}
 
   PeerBase::Id target_id;
   uint32_t size;
@@ -31,8 +30,10 @@ Host::Host(TkspDelegate& del) : delegate_(del) {
 
   seed_ = GetRandomSeed(kReserveSize);
   // pool pulls in a lot of template definitions so we forward declare it
-  pool_ = std::make_unique<base::object_pool<OutgoingCommand>>();
+  pool_ = std::make_unique<CommandQueue>();
 }
+
+Host::~Host() = default;
 
 void Host::ReadChunk(PeerBase& peer) {
   ssize_t count = 0;
@@ -41,7 +42,7 @@ void Host::ReadChunk(PeerBase& peer) {
     // mark the peer as still alive
     peer.Touch();
 
-    if (count <= sizeof(Chunkheader)) {
+    if (count < sizeof(Chunkheader)) {
       LOG_WARNING("Ignored invalid chunk (size of {} is too small)", count);
       continue;
     }
@@ -107,8 +108,41 @@ void Host::QueueOutgoingCommand(Chunkheader::Type command_type,
   std::memcpy(buffer.get() + sizeof(Chunkheader), data, size);
 
   OutgoingCommand* command =
-      pool_->construct(identifier, size, std::move(data));
+      pool_->construct(identifier, size, std::move(buffer));
   outgoing_queue_.push(&command->key);
+}
+
+PeerBase* Host::FindPeer(PeerBase::Id identifier) {
+  auto it = std::find_if(peer_list_.begin(), peer_list_.end(),
+                         [&](auto& it) { return (*it).id == identifier; });
+
+  if (it == peer_list_.end()) {
+    LOG_WARNING("Unknown peer {}", identifier);
+    return nullptr;
+  }
+
+  return (*it).get();
+}
+
+bool Host::DropPeer(PeerBase::Id cid) {
+  if (PeerBase* peer = FindPeer(cid)) {
+    // trigger the disconnection event on the next frame
+    peer->Kill();
+    return true;
+  }
+
+  return false;
+}
+
+void Host::BroadcastPacket(const uint8_t* data,
+                           size_t size,
+                           PeerBase::Id exclude_id) {
+  for (auto& it : peer_list_) {
+    if (it->id == exclude_id)
+      continue;
+
+    it->sock.write_n(static_cast<const void*>(data), size);
+  }
 }
 
 void Host::WriteChunks() {
@@ -120,8 +154,8 @@ void Host::WriteChunks() {
         peer.sock.write_n(entry->data.get(), entry->size);
       }
       // send @ peer
-    } else if (auto* peer = PeerById(entry->cid)) {
-      peer->Send(entry->data.get(), entry->dataSize);
+    } else if (auto* peer = FindPeer(entry->target_id)) {
+      peer->sock.write_n(entry->data.get(), entry->size);
     }
 
     pool_->destruct(entry);

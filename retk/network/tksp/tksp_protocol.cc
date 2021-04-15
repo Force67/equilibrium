@@ -19,7 +19,7 @@ const char* Chunkheader::TypeToString(Type type) {
     case Type::kPayload:
       return "Payload";
     default:
-      LOG_UNREACHED();
+      LOG_UNREACHED;
       return "<invalid>";
   }
 }

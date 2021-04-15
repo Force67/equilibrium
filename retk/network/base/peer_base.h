@@ -7,6 +7,9 @@
 
 namespace network {
 
+// PRETTY BAD
+using namespace std::chrono_literals;
+
 struct PeerBase {
   using Id = uint32_t;
   using Adress = sockpp::inet_address;

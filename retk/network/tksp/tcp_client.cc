@@ -7,7 +7,6 @@
 #include <network/util/sock_util.h>
 #include <network/tksp/tcp_client.h>
 
-
 using namespace std::chrono_literals;
 
 namespace network::tksp {
@@ -22,10 +21,14 @@ bool Client::Connect(const PeerBase::Adress& remote_address) {
     return false;
   }
 
-  // TODO: add me as peer.!
+
+  LOG_DCHECK(!peer_list_.empty());
+
+  // hacky workaround thing:
+  //peer_list_.push_back(std::make_unique<PeerBase>());
 
   JoinRequest command{kProtocolVersion};
-  QueueOutgoingCommand(CommandId::kIJoin, command);
+  QueueOutgoingCommand(Chunkheader::Type::kHello, command);
 
   delegate_.OnConnection(PeerBase::kAllConnectId, MainPeer().address, command);
   last_ping_ = util::msec();
@@ -34,24 +37,24 @@ bool Client::Connect(const PeerBase::Adress& remote_address) {
 }
 
 void Client::Disconnect() {
-  QuitCommand command{QuitReason::kIWantToQuit};
-  QueueOutgoingCommand(CommandId::kIQuit, command);
+  NotifyQuit notification{NotifyQuit::Reason::kQuit};
+  QueueOutgoingCommand(Chunkheader::Type::kBye, notification);
 
   // allow up to 3 seconds to send any requests
+  // this is not so bueno since we might have this executed on the wrong thread
+  // :(
   util::MilliSeconds timer = util::msec();
   while (timer <= timer + 3s) {
     Process();
   }
 
-  NotifyQuit notification{NotifyQuit::Reason::kQuit};
   delegate_.OnDisconnection(PeerBase::kAllConnectId, notification);
   socket_.close();
 }
 
 bool Client::SetSocketOptions() {
   bool result;
-  result = 
-  result = socket_.read_timeout(0ms);
+  result = result = socket_.read_timeout(0ms);
   result = socket_.write_timeout(0ms);
   result = util::SetTCPKeepAlive(socket_, true, kKeepAliveCount);
   return result;
@@ -69,7 +72,8 @@ bool Client::Process() {
 
   // send activity ack
   if ((util::msec() - last_ping_) >= kPingRate) {
-    QueueCommand(CommandId::kPing, nullptr, 0);
+    Host::QueueOutgoingCommand(Chunkheader::Type::kPing, MainPeer().id, nullptr,
+                               0);
     last_ping_ = util::msec();
   }
 }
@@ -83,5 +87,4 @@ PeerBase& Client::MainPeer() {
 
   return (*peer_list_[0]);
 }
-
-}
+}  // namespace network::tksp

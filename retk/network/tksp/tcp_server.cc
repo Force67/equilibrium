@@ -28,19 +28,21 @@ bool Server::Host(uint16_t port) {
 }
 
 void Server::Quit() {
-  for (auto& e : peer_list_) {
-    PeerBase& peer = *(e);
+  NotifyQuit notification{NotifyQuit::Reason::kQuit};
+  QueueBroadcast(Chunkheader::Type::kBye, notification);
 
-    
-  }
+  delegate_.OnDisconnection(PeerBase::kAllConnectId, notification);
+  // TODO: set process timer, to timeout after sending msg.
 }
 
 bool Server::SetSocketOptions() {
-  util::SetTCPKeepAlive(socket_, true, kKeepAliveCount);
+  return util::SetTCPKeepAlive(socket_, true, kKeepAliveCount);
 }
 
 bool Server::Process() {
   // listen for incoming connections
+
+  // THIS needs to be moved
   sockpp::tcp_socket sock = socket_.accept(&next_address_);
   if (sock) {
     auto nextId = ++seed_;
@@ -57,39 +59,7 @@ bool Server::Process() {
 
   Host::Process();
 
-
-}
-
-bool TCPServer::DropPeer(PeerId cid) {
-  if (NetworkPeer* peer = PeerById(cid)) {
-    // trigger the disconnection event on the next frame
-    peer->Kill();
-    peer->Close();
-    return true;
-  }
-
-  return false;
-}
-
-void TCPServer::BroadcastPacket(const uint8_t* data,
-                                size_t size,
-                                PeerId excluder /* = invalidid_t */) {
-  for (auto& it : peers_) {
-    if (it->ConnectId() == excluder)
-      continue;
-
-    it->Send(data, size);
-  }
-}
-
-NetworkPeer* TCPServer::PeerById(PeerId id) {
-  auto it = std::find_if(peers_.begin(), peers_.end(),
-                         [&](auto& it) { return (*it).ConnectId() == id; });
-
-  if (it == peers_.end())
-    return nullptr;
-
-  return (*it).get();
+  return true;
 }
 
 }  // namespace network

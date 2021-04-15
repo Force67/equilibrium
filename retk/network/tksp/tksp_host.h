@@ -6,11 +6,13 @@
 #include <base/detached_queue.h>
 
 namespace base {
-template <typename T>
+template <typename T, size_t, size_t, size_t>
 struct object_pool;
 }
 
 namespace network::tksp {
+// yeet me!!
+using namespace std::chrono_literals;
 
 // base class for tksp server/client implementations
 class Host {
@@ -23,8 +25,16 @@ class Host {
   static constexpr auto kPingRate = 500ms;
 
   explicit Host(TkspDelegate& del);
+  ~Host();
 
   bool IsClient() const { return peer_list_.size() == 1; }
+
+  bool DropPeer(PeerBase::Id);
+  PeerBase* FindPeer(PeerBase::Id);
+
+  void BroadcastPacket(const uint8_t* data,
+                       size_t size,
+                       PeerBase::Id exclude_id);
 
  protected:
   void ReadChunk(PeerBase& peer);
@@ -38,14 +48,20 @@ class Host {
                             size_t size);
 
   virtual void OnChunkEvent() = 0;
+  virtual bool SetSocketOptions() = 0;
 
  private:
   uint8_t chunk_buffer_[Chunkheader::kMaxSize]{};
 
+    struct OutgoingCommand;
+
+  // temporary
+  using CommandQueue =
+      base::object_pool<OutgoingCommand, 1ull * 1024 * 1024, 5, 1>;
+
   // pooled thread-safe command list
-  struct OutgoingCommand;
   base::detached_mpsc_queue<OutgoingCommand> outgoing_queue_;
-  std::unique_ptr<base::object_pool<OutgoingCommand>> pool_;
+  std::unique_ptr<CommandQueue> pool_;
 
  protected:
   TkspDelegate& delegate_;

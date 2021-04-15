@@ -1,6 +1,7 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
+group("retk/database")
 project("database")
     kind("StaticLib")
     files({
@@ -16,8 +17,8 @@ project("database")
         blu.extdir .. "/fmt/include",
     })
 
-group("Tests")
-project("database_tests")
+group("retk/database/test")
+project("database_test")
     kind("ConsoleApp")
     files({
         "test/main.cpp"

@@ -12,6 +12,7 @@ for k,v in pairs(matches) do
     os.executef("%s --cpp -o protocol/generated %s", fb_dir .. "/flatc", v) 
 end
 
+group("retk/sync")
 project("sync")
     kind("StaticLib")
     files({

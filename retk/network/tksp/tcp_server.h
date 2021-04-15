@@ -20,49 +20,30 @@ class Server : public tksp::Host {
   void Quit();
 
   // port that we are being hosted on
-  uint16_t Port() { return my_address_.port();}
+  uint16_t Port() { return my_address_.port(); }
 
   bool Process();
 
   // configure the socket stream
-  virtual bool SetSocketOptions();
+  virtual bool SetSocketOptions() override;
+
+ private:
+  template <typename T>
+  void QueueOutgoingCommand(Chunkheader::Type type,
+                            PeerBase::Id peer_id,
+                            const T& val) {
+    Host::QueueOutgoingCommand(
+        type, peer_id, reinterpret_cast<const uint8_t*>(&val), sizeof(val));
+  }
+
+  template <typename T>
+  void QueueBroadcast(Chunkheader::Type type, const T& val) {
+    QueueOutgoingCommand(type, PeerBase::kAllConnectId, val);
+  }
+
  private:
   PeerBase::Adress my_address_{};
   PeerBase::Adress next_address_{};
   sockpp::tcp_acceptor socket_;
-
-  void Tick();
-
-  // send quit msg!
-  bool DropPeer(PeerId);
-
-  // immediately kill the peer
-  bool DropPeerNow(PeerId);
-
-  NetworkPeer* PeerById(PeerId);
-
-  // not thread safe
-  void BroadcastPacket(const uint8_t* data,
-                       size_t size,
-                       PeerId excluder = kInvalidConnectId);
-
-  template <typename T>
-  void QueueOutgoingCommand(CommandId id, PeerId cid, const T& val) {
-    QueueCommand(id, cid, reinterpret_cast<const uint8_t*>(&val), sizeof(val));
-  }
-
-  template <typename T>
-  void QueueBroadcast(CommandId id, const T& val) {
-    QueueOutgoingCommand(id, kAllConnectId, val);
-  }
-
-  struct Entry;
- protected:
-
-  void QueueCommand(CommandId, PeerId, const uint8_t* ptr, size_t len);
- protected:
-
- private:
-
 };
-}  // namespace network
+}  // namespace network::tksp

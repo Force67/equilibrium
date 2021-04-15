@@ -19,10 +19,16 @@ class Client : public tksp::Host {
   bool Process();
 
   // configure the socket stream
-  virtual bool SetSocketOptions();
+  virtual bool SetSocketOptions() override;
 
  private:
   PeerBase& MainPeer();
+
+  template <typename T>
+  void QueueOutgoingCommand(Chunkheader::Type type, const T& val) {
+    Host::QueueOutgoingCommand(type,
+        MainPeer().id, reinterpret_cast<const uint8_t*>(&val), sizeof(val));
+  }
 
  private:
   sockpp::tcp_connector socket_;
