@@ -31,6 +31,23 @@ project("network")
     network_include()
 
 group("retk/network/test")
+project("network_unittests")
+    kind("ConsoleApp")
+    include_meta()
+    files({
+        "test/run_all_unittests.cc",
+    })
+    network_include()
+    links({
+        "network",
+        "googlemock",
+    })
+    includedirs({
+        "./test",
+        blu.extdir .. "/googletest/googletest/include",
+    })
+
+group("retk/network/test")
 project("testclient")
     kind("ConsoleApp")
     include_meta()
@@ -39,7 +56,6 @@ project("testclient")
     })
     network_include()
     links({
-        "fmtlib",
         "network"
     })
     includedirs({
@@ -55,7 +71,6 @@ project("testserver")
     })
     network_include()
     links({
-        "fmtlib",
         "network"
     })
     includedirs({

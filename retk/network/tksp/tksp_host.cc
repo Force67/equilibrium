@@ -60,6 +60,12 @@ void Host::ReadChunk(PeerBase& peer) {
       continue;
     }
 
+    if (header->size != count) {
+      LOG_WARNING("Invalid header size!");
+    }
+
+
+
     // note that this is designed in a way where the user has to immediately
     // make a copy of chunk_buffer to avoid choking the net thread... this is
     // done for performance reasons and to avoid double queuing
@@ -105,7 +111,13 @@ void Host::QueueOutgoingCommand(Chunkheader::Type command_type,
   // allocate using placement new
   Chunkheader* header =
       new (buffer.get()) Chunkheader(command_type, static_cast<uint32_t>(size));
-  std::memcpy(buffer.get() + sizeof(Chunkheader), data, size);
+
+  // bad things happen without... on some platforms.
+  if (data && size > 0)
+      std::memcpy(buffer.get() + sizeof(Chunkheader), data, size);
+
+  header->size = static_cast<uint32_t>(size);
+  header->transaction_id = 0;
 
   OutgoingCommand* command =
       pool_->construct(identifier, size, std::move(buffer));

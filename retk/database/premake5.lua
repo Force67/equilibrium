@@ -5,29 +5,41 @@ group("retk/database")
 project("database")
     kind("StaticLib")
     files({
-        "*.cc",
-        "*.h",
+        "sqlite/*.cc",
+        "sqlite/*.h",
     })
     links({
-        "sqlite"
+        "sqlite",
+        "googlemock"
     })
     includedirs({
         ".",
         blu.extdir .. "/sqlite",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/googletest/googletest/include",
     })
 
 group("retk/database/test")
-project("database_test")
+project("sqlite_database_test")
     kind("ConsoleApp")
     files({
-        "test/main.cpp"
+        "sqlite/test/run_all_tests.cc",
+
+        -- for now, just to get tests working...
+        "sqlite/*.cc",
+        "sqlite/*.h",
+
     })
     links({
-        "database"
+        --"database",
+        "googlemock",
+
+        -- for now, just to get tests working...
+        "sqlite",
     })
     includedirs({
         ".",
         blu.extdir .. "/sqlite",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/googletest/googletest/include",
     })
