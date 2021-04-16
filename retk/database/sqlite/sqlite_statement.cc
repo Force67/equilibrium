@@ -8,11 +8,8 @@
 
 namespace database {
 
-static SqliteDB* g_debug;
-
-SqliteStatement::SqliteStatement(SqliteDB& db, const char* sql) {
-  const int rc = sqlite3_prepare_v3(db.db_, sql, -1, 0, &st_, nullptr);
-  g_debug = &db;
+SqliteStatement::SqliteStatement(SqliteDb& db, const char* sql) {
+  const int rc = sqlite3_prepare_v3(db.handle(), sql, -1, 0, &st_, nullptr);
   good_ = rc == SQLITE_OK;
 }
 
@@ -27,7 +24,7 @@ SqliteStatement::~SqliteStatement() {
 bool SqliteStatement::Run() {
   const int rc = sqlite3_step(st_);
 
-  const char* code = sqlite3_errmsg(g_debug->db_);
+  // const char* code = sqlite3_errmsg(g_debug->db_);
   return rc == SQLITE_DONE;
 }
 

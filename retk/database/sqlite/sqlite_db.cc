@@ -7,6 +7,8 @@
 #include "sqlite_db.h"
 #include "sqlite_statement.h"
 
+#include <base/logging.h>
+
 namespace database {
 
 static bool IsASCIIWhiteSpace(uint8_t c) {
@@ -16,65 +18,63 @@ static bool IsASCIIWhiteSpace(uint8_t c) {
   return c == 0x09 || c == 0x0A || c == 0x0C || c == 0x0D || c == 0x20;
 }
 
-SqliteDB::SqliteDB(const char* fileNameUtf8) {
-  good_ = sqlite3_open(fileNameUtf8, &db_) == SQLITE_OK;
+bool SqliteDb::SetGlobalConfig() {
+  static auto errorHandler = [](void*, int line, const char* msg) {
+    LOG_ERROR("SqliteError <line {}> {}", line, msg);
+  };
+
+  return sqlite3_config(SQLITE_CONFIG_LOG, errorHandler, nullptr) == SQLITE_OK;
 }
 
-SqliteDB::SqliteDB() : db_(nullptr), good_(false) {}
+SqliteDb::SqliteDb(const char* fileNameUtf8) {
+  open(fileNameUtf8);
+}
 
-SqliteDB::~SqliteDB() {
+SqliteDb::SqliteDb() : handle_(nullptr), good_(false) {}
+
+SqliteDb::~SqliteDb() {
   close();
 }
 
-bool SqliteDB::InstallErrorHandler(errorhandler_t* handler) {
-  const int rc = sqlite3_config(SQLITE_CONFIG_LOG, handler, nullptr);
-  return rc == SQLITE_OK;
-}
+bool SqliteDb::open(std::string_view view) {
+  int rc = sqlite3_open_v2(view.data(), &handle_,
+                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
 
-bool SqliteDB::open(std::string_view view) {
-  good_ = sqlite3_open_v2(view.data(), &db_,
-                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-                          nullptr) == SQLITE_OK;
-  return good_;
-}
+  if (rc != SQLITE_OK) {
+      // cannot expand until handle is assigned.
+    rc = sqlite3_extended_errcode(handle_); 
+    LOG_ERROR("Failed to open db: {}", rc);
 
-bool SqliteDB::create(const char* fileNameUtf8) {
-  good_ = sqlite3_open_v2(fileNameUtf8, &db_,
-                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-                          nullptr) == SQLITE_OK;
-  return good_;
-}
-
-void SqliteDB::close() {
-  if (db_)
-    sqlite3_close(db_);
-}
-
-bool SqliteDB::ExecuteUnchecked(const char* sql) {
-  char* errMsg;
-  const int rc = sqlite3_exec(db_, sql, nullptr, nullptr, &errMsg);
-  if (rc != 0) {
-    int ts = sqlite3_threadsafe();
-
-    __debugbreak();
+    // TODO: detail
   }
 
+  return (good_ = rc == SQLITE_OK);
+}
+
+void SqliteDb::close() {
+  if (handle_)
+    sqlite3_close(handle_);
+}
+
+bool SqliteDb::ExecuteUnchecked(const char* sql) {
+  char* errMsg;
+  const int rc = sqlite3_exec(handle_, sql, nullptr, nullptr, &errMsg);
+
   return rc == SQLITE_OK;
 }
 
-// based off:
-// https://github.com/chromium/chromium/blob/dbce9b8c47bd77221cfdd073b6da2bacf2782131/sql/database.cc
-SqliteDB::DBStatus SqliteDB::ExecuteChecked(const char* sql) {
-  if (!db_)
-    return DBStatus::kUnopened;
+bool SqliteDb::ExecuteChecked(const char* sql) {
+  if (!handle_) {
+    LOG_ERROR("ExecuteChecked: Invalid database handle");
+    return false;
+  }
 
   int rc = SQLITE_OK;
-
   while ((rc == SQLITE_OK) && *sql) {
     sqlite3_stmt* stmt;
     const char* leftover;
 
-    rc = sqlite3_prepare_v3(db_, sql, -1, 0, &stmt, &leftover);
+    rc = sqlite3_prepare_v3(handle_, sql, -1, 0, &stmt, &leftover);
 
     // stop if an error is encountered
     if (rc != SQLITE_OK)
@@ -85,32 +85,27 @@ SqliteDB::DBStatus SqliteDB::ExecuteChecked(const char* sql) {
     if (!stmt)
       continue;
 
-    while ((rc == sqlite3_step(stmt)) == SQLITE_ROW) {
-    }
+    // skip over any rows
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
+      ;
 
     rc = sqlite3_finalize(stmt);
-
     while (IsASCIIWhiteSpace(*sql)) {
       sql++;
     }
   }
 
-#if 1
-  if (rc != SQLITE_OK)
-    __debugbreak();
-#endif
-
-  return rc == SQLITE_OK ? DBStatus::kSuccess : DBStatus::kFailed;
+  return rc == SQLITE_OK;
 }
 
-bool SqliteDB::Attach(const std::string& path, const char* alias) {
-  SqliteStatement command(*this, "ATTACH DATABASE ? AS ?");
+bool SqliteDb::Attach(const std::string& path, const char* alias) {
+  SqliteStatement command(*this, "attach database ? as ?");
   if (!command.Good())
     return false;
 
   // warning: *ensure* that the main DB was opened with the 'SQLITE_OPEN_CREATE'
   // flag, else everything will crash and burn
-  // assert(db_->flags & SQLITE_OPEN_CREATE);
+  // assert(handle_->flags & SQLITE_OPEN_CREATE);
 
   bool rs;
   rs = command.Bind(path);
@@ -121,8 +116,8 @@ bool SqliteDB::Attach(const std::string& path, const char* alias) {
   return command.Run();
 }
 
-bool SqliteDB::Deatch(const char* alias) {
-  SqliteStatement commend(*this, "DETACH DATABASE ?");
+bool SqliteDb::Deatch(const char* alias) {
+  SqliteStatement commend(*this, "detach database ?");
   if (!commend.Good())
     return false;
 
@@ -132,7 +127,7 @@ bool SqliteDB::Deatch(const char* alias) {
   return commend.Run();
 }
 
-int64_t SqliteDB::LastestRowId() const {
-  return sqlite3_last_insert_rowid(db_);
+int64_t SqliteDb::LastestRowId() const {
+  return sqlite3_last_insert_rowid(handle_);
 }
 }  // namespace database

@@ -8,11 +8,11 @@ struct sqlite3_stmt;
 
 namespace database {
 
-class SqliteDB;
+class SqliteDb;
 
 class SqliteStatement {
  public:
-  explicit SqliteStatement(SqliteDB&, const char* sql);
+  explicit SqliteStatement(SqliteDb&, const char* sql);
   ~SqliteStatement();
 
   // must be utf8

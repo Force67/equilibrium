@@ -10,10 +10,12 @@ project("database")
     })
     links({
         "sqlite",
+        "base",
         "googlemock"
     })
     includedirs({
         ".",
+        "../../",
         blu.extdir .. "/sqlite",
         blu.extdir .. "/fmt/include",
         blu.extdir .. "/googletest/googletest/include",
@@ -24,7 +26,8 @@ project("sqlite_database_test")
     kind("ConsoleApp")
     files({
         "sqlite/test/run_all_tests.cc",
-
+        "sqlite/test/sqlite_test_suite.cc",
+        "sqlite/test/sqlite_test_suite.h",
         -- for now, just to get tests working...
         "sqlite/*.cc",
         "sqlite/*.h",
@@ -33,12 +36,14 @@ project("sqlite_database_test")
     links({
         --"database",
         "googlemock",
+        "base",
 
         -- for now, just to get tests working...
         "sqlite",
     })
     includedirs({
         ".",
+        "../../",
         blu.extdir .. "/sqlite",
         blu.extdir .. "/fmt/include",
         blu.extdir .. "/googletest/googletest/include",

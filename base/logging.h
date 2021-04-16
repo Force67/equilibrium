@@ -43,7 +43,7 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
 #define LOG_ERROR(...) \
   ::base::PrintLogMessage(::base::LogLevel::kError, __VA_ARGS__)
 
-#define LOG_DCHECK(expression)                                    \
+#define TK_DCHECK(expression)                                     \
   do {                                                            \
     if (!(expression)) {                                          \
       ::base::PrintLogMessage(                                    \
@@ -56,6 +56,6 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
                                                                   \
   } while (0)
 
-#define LOG_UNREACHED                                                    \
-  ::base::PrintLogMessage<>(::base::LogLevel::kError, __FUNCTION__ " was " \
+#define TK_IMPOSSIBLE \
+  ::base::PrintLogMessage<>(::base::LogLevel::kError, __FUNCTION__ " impossible " \
                                                                  "reached")
