@@ -25,6 +25,8 @@ project("network")
         "base/*.h",
         "tksp/*.h",
         "tksp/*.cc",
+        "zeta/*.h",
+        "zeta/*.cc",
         "util/*.cc",
         "util/*.h"
     })

@@ -3,17 +3,19 @@
 
 #include <gtest/gtest.h>
 #include <sqlite/sqlite_db.h>
+#include <base/files/scoped_temp_dir.h>
 
 namespace database {
 
 class SqliteTestSuite : public ::testing::Test {
  public:
-  SqliteDb& db() { return db_; }
-
   void SetUp() override;
   void TearDown() override;
 
+  SqliteDb& db() { return db_; }
+  base::fs::path db_path();
  private:
   SqliteDb db_;
+  base::ScopedTempDir temp_dir_;
 };
 }  // namespace database

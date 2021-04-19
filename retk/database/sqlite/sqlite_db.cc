@@ -56,16 +56,9 @@ void SqliteDb::close() {
     sqlite3_close(handle_);
 }
 
-bool SqliteDb::ExecuteUnchecked(const char* sql) {
-  char* errMsg;
-  const int rc = sqlite3_exec(handle_, sql, nullptr, nullptr, &errMsg);
-
-  return rc == SQLITE_OK;
-}
-
-bool SqliteDb::ExecuteChecked(const char* sql) {
+bool SqliteDb::Execute(const char* sql) {
   if (!handle_) {
-    LOG_ERROR("ExecuteChecked: Invalid database handle");
+    LOG_ERROR("Execute: Invalid database handle");
     return false;
   }
 

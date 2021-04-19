@@ -13,5 +13,6 @@ project("base")
     })
     includedirs({
         ".",
+        "../",
         blu.extdir .. "/fmt/include",
     })

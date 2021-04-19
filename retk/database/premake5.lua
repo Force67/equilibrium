@@ -35,6 +35,7 @@ project("sqlite_database_test")
     })
     links({
         --"database",
+        "base",
         "googlemock",
         "base",
 

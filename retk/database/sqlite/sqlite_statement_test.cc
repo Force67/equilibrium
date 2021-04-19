@@ -10,7 +10,7 @@ namespace {
 
 TEST_F(SqliteTestSuite, AssignStatement) {
   EXPECT_TRUE(
-      db().ExecuteUnchecked("create table if not exists stmt(a, b)"));
+      db().Execute("create table if not exists stmt(a, b)"));
 
   SqliteStatement s1(db(), "insert into stmt_fail (a, b) value(?, ?)");
   EXPECT_FALSE(s1.Good());
@@ -20,7 +20,7 @@ TEST_F(SqliteTestSuite, AssignStatement) {
 }
 
 TEST_F(SqliteTestSuite, BindStatement) {
-  EXPECT_TRUE(db().ExecuteUnchecked("create table if not exists stmt(a, b)"));
+  EXPECT_TRUE(db().Execute("create table if not exists stmt(a, b)"));
 
   // TBD
 
@@ -33,7 +33,7 @@ TEST_F(SqliteTestSuite, BindStatement) {
 }
 
 TEST_F(SqliteTestSuite, RunStatement) {
-  EXPECT_TRUE(db().ExecuteUnchecked("create table if not exists stmt(a, b)"));
+  EXPECT_TRUE(db().Execute("create table if not exists stmt(a, b)"));
 
 
 }

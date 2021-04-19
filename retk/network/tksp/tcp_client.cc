@@ -83,7 +83,7 @@ bool Client::Connected() const {
 }
 
 PeerBase& Client::MainPeer() {
-  LOG_DCHECK(IsClient());
+  TK_DCHECK(IsClient());
 
   return (*peer_list_[0]);
 }

@@ -7,18 +7,18 @@
 namespace database {
 namespace {
 
-TEST_F(SqliteTestSuite, ExecuteChecked) {
+TEST_F(SqliteTestSuite, ExecuteSql) {
   // invalid statement
-  ASSERT_FALSE(db().ExecuteChecked("create tab foo (a, b"));
+  ASSERT_FALSE(db().Execute("create tab foo (a, b"));
   // valid statement
-  ASSERT_TRUE(db().ExecuteChecked("create table foo (a, b)"));
+  ASSERT_TRUE(db().Execute("create table foo (a, b)"));
 }
 
-TEST_F(SqliteTestSuite, ExecuteUnchecked) {
-  // invalid statement
-  ASSERT_FALSE(db().ExecuteUnchecked("create tab bar (a, b"));
-  // valid statement
-  ASSERT_TRUE(db().ExecuteUnchecked("create table bar (a, b)"));
+TEST_F(SqliteTestSuite, AttachDatabase) {
+  auto path = db_path() / "TestDb.db";
+  ASSERT_TRUE(!path.empty());
+
+  // TBD
 }
 
 }  // namespace

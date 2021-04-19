@@ -26,11 +26,7 @@ class SqliteDb {
   bool open(std::string_view fileName);
   void close();
 
-  // unsafe method of executing any SQL
-  bool ExecuteUnchecked(const char* sql);
-
-  // execute safe, everything should use this...
-  bool ExecuteChecked(const char* sql);
+  bool Execute(const char* sql);
 
   // attach/detach a child database to main db table
   bool Attach(const std::string& utf8path, const char* alias);

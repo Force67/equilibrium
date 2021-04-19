@@ -8,14 +8,16 @@
 namespace database {
 
 void SqliteTestSuite::SetUp() {
-  // a rather bad way of solving this, until we have a base temp dir
-  // TODO: base temp dir.
-
-  auto name = fmt::format("SqliteTestSuite_{}.db", time(nullptr));
-  ASSERT_TRUE(db_.open(name));
+  ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
+  ASSERT_TRUE(db_.open(db_path().u8string()));
 }
 
 void SqliteTestSuite::TearDown() {
   db_.close();
 }
+
+base::fs::path SqliteTestSuite::db_path() {
+  return temp_dir_.Path() / "SqliteTestSuite.db";
+}
+
 }  // namespace database

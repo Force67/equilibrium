@@ -1,5 +1,7 @@
-﻿---
+﻿# Defines the RETK style for auto formatting
 BasedOnStyle: Chromium
 SortIncludes: 'false'
+Standard: Latest
 
-...
+# Style for ghidra things
+JavaImportGroups: ['android', 'androidx', 'com', 'dalvik', 'junit', 'org', 'com.google.android.apps.chrome', 'org.chromium', 'java', 'javax']
