@@ -7,14 +7,20 @@
 
 namespace network {
 
+class ZetaConnection;
+
 class ZetaDatagramQueue final {
  public:
   using BufferPointer = std::unique_ptr<uint8_t[]>;
 
-  ZetaDatagramQueue();
+  ZetaDatagramQueue(ZetaConnection* connection);
   ~ZetaDatagramQueue();
 
   bool empty() const { return queue_.empty(); }
+
+  void SendOrQueueDatagram();
+
+  // clear out queue
   void Clear();
 
  private:
@@ -32,5 +38,8 @@ class ZetaDatagramQueue final {
 
   bool cleanup = false;
   quic::QuicCircularDeque<PendingWrite> queue_;
+
+  // unowned:
+  ZetaConnection* connection_;
 };
 }  // namespace network

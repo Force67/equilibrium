@@ -30,7 +30,10 @@ project("network")
         "zeta/*.h",
         "zeta/*.cc",
         "util/*.cc",
-        "util/*.h"
+        "util/*.h",
+
+        -- documentation
+        "zeta/readme.md",
     })
     network_include()
 
