@@ -3,7 +3,7 @@
 #pragma once
 
 #include <sockpp/tcp_connector.h>
-#include <base/detached_queue.h>
+#include <base/container/detached_queue.h>
 #include <network/tksp/tksp_host.h>
 
 namespace network::tksp {

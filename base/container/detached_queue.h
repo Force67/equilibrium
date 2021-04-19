@@ -30,7 +30,7 @@
 #include <atomic>
 #include <mutex>
 
-#include "type_helpers.h"
+#include <base/type_helpers.h>
 
 namespace base {
 // Detached key.

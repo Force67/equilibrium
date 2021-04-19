@@ -3,7 +3,7 @@
 #pragma once
 
 #include <network/tksp/tksp_delegate.h>
-#include <base/detached_queue.h>
+#include <base/container/detached_queue.h>
 
 namespace base {
 template <typename T, size_t, size_t, size_t>

@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "tcp_client.h"
-#include <base/object_pool.h>
+#include <base/container/object_pool.h>
 #include <base/logging.h>
 #include <network/util/sock_util.h>
 #include <network/tksp/tcp_client.h>
@@ -22,7 +22,7 @@ bool Client::Connect(const PeerBase::Adress& remote_address) {
   }
 
 
-  LOG_DCHECK(!peer_list_.empty());
+  TK_DCHECK(!peer_list_.empty());
 
   // hacky workaround thing:
   //peer_list_.push_back(std::make_unique<PeerBase>());

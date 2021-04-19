@@ -2,10 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <network/tksp/tksp_host.h>
-#include <network/tksp/tksp_utils.h>
-
 #include <base/logging.h>
-#include <base/object_pool.h>
+#include <base/random.h>
+#include <base/container/object_pool.h>
 
 namespace network::tksp {
 
@@ -28,7 +27,7 @@ Host::Host(TkspDelegate& del) : delegate_(del) {
   // system purposes so we block 10 for future purposes
   constexpr uint32_t kReserveSize = 10u;
 
-  seed_ = GetRandomSeed(kReserveSize);
+  seed_ = base::RandomUint(kReserveSize, UINT_MAX - kReserveSize);
   // pool pulls in a lot of template definitions so we forward declare it
   pool_ = std::make_unique<CommandQueue>();
 }

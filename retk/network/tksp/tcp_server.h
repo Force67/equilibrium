@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/detached_queue.h>
-#include <base/object_pool.h>
+#include <base/container/detached_queue.h>
+#include <base/container/object_pool.h>
 #include <sockpp/tcp_acceptor.h>
 
 #include <network/tksp/tksp_host.h>

@@ -36,7 +36,7 @@
 #include <mutex>
 
 #include "detached_queue.h"
-#include "type_helpers.h"
+#include <base/type_helpers.h>
 
 #include <xenium/ramalhete_queue.hpp>
 #include <xenium/reclamation/generic_epoch_based.hpp>

@@ -4,7 +4,8 @@ function network_include()
     links({
         "sockpp",
         "fmtlib",
-        "base",
+        "googlemock",
+        "base"
     })
     includedirs({
         ".",
@@ -14,6 +15,7 @@ function network_include()
         blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/googletest/googletest/include",
     })
 end
 
@@ -42,11 +44,9 @@ project("network_unittests")
     network_include()
     links({
         "network",
-        "googlemock",
     })
     includedirs({
         "./test",
-        blu.extdir .. "/googletest/googletest/include",
     })
 
 group("retk/network/test")

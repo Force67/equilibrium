@@ -14,5 +14,6 @@ project("base")
     includedirs({
         ".",
         "../",
+        blu.extdir .. "/xenium",
         blu.extdir .. "/fmt/include",
     })
