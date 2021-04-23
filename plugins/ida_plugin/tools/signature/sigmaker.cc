@@ -13,9 +13,7 @@ namespace {
 constexpr int kInstructionLimit = 100;
 }
 
-void GenerateSignature() {
-  const ea_t address = get_screen_ea();
-
+void GenerateSignature(ea_t address) {
   if (!can_decode(address)) {
     LOG_ERROR("Please select a valid address");
     return;

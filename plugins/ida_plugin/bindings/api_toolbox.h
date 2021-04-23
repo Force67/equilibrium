@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-namespace tools {
+namespace binding {
 
-// generates a signature for given address as fast as possible.
-void GenerateSignature(ea_t address);
+void RegisterToolboxApi();
+void DestroyToolboxApi();
 }

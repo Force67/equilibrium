@@ -5,6 +5,7 @@
 #include "toolbox.h"
 #include "utils/Opt.h"
 
+#include "bindings/api_binding.h"
 #include "signature/sigmaker.h"
 
 namespace {
@@ -17,15 +18,19 @@ utils::Opt<bool> ToolCache{false, "Nd_PatternCache"};
 
 namespace tools {
 
-Toolbox::Toolbox() {}
-Toolbox::~Toolbox() {}
+Toolbox::Toolbox() {
+  binding::HACK_StaticRegisterBindings();
+}
+Toolbox::~Toolbox() {
+  binding::HACK_StaticRemoveBindings();
+}
 
 void Toolbox::RegisterPattern(const std::string&) {}
 
 void Toolbox::TriggerFeature(FeatureCode code) {
   switch (code) {
     case FeatureCode::kSignature:
-      tools::GenerateSignature();
+      tools::GenerateSignature(get_screen_ea());
       break;
     default:
       LOG_ERROR("Unable to find feature index");
