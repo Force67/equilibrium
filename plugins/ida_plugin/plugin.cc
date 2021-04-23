@@ -2,9 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Entry point of the sync plugin
 
-#include "plugin.h"
 #include <QSettings>
 #include <utils/opt.h>
+#include "plugin.h"
+#include "utils/ida_log_impl.h"
 
 namespace {
 Plugin* g_Plugin = nullptr;
@@ -63,11 +64,12 @@ bool Plugin::run(size_t arg) {
 }
 
 plugmod_t* Plugin::Create() {
-  const size_t optCount = utils::OptRegistry::Load();
-  LOG_TRACE("Registered {} opts", optCount);
+  InitIdaLogHandler();
+  // opts must be created before any other component
+  // to avoid ending up with invalid references.
+  utils::OptRegistry::Load();
 
   g_Plugin = new Plugin();
-
   return g_Plugin->Init() ? g_Plugin : nullptr;
 }
 

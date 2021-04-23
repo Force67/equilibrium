@@ -6,7 +6,7 @@
 #include "utils/Opt.h"
 
 #include "bindings/api_binding.h"
-#include "signature/sigmaker.h"
+#include "signature_generator.h"
 
 namespace {
 // Somethin

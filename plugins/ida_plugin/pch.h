@@ -18,7 +18,7 @@
 #include <netnode.hpp>
 #include <struct.hpp>
 
-#include "utils/ida_logger.h"
+#include <base/logging.h>
 
 #pragma warning(pop)
 
