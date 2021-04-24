@@ -187,7 +187,7 @@ void PluginUi::RunFeature() {
     return;
   }
 
-  tools::Toolbox::FeatureCode index;
+  tools::Toolbox::ActionCode index;
   {
     forms::RunDialog dia(GetTopWidget());
     dia.exec();
@@ -195,8 +195,8 @@ void PluginUi::RunFeature() {
     index = dia.SelectedIndex();
   }
 
-  if (index != tools::Toolbox::FeatureCode::kNone) {
-    plugin_.Tools().TriggerFeature(index);
+  if (index != tools::Toolbox::ActionCode::kNone) {
+    plugin_.Tools().InvokeAction(index);
   }
 }
 

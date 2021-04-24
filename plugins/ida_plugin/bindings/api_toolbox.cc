@@ -3,21 +3,22 @@
 
 #include <expr.hpp>
 #include <bindings/api_toolbox.h>
-#include <tools/signature/sigmaker.h>
+#include "tools/toolbox.h"
 
 namespace binding {
 namespace {
 
 error_t idaapi MakeSignature(idc_value_t* argv, idc_value_t* res) {
-  tools::GenerateSignature(argv[0].num);
-  // argv[1].c_str();
+  const ea_t target_address = argv[0].num;
+  tools::toolbox()->signature_generator().UniquePattern(target_address, false);
 
   return eOk;
 }
 
+// because yamashi is a lazy:
 error_t idaapi MakeSignature2(idc_value_t* argv, idc_value_t* res) {
-  tools::GenerateSignature(argv[1].num);
-  // argv[1].c_str();
+  const ea_t target_address = argv[1].num;
+  tools::toolbox()->signature_generator().UniquePattern(target_address, false);
 
   return eOk;
 }

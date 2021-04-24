@@ -37,7 +37,6 @@ AddressBookView::AddressBookView(AddressBookData& data)
 }
 
 AddressBookView::~AddressBookView() {
-  __debugbreak();
   if (wrapper_) {
     Show(false);
   }

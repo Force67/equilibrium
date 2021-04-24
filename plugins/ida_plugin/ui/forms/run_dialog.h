@@ -13,7 +13,7 @@ class RunDialog final : public QDialog, public Ui::RunDialog {
   RunDialog(QWidget* parent);
   ~RunDialog() = default;
 
-  tools::Toolbox::FeatureCode SelectedIndex() const;
+  tools::Toolbox::ActionCode SelectedIndex() const;
 
  private:
   void OnClickOK();

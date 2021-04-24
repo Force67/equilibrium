@@ -8,32 +8,35 @@
 #include "bindings/api_binding.h"
 #include "signature_generator.h"
 
-namespace {
-// Somethin
-utils::Opt<bool> ToolCache{false, "Nd_PatternCache"};
-}  // namespace
-
-// s_mToolBox;
-
-
 namespace tools {
+namespace {
+static Toolbox* s_ToolBox = nullptr;
+}
 
-Toolbox::Toolbox() {
+Toolbox* toolbox() noexcept {
+  // TODO: dcheck this value!
+  return s_ToolBox;
+}
+
+Toolbox::Toolbox() : generator_(this) {
+  s_ToolBox = this;
   binding::HACK_StaticRegisterBindings();
 }
 Toolbox::~Toolbox() {
   binding::HACK_StaticRemoveBindings();
+  s_ToolBox = nullptr;
 }
 
 void Toolbox::RegisterPattern(const std::string&) {}
 
-void Toolbox::TriggerFeature(FeatureCode code) {
+void Toolbox::InvokeAction(ActionCode code) {
   switch (code) {
-    case FeatureCode::kSignature:
-      tools::GenerateSignature(get_screen_ea());
+    case ActionCode::kSignature: {
+      generator_.UniquePattern(get_screen_ea(), false);
       break;
+    }
     default:
       LOG_ERROR("Unable to find feature index");
   }
 }
-}
+}  // namespace tools

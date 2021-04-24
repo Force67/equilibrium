@@ -36,8 +36,8 @@ void RunDialog::OnClickOK() {
   QDialog::close();
 }
 
-tools::Toolbox::FeatureCode RunDialog::SelectedIndex() const {
-    using tb_t = tools::Toolbox::FeatureCode;
+tools::Toolbox::ActionCode RunDialog::SelectedIndex() const {
+  using tb_t = tools::Toolbox::ActionCode;
 
   switch (_index) {
     case 1:

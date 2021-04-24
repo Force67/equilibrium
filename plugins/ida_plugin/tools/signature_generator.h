@@ -3,7 +3,36 @@
 #pragma once
 
 namespace tools {
+class Toolbox;
 
-// generates a signature for given address as fast as possible.
-void GenerateSignature(ea_t address);
-}
+class SignatureGenerator {
+ public:
+  enum class Result {
+    kSuccess,
+    kDecodeError,
+    kLengthExceeded,
+    kEmpty,
+  };
+  static const char* const ResultToString(Result) noexcept;
+
+  explicit SignatureGenerator(Toolbox* toolbox);
+
+  std::string UniquePattern(ea_t target_address, bool mute_log);
+
+ private:
+  Result GenerateSignatureInternal_2(ea_t address,
+                                   std::string& out_pattern);
+
+  Result UniqueDataPattern(ea_t target_address,
+                           std::string& out_pattern,
+                           size_t& out_offset);
+  Result UniqueCodePattern(ea_t target_address,
+                           std::string& out_pattern,
+                           size_t& out_offset);
+
+ private:
+  Toolbox* toolbox_;
+  qvector<uchar> bytes_;
+  qvector<uchar> masks_;
+};
+}  // namespace tools

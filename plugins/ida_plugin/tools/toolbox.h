@@ -2,19 +2,24 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include "tools/signature_generator.h"
+
 namespace tools {
 class Toolbox {
  public:
   Toolbox();
   ~Toolbox();
 
-  enum class FeatureCode {
-	kNone,
-	kSignature
-  };
+  enum class ActionCode { kNone, kSignature };
 
-  void TriggerFeature(FeatureCode);
-
+  void InvokeAction(ActionCode);
   void RegisterPattern(const std::string&);
+
+  SignatureGenerator& signature_generator() { return generator_; }
+
+ private:
+  SignatureGenerator generator_;
 };
-}
+
+Toolbox* toolbox() noexcept;
+}  // namespace tools
