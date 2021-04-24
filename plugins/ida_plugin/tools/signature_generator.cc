@@ -12,7 +12,45 @@ namespace {
 // how many instructions the generator will try to build patterns
 constexpr int kInstructionLimit = 100;
 
-bool GenerateSignatureInternal(ea_t address, std::string& out_pattern) {
+class SignatureGenerator {
+ public:
+  enum class Result {
+    kSuccess,
+    kDecodeError,
+    kLengthExceeded,
+    kEmpty,
+  };
+
+  static const char* const ResultToString(Result) noexcept;
+
+  Result Generate() { return Result::kSuccess; }
+
+  std::string ToString() { return ""; }
+
+ private:
+  qvector<uchar> bytes_;
+  qvector<uchar> mask_;
+  size_t trimmed_size_;
+};
+
+const char* const SignatureGenerator::ResultToString(Result result) noexcept {
+  switch (result) {
+    case Result::kSuccess:
+      return "Success";
+    case Result::kDecodeError:
+      return "Failed to decode";
+    case Result::kLengthExceeded:
+      return "Length exceeded";
+    case Result::kEmpty:
+      return "Empty";
+    default:
+      // TK_IMPOSSIBLE;
+      return "<unknown>";
+  }
+}
+
+SignatureGenerator::Result GenerateSignatureInternal(ea_t address,
+                                                     std::string& out_pattern) {
   qvector<uchar> bytes;
   qvector<uchar> mask;
 
@@ -23,7 +61,7 @@ bool GenerateSignatureInternal(ea_t address, std::string& out_pattern) {
     insn_t instruction{};
     if (decode_insn(&instruction, current_address) == 0) {
       LOG_ERROR("Failed to decode isntruction at {:x}", current_address);
-      return false;
+      return SignatureGenerator::Result::kDecodeError;
     }
 
     // Add the bytes of the instruction to the bytes of our pattern.
@@ -85,29 +123,30 @@ bool GenerateSignatureInternal(ea_t address, std::string& out_pattern) {
   }
 
   if (out_pattern.empty()) {
-    LOG_ERROR("Failed to create pattern");
-    return false;
+    return SignatureGenerator::Result::kEmpty;
   }
 
   if (out_pattern.length() > 256) {
-    LOG_ERROR("Pattern too long");
-    return false;
+    return SignatureGenerator::Result::kLengthExceeded;
   }
 
   out_pattern = out_pattern.substr(0, out_pattern.length() - 1);
-  return true;
+  return SignatureGenerator::Result::kSuccess;
 }
 }  // namespace
 
 void GenerateSignature(ea_t target_address) {
   const flags_t flags = get_flags(target_address);
+
+  SignatureGenerator::Result result{SignatureGenerator::Result::kSuccess};
+  insn_t instruction{};
+
   // if the user wants to generate a pattern towards a data type
   // we allow that by searching through xrefs and giving ref address
   // + displacement
   if (is_data(flags)) {
     LOG_TRACE("Creating data signature for {:x} ...", target_address);
 
-    insn_t instruction{};
     // iterate through references to data.
     for (auto ref_address = get_first_dref_to(target_address);
          ref_address != BADADDR;
@@ -118,8 +157,10 @@ void GenerateSignature(ea_t target_address) {
       if (decode_insn(&instruction, ref_address) == 0)
         continue;
 
+      // try to generate, if not, go to the next reference
       std::string pattern;
-      if (GenerateSignatureInternal(ref_address, pattern)) {
+      if ((result = GenerateSignatureInternal(ref_address, pattern)) ==
+          SignatureGenerator::Result::kSuccess) {
         if (instruction.size > 0)
           LOG_INFO("Data signature: {:x} = {} + {}", ref_address, pattern,
                    instruction.size);
@@ -129,7 +170,8 @@ void GenerateSignature(ea_t target_address) {
       }
     }
 
-    LOG_ERROR("Failed to generate reference to data {:x}", target_address);
+    LOG_ERROR("Failed to generate reference to data {:x} with error: {}",
+              target_address, SignatureGenerator::ResultToString(result));
   } else if (is_code(flags)) {
     LOG_TRACE("Creating code signature for {:x} ...", target_address);
 
@@ -139,9 +181,35 @@ void GenerateSignature(ea_t target_address) {
     }
 
     std::string pattern;
-    if (GenerateSignatureInternal(target_address, pattern)) {
+    if ((result = GenerateSignatureInternal(target_address, pattern)) ==
+        SignatureGenerator::Result::kSuccess) {
       LOG_INFO("Code signature: {:x} = {}", target_address, pattern);
+      return;
     }
+
+    // iterate through references to code.
+    for (auto ref_address = get_first_cref_to(target_address);
+         ref_address != BADADDR;
+         ref_address = get_next_cref_to(target_address, ref_address)) {
+      if (target_address == ref_address)
+        continue;
+
+      if (decode_insn(&instruction, ref_address) == 0)
+        continue;
+
+      if ((result = GenerateSignatureInternal(ref_address, pattern)) ==
+          SignatureGenerator::Result::kSuccess) {
+        if (instruction.size > 0)
+          LOG_INFO("Code signature: {:x} = {} + {}", ref_address, pattern,
+                   instruction.size);
+        else
+          LOG_INFO("Code signature: {:x} = {}", ref_address, pattern);
+        return;
+      }
+    }
+
+    LOG_ERROR("Failed to generate reference to code {:x} with error: {}",
+              target_address, SignatureGenerator::ResultToString(result));
   }
 }
 }  // namespace tools
