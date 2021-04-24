@@ -21,9 +21,20 @@
 namespace tools {
 namespace {
 // how many instructions the generator will try to build patterns
-constexpr int kInstructionLimit = 100;
+constexpr size_t kInstructionLimit = 100;
 // originally 256, but thats a bit extreme.
 constexpr size_t kSignatureLengthLimit = 70;
+
+uint8_t GetOpCodeSize(const insn_t& instruction) {
+  for (unsigned int i = 0; i < UA_MAXOP; i++) {
+    if (instruction.ops[i].type == o_void)
+      return 0;
+    if (instruction.ops[i].offb != 0)
+      return static_cast<uint8_t>(instruction.ops[i].offb);
+  }
+  return 0;
+}
+
 }  // namespace
 
 SignatureGenerator::SignatureGenerator(Toolbox* toolbox) : toolbox_(toolbox) {}
@@ -43,6 +54,8 @@ const char* const SignatureGenerator::ResultToString(Result result) noexcept {
       return "<unknown>";
   }
 }
+
+
 
 SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     ea_t address,
@@ -89,6 +102,8 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     std::copy(instructionMask.begin(), instructionMask.end(),
               std::back_inserter(masks_));
 
+    // optimization opportunity: bin search only within code seg.
+    //
     // Search from the min to the most address
     if (bin_search2(inf_get_min_ea(), address, bytes_.begin(), masks_.begin(),
                     bytes_.size(), BIN_SEARCH_FORWARD) == BADADDR) {
@@ -105,13 +120,9 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     current_address += instruction.size;
   }
 
-  // fast format, based off brick's *lovely* work
-  // check it out:
-  // https://github.com/0x1F9F1/mem/blob/master/include/mem/pattern.h
   if (bytes_.empty() || masks_.empty())
     return Result::kEmpty;
 
-  // its a waste of time to remove ending '?' even though they are useless
   constexpr char kHexChars[] = "0123456789ABCDEF";
   for (size_t i = 0; i < bytes_.size(); ++i) {
     if (i)
@@ -128,6 +139,9 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     }
   }
 
+  // chop off remaining spaces or question marks
+  // this still saves us time in the long run, as we might not
+  // have to rerun the pattern to get a shorter pattern
   for (size_t i = out_pattern.size(); i-- != 0;) {
     if (out_pattern[i] != ' ' && out_pattern[i] != '?') {
       out_pattern.resize(i + 1);
@@ -162,9 +176,10 @@ SignatureGenerator::Result SignatureGenerator::UniqueDataPattern(
     if (const func_t* func = get_func(ref_address)) {
       if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
           SignatureGenerator::Result::kSuccess) {
-        if (decode_insn(&instruction, func->start_ea) > 0 &&
+        if (decode_insn(&instruction, ref_address) > 0 &&
             instruction.size > 0) {
-          out_offset = instruction.size;
+          out_offset =
+              (ref_address - func->start_ea) + GetOpCodeSize(instruction);
         }
 
         return result;
@@ -205,9 +220,10 @@ SignatureGenerator::Result SignatureGenerator::UniqueCodePattern(
     if (const func_t* func = get_func(ref_address)) {
       if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
           SignatureGenerator::Result::kSuccess) {
-        if (decode_insn(&instruction, func->start_ea) > 0 &&
+        if (decode_insn(&instruction, ref_address) > 0 &&
             instruction.size > 0) {
-          out_offset = instruction.size;
+          out_offset =
+              (ref_address - func->start_ea) + GetOpCodeSize(instruction);
         }
 
         return result;
