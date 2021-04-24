@@ -12,6 +12,9 @@ namespace {
 // how many instructions the generator will try to build patterns
 constexpr int kInstructionLimit = 100;
 
+// originally 256, but thats a bit extreme.
+constexpr size_t kSignatureLengthLimit = 50;
+
 class SignatureGenerator {
  public:
   enum class Result {
@@ -49,6 +52,64 @@ const char* const SignatureGenerator::ResultToString(Result result) noexcept {
   }
 }
 
+#if 0
+ea_t CollectReferences(ea_t address, qvector<uchar>& bytes, qvector<uchar>& mask) {
+  // first: forward search
+  for (int i = 0; i < kInstructionLimit; i++) {
+    insn_t instruction{};
+    if (decode_insn(&instruction, address) == 0) {
+      return BADADDR;
+    }
+
+    // Add the bytes of the instruction to the bytes of our pattern.
+    for (int j = 0; j < instruction.size; ++j) {
+      const uchar byte = get_byte(instruction.ea + j);
+      bytes.add(byte);
+    }
+
+    // todo: yeet
+    QVector<uchar> instructionMask(instruction.size, 1);
+
+    for (const auto& op : instruction.ops) {
+      if (op.type == o_void) {
+        break;
+      }
+
+      // If the operand isn't one of these types, fill the remaining portion
+      // of the mask with 0.
+      if (op.type != o_reg && op.type != o_phrase) {
+        for (int k = op.offb; k < instruction.size; ++k) {
+          instructionMask[k] = 0;
+        }
+
+        break;
+      }
+    }
+
+    // Copy this instructions mask to our pattern's mask.
+    std::copy(instructionMask.begin(), instructionMask.end(),
+              std::back_inserter(mask));
+
+    // Search from the min to the most address
+    if (bin_search2(inf_get_min_ea(), address, bytes.begin(), mask.begin(),
+                    bytes.size(), BIN_SEARCH_FORWARD) == BADADDR) {
+      // Search from the address we're making the pattern for + current
+      // pattern size to the max-most address.
+      if (bin_search2(address + bytes.size(), inf_get_max_ea(), bytes.begin(),
+                      mask.begin(), bytes.size(),
+                      BIN_SEARCH_FORWARD) == BADADDR) {
+        return address;
+      }
+    }
+
+    // continue seeking
+    address += instruction.size;
+  }
+
+  return BADADDR;
+}
+#endif
+
 SignatureGenerator::Result GenerateSignatureInternal(ea_t address,
                                                      std::string& out_pattern) {
   qvector<uchar> bytes;
@@ -60,7 +121,6 @@ SignatureGenerator::Result GenerateSignatureInternal(ea_t address,
   for (int i = 0; i < kInstructionLimit; i++) {
     insn_t instruction{};
     if (decode_insn(&instruction, current_address) == 0) {
-      LOG_ERROR("Failed to decode isntruction at {:x}", current_address);
       return SignatureGenerator::Result::kDecodeError;
     }
 
@@ -126,11 +186,12 @@ SignatureGenerator::Result GenerateSignatureInternal(ea_t address,
     return SignatureGenerator::Result::kEmpty;
   }
 
-  if (out_pattern.length() > 256) {
+  if (out_pattern.length() > kSignatureLengthLimit) {
     return SignatureGenerator::Result::kLengthExceeded;
   }
 
   out_pattern = out_pattern.substr(0, out_pattern.length() - 1);
+
   return SignatureGenerator::Result::kSuccess;
 }
 }  // namespace
@@ -154,19 +215,23 @@ void GenerateSignature(ea_t target_address) {
       if (target_address == ref_address)
         continue;
 
-      if (decode_insn(&instruction, ref_address) == 0)
-        continue;
+      // we only care about function references. go to the start of the function
+      // and make a pattern from there.
+      if (const func_t* func = get_func(ref_address)) {
+        std::string pattern;
+        if ((result = GenerateSignatureInternal(func->start_ea, pattern)) ==
+            SignatureGenerator::Result::kSuccess) {
 
-      // try to generate, if not, go to the next reference
-      std::string pattern;
-      if ((result = GenerateSignatureInternal(ref_address, pattern)) ==
-          SignatureGenerator::Result::kSuccess) {
-        if (instruction.size > 0)
-          LOG_INFO("Data signature: {:x} = {} + {}", ref_address, pattern,
-                   instruction.size);
-        else
-          LOG_INFO("Data signature: {:x} = {}", ref_address, pattern);
-        return;
+          if (decode_insn(&instruction, func->start_ea) > 0 &&
+              instruction.size > 0) {
+            LOG_INFO("Data signature: {:x} = {} + {}", target_address, pattern,
+                     instruction.size);
+          } else {
+            LOG_INFO("Data signature: {:x} = {}", target_address, pattern);
+          }
+
+          return;
+        }
       }
     }
 
@@ -180,6 +245,7 @@ void GenerateSignature(ea_t target_address) {
       return;
     }
 
+    // try the direct way first.
     std::string pattern;
     if ((result = GenerateSignatureInternal(target_address, pattern)) ==
         SignatureGenerator::Result::kSuccess) {
@@ -187,24 +253,30 @@ void GenerateSignature(ea_t target_address) {
       return;
     }
 
-    // iterate through references to code.
+    // if locating fails for the direct function body, we start iterating the references towards the 
+    // function
     for (auto ref_address = get_first_cref_to(target_address);
          ref_address != BADADDR;
          ref_address = get_next_cref_to(target_address, ref_address)) {
       if (target_address == ref_address)
         continue;
 
-      if (decode_insn(&instruction, ref_address) == 0)
-        continue;
+      // go to the start of the function calling our function
+      // and make a pattern from there.
+      if (const func_t* func = get_func(ref_address)) {
+        std::string pattern;
+        if ((result = GenerateSignatureInternal(func->start_ea, pattern)) ==
+            SignatureGenerator::Result::kSuccess) {
+          if (decode_insn(&instruction, func->start_ea) > 0 &&
+              instruction.size > 0) {
+            LOG_INFO("Code signature: {:x} = {} + {}", target_address, pattern,
+                     instruction.size);
+          } else {
+            LOG_INFO("Code signature: {:x} = {}", target_address, pattern);
+          }
 
-      if ((result = GenerateSignatureInternal(ref_address, pattern)) ==
-          SignatureGenerator::Result::kSuccess) {
-        if (instruction.size > 0)
-          LOG_INFO("Code signature: {:x} = {} + {}", ref_address, pattern,
-                   instruction.size);
-        else
-          LOG_INFO("Code signature: {:x} = {}", ref_address, pattern);
-        return;
+          return;
+        }
       }
     }
 
