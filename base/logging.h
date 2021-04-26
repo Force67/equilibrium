@@ -22,7 +22,7 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
 }
 }  // namespace base
 
-#if defined(TK_DBG)
+#if 1
 #define LOG_TRACE(...)                                                   \
   ::base::PrintLogMessage(::base::LogLevel::kTrace, \
                                         __VA_ARGS__)

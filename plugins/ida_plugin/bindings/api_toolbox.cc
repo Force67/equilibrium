@@ -10,7 +10,7 @@ namespace {
 
 error_t idaapi MakeSignature(idc_value_t* argv, idc_value_t* res) {
   const ea_t target_address = argv[0].num;
-  tools::toolbox()->signature_generator().UniquePattern(target_address, false);
+  tools::toolbox()->signature_generator().UniqueSignature(target_address, false);
 
   return eOk;
 }
@@ -18,7 +18,8 @@ error_t idaapi MakeSignature(idc_value_t* argv, idc_value_t* res) {
 // because yamashi is a lazy:
 error_t idaapi MakeSignature2(idc_value_t* argv, idc_value_t* res) {
   const ea_t target_address = argv[1].num;
-  tools::toolbox()->signature_generator().UniquePattern(target_address, false);
+  tools::toolbox()->signature_generator().UniqueSignature(target_address,
+                                                          false);
 
   return eOk;
 }

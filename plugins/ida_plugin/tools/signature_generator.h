@@ -10,6 +10,8 @@ class SignatureGenerator {
   enum class Result {
     kSuccess,
     kDecodeError,
+    kNoReferences,
+    kRefLimitReached,
     kLengthExceeded,
     kEmpty,
   };
@@ -17,18 +19,21 @@ class SignatureGenerator {
 
   explicit SignatureGenerator(Toolbox* toolbox);
 
-  std::string UniquePattern(ea_t target_address, bool mute_log);
+  std::string UniqueSignature(ea_t target_address, bool mute_log);
 
  private:
-  Result GenerateSignatureInternal_2(ea_t address,
-                                   std::string& out_pattern);
+  Result GenerateSignatureInternal_2(ea_t address, std::string& out_pattern);
 
-  Result UniqueDataPattern(ea_t target_address,
-                           std::string& out_pattern,
-                           size_t& out_offset);
-  Result UniqueCodePattern(ea_t target_address,
-                           std::string& out_pattern,
-                           size_t& out_offset);
+  Result UniqueDataSignature(ea_t target_address,
+                             std::string& out_pattern,
+                             size_t& out_offset);
+  Result UniqueCodeSignature(ea_t target_address,
+                             std::string& out_pattern,
+                             size_t& out_offset);
+
+  Result GenerateFunctionReference(ea_t target_address,
+                                   std::string& out_pattern,
+                                   size_t& out_offset);
 
  private:
   Toolbox* toolbox_;

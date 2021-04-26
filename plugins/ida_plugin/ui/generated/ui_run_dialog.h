@@ -38,7 +38,7 @@ public:
     {
         if (RunDialog->objectName().isEmpty())
             RunDialog->setObjectName(QStringLiteral("RunDialog"));
-        RunDialog->resize(306, 263);
+        RunDialog->resize(1408, 927);
         QIcon icon;
         icon.addFile(QStringLiteral(":/logo"), QSize(), QIcon::Normal, QIcon::Off);
         RunDialog->setWindowIcon(icon);
@@ -88,7 +88,7 @@ public:
         const bool __sortingEnabled = optionList->isSortingEnabled();
         optionList->setSortingEnabled(false);
         QListWidgetItem *___qlistwidgetitem = optionList->item(0);
-        ___qlistwidgetitem->setText(QApplication::translate("RunDialog", "Create Dumb Pattern", Q_NULLPTR));
+        ___qlistwidgetitem->setText(QApplication::translate("RunDialog", "Create Signature", Q_NULLPTR));
         QListWidgetItem *___qlistwidgetitem1 = optionList->item(1);
         ___qlistwidgetitem1->setText(QApplication::translate("RunDialog", "Request Updates", Q_NULLPTR));
         optionList->setSortingEnabled(__sortingEnabled);

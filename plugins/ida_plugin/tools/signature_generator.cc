@@ -8,6 +8,29 @@
 #include <array>
 #include "signature_generator.h"
 
+#include <chrono>
+
+namespace cn = std::chrono;
+
+struct ScopedProfile {
+  cn::high_resolution_clock::time_point delta;
+  const char* const name;
+
+  ScopedProfile(const char* const name)
+      : name(name), delta(cn::high_resolution_clock::now()) {}
+
+  ~ScopedProfile(void) {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto nanos =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - delta)
+            .count();
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(now - delta).count();
+
+    LOG_INFO("~ScopedTimer() : <{}> : {} ms ({} s)", name, nanos, seconds);
+  }
+};
+
 // too tired to fix this
 #ifndef MS_CLS
 #define MS_CLS 0x00000600LU   ///< Mask for typing
@@ -20,10 +43,17 @@
 
 namespace tools {
 namespace {
-// how many instructions the generator will try to build patterns
-constexpr size_t kInstructionLimit = 100;
-// originally 256, but thats a bit extreme.
-constexpr size_t kSignatureLengthLimit = 70;
+// how many instructions the generator can try to use to build a pattern
+constexpr size_t kInstructionLimit = 100u;
+// max length of a signature, including spaces and question marks
+constexpr size_t kSignatureMaxLength = 75u;
+// min length of a signature in bytes
+constexpr size_t kMinSignatureByteLength = 5u;
+// max displacement size in bytes
+constexpr size_t kDisplacementStepSize = 100u;
+// max reference count to be considered this is done to limit
+// runtime, which scales up pretty badly, if we have loads of references :(
+constexpr size_t kMaxRefCountAnalysisDepth = 10u;
 
 uint8_t GetOpCodeSize(const insn_t& instruction) {
   for (unsigned int i = 0; i < UA_MAXOP; i++) {
@@ -34,7 +64,6 @@ uint8_t GetOpCodeSize(const insn_t& instruction) {
   }
   return 0;
 }
-
 }  // namespace
 
 SignatureGenerator::SignatureGenerator(Toolbox* toolbox) : toolbox_(toolbox) {}
@@ -47,6 +76,10 @@ const char* const SignatureGenerator::ResultToString(Result result) noexcept {
       return "Failed to decode";
     case Result::kLengthExceeded:
       return "Length exceeded";
+    case Result::kNoReferences:
+      return "No references found";
+    case Result::kRefLimitReached:
+      return "Ref Limit reached";
     case Result::kEmpty:
       return "Empty";
     default:
@@ -55,26 +88,28 @@ const char* const SignatureGenerator::ResultToString(Result result) noexcept {
   }
 }
 
-
-
 SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     ea_t address,
     std::string& out_pattern) {
+  ScopedProfile profile_frame("GenerateSignatureInternal");
+  (void)profile_frame;
+
   bytes_.clear();
   masks_.clear();
+  out_pattern.clear();
 
   ea_t current_address = address;
-  out_pattern = "";
+  bool done_flag = false;
 
   // Analyze up to k bytes.
-  for (int i = 0; i < kInstructionLimit; i++) {
+  for (size_t i = 0; i < kInstructionLimit; i++) {
     insn_t instruction{};
     if (decode_insn(&instruction, current_address) == 0) {
-      return SignatureGenerator::Result::kDecodeError;
+      return Result::kDecodeError;
     }
 
     // Add the bytes of the instruction to the bytes of our pattern.
-    for (int j = 0; j < instruction.size; ++j) {
+    for (uint16_t j = 0; j < instruction.size; ++j) {
       const uchar byte = get_byte(instruction.ea + j);
       bytes_.add(byte);
     }
@@ -102,19 +137,34 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     std::copy(instructionMask.begin(), instructionMask.end(),
               std::back_inserter(masks_));
 
-    // optimization opportunity: bin search only within code seg.
-    //
-    // Search from the min to the most address
-    if (bin_search2(inf_get_min_ea(), address, bytes_.begin(), masks_.begin(),
-                    bytes_.size(), BIN_SEARCH_FORWARD) == BADADDR) {
-      // Search from the address we're making the pattern for + current
-      // pattern size to the max-most address.
-      if (bin_search2(address + bytes_.size(), inf_get_max_ea(), bytes_.begin(),
-                      masks_.begin(), bytes_.size(),
-                      BIN_SEARCH_FORWARD) == BADADDR) {
-        break;
+    // search only within code.
+    for (const segment_t* seg = get_first_seg(); seg != nullptr;
+         seg = get_next_seg(seg->start_ea)) {
+      // patterns may only exist within code segments.
+      if (seg->type != SEG_CODE)
+        continue;
+      // search from the segment start to address.
+      if (bin_search2(seg->start_ea, address, bytes_.begin(), masks_.begin(),
+                      bytes_.size(),
+                      seg->start_ea <= address
+                          ? BIN_SEARCH_FORWARD
+                          : BIN_SEARCH_BACKWARD) == BADADDR) {
+        // Search from the address we're making the pattern for + current
+        // pattern size to the max-most address.
+        const ea_t start = address + bytes_.size();
+        if (bin_search2(start, seg->end_ea, bytes_.begin(), masks_.begin(),
+                        bytes_.size(),
+                        start <= seg->end_ea
+                            ? BIN_SEARCH_FORWARD
+                            : BIN_SEARCH_BACKWARD) == BADADDR) {
+          done_flag = true;
+          break;
+        }
       }
     }
+
+    if (done_flag)
+      break;
 
     // continue seeking
     current_address += instruction.size;
@@ -132,8 +182,8 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     const uchar value = bytes_[i];
 
     if (mask != 0x00) {
-      out_pattern += kHexChars[static_cast<std::size_t>(value >> 4)];
-      out_pattern += kHexChars[static_cast<std::size_t>(value & 0xF)];
+      out_pattern += kHexChars[static_cast<size_t>(value >> 4)];
+      out_pattern += kHexChars[static_cast<size_t>(value & 0xF)];
     } else {
       out_pattern += '?';
     }
@@ -149,93 +199,226 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     }
   }
 
-  if (out_pattern.length() > kSignatureLengthLimit) {
-    return SignatureGenerator::Result::kLengthExceeded;
+  if (out_pattern.length() > kSignatureMaxLength) {
+    return Result::kLengthExceeded;
   }
 
-  return SignatureGenerator::Result::kSuccess;
+  return Result::kSuccess;
 }
 
-SignatureGenerator::Result SignatureGenerator::UniqueDataPattern(
-    ea_t target_address,
+SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
+    ea_t ref_ea,
     std::string& out_pattern,
     size_t& out_offset) {
-  insn_t instruction{};
   Result result{Result::kEmpty};
-  out_pattern = "";
+  insn_t instruction{};
+  // jump to start of the function and search from there
+  if (const func_t* func = get_func(ref_ea)) {
+    if (decode_insn(&instruction, ref_ea) == 0)
+      return Result::kDecodeError;
+    /*
+    const size_t displacement =
+        ref_address - func->start_ea + GetOpCodeSize(instruction);
+    */
 
+    // TODO: OPCODE SIZE!!
+
+    size_t ea_step = ref_ea;
+
+    if ((ref_ea - kDisplacementStepSize) <= kDisplacementStepSize) {
+      if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
+          Result::kSuccess)
+        return result;
+    }
+
+    // search downwards, to reduce displacement we go from ref_ea.
+    do {
+      if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
+          Result::kSuccess)
+        return result;
+
+      ea_step -= kDisplacementStepSize;
+    } while (ea_step >= (func->start_ea));
+
+    // go upwards.
+    ea_step = ref_ea;
+    do {
+      if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
+          Result::kSuccess)
+        return result;
+
+      ea_step += kDisplacementStepSize;
+    } while (ea_step <= (func->end_ea));
+
+    // worse case: maximum displacement
+    if (result != Result::kSuccess) {
+      result = GenerateSignatureInternal_2(func->start_ea, out_pattern);
+    }
+
+    if (result == Result::kSuccess) {
+    }
+
+#if 0
+    // TODO: fix extremely large displacement values...
+
+    // direct reference
+    if (neg_displacement_step <= kDisplacementStepSize) {
+      result = GenerateSignatureInternal_2(start_ea, end_ea - start_ea, out_pattern);
+    } else {
+      // we first try to get an optimal signature by going within the
+      // displacement zone
+      start_ea = ref_ea - kMaxDisplacementSize;
+
+      // TODO: dcheck if ins cap is really greater than ref_ea!!
+      if ((end_ea - ref_ea) <= kMaxDisplacementSize)
+        end_ea = ref_ea + kMaxDisplacementSize;
+
+      // we failed, use a worse pattern:
+      result = GenerateSignatureInternal_2(start_ea, end_ea - start_ea, out_pattern);
+      if (result == Result::kLengthExceeded) {
+        start_ea = func->start_ea;
+        end_ea = func->end_ea;
+
+        result = GenerateSignatureInternal_2(start_ea, end_ea - start_ea, out_pattern);
+      }
+    }
+
+    // break out.
+    if (result == Result::kSuccess) {
+      return result;
+    }
+#endif
+  }
+
+  return result;
+}
+
+SignatureGenerator::Result SignatureGenerator::UniqueDataSignature(
+    ea_t target_ea,
+    std::string& out_pattern,
+    size_t& out_offset) {
+  Result result{Result::kNoReferences};
   // iterate through references to data.
+
+  // ordered map based by function size
+  // sorted by key, which is our function size
+  std::map<ea_t, ea_t> refs;
+  for (auto ref_ea = get_first_dref_to(target_ea); ref_ea != BADADDR;
+       ref_ea = get_next_dref_to(target_ea, ref_ea)) {
+    if (target_ea == ref_ea)
+      continue;
+
+    if (const func_t* func = get_func(ref_ea)) {
+      refs.insert(std::make_pair(func->end_ea - func->start_ea, ref_ea));
+    }
+  }
+
+  LOG_INFO("DREF COUNT: {}", refs.size());
+
+  int counter = 0;
+  for (const auto& pair : refs) {
+    if (counter > kMaxRefCountAnalysisDepth)
+      return Result::kRefLimitReached;
+
+    LOG_TRACE("Dref: {:x} {}/{}", pair.second, counter, refs.size());
+    result = GenerateFunctionReference(pair.second, out_pattern, out_offset);
+    if (result == Result::kSuccess)
+      return result;
+
+    counter++;
+  }
+
+  // optimize segment search!
+
+#if 0
+  int counter = 0;
   for (auto ref_address = get_first_dref_to(target_address);
        ref_address != BADADDR;
        ref_address = get_next_dref_to(target_address, ref_address)) {
     if (target_address == ref_address)
       continue;
 
-    // we only care about function references. go to the start of the function
-    // and make a pattern from there.
-    if (const func_t* func = get_func(ref_address)) {
-      if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
-          SignatureGenerator::Result::kSuccess) {
-        if (decode_insn(&instruction, ref_address) > 0 &&
-            instruction.size > 0) {
-          out_offset =
-              (ref_address - func->start_ea) + GetOpCodeSize(instruction);
-        }
+    LOG_TRACE("Dref: {:x} {}", ref_address, counter);
+    result = GenerateFunctionReference(ref_address, out_pattern, out_offset);
+    if (result == Result::kSuccess)
+      return result;
 
-        return result;
-      }
-    }
+    counter++;
   }
+#endif
 
   return result;
 }
 
-SignatureGenerator::Result SignatureGenerator::UniqueCodePattern(
-    ea_t target_address,
+SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
+    ea_t target_ea,
     std::string& out_pattern,
     size_t& out_offset) {
-  insn_t instruction{};
-  Result result{Result::kEmpty};
-
-  if (!can_decode(target_address)) {
+  // valid code?
+  if (!can_decode(target_ea)) {
     return Result::kDecodeError;
   }
 
   // try the direct way first.
-  if ((result = GenerateSignatureInternal_2(target_address, out_pattern)) ==
-      SignatureGenerator::Result::kSuccess) {
+  Result result{Result::kNoReferences};
+  if ((result = GenerateSignatureInternal_2(target_ea, out_pattern)) ==
+      Result::kSuccess) {
     return result;
   }
 
-  // if locating fails for the direct function body, we start iterating the
-  // references towards the function
+  // ordered map based by function size
+  // sorted by key, which is our function size
+  std::map<ea_t, ea_t> refs;
+  for (auto ref_ea = get_first_cref_to(target_ea); ref_ea != BADADDR;
+       ref_ea = get_next_cref_to(target_ea, ref_ea)) {
+    if (target_ea == ref_ea)
+      continue;
+
+    if (const func_t* func = get_func(ref_ea)) {
+      refs.insert(std::make_pair(func->end_ea - func->start_ea, ref_ea));
+    }
+  }
+
+  LOG_INFO("CREF COUNT: {}", refs.size());
+
+  int counter = 0;
+  for (const auto& pair : refs) {
+      // temp shit
+    if (counter > kMaxRefCountAnalysisDepth)
+      return Result::kRefLimitReached;
+
+    LOG_TRACE("Cref: {:x} {}/{}", pair.second, counter, refs.size());
+    result = GenerateFunctionReference(pair.second, out_pattern, out_offset);
+    if (result == Result::kSuccess)
+      return result;
+
+    counter++;
+  }
+
+#if 0
+  int counter = 0;
+  // direct signature failed. try generating a reference.
   for (auto ref_address = get_first_cref_to(target_address);
        ref_address != BADADDR;
        ref_address = get_next_cref_to(target_address, ref_address)) {
     if (target_address == ref_address)
       continue;
 
-    // go to the start of the function calling our function
-    // and make a pattern from there.
-    if (const func_t* func = get_func(ref_address)) {
-      if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
-          SignatureGenerator::Result::kSuccess) {
-        if (decode_insn(&instruction, ref_address) > 0 &&
-            instruction.size > 0) {
-          out_offset =
-              (ref_address - func->start_ea) + GetOpCodeSize(instruction);
-        }
-
-        return result;
-      }
+    LOG_TRACE("Cref: {:x} {}", ref_address, counter);
+    if ((result = GenerateFunctionReference(ref_address, out_pattern,
+                                            out_offset)) == Result::kSuccess) {
+      return result;
     }
+
+    counter++;
   }
+#endif
 
   return result;
 }
 
-std::string SignatureGenerator::UniquePattern(ea_t target_address,
-                                              bool mute_log) {
+std::string SignatureGenerator::UniqueSignature(ea_t target_address,
+                                                bool mute_log) {
   uint32_t flags = (get_flags(target_address) & MS_CLS);
   // disallow unsupported address types so it can only be code or data
   // going forward
@@ -256,13 +439,13 @@ std::string SignatureGenerator::UniquePattern(ea_t target_address,
     LOG_TRACE("Creating {} signature for {:x}", type_name, target_address);
   }
 
-  std::string result_pattern;
+  std::string result_pattern{};
   size_t result_offset = 0;
 
   const Result result =
       is_address_data
-          ? UniqueDataPattern(target_address, result_pattern, result_offset)
-          : UniqueCodePattern(target_address, result_pattern, result_offset);
+          ? UniqueDataSignature(target_address, result_pattern, result_offset)
+          : UniqueCodeSignature(target_address, result_pattern, result_offset);
 
   if (result == Result::kSuccess) {
     if (!mute_log) {

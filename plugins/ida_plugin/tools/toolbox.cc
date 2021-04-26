@@ -32,7 +32,7 @@ void Toolbox::RegisterPattern(const std::string&) {}
 void Toolbox::InvokeAction(ActionCode code) {
   switch (code) {
     case ActionCode::kSignature: {
-      generator_.UniquePattern(get_screen_ea(), false);
+      generator_.UniqueSignature(get_screen_ea(), false);
       break;
     }
     default:
