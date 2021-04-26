@@ -19,21 +19,26 @@ class SignatureGenerator {
 
   explicit SignatureGenerator(Toolbox* toolbox);
 
-  std::string UniqueSignature(ea_t target_address, bool mute_log);
+  Result UniqueSignature(ea_t target_address,
+                         std::string& out_pattern,
+                         ptrdiff_t& out_offset,
+                         bool mute_log,
+                         bool& out_shit);
 
  private:
   Result GenerateSignatureInternal_2(ea_t address, std::string& out_pattern);
 
   Result UniqueDataSignature(ea_t target_address,
                              std::string& out_pattern,
-                             size_t& out_offset);
+                             ptrdiff_t& out_offset);
+
   Result UniqueCodeSignature(ea_t target_address,
                              std::string& out_pattern,
-                             size_t& out_offset);
+                             ptrdiff_t& out_offset, bool &very_dumb_flag);
 
   Result GenerateFunctionReference(ea_t target_address,
                                    std::string& out_pattern,
-                                   size_t& out_offset);
+                                   ptrdiff_t& out_offset);
 
  private:
   Toolbox* toolbox_;

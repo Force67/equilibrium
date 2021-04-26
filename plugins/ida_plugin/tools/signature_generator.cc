@@ -1,3 +1,4 @@
+
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
@@ -209,7 +210,7 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
 SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
     ea_t ref_ea,
     std::string& out_pattern,
-    size_t& out_offset) {
+    ptrdiff_t& out_offset) {
   Result result{Result::kEmpty};
   insn_t instruction{};
   // jump to start of the function and search from there
@@ -228,7 +229,7 @@ SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
       }
     }
 
-    size_t ea_step = ref_ea - kDisplacementStepSize;
+    ea_t ea_step = ref_ea - kDisplacementStepSize;
     // search downwards, to reduce displacement we go from ref_ea.
     while (ea_step >= func->start_ea) {
       if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
@@ -244,19 +245,22 @@ SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
     while (ea_step <= func->end_ea) {
       if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
           Result::kSuccess) {
-        out_offset += (ea_step - ref_ea);
+        // need to subtract offset.
+        out_offset -= (ea_step - ref_ea);
+        return result;
+
+        ea_step += kDisplacementStepSize;
+      }
+      // fallback case: maximum displacement, very bad!
+      if (result != Result::kSuccess) {
+        result = GenerateSignatureInternal_2(func->start_ea, out_pattern);
+        // again, 10/10 code.
+        out_offset += (ref_ea - func->start_ea);
         return result;
       }
+    }
 
-      ea_step += kDisplacementStepSize;
-    }
-    // fallback case: maximum displacement, very bad!
-    if (result != Result::kSuccess) {
-      result = GenerateSignatureInternal_2(func->start_ea, out_pattern);
-      // again, 10/10 code.
-      out_offset += (ref_ea - func->start_ea);
-      return result;
-    }
+    return result;
   }
 
   return result;
@@ -265,7 +269,7 @@ SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
 SignatureGenerator::Result SignatureGenerator::UniqueDataSignature(
     ea_t target_ea,
     std::string& out_pattern,
-    size_t& out_offset) {
+    ptrdiff_t& out_offset) {
   Result result{Result::kNoReferences};
   // iterate through references to data.
 
@@ -303,7 +307,8 @@ SignatureGenerator::Result SignatureGenerator::UniqueDataSignature(
 SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
     ea_t target_ea,
     std::string& out_pattern,
-    size_t& out_offset) {
+    ptrdiff_t& out_offset,
+    bool& very_dumb_flag) {
   // valid code?
   if (!can_decode(target_ea)) {
     return Result::kDecodeError;
@@ -313,8 +318,13 @@ SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
   Result result{Result::kNoReferences};
   if ((result = GenerateSignatureInternal_2(target_ea, out_pattern)) ==
       Result::kSuccess) {
+    out_offset = 0;
+    // direct:
+    very_dumb_flag = false;
     return result;
   }
+
+  very_dumb_flag = true;
 
   // ordered map based by function size
   // sorted by key, which is our function size
@@ -333,7 +343,7 @@ SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
 
   int counter = 0;
   for (const auto& pair : refs) {
-      // temp shit, we only look at the kMaxRefCountAnalysisDepth best samples
+    // temp shit, we only look at the kMaxRefCountAnalysisDepth best samples
     if (counter > kMaxRefCountAnalysisDepth)
       return Result::kRefLimitReached;
 
@@ -348,8 +358,12 @@ SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
   return result;
 }
 
-std::string SignatureGenerator::UniqueSignature(ea_t target_address,
-                                                bool mute_log) {
+SignatureGenerator::Result SignatureGenerator::UniqueSignature(
+    ea_t target_address,
+    std::string& out_pattern,
+    ptrdiff_t& out_offset,
+    bool mute_log,
+    bool& out_shit) {
   uint32_t flags = (get_flags(target_address) & MS_CLS);
   // disallow unsupported address types so it can only be code or data
   // going forward
@@ -357,7 +371,7 @@ std::string SignatureGenerator::UniqueSignature(ea_t target_address,
     case FF_TAIL:
     case FF_UNK: {
       LOG_ERROR("Unsupported address flag {}", flags);
-      return "";
+      return Result::kDecodeError;
     }
     default:
       break;
@@ -366,17 +380,20 @@ std::string SignatureGenerator::UniqueSignature(ea_t target_address,
   const bool is_address_data = flags == FF_DATA;
   const char* type_name = is_address_data ? "data" : "code";
 
+  out_shit = is_address_data;
+
   if (!mute_log) {
     LOG_TRACE("Creating {} signature for {:x}", type_name, target_address);
   }
 
   std::string result_pattern{};
-  size_t result_offset = 0;
+  ptrdiff_t result_offset = 0;
 
   const Result result =
       is_address_data
           ? UniqueDataSignature(target_address, result_pattern, result_offset)
-          : UniqueCodeSignature(target_address, result_pattern, result_offset);
+          : UniqueCodeSignature(target_address, result_pattern, result_offset,
+                                out_shit);
 
   if (result == Result::kSuccess) {
     if (!mute_log) {
@@ -389,7 +406,9 @@ std::string SignatureGenerator::UniqueSignature(ea_t target_address,
       }
     }
 
-    return result_pattern;
+    out_pattern = result_pattern;
+    out_offset = result_offset;
+    return result;
   }
 
   if (!mute_log) {
@@ -397,6 +416,9 @@ std::string SignatureGenerator::UniqueSignature(ea_t target_address,
               type_name, target_address, ResultToString(result));
   }
 
-  return "";
+  out_pattern = "";
+  out_offset = 0;
+
+  return Result::kEmpty;
 }
 }  // namespace tools
