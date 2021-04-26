@@ -216,78 +216,47 @@ SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
   if (const func_t* func = get_func(ref_ea)) {
     if (decode_insn(&instruction, ref_ea) == 0)
       return Result::kDecodeError;
-    /*
-    const size_t displacement =
-        ref_address - func->start_ea + GetOpCodeSize(instruction);
-    */
 
-    // TODO: OPCODE SIZE!!
-
-    size_t ea_step = ref_ea;
-
+    out_offset = GetOpCodeSize(instruction);
+    // shitty optimization #1: if delta is low, skip the rest
     if ((ref_ea - kDisplacementStepSize) <= kDisplacementStepSize) {
       if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
-          Result::kSuccess)
+          Result::kSuccess) {
+        // again, 10/10 code.
+        out_offset += (ref_ea - func->start_ea);
         return result;
-    }
-
-    // search downwards, to reduce displacement we go from ref_ea.
-    do {
-      if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
-          Result::kSuccess)
-        return result;
-
-      ea_step -= kDisplacementStepSize;
-    } while (ea_step >= (func->start_ea));
-
-    // go upwards.
-    ea_step = ref_ea;
-    do {
-      if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
-          Result::kSuccess)
-        return result;
-
-      ea_step += kDisplacementStepSize;
-    } while (ea_step <= (func->end_ea));
-
-    // worse case: maximum displacement
-    if (result != Result::kSuccess) {
-      result = GenerateSignatureInternal_2(func->start_ea, out_pattern);
-    }
-
-    if (result == Result::kSuccess) {
-    }
-
-#if 0
-    // TODO: fix extremely large displacement values...
-
-    // direct reference
-    if (neg_displacement_step <= kDisplacementStepSize) {
-      result = GenerateSignatureInternal_2(start_ea, end_ea - start_ea, out_pattern);
-    } else {
-      // we first try to get an optimal signature by going within the
-      // displacement zone
-      start_ea = ref_ea - kMaxDisplacementSize;
-
-      // TODO: dcheck if ins cap is really greater than ref_ea!!
-      if ((end_ea - ref_ea) <= kMaxDisplacementSize)
-        end_ea = ref_ea + kMaxDisplacementSize;
-
-      // we failed, use a worse pattern:
-      result = GenerateSignatureInternal_2(start_ea, end_ea - start_ea, out_pattern);
-      if (result == Result::kLengthExceeded) {
-        start_ea = func->start_ea;
-        end_ea = func->end_ea;
-
-        result = GenerateSignatureInternal_2(start_ea, end_ea - start_ea, out_pattern);
       }
     }
 
-    // break out.
-    if (result == Result::kSuccess) {
+    size_t ea_step = ref_ea - kDisplacementStepSize;
+    // search downwards, to reduce displacement we go from ref_ea.
+    while (ea_step >= func->start_ea) {
+      if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
+          Result::kSuccess) {
+        // again, 10/10 code.
+        out_offset += (ref_ea - ea_step);
+        return result;
+      }
+      ea_step -= kDisplacementStepSize;
+    }
+    // now upwards.
+    ea_step = ref_ea;
+    while (ea_step <= func->end_ea) {
+      if ((result = GenerateSignatureInternal_2(ea_step, out_pattern)) ==
+          Result::kSuccess) {
+        out_offset += (ea_step - ref_ea);
+        return result;
+      }
+
+      ea_step += kDisplacementStepSize;
+    }
+    // fallback case: maximum displacement, very bad!
+    if (result != Result::kSuccess) {
+      result = GenerateSignatureInternal_2(func->start_ea, out_pattern);
+      // again, 10/10 code.
+      out_offset += (ref_ea - func->start_ea);
       return result;
     }
-#endif
   }
 
   return result;
@@ -328,25 +297,6 @@ SignatureGenerator::Result SignatureGenerator::UniqueDataSignature(
     counter++;
   }
 
-  // optimize segment search!
-
-#if 0
-  int counter = 0;
-  for (auto ref_address = get_first_dref_to(target_address);
-       ref_address != BADADDR;
-       ref_address = get_next_dref_to(target_address, ref_address)) {
-    if (target_address == ref_address)
-      continue;
-
-    LOG_TRACE("Dref: {:x} {}", ref_address, counter);
-    result = GenerateFunctionReference(ref_address, out_pattern, out_offset);
-    if (result == Result::kSuccess)
-      return result;
-
-    counter++;
-  }
-#endif
-
   return result;
 }
 
@@ -383,7 +333,7 @@ SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
 
   int counter = 0;
   for (const auto& pair : refs) {
-      // temp shit
+      // temp shit, we only look at the kMaxRefCountAnalysisDepth best samples
     if (counter > kMaxRefCountAnalysisDepth)
       return Result::kRefLimitReached;
 
@@ -394,25 +344,6 @@ SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
 
     counter++;
   }
-
-#if 0
-  int counter = 0;
-  // direct signature failed. try generating a reference.
-  for (auto ref_address = get_first_cref_to(target_address);
-       ref_address != BADADDR;
-       ref_address = get_next_cref_to(target_address, ref_address)) {
-    if (target_address == ref_address)
-      continue;
-
-    LOG_TRACE("Cref: {:x} {}", ref_address, counter);
-    if ((result = GenerateFunctionReference(ref_address, out_pattern,
-                                            out_offset)) == Result::kSuccess) {
-      return result;
-    }
-
-    counter++;
-  }
-#endif
 
   return result;
 }
