@@ -248,19 +248,17 @@ SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
         // need to subtract offset.
         out_offset -= (ea_step - ref_ea);
         return result;
-
-        ea_step += kDisplacementStepSize;
       }
-      // fallback case: maximum displacement, very bad!
-      if (result != Result::kSuccess) {
-        result = GenerateSignatureInternal_2(func->start_ea, out_pattern);
-        // again, 10/10 code.
-        out_offset += (ref_ea - func->start_ea);
-        return result;
-      }
+      ea_step += kDisplacementStepSize;
     }
 
-    return result;
+    // fallback case: maximum displacement, very bad!
+    if (result != Result::kSuccess) {
+      result = GenerateSignatureInternal_2(func->start_ea, out_pattern);
+      // again, 10/10 code.
+      out_offset += (ref_ea - func->start_ea);
+      return result;
+    }
   }
 
   return result;
