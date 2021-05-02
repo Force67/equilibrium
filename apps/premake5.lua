@@ -4,6 +4,7 @@
 group("Apps")
 project("App_Main")
     kind("WindowedApp")
+    staticruntime("on")
     targetname("ReTK")
     include_meta()
     files({
@@ -16,16 +17,21 @@ project("App_Main")
         -- third party
         "fmtlib",
         "skia",
-
-        -- core libraries
-        "network",
-        "database",
-        "base",
-        "sync",
+        "glew",
+        "glfw",
+        "imgui",
+        -- operating system
+        "opengl32",
+        "user32",
+        "gdi32",
+        "shell32"
     })
     linkoptions({
         -- use our regular main instead of winmain
         "/ENTRY:mainCRTStartup"
+    })
+    defines({
+        "SK_GL"
     })
     includedirs({
         ".",
@@ -36,7 +42,12 @@ project("App_Main")
         blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/glew/include",
+        blu.extdir .. "/glfw/include",
+        blu.extdir .. "/imgui",
     })
     libdirs({
         blu.extdir .. "/skia_sdk/lib/debug_static",
     })
+    filter("system:windows")
+        defines("GLFW_EXPOSE_NATIVE_WIN32")

@@ -63,3 +63,87 @@ project("GoogleMock")
         "googletest/googlemock/include/gmock/**.h",
         --"googletest/googletest/include/gtes/**.h",
     })
+
+project("glew")
+    language("C")
+    kind("StaticLib")
+    includedirs({
+        "glew/include",
+    })
+    defines({
+        "GLEW_STATIC"
+    })
+    files({
+        "glew/src/glew.c",
+        "glew/src/glewinfo.c",
+        "glew/src/visualinfo.c"
+    })
+
+project("glfw")
+    language("C")
+    kind("StaticLib")
+    includedirs({
+        "glfw/include",
+        "glfw/src"
+    })
+    files({
+        "glfw/include/*.h",
+        "glfw/src/context.c",
+        "glfw/src/init.c",
+        "glfw/src/input.c",
+        "glfw/src/monitor.c",
+        "glfw/src/vulkan.c",
+        "glfw/src/window.c"
+    })
+    defines({
+        "GLEW_STATIC"
+    })
+    filter("system:windows")
+        defines({
+            "_GLFW_WIN32",
+            "GLFW_EXPOSE_NATIVE_WIN32"
+        })
+        files({
+            "glfw/src/win32_platform.h",
+            "glfw/src/win32_joystick.h",
+            "glfw/src/wgl_context.h",
+            "glfw/src/egl_context.h",
+            "glfw/src/osmesa_context.h",
+            "glfw/src/win32_init.c",
+            "glfw/src/win32_joystick.c",
+            "glfw/src/win32_monitor.c",
+            "glfw/src/win32_time.c",
+            "glfw/src/win32_thread.c",
+            "glfw/src/win32_window.c",
+            "glfw/src/wgl_context.c",
+            "glfw/src/egl_context.c",
+            "glfw/src/osmesa_context.c",
+        })
+    filter{}
+
+project("imgui")
+    language("C++")
+    kind("StaticLib")
+    includedirs({
+        "./imgui",
+        "glew/include",
+        "glfw/include",
+    })
+    defines({
+        "GLEW_STATIC"
+    })
+    files({
+        "imgui/imgui.cpp",
+        "imgui/imgui.h",
+        "imgui/imgui_draw.cpp",
+        "imgui/imgui_internal.h",
+        "imgui/imgui_tables.cpp",
+        "imgui/imgui_widgets.cpp",
+        "imgui/imstb_rectpack.h",
+        "imgui/imstb_textedit.h",
+        "imgui/imstb_truetype.h",
+        "imgui/backends/imgui_impl_glfw.cpp",
+        "imgui/backends/imgui_impl_glfw.h",
+        "imgui/backends/imgui_impl_opengl3.cpp",
+        "imgui/backends/imgui_impl_opengl3.h"
+    })

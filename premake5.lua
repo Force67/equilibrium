@@ -18,6 +18,8 @@ premake.override(premake.vstudio.vc2010.elements, "configurationProperties", fun
 	return calls
 end)
 
+staticruntime("on")
+
 filter("architecture:x86_64")
     targetsuffix("_64")
 
