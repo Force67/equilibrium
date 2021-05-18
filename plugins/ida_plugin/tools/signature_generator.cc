@@ -137,8 +137,18 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
     // Copy this instructions mask to our pattern's mask.
     std::copy(instructionMask.begin(), instructionMask.end(),
               std::back_inserter(masks_));
+    //get_ph -> this gets the buffer!
+    //pack_dd(); 
+    //pack_dd 
+    // show_auto -> allows setting IDB BUSY
+        // search only within code.
+    //get_byte
+    /*
+    *      v21 = getinf(57i64);
+            v22 = get_compiler_name(v21);
+            v23 = get_compiler_name(*((_BYTE *)v14 + 36));
+    */
 
-    // search only within code.
     for (const segment_t* seg = get_first_seg(); seg != nullptr;
          seg = get_next_seg(seg->start_ea)) {
       // patterns may only exist within code segments.
