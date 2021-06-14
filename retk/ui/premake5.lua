@@ -2,7 +2,7 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 group("Components")
-project("uikit")
+project("ui")
     kind("StaticLib")
     files({
         "**.cc",

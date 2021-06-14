@@ -4,5 +4,5 @@
 group("Components")
 include("network")
 include("database")
-include("uikit")
+include("ui")
 include("sync")
