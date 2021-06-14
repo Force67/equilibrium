@@ -33,7 +33,7 @@ class ZetaDatagramQueue final {
     PendingWrite(BufferPointer, size_t, PeerBase::Id);
     ~PendingWrite();
     PendingWrite(PendingWrite&& other);
-    PendingWrite& operator=(PendingWrite&& other) noexcept;
+    PendingWrite& operator=(PendingWrite&& other);
   };
 
   bool cleanup = false;

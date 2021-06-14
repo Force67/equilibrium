@@ -43,5 +43,7 @@ bool ZetaPacketReader::ReadAndDispatch(PeerBase& peer) {
         header->type, peer.id, buffer + sizeof(FrameHeader),
         static_cast<size_t>(header->size - sizeof(FrameHeader)));
   }
+
+  return true;
 }
 }  // namespace network

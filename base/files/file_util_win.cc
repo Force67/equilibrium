@@ -7,6 +7,7 @@
 
 #include <Windows.h>
 #include <chrono>
+#include <string>
 #include "file_util.h"
 
 namespace base {
