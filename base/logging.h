@@ -23,18 +23,28 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
 }  // namespace base
 
 #if 1
-#define LOG_TRACE(...)                                                   \
-  ::base::PrintLogMessage(::base::LogLevel::kTrace, \
-                                        __VA_ARGS__)
-#else
 #define LOG_TRACE(...)
 #endif
-#define LOG_INFO(...)                                                   \
-  ::base::PrintLogMessage(::base::LogLevel::kInfo, \
-                                        __VA_ARGS__)
-#define LOG_WARNING(...)                                                   \
-  ::base::PrintLogMessage(::base::LogLevel::kWarning, \
-                                        __VA_ARGS__)
-#define LOG_ERROR(...)                                                   \
-  ::base::PrintLogMessage(::base::LogLevel::kError, \
-                                        __VA_ARGS__)
+#define LOG_INFO(...) \
+  ::base::PrintLogMessage(::base::LogLevel::kInfo, __VA_ARGS__)
+#define LOG_WARNING(...) \
+  ::base::PrintLogMessage(::base::LogLevel::kWarning, __VA_ARGS__)
+#define LOG_ERROR(...) \
+  ::base::PrintLogMessage(::base::LogLevel::kError, __VA_ARGS__)
+
+#define TK_DCHECK(expression)                                     \
+  do {                                                            \
+    if (!(expression)) {                                          \
+      ::base::PrintLogMessage(                                    \
+          ::base::LogLevel::kError,                               \
+          __FUNCTION__ "() -> assertion failed at " #expression); \
+      if (TK_DBG) {                                               \
+        __debugbreak();                                           \
+      }                                                           \
+    }                                                             \
+                                                                  \
+  } while (0)
+
+#define TK_IMPOSSIBLE \
+  ::base::PrintLogMessage<>(::base::LogLevel::kError, __FUNCTION__ " impossible " \
+                                                                 "reached")

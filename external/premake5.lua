@@ -46,7 +46,7 @@ project("fmtlib")
         "fmt/src/os.cc",
     })
 
-project("GoogleMock")
+project("googlemock")
     language("C++")
     kind("StaticLib")
     includedirs({

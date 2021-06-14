@@ -6,6 +6,5 @@ blu = {}
 require('vstudio')
 
 include('artifacts.lua')
-include('buildenv.lua')
-include('module.lua')
-include("dotnettweaks.lua")
+include('vcs_info.lua')
+include('component.lua')

@@ -5,7 +5,8 @@ function network_include()
     links({
         "sockpp",
         "fmtlib",
-        "base",
+        "googlemock",
+        "base"
     })
     includedirs({
         ".",
@@ -15,23 +16,44 @@ function network_include()
         blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",
         blu.extdir .. "/fmt/include",
+        blu.extdir .. "/googletest/googletest/include",
     })
 end
 
-group("Network")
+group("retk/network")
 project("network")
     kind("StaticLib")
     files({
         "base/*.cc",
         "base/*.h",
-        "tcp/*.cc",
-        "tcp/*.h",
+        "tksp/*.h",
+        "tksp/*.cc",
+        "zeta/*.h",
+        "zeta/*.cc",
         "util/*.cc",
-        "util/*.h"
+        "util/*.h",
+
+        -- documentation
+        "zeta/readme.md",
     })
     network_include()
 
-group("Network/Tests")
+group("retk/network/test")
+project("network_unittests")
+    kind("ConsoleApp")
+    include_meta()
+    files({
+        "test/run_all_unittests.cc",
+    })
+    network_include()
+    links({
+        "network",
+    })
+    includedirs({
+        "./test",
+    })
+
+group("retk/network/test")
 project("testclient")
     kind("ConsoleApp")
     include_meta()
@@ -40,14 +62,13 @@ project("testclient")
     })
     network_include()
     links({
-        "fmtlib",
         "network"
     })
     includedirs({
         "test/client"
     })
 
-group("Network/Tests")
+group("retk/network/test")
 project("testserver")
     kind("ConsoleApp")
     include_meta()
@@ -56,7 +77,6 @@ project("testserver")
     })
     network_include()
     links({
-        "fmtlib",
         "network"
     })
     includedirs({
