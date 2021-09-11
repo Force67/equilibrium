@@ -45,7 +45,7 @@ filter("language:C or C++")
     vectorextensions("SSE4.1")
 
 filter("language:C++")
-    cppdialect("C++17")
+    cppdialect("C++20")
 
 filter("system:windows")
     defines("OS_WIN")
