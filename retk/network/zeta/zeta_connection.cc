@@ -10,37 +10,39 @@ namespace network {
 
 ZetaConnection::ZetaConnection(sockpp::inet_address address,
                                ZetaPacketWriter* writer)
-    : address_(address), writer_(writer) {}
+    : PeerBase(1337, address), address_(address), writer_(writer) {}
 
 ZetaConnection::~ZetaConnection() {}
 
 void ZetaConnection::CloseConnection() {
-    // quit data.
-    NotifyQuit quitCommand{ NotifyQuit::Reason::kQuit };
-    DoSubmitDatagram(quitCommand);
+  // quit data.
+  NotifyQuit quitCommand{NotifyQuit::Reason::kQuit};
+  DoSubmitDatagram(quitCommand);
 }
 
 void ZetaConnection::WriteDatagram(const uint8_t* ptr, size_t length) {
   writer_->WritePacket(*this, ptr, length);
 }
 
-void ZetaConnection::ProcessCommand(FrameType type, const uint8_t *ptr, size_t length) {
-    switch (type) {
+void ZetaConnection::ProcessCommand(FrameType type,
+                                    const uint8_t* ptr,
+                                    size_t length) {
+  switch (type) {
     case FrameType::kHello: {
-        // received authentication challenge
-        break;
+      // received authentication challenge
+      break;
     }
     case FrameType::kBye: {
-        // received quit
-        break;
+      // received quit
+      break;
     }
     default:
     case FrameType::kInvalid: {
-        LOG_ERROR("ZetaConnection::ProcessCommand() -> Invalid frame type {}", 
-            static_cast<int>(type));
-        return;
+      LOG_ERROR("ZetaConnection::ProcessCommand() -> Invalid frame type {}",
+                static_cast<int>(type));
+      return;
     }
-    }
+  }
 }
 
 }  // namespace network

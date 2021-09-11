@@ -7,7 +7,9 @@
 
 #include <sockpp/inet_address.h>
 #include <base/peer_base.h>
+
 #include <network/zeta/zeta_protocol.h>
+#include <network/zeta/zeta_packet_writer.h>
 
 namespace network {
 
@@ -26,11 +28,12 @@ class ZetaConnection final : public PeerBase {
 
   bool connected() const { return connected_; }
 
-private:
-	template<typename T>
-	void DoSubmitDatagram(const T& value) {
-		writer_->WritePacket(*this, &value, sizeof(T));
-	}
+ private:
+  template <typename T>
+  void DoSubmitDatagram(const T& value) {
+    writer_->WritePacket(*this, reinterpret_cast<const uint8_t*>(&value),
+                         sizeof(T));
+  }
 
  private:
   bool connected_ = false;
@@ -38,4 +41,4 @@ private:
   // unowned
   ZetaPacketWriter* writer_;
 };
-}
+}  // namespace network

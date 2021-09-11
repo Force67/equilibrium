@@ -27,6 +27,8 @@ class ZetaDispatcher {
   using PeerMap =
       std::unordered_map<PeerBase::Id, std::unique_ptr<ZetaConnection>>;
 
+  using PeerEntry = PeerMap::value_type;
+
   const PeerMap& peer_map() { return peer_map_; }
 
  private:

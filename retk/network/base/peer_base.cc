@@ -11,6 +11,9 @@ PeerBase::PeerBase(Socket sock, Id identifier, Adress dest_address) :
     sock(std::move(sock)), id(identifier), address(dest_address) {
 }
 
+PeerBase::PeerBase(Id unique_id, Adress address)
+    : id(unique_id), address(address) {}
+
 void PeerBase::Touch() {
   last_seen = util::msec();
 }

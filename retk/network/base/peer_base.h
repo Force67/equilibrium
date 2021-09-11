@@ -23,7 +23,11 @@ struct PeerBase {
   // when the peer will be removed
   static constexpr auto const kPeerTimeout = 2s;
 
+  // construct while taking ownership
   explicit PeerBase(Socket, Id, Adress);
+
+  // construct without taking any ownership
+  PeerBase(Id, Adress);
 
   // lifetime management
   void Kill();

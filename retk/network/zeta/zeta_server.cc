@@ -2,20 +2,22 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "zeta_server.h"
+#include "zeta_connection.h"
 
 namespace network {
 
 ZetaServer::ZetaServer() {
-	packet_reader_ = std::make_unique<ZetaPacketReader>(&dispatcher_);
+  packet_reader_ = std::make_unique<ZetaPacketReader>(&dispatcher_);
 }
 
-ZetaServer::~ZetaServer() {
-
-}
+ZetaServer::~ZetaServer() {}
 
 bool ZetaServer::TickFrame() {
-	// while socket
-	// from peer
-	packet_reader_->ReadAndDispatch();
+  for (const ZetaDispatcher::PeerEntry& obj : dispatcher_.peer_map()) {
+    packet_reader_->ReadAndDispatch(*obj.second);
+  
+  }
+
+  return true;
 }
-}
+}  // namespace network

@@ -4,10 +4,12 @@
 #include "zeta_client.h"
 
 namespace network {
-	bool ZetaClient::Connect() {
-		connection_ = std::make_unique<ZetaConnection>();
-		packet_reader_ = std::make_unique<ZetaPacketReader>(&dispatcher_);
+ZetaClient::ZetaClient() {}
 
-		return false;
-	}
+bool ZetaClient::Connect(const PeerBase::Adress& address) {
+  connection_ = std::make_unique<ZetaConnection>(address, nullptr);
+  packet_reader_ = std::make_unique<ZetaPacketReader>(&dispatcher_);
+
+  return false;
 }
+}  // namespace network

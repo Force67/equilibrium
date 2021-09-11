@@ -7,14 +7,16 @@
 
 namespace network {
 
-	class ZetaServer final {
-	public:
-		ZetaServer();
-		~ZetaServer();
+class ZetaServer final {
+ public:
+  ZetaServer();
+  ~ZetaServer();
 
-		bool TickFrame();
-	private:
-		ZetaDispatcher dispatcher_;
-		std::unique_ptr<ZetaPacketReader> packet_reader_;
-	};
-}
+  bool TickFrame();
+
+ private:
+	 // dispatcher owns peer collection.
+  ZetaDispatcher dispatcher_;
+  std::unique_ptr<ZetaPacketReader> packet_reader_;
+};
+}  // namespace networ
