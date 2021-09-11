@@ -4,14 +4,14 @@
 namespace protocol;
 
 table TransferBegin {
-    transferId:uint;
-    fileName:string;
-    fileSize:uint;
-    numChunks:uint;
+    id:uint;
+    file_name:string;
+    file_size:uint;
+    num_chunks:uint;
 }
 
 table TransferChunk {
-    transferId:uint;
-    chunkId:uint;
+    id:uint;
+    chunk_id:uint;
     data:[ubyte];
 }

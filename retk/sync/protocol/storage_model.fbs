@@ -37,15 +37,15 @@ table CreateProject {
 // when joining a server, the project index is searched by MD5
 // if none is found, the server will create a new project.
 table LocalProjectInfo {
-  inputFileMd5:string;
-  inputFileName:string;
-  updateVersion:int;
-  newProject:bool;
+  input_md5:string;
+  input_name:string;
+  update_version:int;
+  is_new_project:bool;
 }
 
 // if no remote project exists we return
 // -1 as workspace & project id.
 table RemoteProjectInfo {
-  wksId:int;
-  projId:int;
+  workspace_id:int;
+  project_id:int;
 }

@@ -5,7 +5,7 @@ namespace protocol;
 
 // Request authentication
 table HandshakeRequest {
-  protocolVersion:ushort;
+  proto_version:ushort;
   token:string;
   guid:string;
   name:string;
@@ -21,7 +21,7 @@ enum UserPermissions : ubyte (bit_flags) {
 // Authentication was granted
 table HandshakeAck {
   perms:UserPermissions;
-  numUsers:int;
+  user_count:int;
 }
 
 enum UserEventType : int {
@@ -32,6 +32,6 @@ enum UserEventType : int {
 // Notification about a user
 table UserEvent {
   type:UserEventType;
-  newCount:int;
-  userName:string;
+  new_count:int;
+  user_name:string;
 }

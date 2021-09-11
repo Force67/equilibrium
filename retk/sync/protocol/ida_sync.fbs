@@ -1,10 +1,9 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 // This file defines the protocol used to comminicate IDB changes.
-
 namespace protocol.sync;
 
-// Note that: Addresses are represented as 64 bit numbers, 
+// Note that ea's (addresses) are represented as 64 bit numbers, 
 // even on 32 bit ida instances
 
 table NameEa {
@@ -14,7 +13,7 @@ table NameEa {
 }
 
 table AddFunction {
-    startea:uint64;
+    start_ea:uint64;
     endea:uint64;
 }
 
@@ -24,28 +23,28 @@ table DeleteFunction {
 
 table SetFunctionStart {
     ea:uint64;
-    newea:uint64;
+    new_ea:uint64;
 }
 
 table SetFunctionEnd {
-    startea:uint64;
-    endea:uint64;
+    start_ea:uint64;
+    end_ea:uint64;
 }
 
 table AppendFunctionTail {
-    funcea:uint64;
-    tailEaStart:uint64;
-    tailEaEnd:uint64;
+    func_ea:uint64;
+    tail_ea_start:uint64;
+    tail_ea_end:uint64;
 }
 
 table DeleteFunctionTail {
-    funcea:uint64;
-    tailea:uint64;
+    func_ea:uint64;
+    tail_ea:uint64;
 }
 
 table ChangeFunctionTailOwner {
-    tailea:uint64;
-    funcstart:uint64;
+    tail_ea:uint64;
+    func_start:uint64;
 }
 
 table ChangeItemComment {
@@ -78,12 +77,12 @@ table DeleteEnum {
 
 table CreateStruct {
     name:string;
-    isUnion:bool;
+    is_union:bool;
 }
 
 table RenameStruct {
-    oldName:string;
-    newName:string;
+    old_name:string;
+    new_name:string;
 }
 
 table DeleteStruct {
@@ -91,8 +90,8 @@ table DeleteStruct {
 }
 
 table RenameStructMember {
-    structName:string;
-    memberName:string;
+    struct_name:string;
+    member_name:string;
     offset:uint64;
 }
 
@@ -111,16 +110,16 @@ enum StructMemberType : byte
 }
 
 table ChangeStructMember {
-    structName:string;
-    memberName:string;
+    struct_name:string;
+    member_name:string;
     type:StructMemberType;
 
     offset:uint64;
     size:uint64;
     flags:uint;
 
-    targetStructName:string;
-    stringType:int;
+    target_struct_name:string;
+    string_type:int;
     // TODO: ReflInfo
 }
 
@@ -153,7 +152,7 @@ enum OperandType : byte
 table ChangeOperand {
     ea:uint64;
     type:OperandType;
-    opCount:byte;
+    op_count:byte;
     flags:uint;
     offset:uint64;
 }
