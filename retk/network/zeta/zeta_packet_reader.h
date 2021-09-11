@@ -21,7 +21,6 @@ class ZetaPacketReader {
  private:
   // unowned
   ZetaDispatcher* dispatcher_;
-
   // temp buffer that the socket directly reads into
   uint8_t frame_buffer_[FrameHeader::kMaxSize * kMultiFrameCount]{};
 };

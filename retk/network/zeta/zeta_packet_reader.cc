@@ -15,6 +15,8 @@ bool ZetaPacketReader::ReadAndDispatch(PeerBase& peer) {
   // reset all buffers for reuse
   std::memset(&frame_buffer_, 0, sizeof(frame_buffer_));
 
+  // TODO: validate pack
+
   // read multiple packets in one go
   size_t packets_read = 0;
   while (socket.read_n(&frame_buffer_[packets_read * FrameHeader::kMaxSize],

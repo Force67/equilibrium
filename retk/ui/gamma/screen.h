@@ -17,6 +17,7 @@ class Screen {
 
  private:
   std::vector<Space*> spaces_;
+
 };
 
 Screen* gamma_screen();

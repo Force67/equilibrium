@@ -8,10 +8,11 @@ namespace network {
 
 class ZetaPacketWriter {
  public:
-  // writes the data immediately to a peer's socket
-  virtual bool WritePacket(const uint8_t* buf, size_t length);
+  bool WritePacket(PeerBase &target, const uint8_t* buf, size_t length);
 
   // flush (if underlying data is queued), else no-op
-  virtual void Flush();
+  void Flush();
+private:
+
 };
 }

@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <user_interface/keycode.inl>
+#include <ui/keycode.inl>
 #include <core/SkTypes.h>
 
 class SkCanvas;

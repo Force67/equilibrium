@@ -6,27 +6,35 @@
 #pragma once
 
 #include <sockpp/inet_address.h>
+#include <base/peer_base.h>
+#include <network/zeta/zeta_protocol.h>
 
 namespace network {
 
 class ZetaPacketWriter;
 
-class ZetaConnection final {
+class ZetaConnection final : public PeerBase {
  public:
   explicit ZetaConnection(sockpp::inet_address, ZetaPacketWriter* writer);
   ~ZetaConnection();
 
-  void WriteDatagram();
+  void WriteDatagram(const uint8_t* ptr, size_t length);
 
   void CloseConnection();
 
-  void ProcessCommand();
+  void ProcessCommand(FrameType, const uint8_t* data, size_t length);
 
   bool connected() const { return connected_; }
+
+private:
+	template<typename T>
+	void DoSubmitDatagram(const T& value) {
+		writer_->WritePacket(*this, &value, sizeof(T));
+	}
+
  private:
   bool connected_ = false;
   sockpp::inet_address address_;
-
   // unowned
   ZetaPacketWriter* writer_;
 };

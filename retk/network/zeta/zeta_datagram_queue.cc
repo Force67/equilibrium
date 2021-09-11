@@ -33,7 +33,6 @@ void ZetaDatagramQueue::Clear() {}
 void ZetaDatagramQueue::SendOrQueueDatagram() {
   if (queue_.empty()) {
     connection_->WriteDatagram();
-
     return;
   }
 

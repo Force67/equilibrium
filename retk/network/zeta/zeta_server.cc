@@ -6,9 +6,16 @@
 namespace network {
 
 ZetaServer::ZetaServer() {
+	packet_reader_ = std::make_unique<ZetaPacketReader>(&dispatcher_);
 }
 
 ZetaServer::~ZetaServer() {
 
+}
+
+bool ZetaServer::TickFrame() {
+	// while socket
+	// from peer
+	packet_reader_->ReadAndDispatch();
 }
 }

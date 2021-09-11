@@ -1,7 +1,7 @@
 -- Copyright (C) 2021 Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-group("Components")
+group("retk/ui")
 project("ui")
     kind("StaticLib")
     files({
@@ -42,3 +42,29 @@ project("ui")
     })
     filter("system:windows")
         defines("GLFW_EXPOSE_NATIVE_WIN32")
+
+group("retk/ui/test")
+project("ui_test")
+    kind("ConsoleApp")
+    files({
+        "test/run_all_tests.cc",
+        "test/ui_test_suite.cc",
+        "test/ui_test_suite.h",
+        -- for now, just to get tests working...
+        "gamma/*.cc",
+        "gamma/*.h",
+        "gamme/*.inl"
+    })
+    links({
+        "base",
+        "googlemock",
+        "base",
+        "ui",
+    })
+    includedirs({
+        ".",
+        "../../",
+        blu.extdir .. "/ui",
+        blu.extdir .. "/fmt/include",
+        blu.extdir .. "/googletest/googletest/include",
+    })

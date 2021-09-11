@@ -26,10 +26,10 @@ void ZetaDispatcher::ProcessPacket(FrameType frame_type,
                                    size_t length) {
   auto it = peer_map_.find(peer_id);
   if (it != peer_map_.end()) {
-    // send directly to connection, which will take care of udp packet.
-
+    // send directly to connection, which will handle message events, 
+    // and dispatch to network stack.
     ZetaConnection* connection = it->second.get();
-    connection->ProcessCommand();
+    connection->ProcessCommand(frame_type, buffer, length);
   }
 }
 }  // namespace network
