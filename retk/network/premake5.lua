@@ -20,7 +20,7 @@ function network_include()
     })
 end
 
-group("retk/network")
+group("Components/network")
 project("network")
     kind("StaticLib")
     files({
@@ -38,7 +38,7 @@ project("network")
     })
     network_include()
 
-group("retk/network/test")
+group("Components/network/test")
 project("network_unittests")
     kind("ConsoleApp")
     include_meta()
@@ -53,7 +53,7 @@ project("network_unittests")
         "./test",
     })
 
-group("retk/network/test")
+group("Components/network/test")
 project("testclient")
     kind("ConsoleApp")
     include_meta()
@@ -68,7 +68,7 @@ project("testclient")
         "test/client"
     })
 
-group("retk/network/test")
+group("Components/network/test")
 project("testserver")
     kind("ConsoleApp")
     include_meta()

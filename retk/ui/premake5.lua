@@ -1,7 +1,7 @@
 -- Copyright (C) 2021 Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-group("retk/ui")
+group("Components/ui")
 project("ui")
     kind("StaticLib")
     files({
@@ -43,7 +43,7 @@ project("ui")
     filter("system:windows")
         defines("GLFW_EXPOSE_NATIVE_WIN32")
 
-group("retk/ui/test")
+group("Components/ui/test")
 project("ui_test")
     kind("ConsoleApp")
     files({
