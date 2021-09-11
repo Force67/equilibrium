@@ -4,6 +4,8 @@
 require("premake-idaqt/qt")
 qt = premake.modules.qt
 
+group("Dependencies")
+
 project("sockpp")
     kind("StaticLib")
     language("C++")

@@ -63,9 +63,7 @@ workspace("RETK")
     defines("NOMINMAX")
 
     include("./apps")
-    group("Dependencies")
-    include("external")
-
+    include("./external")
     include("./base")
     include("./retk")
 
