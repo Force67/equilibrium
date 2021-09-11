@@ -6,7 +6,7 @@ filter("configurations:Release")
 
 project("ida_plugin")
     kind("SharedLib")
-    targetname("IDA_Retk75")
+    targetname("IDA_Retk76")
     include_meta()
     debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5 SP3")
     debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5 SP3\\ida64.exe")

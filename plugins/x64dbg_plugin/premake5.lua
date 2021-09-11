@@ -4,9 +4,12 @@
 filter("configurations:Release")
     defines("Q_DEBUG")
 
-project("64DbgPlugin")
+project("x64dbg_plugin")
     kind("SharedLib")
-    targetname("Noda_x64Dbg_72")
+    -- TODO: set targetname based on arch
+    -- once we support more than one!
+    -- e.g x32dbg
+    targetname("x64dbg_RETK")
     include_meta()
     files({
         "**.cpp",
