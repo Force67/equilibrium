@@ -18,8 +18,6 @@ premake.override(premake.vstudio.vc2010.elements, "configurationProperties", fun
 	return calls
 end)
 
-staticruntime("on")
-
 filter("architecture:x86_64")
     targetsuffix("_64")
 
@@ -43,9 +41,10 @@ filter("configurations:Shipping")
 
 filter("language:C or C++")
     vectorextensions("SSE4.1")
+    staticruntime("on")
 
 filter("language:C++")
-    cppdialect("C++20")
+    cppdialect("C++17")
 
 filter("system:windows")
     defines("OS_WIN")
