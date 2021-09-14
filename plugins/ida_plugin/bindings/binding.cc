@@ -7,11 +7,23 @@ namespace iretk {
 
 static BindingBase* rootBinding{nullptr};
 
+BindingBase::BindingBase(const char* const name,
+    const char* const args,
+    idc_func_t* funcptr) {
+  desc_ = {name, funcptr, args, nullptr, 0, 0};
+  next_ = rootBinding;
+  rootBinding = this;
+}
+
 void BindingBase::BindAll() {
   for (BindingBase* i = rootBinding; i;) {
     add_idc_func(i->desc_);
-    i = i->next_;
+    auto *j = i->next_;
+    // need to reset this so the rerun for unbind works as expected
+    i->next_ = nullptr;
+    i = j;
   }
+  rootBinding = nullptr;
 }
 
 void BindingBase::UnBindAll() {

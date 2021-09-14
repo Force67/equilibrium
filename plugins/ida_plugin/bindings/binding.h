@@ -5,17 +5,11 @@
 #include <expr.hpp>
 
 namespace iretk {
-
-inline static void Test1(const char* a, int64_t b) {}
-
 class BindingBase {
  public:
-  inline BindingBase(const char* const name,
+  BindingBase(const char* const name,
                      const char* const args,
-                     idc_func_t* funcptr) {
-    desc_ = {name, funcptr, args, nullptr, 0, 0};
-    next_ = this;
-  }
+                     idc_func_t* funcptr);
 
   static void BindAll();
   static void UnBindAll();
@@ -25,27 +19,34 @@ class BindingBase {
   ext_idcfunc_t desc_;
 };
 
-template <typename... Ts>
+template <typename TRet, typename... Ts>
 class Binding final : public BindingBase {
  public:
-  using TFunctor = void(Ts...);
+  using TFunctor = TRet(Ts...);
   static constexpr size_t N = sizeof...(Ts);
 
-  inline explicit Binding(TFunctor &funcRef, const char* const name)
-      : BindingBase(name, args_, Functor),
+  template <typename TF>
+  Binding(const char* const name, TF function)
+      : BindingBase(name, args_, FunctorImpl),
         args_{(ToValueTypeIndex<Ts>(), ...), 0} {
-    functor_ = &funcRef;
+    // decay type so we can support lambda syntax
+    functor_ = &function;
   }
 
  private:
-  static error_t idaapi Functor(idc_value_t* argv, idc_value_t* result) {
-    InvokeFunctor(argv, std::make_index_sequence<N>{});
+  static error_t idaapi FunctorImpl(idc_value_t* argv, idc_value_t* result) {
+    if constexpr (std::is_same_v<TRet, void>) {
+      InvokeFunctor(argv, std::make_index_sequence<N>{});
+      return eOk;
+    }
+
+    *result = InvokeFunctor(argv, std::make_index_sequence<N>{});
     return eOk;
   }
 
   template <size_t... I>
-  static inline void InvokeFunctor(idc_value_t* t, std::index_sequence<I...>) {
-    functor_(ToConreteValueType<Ts>(t[I])...);
+  static inline TRet InvokeFunctor(idc_value_t* t, std::index_sequence<I...>) {
+    return reinterpret_cast<TFunctor*>(functor_)(ToConreteValueType<Ts>(t[I])...);
   }
 
   template <typename T>
@@ -73,8 +74,6 @@ class Binding final : public BindingBase {
  private:
   // +1 since we need to store a null terminator at the end
   const char args_[N + 1];
-  static inline TFunctor *functor_;
+  static inline void* functor_;
 };
-
-static Binding<const char*, int64_t> kTest(Test1, "LMAO");
 }  // namespace iretk

@@ -3,9 +3,10 @@
 // Entry point of the sync plugin
 
 #include <QSettings>
-#include <utils/opt.h>
 #include "plugin.h"
+#include "bindings/binding.h"
 
+#include "utils/opt.h"
 #include "utils/ida_log_impl.h"
 
 namespace {
@@ -22,12 +23,15 @@ constexpr char kWantedPluginHotkey[] = "Ctrl-Y";
 }  // namespace
 
 Plugin::Plugin() : sync_(*this), ui_(*this) {
+  iretk::BindingBase::BindAll();
+
   LOG_INFO("Loaded RETK, version " GIT_BRANCH "@" GIT_COMMIT
            " Created by Force67 <github.com/Force67>.");
 }
 
 Plugin::~Plugin() {
   utils::OptRegistry::Save();
+  iretk::BindingBase::UnBindAll();
 }
 
 bool Plugin::SyncToggle() {
