@@ -3,8 +3,7 @@
 
 #include <expr.hpp>
 #include <bindings/api_toolbox.h>
-#include "tools/toolbox.h"
-
+#if 0
 namespace binding {
 namespace {
 using namespace tools;
@@ -88,3 +87,4 @@ void DestroyToolboxApi() {
   del_idc_func(MakeSignatureDesc2.name);
 }
 }  // namespace binding
+#endif

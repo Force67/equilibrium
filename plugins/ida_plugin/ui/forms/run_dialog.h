@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "tools/toolbox.h"
 #include "ui/generated/ui_run_dialog.h"
 
 namespace forms {
@@ -13,7 +12,7 @@ class RunDialog final : public QDialog, public Ui::RunDialog {
   RunDialog(QWidget* parent);
   ~RunDialog() = default;
 
-  tools::Toolbox::ActionCode SelectedIndex() const;
+  //tools::Toolbox::ActionCode SelectedIndex() const;
 
  private:
   void OnClickOK();

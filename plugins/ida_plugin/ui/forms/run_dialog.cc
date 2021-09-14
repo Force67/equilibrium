@@ -36,6 +36,7 @@ void RunDialog::OnClickOK() {
   QDialog::close();
 }
 
+/*
 tools::Toolbox::ActionCode RunDialog::SelectedIndex() const {
   using tb_t = tools::Toolbox::ActionCode;
 
@@ -45,7 +46,7 @@ tools::Toolbox::ActionCode RunDialog::SelectedIndex() const {
     default:
       return tb_t::kNone;
   }
-}
+}*/
 
 void RunDialog::ResetSelection() {
   // pre select the 1st item

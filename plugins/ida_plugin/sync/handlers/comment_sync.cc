@@ -3,6 +3,7 @@
 
 #include "sync/message_handler.h"
 
+#if 0
 using namespace protocol::sync;
 
 namespace sync::change_item_comment {
@@ -97,3 +98,5 @@ static StaticHandler handler{
     protocol::MsgType_sync_ChangeExtraComment,
     StaticHandler::Handlers<ChangeExtraComment>{Apply, React}};
 }  // namespace sync::change_extra_comment
+
+#endif

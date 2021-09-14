@@ -1,8 +1,10 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
+
+// This defines an executer class for IDA threaded functions
 #pragma once
 
-#include <base/detached_queue.h>
+#include <base/container/detached_queue.h>
 
 class IdaSync;
 

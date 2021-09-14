@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <utils/opt.h>
 #include "plugin.h"
+
 #include "utils/ida_log_impl.h"
 
 namespace {
@@ -30,6 +31,7 @@ Plugin::~Plugin() {
 }
 
 bool Plugin::SyncToggle() {
+    #if 0
   if (!auto_is_ok() && !sync_.IsOnline()) {
     LOG_ERROR("Must wait for Autoanalysis to finish before connecting.");
     return false;
@@ -45,8 +47,9 @@ bool Plugin::SyncToggle() {
 
   bool result = sync_.Start();
   LOG_TRACE("Plugin::ToggleNet() -> Connect {}", result);
-
   return result;
+  #endif
+  return true;
 }
 
 bool Plugin::Init() {
@@ -54,8 +57,9 @@ bool Plugin::Init() {
 }
 
 bool Plugin::run(size_t arg) {
-  if (!auto_is_ok()) {
-    LOG_ERROR("Must wait for Autoanalysis to finish before running.");
+  // This is the menu available under the default IDA plugins dropdown menu.
+  if (utils::IDB::IsBusy()) {
+    LOG_ERROR("IDA is busy. Must wait for Autoanalysis to finish before running.");
     return false;
   }
 

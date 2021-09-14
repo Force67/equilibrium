@@ -91,7 +91,9 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
                    [&]() { addressView_->Show(true); });
 
   connect(stAct_, &QAction::triggered, this, [&]() {
-    bool isOnline = plugin.Sync().Client().Connected();
+   // bool isOnline = plugin.Sync().Client().Connected();
+
+      bool isOnline = false;
 
     forms::Settings dia(isOnline, GetTopWidget());
     dia.exec();
@@ -105,6 +107,7 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
       cnAct_->setEnabled(false);
   });
 
+  #if 0
   connect(
       &plugin_.Sync(), &IdaSync::StateChange, this,
       [&](IdaSync::State state) {
@@ -115,6 +118,7 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
           cnAct_->setText("Connect");
       },
       Qt::QueuedConnection);
+  #endif
 }
 
 PluginUi::~PluginUi() {
@@ -182,10 +186,16 @@ void PluginUi::Tick() {
 }
 
 void PluginUi::RunFeature() {
+    #if 0
   if (state_ == ShellState::NO_DB) {
-    LOG_ERROR("Open an IDB to run features");
+    LOG_ERROR("Features are not available on a closed IDB.");
     return;
   }
+
+  forms::RunDialog dialog(GetTopWidget());
+  dialog.exec();
+
+
 
   tools::Toolbox::ActionCode index;
   {
@@ -198,6 +208,7 @@ void PluginUi::RunFeature() {
   if (index != tools::Toolbox::ActionCode::kNone) {
     plugin_.Tools().InvokeAction(index);
   }
+  #endif
 }
 
 // static handler for ida

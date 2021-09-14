@@ -16,6 +16,7 @@ IDAEventHandler::~IDAEventHandler() {
 }
 
 void IDAEventHandler::HandleEvent(hook_type_t type, int code, va_list args) {
+    #if 0
   if (!sync_.IsOnline())
     return;
 
@@ -39,6 +40,7 @@ void IDAEventHandler::HandleEvent(hook_type_t type, int code, va_list args) {
 
   LOG_TRACE("HandleEvent() -> Executed handler {}", code);
   sync_.stats.idaEventNum_++;
+  #endif
 }
 
 ssize_t IDAEventHandler::IdbEvent(void* ptr, int code, va_list args) {

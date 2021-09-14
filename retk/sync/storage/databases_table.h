@@ -2,9 +2,12 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/container/detached_queue.h>
-
 namespace sync {
 
+class DatabasesTable {
+ public:
+  DatabasesTable() = default;
 
+  bool Init();
+};
 }

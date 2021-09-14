@@ -7,7 +7,7 @@
 #include <QVector>
 #include <bytes.hpp>
 #include <array>
-#include "signature_generator.h"
+#include "ida_signature_maker.h"
 
 #include <chrono>
 
@@ -42,7 +42,7 @@ struct ScopedProfile {
 //@}
 #endif
 
-namespace tools {
+namespace retk {
 namespace {
 // how many instructions the generator can try to use to build a pattern
 constexpr size_t kInstructionLimit = 100u;
@@ -67,9 +67,9 @@ uint8_t GetOpCodeSize(const insn_t& instruction) {
 }
 }  // namespace
 
-SignatureGenerator::SignatureGenerator(Toolbox* toolbox) : toolbox_(toolbox) {}
+IDASignatureMaker::IDASignatureMaker() = default;
 
-const char* const SignatureGenerator::ResultToString(Result result) noexcept {
+const char* const IDASignatureMaker::ResultToString(Result result) noexcept {
   switch (result) {
     case Result::kSuccess:
       return "Success";
@@ -89,7 +89,7 @@ const char* const SignatureGenerator::ResultToString(Result result) noexcept {
   }
 }
 
-SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
+IDASignatureMaker::Result IDASignatureMaker::GenerateSignatureInternal_2(
     ea_t address,
     std::string& out_pattern) {
   ScopedProfile profile_frame("GenerateSignatureInternal");
@@ -217,7 +217,7 @@ SignatureGenerator::Result SignatureGenerator::GenerateSignatureInternal_2(
   return Result::kSuccess;
 }
 
-SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
+IDASignatureMaker::Result IDASignatureMaker::GenerateFunctionReference(
     ea_t ref_ea,
     std::string& out_pattern,
     ptrdiff_t& out_offset) {
@@ -274,7 +274,7 @@ SignatureGenerator::Result SignatureGenerator::GenerateFunctionReference(
   return result;
 }
 
-SignatureGenerator::Result SignatureGenerator::UniqueDataSignature(
+IDASignatureMaker::Result IDASignatureMaker::UniqueDataSignature(
     ea_t target_ea,
     std::string& out_pattern,
     ptrdiff_t& out_offset) {
@@ -312,7 +312,7 @@ SignatureGenerator::Result SignatureGenerator::UniqueDataSignature(
   return result;
 }
 
-SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
+IDASignatureMaker::Result IDASignatureMaker::UniqueCodeSignature(
     ea_t target_ea,
     std::string& out_pattern,
     ptrdiff_t& out_offset,
@@ -366,7 +366,7 @@ SignatureGenerator::Result SignatureGenerator::UniqueCodeSignature(
   return result;
 }
 
-SignatureGenerator::Result SignatureGenerator::UniqueSignature(
+IDASignatureMaker::Result IDASignatureMaker::CreateUniqueSignature(
     ea_t target_address,
     std::string& out_pattern,
     ptrdiff_t& out_offset,

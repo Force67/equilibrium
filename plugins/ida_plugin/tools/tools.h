@@ -2,9 +2,11 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/container/detached_queue.h>
+#include "tools/signature_generator.h"
 
-namespace sync {
-
-
+namespace retk {
+enum class ToolIndex { 
+	kNone, 
+	kSignature 
+};
 }

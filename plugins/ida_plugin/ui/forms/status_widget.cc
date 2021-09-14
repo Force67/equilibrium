@@ -39,6 +39,7 @@ StatusWidget::StatusWidget(QWidget* parent, Plugin& plugin) : QWidget(parent) {
   SetLabelIcon(*_labelUserIcon, ":/user");
   SetDisconnected();
 
+  #if 0
   connect(
       &plugin.Sync(), &IdaSync::StateChange, this,
       [&](IdaSync::State newState) {
@@ -66,6 +67,7 @@ StatusWidget::StatusWidget(QWidget* parent, Plugin& plugin) : QWidget(parent) {
         }
       },
       Qt::QueuedConnection);
+  #endif
 }
 
 void StatusWidget::SetLabelIcon(QLabel& labelIcon, const QString& iconName) {

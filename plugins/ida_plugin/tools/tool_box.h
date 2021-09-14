@@ -2,9 +2,13 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/container/detached_queue.h>
+#include "tools/ida_signature_maker.h"
 
-namespace sync {
+namespace retk {
+class ToolBox final {
+ public:
 
+ private:
+};
 
-}
+}  // namespace retk

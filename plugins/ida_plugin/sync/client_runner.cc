@@ -7,7 +7,7 @@
 #include <sync/engine/sync_client.h>
 
 namespace {
-utils::Opt<int> NetPort{sync::kDefaultSyncPort, "Nd_NetPort"};
+utils::Opt<int> NetPort{/* sync::kDefaultSyncPort*/ 1337, "Nd_NetPort"};
 utils::Opt<QString> NetIp{"localhost", "Nd_NetIp"};
 utils::Opt<int> NetIdle{1, "Nd_NetThreadIdle"};
 }  // namespace
@@ -24,7 +24,7 @@ ClientRunner::~ClientRunner() {
 bool ClientRunner::Start() {
   const QString ip = NetIp;
 
-  running_ = client_.Connect(ip.toUtf8().data(), NetPort);
+  //running_ = client_.Connect(ip.toUtf8().data(), NetPort);
 
   if (running_) {
     idletime_ = NetIdle;
@@ -36,7 +36,7 @@ bool ClientRunner::Start() {
 }
 
 void ClientRunner::Stop() {
-  client_.Disconnect();
+  //client_.Disconnect();
 
   running_ = false;
 
@@ -51,7 +51,7 @@ void ClientRunner::run() {
   s_Tid = QThread::currentThreadId();
 
   while (running_) {
-    running_ = client_.Tick();
+    //running_ = client_.Tick();
     QThread::msleep(idletime_);
   }
 

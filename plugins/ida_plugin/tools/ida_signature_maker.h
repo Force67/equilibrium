@@ -2,11 +2,11 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-namespace tools {
-class Toolbox;
-
-class SignatureGenerator {
+namespace retk {
+class IDASignatureMaker {
  public:
+  explicit IDASignatureMaker();
+
   enum class Result {
     kSuccess,
     kDecodeError,
@@ -17,9 +17,7 @@ class SignatureGenerator {
   };
   static const char* const ResultToString(Result) noexcept;
 
-  explicit SignatureGenerator(Toolbox* toolbox);
-
-  Result UniqueSignature(ea_t target_address,
+  Result CreateUniqueSignature(ea_t target_address,
                          std::string& out_pattern,
                          ptrdiff_t& out_offset,
                          bool mute_log,
@@ -41,7 +39,6 @@ class SignatureGenerator {
                                    ptrdiff_t& out_offset);
 
  private:
-  Toolbox* toolbox_;
   qvector<uchar> bytes_;
   qvector<uchar> masks_;
 };

@@ -47,34 +47,38 @@ class NetNode {
   netnode node_;
 };
 
-class InputFile {
- public:
-  // must be 33 bytes big!!
-  static inline std::string RetrieveInputFileNameMD5() {
-    uchar md5[16]{};
-    bool result = retrieve_input_file_md5(md5);
-    assert(result != false);
+namespace InputFile {
+static inline std::string RetrieveInputFileNameMD5() {
+  uchar md5[16]{};
+  bool result = retrieve_input_file_md5(md5);
+  assert(result != false);
 
-    // cxx string will null terminate
-    char buf[32 + 1]{};
+  // cxx string will null terminate
+  char buf[32 + 1]{};
 
-    // convert bytes to str
-    constexpr char lookup[] = "0123456789abcdef";
-    for (int i = 0; i < 16; i++) {
-      buf[i * 2] = lookup[(md5[i]) >> 4 & 0xF];
-      buf[i * 2 + 1] = lookup[(md5[i]) & 0xF];
-    }
-
-    return buf;
+  // convert bytes to str
+  constexpr char lookup[] = "0123456789abcdef";
+  for (int i = 0; i < 16; i++) {
+    buf[i * 2] = lookup[(md5[i]) >> 4 & 0xF];
+    buf[i * 2 + 1] = lookup[(md5[i]) & 0xF];
   }
 
-  static inline std::string GetInputFileName() { 
-    char fileName[128]{};
-    get_root_filename(fileName, sizeof(fileName) - 1);
+  return buf;
+}
 
-    return fileName;
-  }
-};
+static inline std::string GetInputFileName() {
+  char fileName[128]{};
+  get_root_filename(fileName, sizeof(fileName) - 1);
+
+  return fileName;
+}
+}
+
+namespace IDB {
+static inline bool IsBusy() {
+  return !auto_is_ok();
+}
+}
 
 template<typename T>
 struct RequestFunctor final : exec_request_t {

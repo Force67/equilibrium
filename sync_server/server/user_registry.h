@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <network/base/network_peer.h>
+#include <network/base/peer_base.h>
 
 namespace sync_server {
 

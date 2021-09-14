@@ -5,7 +5,6 @@
 #include "storage/data_store.h"
 #include "ui/plugin_ui.h"
 #include "sync/ida_sync.h"
-#include "tools/toolbox.h"
 
 class Plugin final : public QObject, public plugmod_t {
   Q_OBJECT;
@@ -23,11 +22,10 @@ class Plugin final : public QObject, public plugmod_t {
 
   inline auto& Sync() { return sync_; }
   inline auto& Ui() { return ui_; }
-  inline auto& Tools() { return tools_; }
+  //inline auto& Tools() { return tools_; }
 
  private:
   DataStore store_;
   IdaSync sync_;
   PluginUi ui_;
-  tools::Toolbox tools_;
 };

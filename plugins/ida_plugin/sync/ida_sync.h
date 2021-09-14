@@ -2,6 +2,15 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+struct MsgContext;
+class Plugin;
+
+class IdaSync {
+ public:
+  IdaSync(Plugin&){};
+};
+
+#if 0
 #include <QTimer>
 #include <unordered_map>
 
@@ -122,3 +131,4 @@ private:
  Q_ENUM(IdaSync::State)
  Q_ENUM(IdaSync::Notification)
 };
+#endif

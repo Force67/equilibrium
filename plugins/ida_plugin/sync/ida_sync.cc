@@ -9,6 +9,7 @@
 #include <sync/utils/user_info.h>
 #include <sync/protocol/generated/message_root_generated.h>
 
+#if 0
 IdaSync::IdaSync(Plugin& plugin)
     : client_(*this),
       netRunner_(client_),
@@ -161,3 +162,4 @@ void IdaSync::ProcessData(const uint8_t* data, size_t length) {
       break;
   }
 }
+#endif

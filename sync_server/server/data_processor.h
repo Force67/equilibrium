@@ -3,7 +3,7 @@
 #pragma once
 
 #include <thread>
-#include <base/detached_queue.h>
+#include <base/container/detached_queue.h>
 #include <sync/engine/sync_server.h>
 
 namespace protocol {

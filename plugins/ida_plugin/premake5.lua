@@ -36,17 +36,17 @@ project("ida_plugin")
         -- third party
         "network",
         "fmtlib",
-        "server",
 
         "network",
         "database",
         "base",
         "sync"
     })
+    -- configure IDA SDK
     defines({
         "__NT__",            -- < Windows NT Target
         "__QT__",            -- < We are building with QT
-        --"__UI__",            -- < Define ida types as QT types
+        --"__UI__",          -- < Define ida types as QT types
         "__EA64__",          -- < Use 64 Bit addressing (Even ida 32 is 64 bit nowadays)
         "NO_OBSOLETE_FUNCS", -- < No depricated functions (Target for latest IDA)
 
@@ -58,7 +58,6 @@ project("ida_plugin")
         ".",
         "../../",
         "../../retk",
-        "../../sync_server",
         blu.extdir .. "/idasdk75/include",
         blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",

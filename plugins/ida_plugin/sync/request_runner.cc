@@ -6,7 +6,7 @@
 #include "message_handler.h"
 #include "sync/protocol/generated/message_root_generated.h"
 
-#include <base/object_pool.h>
+#include <base/container/object_pool.h>
 
 struct RequestRunner::Packet {
   uint32_t dataSize;
@@ -38,6 +38,7 @@ void RequestRunner::Queue(const uint8_t* data, size_t size) {
 }
 
 int RequestRunner::execute() {
+    #if 0
   auto& events = sync_.NetEvents();
 
   while (auto* item = queue_.pop(&Packet::key)) {
@@ -57,5 +58,6 @@ int RequestRunner::execute() {
     s_Pool.destruct(item);
   }
   
+  #endif
   return 0;
 }
