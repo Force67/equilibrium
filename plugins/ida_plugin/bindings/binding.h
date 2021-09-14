@@ -8,8 +8,6 @@ namespace iretk {
 
 inline static void Test1(const char* a, int64_t b) {}
 
-//   const char args_[3] = {VT_INT64, VT_STR, 0};
-
 class BindingBase {
  public:
   inline BindingBase(const char* const name,
@@ -27,9 +25,12 @@ class BindingBase {
   ext_idcfunc_t desc_;
 };
 
-template <size_t N, typename TFunctor, typename... Ts>
+template <typename... Ts>
 class Binding final : public BindingBase {
  public:
+  using TFunctor = void(Ts...);
+  static constexpr size_t N = sizeof...(Ts);
+
   inline explicit Binding(TFunctor &funcRef, const char* const name)
       : BindingBase(name, args_, Functor),
         args_{(ToValueTypeIndex<Ts>(), ...), 0} {
@@ -75,7 +76,5 @@ class Binding final : public BindingBase {
   static inline TFunctor *functor_;
 };
 
-using XT = decltype(Test1);
-
-static Binding<2, XT, const char*, int64_t> kTest(Test1, "LMAO");
+static Binding<const char*, int64_t> kTest(Test1, "LMAO");
 }  // namespace iretk
