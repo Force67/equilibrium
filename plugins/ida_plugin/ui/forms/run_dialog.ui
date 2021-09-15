@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1408</width>
-    <height>927</height>
+    <width>559</width>
+    <height>222</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,12 +24,12 @@
       <widget class="QListWidget" name="optionList">
        <item>
         <property name="text">
-         <string>Create Signature</string>
+         <string>Make Signature</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Request Updates</string>
+         <string>Make USI</string>
         </property>
         <property name="whatsThis">
          <string/>

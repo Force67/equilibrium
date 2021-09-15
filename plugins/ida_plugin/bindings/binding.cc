@@ -3,8 +3,6 @@
 
 #include "binding.h"
 
-namespace iretk {
-
 static BindingBase* rootBinding{nullptr};
 
 BindingBase::BindingBase(const char* const name,
@@ -32,5 +30,3 @@ void BindingBase::UnBindAll() {
     i = i->next_;
   }
 }
-
-}  // namespace iretk

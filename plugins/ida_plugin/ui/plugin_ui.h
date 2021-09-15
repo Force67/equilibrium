@@ -4,7 +4,7 @@
 
 class Plugin;
 
-#include "storage/ui_data.h"
+#include "idb_storage/ui_data.h"
 
 #include <QObject>
 #include <QScopedPointer>
@@ -46,6 +46,7 @@ class PluginUi final : public QObject {
   void RunFeature();
  signals:
   void ShellStateChange(ShellState newState);
+  void RequestFeature(int featureCode);
 
  private:
   void Tick();

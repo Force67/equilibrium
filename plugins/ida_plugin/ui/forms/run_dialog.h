@@ -12,12 +12,18 @@ class RunDialog final : public QDialog, public Ui::RunDialog {
   RunDialog(QWidget* parent);
   ~RunDialog() = default;
 
-  //tools::Toolbox::ActionCode SelectedIndex() const;
+  enum class Index {
+    kNone,
+    kMakeSig,
+    kMakeUSI,
+  };
+  Index SelectedIndex() const;
 
  private:
   void OnClickOK();
   void ResetSelection();
 
-  int _index = 0;
+ private:
+  Index current_index_{Index::kNone};
 };
 }  // namespace forms

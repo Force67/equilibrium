@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "storage/data_store.h"
+#include "idb_storage/data_store.h"
 #include "ui/plugin_ui.h"
 #include "sync/ida_sync.h"
 

@@ -5,7 +5,6 @@
 #include "tools/ida_signature_maker.h"
 
 namespace {
-using namespace iretk;
 using namespace retk;
 
 Binding<bool, ea_t> MakeSignature("MakeSignature", [](ea_t ea) {

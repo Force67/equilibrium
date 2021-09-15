@@ -18,7 +18,8 @@ RunDialog::RunDialog(QWidget* parent) : QDialog(parent) {
 
   connect(btOk, &QPushButton::clicked, this, &RunDialog::OnClickOK);
   connect(btQuit, &QPushButton::clicked, [&]() {
-    ResetSelection();
+    // Not resetting the selection is a feature now.
+    //ResetSelection();
     QDialog::close();
   });
 }
@@ -31,22 +32,14 @@ void RunDialog::OnClickOK() {
   }
 
   const auto& item = selected.at(0);
-  _index = item.row() + 1;
+  current_index_ = static_cast<Index>(item.row() + 1);
 
   QDialog::close();
 }
 
-/*
-tools::Toolbox::ActionCode RunDialog::SelectedIndex() const {
-  using tb_t = tools::Toolbox::ActionCode;
-
-  switch (_index) {
-    case 1:
-      return tb_t::kSignature;
-    default:
-      return tb_t::kNone;
-  }
-}*/
+RunDialog::Index RunDialog::SelectedIndex() const {
+  return current_index_;
+}
 
 void RunDialog::ResetSelection() {
   // pre select the 1st item

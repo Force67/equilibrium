@@ -18,6 +18,8 @@
 #include "forms/status_widget.h"
 #include "forms/address_book_view.h"
 
+#include "tools/quick_runner.h"
+
 QT::QWidget* GetTopWidget() {
   return qobject_cast<QMainWindow*>(
       QApplication::activeWindow()->topLevelWidget());
@@ -53,7 +55,7 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
 
   hook_to_notification_point(hook_type_t::HT_UI, StaticEvent, this);
 
-  static AddressBookData *s_fakeDataTemp = new AddressBookData();
+  static AddressBookData* s_fakeDataTemp = new AddressBookData();
 
   wastedTime_.reset(new QLabel(""));
   statusForm_.reset(new forms::StatusWidget(window->statusBar(), plugin));
@@ -91,9 +93,9 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
                    [&]() { addressView_->Show(true); });
 
   connect(stAct_, &QAction::triggered, this, [&]() {
-   // bool isOnline = plugin.Sync().Client().Connected();
+    // bool isOnline = plugin.Sync().Client().Connected();
 
-      bool isOnline = false;
+    bool isOnline = false;
 
     forms::Settings dia(isOnline, GetTopWidget());
     dia.exec();
@@ -107,7 +109,7 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
       cnAct_->setEnabled(false);
   });
 
-  #if 0
+#if 0
   connect(
       &plugin_.Sync(), &IdaSync::StateChange, this,
       [&](IdaSync::State state) {
@@ -118,7 +120,7 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
           cnAct_->setText("Connect");
       },
       Qt::QueuedConnection);
-  #endif
+#endif
 }
 
 PluginUi::~PluginUi() {
@@ -186,29 +188,34 @@ void PluginUi::Tick() {
 }
 
 void PluginUi::RunFeature() {
-    #if 0
+  using RD = forms::RunDialog;
+
   if (state_ == ShellState::NO_DB) {
     LOG_ERROR("Features are not available on a closed IDB.");
     return;
   }
 
-  forms::RunDialog dialog(GetTopWidget());
+  RD dialog(GetTopWidget());
   dialog.exec();
 
-
-
-  tools::Toolbox::ActionCode index;
-  {
-    forms::RunDialog dia(GetTopWidget());
-    dia.exec();
-
-    index = dia.SelectedIndex();
+    // map index
+  QuickRunner::FeatureCode featureIndex;
+  switch (dialog.SelectedIndex()) { 
+  case RD::Index::kNone:
+      return;
+  case RD::Index::kMakeSig:
+    featureIndex = QuickRunner::FeatureCode::SIGNATURE;
+    break;
+  case RD::Index::kMakeUSI:
+    featureIndex = QuickRunner::FeatureCode::USI;
+    break;
   }
 
-  if (index != tools::Toolbox::ActionCode::kNone) {
-    plugin_.Tools().InvokeAction(index);
-  }
-  #endif
+  // Due to the way RunFeature() is invoked
+  // we are already on a valid IDA thread.
+  // Still, we move execution to the new runner component
+  // while also hiding index
+  emit RequestFeature(static_cast<int>(featureIndex));
 }
 
 // static handler for ida

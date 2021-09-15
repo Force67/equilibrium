@@ -4,7 +4,8 @@
 
 #include <expr.hpp>
 
-namespace iretk {
+// Base class so the Binding can self (de)-register
+// during it's lifetime
 class BindingBase {
  public:
   BindingBase(const char* const name,
@@ -28,6 +29,9 @@ class Binding final : public BindingBase {
   template <typename TF>
   Binding(const char* const name, TF function)
       : BindingBase(name, args_, FunctorImpl),
+    // create the type index list by converting each argument
+    //  into its numeric representation, note that we need to store
+    //  a null terminator for book-keeping at the end.
         args_{(ToValueTypeIndex<Ts>(), ...), 0} {
     // decay type so we can support lambda syntax
     functor_ = &function;
@@ -40,12 +44,15 @@ class Binding final : public BindingBase {
       return eOk;
     }
 
+    // this works due the constructor if idc_value_t getting invoked here
     *result = InvokeFunctor(argv, std::make_index_sequence<N>{});
     return eOk;
   }
 
   template <size_t... I>
   static inline TRet InvokeFunctor(idc_value_t* t, std::index_sequence<I...>) {
+    // reconstruct type pointer and flatten argv into function args 
+    // e.g array<a,b,c> -> f(a,b,c)
     return reinterpret_cast<TFunctor*>(functor_)(ToConreteValueType<Ts>(t[I])...);
   }
 
@@ -76,4 +83,3 @@ class Binding final : public BindingBase {
   const char args_[N + 1];
   static inline void* functor_;
 };
-}  // namespace iretk
