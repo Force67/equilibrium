@@ -3,8 +3,10 @@
 #pragma once
 
 #include "idb_storage/data_store.h"
+
 #include "ui/plugin_ui.h"
 #include "sync/ida_sync.h"
+#include "tools/quick_runner.h"
 
 class Plugin final : public QObject, public plugmod_t {
   Q_OBJECT;
@@ -16,16 +18,18 @@ class Plugin final : public QObject, public plugmod_t {
   static plugmod_t* Create();
 
   bool Init(); 
-  bool run(size_t arg);
+  // plugmod_t
+  bool run(size_t arg) override;
 
   bool SyncToggle();
 
-  inline auto& Sync() { return sync_; }
-  inline auto& Ui() { return ui_; }
+  inline IdaSync& sync() { return sync_; }
+  inline PluginUi& ui() { return ui_; }
   //inline auto& Tools() { return tools_; }
 
  private:
   DataStore store_;
   IdaSync sync_;
   PluginUi ui_;
+  QuickRunner runner_;
 };

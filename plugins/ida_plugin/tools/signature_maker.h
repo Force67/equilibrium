@@ -2,10 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-namespace retk {
-class IDASignatureMaker {
+class SignatureMaker {
  public:
-  explicit IDASignatureMaker();
+  explicit SignatureMaker();
 
   enum class Result {
     kSuccess,
@@ -18,10 +17,10 @@ class IDASignatureMaker {
   static const char* const ResultToString(Result) noexcept;
 
   Result CreateUniqueSignature(ea_t target_address,
-                         std::string& out_pattern,
-                         ptrdiff_t& out_offset,
-                         bool mute_log,
-                         bool& out_shit);
+                               std::string& out_pattern,
+                               ptrdiff_t& out_offset,
+                               bool mute_log,
+                               bool& out_shit);
 
  private:
   Result GenerateSignatureInternal_2(ea_t address, std::string& out_pattern);
@@ -32,7 +31,8 @@ class IDASignatureMaker {
 
   Result UniqueCodeSignature(ea_t target_address,
                              std::string& out_pattern,
-                             ptrdiff_t& out_offset, bool &very_dumb_flag);
+                             ptrdiff_t& out_offset,
+                             bool& very_dumb_flag);
 
   Result GenerateFunctionReference(ea_t target_address,
                                    std::string& out_pattern,
@@ -42,4 +42,3 @@ class IDASignatureMaker {
   qvector<uchar> bytes_;
   qvector<uchar> masks_;
 };
-}  // namespace tools

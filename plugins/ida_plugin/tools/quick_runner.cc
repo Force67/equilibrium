@@ -5,21 +5,47 @@
 #include "plugin.h"
 #include "quick_runner.h"
 
+#include "bindings/binding.h"
+#include "signature_maker.h"
+#include "usi_maker.h"
+
+extern Binding<bool, ea_t> MakeSignature;
+
+namespace {
+void CreatePrintSignature() {
+  SignatureMaker sigMaker;
+
+  std::string signature;
+  ptrdiff_t offset = 0;
+  bool dumb = false;
+
+  sigMaker.CreateUniqueSignature(get_screen_ea(), signature, offset, false,
+                                 dumb);
+}
+}
+
+
 QuickRunner::QuickRunner(Plugin& plugin) {
   // glue UI request to runner.
-  connect(&plugin.Ui(), &PluginUi::RequestFeature, this,
-          &QuickRunner::InvokeFeature);
+  connect(&plugin.ui(), &PluginUi::RequestFeature, this,
+          &QuickRunner::DispatchFeature);
 }
 
 QuickRunner::~QuickRunner() {}
 
-void QuickRunner::InvokeFeature(int data) {
-  const FeatureCode code = static_cast<FeatureCode>(data);
+void QuickRunner::DispatchFeature(int data) {
+  const FeatureIndex code = static_cast<FeatureIndex>(data);
   switch (code) {
-    case FeatureCode::SIGNATURE:
-      // TODO: maybe execute binding?
-
+    case FeatureIndex::kSignatureMaker:
+      CreatePrintSignature();
+      break;
+    case FeatureIndex::kUSIMaker:
+      CreateUSI(get_screen_ea());
+      break;
     default:
       LOG_ERROR("??? : {}", data);
+      break;
   }
+
+  last_feature_ = code;
 }

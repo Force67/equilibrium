@@ -8,8 +8,8 @@ project("ida_plugin")
     kind("SharedLib")
     targetname("IDA_Retk76")
     include_meta()
-    debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5 SP3")
-    debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.5 SP3\\ida64.exe")
+    debugdir("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.6 SP1")
+    debugcommand("C:\\Users\\vince\\AppData\\Roaming\\IDAPro\\IDA 7.6 SP1\\ida64.exe")
     files({
         "**.cc",
         "**.h",

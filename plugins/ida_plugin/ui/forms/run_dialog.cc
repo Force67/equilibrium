@@ -32,13 +32,9 @@ void RunDialog::OnClickOK() {
   }
 
   const auto& item = selected.at(0);
-  current_index_ = static_cast<Index>(item.row() + 1);
+  current_index_ = item.row() + 1;
 
   QDialog::close();
-}
-
-RunDialog::Index RunDialog::SelectedIndex() const {
-  return current_index_;
 }
 
 void RunDialog::ResetSelection() {

@@ -169,7 +169,7 @@ PluginUi::ShellState PluginUi::GetShellState() const {
 void PluginUi::ClenseTheShell() {
   // manually kill the statusform here, in order to prevent QT from freeing it,
   // which would result in a crash and leave the idb broken...
-  statusForm_.reset();
+  //statusForm_.reset();
 }
 
 void PluginUi::Tick() {
@@ -198,24 +198,13 @@ void PluginUi::RunFeature() {
   RD dialog(GetTopWidget());
   dialog.exec();
 
-    // map index
-  QuickRunner::FeatureCode featureIndex;
-  switch (dialog.SelectedIndex()) { 
-  case RD::Index::kNone:
-      return;
-  case RD::Index::kMakeSig:
-    featureIndex = QuickRunner::FeatureCode::SIGNATURE;
-    break;
-  case RD::Index::kMakeUSI:
-    featureIndex = QuickRunner::FeatureCode::USI;
-    break;
-  }
-
+  if (dialog.SelectedIndex() == 0)
+    return;
   // Due to the way RunFeature() is invoked
   // we are already on a valid IDA thread.
   // Still, we move execution to the new runner component
   // while also hiding index
-  emit RequestFeature(static_cast<int>(featureIndex));
+  emit RequestFeature(dialog.SelectedIndex());
 }
 
 // static handler for ida

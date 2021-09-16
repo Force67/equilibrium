@@ -37,6 +37,10 @@ class Binding final : public BindingBase {
     functor_ = &function;
   }
 
+  void ExecuteFunctor(Ts... args) { 
+      reinterpret_cast<TFunctor*>(functor_)(args...);
+  }
+
  private:
   static error_t idaapi FunctorImpl(idc_value_t* argv, idc_value_t* result) {
     if constexpr (std::is_same_v<TRet, void>) {
