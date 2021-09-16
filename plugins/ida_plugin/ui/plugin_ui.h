@@ -59,10 +59,11 @@ class PluginUi final : public QObject {
   UiData data_;
   ShellState state_{ShellState::NO_DB};
 
-  std::unique_ptr<QLabel> wastedTime_;
-  std::unique_ptr<QTimer> timer_;
-  std::unique_ptr<forms::StatusWidget> statusForm_;
-  std::unique_ptr<forms::AddressBookView> addressView_;
+  QLabel *time_label_;
+  QTimer* timer_;
+
+  forms::StatusWidget* status_form_;
+  forms::AddressBookView* address_view_;
 
   QAction* cnAct_ = nullptr;
   QAction* stAct_ = nullptr;

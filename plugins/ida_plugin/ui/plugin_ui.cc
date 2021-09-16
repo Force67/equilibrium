@@ -57,9 +57,9 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
 
   static AddressBookData* s_fakeDataTemp = new AddressBookData();
 
-  wastedTime_.reset(new QLabel(""));
-  statusForm_.reset(new forms::StatusWidget(window->statusBar(), plugin));
-  addressView_.reset(new forms::AddressBookView(*s_fakeDataTemp));
+  time_label_ = new QLabel("");
+  status_form_ = new forms::StatusWidget(window->statusBar(), plugin);
+  address_view_ = new forms::AddressBookView(*s_fakeDataTemp);
 
   // register the address book selection view toggle
   QMenu* viewMenu =
@@ -76,21 +76,20 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   syncMenu->addSeparator();
   stAct_ = syncMenu->addAction(QIcon(":/cog"), "Settings");
 
-  wastedTime_->hide();
+  time_label_->hide();
   cnAct_->setEnabled(false);
-
-  timer_.reset(new QTimer());
+  timer_ = new QTimer();
 
   // register tray widgets
-  window->statusBar()->addPermanentWidget(wastedTime_.get());
-  window->statusBar()->addPermanentWidget(statusForm_.get());
+  window->statusBar()->addPermanentWidget(time_label_);
+  window->statusBar()->addPermanentWidget(status_form_);
 
   // and connect everything
-  connect(timer_.get(), &QTimer::timeout, this, &PluginUi::Tick);
+  connect(timer_, &QTimer::timeout, this, &PluginUi::Tick);
   connect(cnAct_, &QAction::triggered, &plugin_, &Plugin::SyncToggle);
 
   QObject::connect(abAct_, &QAction::triggered, this,
-                   [&]() { addressView_->Show(true); });
+                   [&]() { address_view_->Show(true); });
 
   connect(stAct_, &QAction::triggered, this, [&]() {
     // bool isOnline = plugin.Sync().Client().Connected();
@@ -135,7 +134,7 @@ void PluginUi::HandleEvent(int code, va_list args) {
       timer_->stop();
       break;
     case ui_notification_t::ui_database_inited: {
-      wastedTime_->show();
+      time_label_->show();
       timer_->start(1000);
       SetShellState(ShellState::IN_DB);
       break;
@@ -151,7 +150,7 @@ void PluginUi::HandleEvent(int code, va_list args) {
     }
   }
 
-  addressView_->HandleNotification(code, args);
+  address_view_->HandleNotification(code, args);
 }
 
 void PluginUi::SetShellState(ShellState newState) {
@@ -183,7 +182,7 @@ void PluginUi::Tick() {
                      .arg(minutes, 2, 10, QLatin1Char('0'))
                      .arg(seconds, 2, 10, QLatin1Char('0'));
 
-  wastedTime_->setText(text);
+  time_label_->setText(text);
   data_.tick_++;
 }
 

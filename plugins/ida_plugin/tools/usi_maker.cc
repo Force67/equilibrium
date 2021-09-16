@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "usi_maker.h"
+#include <typeinf.hpp>
 
 namespace {
 using hash_type = uint64_t;
@@ -22,20 +23,33 @@ uint64_t CreateUSI(const ea_t ea) {
   if (!get_func(ea))
     return kInvalidUSI;
 
-  qstring function_name;
-  get_func_name(&function_name, ea);
+  // extract function name
+  qstring symbol_name;
+  get_func_name(&symbol_name, ea);
 
-  //get_arg_addrs()
-
-  const size_t pos = function_name.find("sub_");
+  const size_t pos = symbol_name.find("sub_");
   if (pos != qstring::npos && pos == 0) {
-    LOG_ERROR("Cant create USI for unnamed sub! ({})", function_name.c_str());
+    LOG_ERROR("Cant create USI for unnamed sub! ({})", symbol_name.c_str());
     return kInvalidUSI;
   }
 
+  symbol_name += "(";
 
-  const uint64_t hash = HashTypeName(function_name.c_str());
-  LOG_INFO("CreateUSI() -> {}=0x{:x}", function_name.c_str(), hash);
+  // extract arguments
+  tinfo_t info;
+  get_tinfo(&info, ea);
+
+  func_type_data_t fi;
+  info.get_func_details(&fi);
+
+  for (const funcarg_t& it : fi) {
+    symbol_name += it.name;
+  }
+
+  symbol_name += ")";
+
+  const uint64_t hash = HashTypeName(symbol_name.c_str());
+  LOG_INFO("CreateUSI() -> {}=0x{:x}", symbol_name.c_str(), hash);
 
   // TODO: add function comment...
 
