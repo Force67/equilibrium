@@ -2,11 +2,18 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-static constexpr uint64_t kInvalidUSI = UINT64_MAX;
+class USIMaker {
+ public:
+  USIMaker() = default;
 
-// This is an implementation of the universal symbol standard, used by this program in order to
-// provide a unique type identifier for given EA
-uint64_t CreateUSI(const ea_t);
+  using HashType = uint64_t;
 
-// create storage NODE
-bool CreateReflectionSymbolTableEntry();
+  // Default init or failure
+  static constexpr uint64_t kInvalidUSI = UINT64_MAX;
+
+  HashType Create(const ea_t);
+  bool CreateStore(const ea_t);
+
+ private:
+  char* utf8_storage_name_;
+};

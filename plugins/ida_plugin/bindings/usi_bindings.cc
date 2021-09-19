@@ -2,10 +2,12 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "binding.h"
-#include "tools/usi_maker.h"
+#include "tools/workbench.h"
+
 // plain make a USI provided by given type name...
-Binding<uint64_t, ea_t> MakeUSI("MakeUSI",
-                                [](ea_t ea) { return CreateUSI(ea); });
+Binding<uint64_t, ea_t> MakeUSI("MakeUSI", [](ea_t ea) { 
+	return work_bench()->usi_maker().Create(ea);
+});
 
 // create an USI, directly export it to given database
 // fails when executed on wrong thread.

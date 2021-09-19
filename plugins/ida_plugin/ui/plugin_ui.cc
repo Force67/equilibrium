@@ -18,8 +18,6 @@
 #include "forms/status_widget.h"
 #include "forms/address_book_view.h"
 
-#include "tools/quick_runner.h"
-
 QT::QWidget* GetTopWidget() {
   return qobject_cast<QMainWindow*>(
       QApplication::activeWindow()->topLevelWidget());

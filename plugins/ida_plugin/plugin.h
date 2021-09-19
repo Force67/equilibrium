@@ -6,7 +6,7 @@
 
 #include "ui/plugin_ui.h"
 #include "sync/ida_sync.h"
-#include "tools/quick_runner.h"
+#include "tools/workbench.h"
 
 class Plugin final : public QObject, public plugmod_t {
   Q_OBJECT;
@@ -31,5 +31,5 @@ class Plugin final : public QObject, public plugmod_t {
   DataStore store_;
   IdaSync sync_;
   PluginUi ui_;
-  QuickRunner runner_;
+  Workbench work_bench_;
 };
