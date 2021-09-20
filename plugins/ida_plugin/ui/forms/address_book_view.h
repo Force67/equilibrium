@@ -4,7 +4,7 @@
 
 #include <QTableWidget>
 
-#include "idb_storage/address_book_data.h"
+#include "idb/address_book_data.h"
 
 namespace forms {
 

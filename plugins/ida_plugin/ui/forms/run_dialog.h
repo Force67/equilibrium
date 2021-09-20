@@ -3,22 +3,23 @@
 #pragma once
 
 #include "ui/generated/ui_run_dialog.h"
+#include "idb/ui_data.h"
 
 namespace forms {
 class RunDialog final : public QDialog, public Ui::RunDialog {
   Q_OBJECT;
 
  public:
-  RunDialog(QWidget* parent);
+  RunDialog(QWidget* parent, UiData&);
   ~RunDialog() = default;
 
-  int SelectedIndex() const { return current_index_; }
+  int SelectedIndex() const { return data_.last_run_index; }
 
  private:
   void OnClickOK();
-  void ResetSelection();
+  void SetSelectedItem(int);
 
  private:
-  int current_index_ = 0;
+  UiData& data_;
 };
 }  // namespace forms

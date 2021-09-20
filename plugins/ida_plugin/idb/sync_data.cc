@@ -9,32 +9,30 @@ constexpr char kSyncDataName[] = "$ retk_sync_data";
 constexpr int kSessionStoreVersion = 1;
 }
 
-const char* const SyncData::GetName() {
-  return kSyncDataName;
+SyncData::SyncData() : IdbNode(kSyncDataName) {
+
 }
 
 void SyncData::Load() {
-  _node = utils::NetNode(kSyncDataName);
-
-  int version = _node.LoadScalar<int>(NodeIndex::StorageVersion, -1);
+  int version = Read(NodeIndex::StorageVersion, -1);
   if (version < kSessionStoreVersion) {
     // apply change set..
   }
 
   // no node exists yet..
   if (version == -1) {
-    _node.StoreScalar(NodeIndex::StorageVersion, kSessionStoreVersion);
+    Write(NodeIndex::StorageVersion, kSessionStoreVersion);
   }
 
-  version_ = _node.LoadScalar<int>(NodeIndex::SessionVersion, 0);
+  version_ = Read(NodeIndex::SessionVersion, 0);
 }
 
 void SyncData::Save() {
   // attempt to rescue the node
-  if (!_node.open()) {
+  if (!IsOpen()) {
     Load();
   }
 
   bool res;
-  res = _node.StoreScalar(NodeIndex::SessionVersion, version_);
+  res = Write(NodeIndex::SessionVersion, version_);
 }

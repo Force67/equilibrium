@@ -13,35 +13,50 @@ class NetNode {
   explicit NetNode(const char* name, bool create = true) {
     node_ = netnode(name, -1, create);
   }
-
   NetNode() { node_ = BADNODE; }
   NetNode(const NetNode& node) { node_ = node.node_; }
 
-  inline bool open() const { return nodeidx_t() != BADNODE; }
-  void clear() { node_ = BADNODE; }
-
-  // check value bool operator
-
+  void Reset(const char* name, bool create = true) {
+    node_ = netnode(name, -1, create);
+  }
   bool Create(const char* name) { return node_.create(name, -1); }
 
-  template <typename T>
-  T LoadScalar(nodeidx_t idx) {
+  bool IsOpen() const { return nodeidx_t() != BADNODE; }
+  void Clear() { node_ = BADNODE; }
+
+  static bool Exists(const char* name) {
+    return utils::NetNode(name, false).IsOpen();
+  }
+
+  template <typename T,
+            class = typename std::enable_if<std::is_pod<T>::value>::type>
+  T Read(nodeidx_t idx) {
     T temp;
     node_.supval(idx, &temp, sizeof(T));
     return temp;
   }
 
-  template <typename T>
-  T LoadScalar(nodeidx_t idx, T fallback) {
+  qstring Read(nodeidx_t idx) {
+    qstring str;
+    node_.supstr(&str, idx);
+    return str;
+  }
+
+  template <typename T,
+            class = typename std::enable_if<std::is_pod<T>::value>::type>
+  T Read(nodeidx_t idx, T fallback) {
     T temp = fallback;
     node_.supval(idx, &temp, sizeof(T));
     return temp;
   }
 
-  template <typename T>
-  bool StoreScalar(nodeidx_t idx, T t) {
+  template <typename T,
+            class = typename std::enable_if<std::is_pod<T>::value>::type>
+  bool Write(nodeidx_t idx, T t) {
     return node_.supset(idx, reinterpret_cast<const void*>(&t), sizeof(T));
   }
+
+  bool Write(nodeidx_t idx, qstring& str) { return node_.supstr(&str, idx); }
 
  private:
   netnode node_;
@@ -72,29 +87,29 @@ static inline std::string GetInputFileName() {
 
   return fileName;
 }
-}
+}  // namespace InputFile
 
 namespace IDB {
 static inline bool IsBusy() {
   return !auto_is_ok();
 }
-}
+}  // namespace IDB
 
-template<typename T>
+template <typename T>
 struct RequestFunctor final : exec_request_t {
  public:
-  RequestFunctor(std::function<T> callback, int flags) { 
-      callback_ = callback;
+  RequestFunctor(std::function<T> callback, int flags) {
+    callback_ = callback;
     execute_sync(*this, flags);
   }
 
-  int execute() override { 
-     callback_();
-     return 0;
+  int execute() override {
+    callback_();
+    return 0;
   }
 
  private:
   std::function<T> callback_;
 };
 
-}
+}  // namespace utils

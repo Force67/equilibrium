@@ -170,9 +170,9 @@ void PluginUi::ClenseTheShell() {
 }
 
 void PluginUi::Tick() {
-  int hours = (data_.tick_ / 3600) % 24;
-  int minutes = (data_.tick_ / 60) % 60;
-  int seconds = data_.tick_ % 60;
+  int hours = (data_.tick / 3600) % 24;
+  int minutes = (data_.tick / 60) % 60;
+  int seconds = data_.tick % 60;
 
   // format time with leading zeros
   QString text = tr(kWhyAreYouWastingYourTimeText)
@@ -181,18 +181,16 @@ void PluginUi::Tick() {
                      .arg(seconds, 2, 10, QLatin1Char('0'));
 
   time_label_->setText(text);
-  data_.tick_++;
+  data_.tick++;
 }
 
 void PluginUi::RunFeature() {
-  using RD = forms::RunDialog;
-
   if (state_ == ShellState::NO_DB) {
     LOG_ERROR("Features are not available on a closed IDB.");
     return;
   }
 
-  RD dialog(GetTopWidget());
+  forms::RunDialog dialog(GetTopWidget(), data_);
   dialog.exec();
 
   if (dialog.SelectedIndex() == 0)

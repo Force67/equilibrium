@@ -7,30 +7,24 @@
 namespace {
 constexpr char kStorageNodeId[] = "$ retk_ui_data";
 constexpr int kUiStorageVersion = 1;
-}
+}  // namespace
 
-const char* const UiData::GetName() {
-  return kStorageNodeId;
-}
+UiData::UiData() : IdbNode(kStorageNodeId) {}
 
 bool UiData::SeenBefore() {
-  return utils::NetNode(kStorageNodeId, false).open();
+  return utils::NetNode::Exists(kStorageNodeId);
 }
 
 void UiData::Save() {
-  bool res;
-  res = _node.StoreScalar(Tick, tick_);
-
+  bool res = Write(Tick, tick) && Write(RunIndex, last_run_index);
   LOG_TRACE("UiStorage::Save {}", res);
 }
 
 void UiData::Load() {
-  _node = utils::NetNode(kStorageNodeId);
+  int v1 = Read(StorageVersion, -1);
 
-  int v1 = _node.LoadScalar(StorageVersion, -1);
-  // mark the node version
   if (v1 == -1) {
-    bool res = _node.StoreScalar(StorageVersion, kUiStorageVersion);
+    bool res = Write(StorageVersion, kUiStorageVersion);
     LOG_TRACE("StoreVersion: {}", res);
   }
 
@@ -40,6 +34,7 @@ void UiData::Load() {
                 kUiStorageVersion);
   }
 
-  tick_ = _node.LoadScalar(Tick, 0);
-  LOG_TRACE("UiStorage::Load {}", tick_);
+  tick = Read(Tick, 0);
+  last_run_index = Read(RunIndex, 0);
+  LOG_TRACE("UiStorage::Load {}", tick);
 }

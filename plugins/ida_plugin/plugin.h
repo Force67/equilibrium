@@ -2,8 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "idb_storage/data_store.h"
-
+#include "idb/idb_store.h"
 #include "ui/plugin_ui.h"
 #include "sync/ida_sync.h"
 #include "tools/workbench.h"
@@ -28,7 +27,7 @@ class Plugin final : public QObject, public plugmod_t {
   //inline auto& Tools() { return tools_; }
 
  private:
-  DataStore store_;
+  IdbStore store_;
   IdaSync sync_;
   PluginUi ui_;
   Workbench work_bench_;

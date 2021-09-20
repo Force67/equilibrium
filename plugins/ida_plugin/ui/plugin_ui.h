@@ -4,7 +4,7 @@
 
 class Plugin;
 
-#include "idb_storage/ui_data.h"
+#include "idb/ui_data.h"
 
 #include <QObject>
 #include <QScopedPointer>

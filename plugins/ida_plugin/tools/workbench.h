@@ -6,6 +6,8 @@
 #include "tools/usi_maker.h"
 #include "tools/signature_maker.h"
 
+#include "idb/workbench_data.h"
+
 // 'QuickRunner' is responsible for making quick links to features available.
 //	>Features are either exposed through the RunDialog ui component or through hot-keys
 //	>TODO: make user customizable
@@ -27,6 +29,8 @@ class Workbench final : public QObject {
   USIMaker& usi_maker() { return usi_factory_; }
 
  private:
+  WorkbenchData data_;
+
   FeatureIndex last_feature_{FeatureIndex::kSignatureMaker};
   USIMaker usi_factory_;
 };

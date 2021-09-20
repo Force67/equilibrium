@@ -8,13 +8,8 @@ constexpr char kSyncDataName[] = "$ retk_address_book_data";
 constexpr int kSessionStoreVersion = 1;
 }  // namespace
 
-const char* const AddressBookData::GetName() {
-  return kSyncDataName;
-}
+AddressBookData::AddressBookData() : IdbNode(kSyncDataName) {}
 
-void AddressBookData::Load() {
+void AddressBookData::Load() {}
 
-}
-
-void AddressBookData::Save() {
-}
+void AddressBookData::Save() {}

@@ -53,6 +53,8 @@ project("ida_plugin")
         -- qt symbol workaround, read more here:
         -- https://www.hex-rays.com/blog/ida-qt-under-the-hood/
         "QT_NAMESPACE=QT",
+        -- corelib
+        "BASE_IMPLEMENTATION"
     })
     includedirs({
         ".",

@@ -8,9 +8,11 @@
 #include <QModelIndexList>
 
 namespace forms {
-RunDialog::RunDialog(QWidget* parent) : QDialog(parent) {
+RunDialog::RunDialog(QWidget* parent, UiData& data)
+    : QDialog(parent), data_(data) {
   setupUi(this);
-  ResetSelection();
+  // remember last selection
+  SetSelectedItem(data.last_run_index);
 
   // disallow multiple selection
   optionList->setSelectionMode(
@@ -19,7 +21,7 @@ RunDialog::RunDialog(QWidget* parent) : QDialog(parent) {
   connect(btOk, &QPushButton::clicked, this, &RunDialog::OnClickOK);
   connect(btQuit, &QPushButton::clicked, [&]() {
     // Not resetting the selection is a feature now.
-    //ResetSelection();
+    // ResetSelection();
     QDialog::close();
   });
 }
@@ -32,13 +34,12 @@ void RunDialog::OnClickOK() {
   }
 
   const auto& item = selected.at(0);
-  current_index_ = item.row() + 1;
+  data_.last_run_index = item.row() + 1;
 
   QDialog::close();
 }
 
-void RunDialog::ResetSelection() {
-  // pre select the 1st item
-  optionList->setItemSelected(optionList->item(0), true);
+void RunDialog::SetSelectedItem(int idx) {
+  optionList->setItemSelected(optionList->item(idx), true);
 }
 }  // namespace forms
