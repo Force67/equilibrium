@@ -9,6 +9,8 @@
 #include "signature_maker.h"
 #include "usi_maker.h"
 
+#include "ui/forms/input_dialog.h"
+
 extern Binding<bool, ea_t> MakeSignature;
 
 namespace {
@@ -19,10 +21,9 @@ void CreatePrintSignature(ea_t ea) {
   ptrdiff_t offset = 0;
   bool dumb = false;
 
-  sigMaker.CreateUniqueSignature(ea, signature, offset, false,
-                                 dumb);
+  sigMaker.CreateUniqueSignature(ea, signature, offset, false, dumb);
 }
-}
+}  // namespace
 
 // TODO: replace me with utility class
 static Workbench* work_bench_instance{nullptr};
@@ -43,6 +44,25 @@ Workbench::~Workbench() {
   work_bench_instance = nullptr;
 }
 
+void Workbench::ProduceUSI(const ea_t ea) {
+  // This should be moved somewhere else, such as a WorkSpace::Init Sub
+  if (data_.sym_table_path.empty()) {
+    forms::InputDialog dialog("Path selection", "Enter path to symbol table");
+    connect(&dialog, &forms::InputDialog::OnConfirm,
+            [&](const QString& new_string) {
+              data_.sym_table_path = new_string.toUtf8().data();
+            });
+
+    if (dialog.exec() != QDialog::Accepted) {
+      LOG_ERROR("No path set for symbol table!");
+      data_.sym_table_path.clear();
+      return;
+    }
+  }
+
+  usi_factory_.Create(ea);
+}
+
 void Workbench::RunFeature(int data) {
   const ea_t screen_ea = get_screen_ea();
   const FeatureIndex code = static_cast<FeatureIndex>(data);
@@ -52,7 +72,7 @@ void Workbench::RunFeature(int data) {
       CreatePrintSignature(screen_ea);
       break;
     case FeatureIndex::kUSIMaker:
-      usi_factory_.Create(screen_ea);
+      ProduceUSI(screen_ea);
       break;
     default:
       LOG_ERROR("??? : {}", data);

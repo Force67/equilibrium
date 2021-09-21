@@ -54,6 +54,7 @@ project("ida_plugin")
         -- https://www.hex-rays.com/blog/ida-qt-under-the-hood/
         "QT_NAMESPACE=QT",
         -- corelib
+        "USE_STANDARD_FILE_FUNCTIONS",
         "BASE_IMPLEMENTATION"
     })
     includedirs({

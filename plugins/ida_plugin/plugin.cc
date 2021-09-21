@@ -80,6 +80,10 @@ plugmod_t* Plugin::Create() {
   return g_Plugin->Init() ? g_Plugin : nullptr;
 }
 
+const plugin_t& GetPluginDesc() {
+  return PLUGIN;
+}
+
 plugin_t PLUGIN = {
     IDP_INTERFACE_VERSION,
 

@@ -15,5 +15,5 @@ class WorkbenchData final : public IdbNode {
   enum NodeIndex : nodeidx_t { StorageVersion, Name };
 
  public:
-  qstring name;
+  qstring sym_table_path;
 };

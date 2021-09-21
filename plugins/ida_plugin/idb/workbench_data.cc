@@ -11,9 +11,9 @@ constexpr int kUiStorageVersion = 1;
 WorkbenchData::WorkbenchData() : IdbNode(kStorageNodeId) {}
 
 void WorkbenchData::Save() {
-  Write(NodeIndex::Name, name);
+  Write(NodeIndex::Name, sym_table_path);
 }
 
 void WorkbenchData::Load() {
-  name = Read(NodeIndex::Name);
+  sym_table_path = Read(NodeIndex::Name);
 }

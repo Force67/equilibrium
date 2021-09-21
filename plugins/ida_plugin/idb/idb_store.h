@@ -24,7 +24,7 @@ class IdbNode : public utils::NetNode {
   const char* name_;
 };
 
-class IdbStore {
+class IdbStore final : public utils::UiEventHandler {
   friend class IdbNode;
 
  public:
@@ -35,8 +35,7 @@ class IdbStore {
 
  private:
   void RegisterNode(IdbNode*);
-  // Ida event core
-  static ssize_t idaapi Event(void*, int, va_list);
+  void HandleEvent(ui_notification_t code, va_list args) override;
 
  private:
   std::vector<IdbNode*> nodes_;

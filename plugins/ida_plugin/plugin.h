@@ -32,3 +32,5 @@ class Plugin final : public QObject, public plugmod_t {
   PluginUi ui_;
   Workbench work_bench_;
 };
+
+const plugin_t& GetPluginDesc();

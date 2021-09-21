@@ -37,22 +37,9 @@ QT::QMainWindow* GetMainWindow() {
   return s_mainWindow;
 }
 
-namespace {
-
-// well it is definitely a waste of time, but a good waste of time x)
-constexpr char kWhyAreYouWastingYourTimeText[] =
-    "Time wasted reversing: %1:%2:%3";
-}  // namespace
-
-// global plugin description
-extern plugin_t PLUGIN;
-
 PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   QMainWindow* window = GetMainWindow();
   assert(window != nullptr);
-
-  hook_to_notification_point(hook_type_t::HT_UI, StaticEvent, this);
-
   static AddressBookData* s_fakeDataTemp = new AddressBookData();
 
   time_label_ = new QLabel("");
@@ -120,15 +107,10 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
 #endif
 }
 
-PluginUi::~PluginUi() {
-  unhook_from_notification_point(hook_type_t::HT_UI, StaticEvent, this);
-}
-
-void PluginUi::HandleEvent(int code, va_list args) {
+void PluginUi::HandleEvent(ui_notification_t code, va_list args) {
   switch (code) {
     case ui_notification_t::ui_database_closed:
       SetShellState(ShellState::NO_DB);
-
       timer_->stop();
       break;
     case ui_notification_t::ui_database_inited: {
@@ -170,12 +152,15 @@ void PluginUi::ClenseTheShell() {
 }
 
 void PluginUi::Tick() {
+  static constexpr char kTimeSpentReversing[] = 
+      "Time wasted reversing: %1:%2:%3";
+
   int hours = (data_.tick / 3600) % 24;
   int minutes = (data_.tick / 60) % 60;
   int seconds = data_.tick % 60;
 
   // format time with leading zeros
-  QString text = tr(kWhyAreYouWastingYourTimeText)
+  QString text = tr(kTimeSpentReversing)
                      .arg(hours, 2, 10, QLatin1Char('0'))
                      .arg(minutes, 2, 10, QLatin1Char('0'))
                      .arg(seconds, 2, 10, QLatin1Char('0'));
@@ -191,21 +176,7 @@ void PluginUi::RunFeature() {
   }
 
   forms::RunDialog dialog(GetTopWidget(), data_);
-  dialog.exec();
-
-  if (dialog.SelectedIndex() == 0)
-    return;
-  // Due to the way RunFeature() is invoked
-  // we are already on a valid IDA thread.
-  // Still, we move execution to the new runner component
-  // while also hiding index
+  if (dialog.exec() != QDialog::Accepted) 
+      return;
   emit RequestFeature(dialog.SelectedIndex());
-}
-
-// static handler for ida
-ssize_t PluginUi::StaticEvent(void* userp, int code, va_list args) {
-  if (auto* self = reinterpret_cast<PluginUi*>(userp))
-    self->HandleEvent(code, args);
-
-  return 0;
 }

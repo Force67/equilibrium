@@ -3,11 +3,19 @@
 
 #include "Pch.h"
 #include "input_dialog.h"
+#include "ui/plugin_ui.h"
 
 namespace forms {
-InputDialog::InputDialog() {
+InputDialog::InputDialog(const QString& title, const QString& desc) {
   setupUi(this);
-}
+  label->setText(desc);
+  setWindowTitle(title);
 
+  connect(buttonOK, &QPushButton::clicked, this, &QDialog::accept);
+  connect(buttonCancel, &QPushButton::clicked, this, &QDialog::reject);
+
+  connect(this, &QDialog::accept,
+          [&]() { OnConfirm(lineEdit->text()); });
+}
 
 }  // namespace forms

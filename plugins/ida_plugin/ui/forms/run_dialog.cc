@@ -19,24 +19,14 @@ RunDialog::RunDialog(QWidget* parent, UiData& data)
       QAbstractItemView::SelectionMode::SingleSelection);
 
   connect(btOk, &QPushButton::clicked, this, &RunDialog::OnClickOK);
-  connect(btQuit, &QPushButton::clicked, [&]() {
-    // Not resetting the selection is a feature now.
-    // ResetSelection();
-    QDialog::close();
-  });
+  connect(btQuit, &QPushButton::clicked, this, &QDialog::reject);
 }
 
 void RunDialog::OnClickOK() {
   auto selected = optionList->selectionModel()->selectedIndexes();
-  if (selected.count() > 1) {
-    LOG_TRACE("RunDialog::OnClickOK Multiple items were selected");
-    return;
-  }
-
   const auto& item = selected.at(0);
   data_.last_run_index = item.row() + 1;
-
-  QDialog::close();
+  QDialog::accept();
 }
 
 void RunDialog::SetSelectedItem(int idx) {

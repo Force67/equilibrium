@@ -17,12 +17,10 @@ IdbNode::~IdbNode() {
 }
 
 IdbStore::IdbStore() {
-  hook_to_notification_point(hook_type_t::HT_UI, Event, this);
   idb_store = this;
 }
 
 IdbStore::~IdbStore() {
-  unhook_from_notification_point(hook_type_t::HT_UI, Event, this);
   idb_store = nullptr;
 }
 
@@ -40,23 +38,19 @@ void IdbStore::DumpNodes() {
   }
 }
 
-ssize_t IdbStore::Event(void* ptr, int code, va_list args) {
+void IdbStore::HandleEvent(ui_notification_t code, va_list args) {
   // without question the UI events are still the most stable way
   // of achieving reliable saving data reliably
-  IdbStore* store = reinterpret_cast<IdbStore*>(ptr);
-
   if (code == ui_notification_t::ui_saving) {
-    for (IdbNode* n : store->nodes_)
+    for (IdbNode* n : nodes_)
       n->Save();
   }
 
   if (code == ui_notification_t::ui_database_inited) {
-    for (IdbNode* n : store->nodes_) {
+    for (IdbNode* n : nodes_) {
       // create the net node if it does not already exist.
       n->Reset(n->name_);
       n->Load();
     }
   }
-
-  return 0;
 }

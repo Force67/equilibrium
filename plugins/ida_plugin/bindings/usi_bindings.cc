@@ -6,7 +6,7 @@
 
 // plain make a USI provided by given type name...
 Binding<uint64_t, ea_t> MakeUSI("MakeUSI", [](ea_t ea) { 
-	return work_bench()->usi_maker().Create(ea);
+	return work_bench()->ProduceUSI(ea);
 });
 
 // create an USI, directly export it to given database

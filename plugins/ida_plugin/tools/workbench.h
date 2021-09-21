@@ -26,7 +26,7 @@ class Workbench final : public QObject {
 
   void RunFeature(int data);
 
-  USIMaker& usi_maker() { return usi_factory_; }
+  void ProduceUSI(const ea_t);
 
  private:
   WorkbenchData data_;

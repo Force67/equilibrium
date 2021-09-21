@@ -14,7 +14,6 @@ class ConnectDialog final : public QDialog, public Ui::ConnectPromt {
   ConnectDialog(UiController&);
 
   static bool ShouldShow();
-
  private:
   void OnConnect();
 

@@ -5,6 +5,7 @@
 class Plugin;
 
 #include "idb/ui_data.h"
+#include "utils/ida_plus.h"
 
 #include <QObject>
 #include <QScopedPointer>
@@ -28,12 +29,11 @@ QT::QWidget* GetTopWidget();
 // Returns the main application window
 QT::QMainWindow* GetMainWindow();
 
-class PluginUi final : public QObject {
+class PluginUi final : public QObject, public utils::UiEventHandler {
   Q_OBJECT;
 
  public:
   explicit PluginUi(Plugin&);
-  ~PluginUi();
 
   enum class ShellState {
     NO_DB,
@@ -51,9 +51,7 @@ class PluginUi final : public QObject {
  private:
   void Tick();
   void ClenseTheShell();
-
-  static ssize_t idaapi StaticEvent(void*, int, va_list);
-  void HandleEvent(int, va_list);
+  void HandleEvent(ui_notification_t code, va_list args) override;
 
   Plugin& plugin_;
   UiData data_;

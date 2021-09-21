@@ -11,9 +11,9 @@ class InputDialog final : public QDialog, public Ui::InputDialog {
   Q_OBJECT;
 
  public:
-  InputDialog();
+  InputDialog(const QString &title, const QString& description);
 
- private:
-  void OnConnect();
+ signals:
+  void OnConfirm(const QString& text);
 };
 }  // namespace forms

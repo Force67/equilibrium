@@ -49,8 +49,8 @@ inline OptBase::OptBase() noexcept : OptRegistry(this) {}
 
 template <typename T>
 struct Opt : OptBase {
-  constexpr explicit Opt(T default, const char* name) {
-    OptBase::data.setValue(default);
+  constexpr explicit Opt(T t, const char* name) {
+    OptBase::data.setValue(t);
     OptBase::name = name;
   }
 
