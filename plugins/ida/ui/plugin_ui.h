@@ -29,7 +29,7 @@ QT::QWidget* GetTopWidget();
 // Returns the main application window
 QT::QMainWindow* GetMainWindow();
 
-class PluginUi final : public QObject, public utils::UiEventHandler {
+class PluginUi final : public QObject, public ial::UiEventHandler {
   Q_OBJECT;
 
  public:

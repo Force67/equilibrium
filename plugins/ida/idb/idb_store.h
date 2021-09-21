@@ -8,7 +8,7 @@
 // Base class for IDB storage nodes,
 // it automatically registers to IdbStore
 // on construction
-class IdbNode : public utils::NetNode {
+class IdbNode : public ial::NetNode {
   friend class IdbStore;
  public:
   IdbNode(const char *name);
@@ -24,7 +24,7 @@ class IdbNode : public utils::NetNode {
   const char* name_;
 };
 
-class IdbStore final : public utils::UiEventHandler {
+class IdbStore final : public ial::UiEventHandler {
   friend class IdbNode;
 
  public:

@@ -12,7 +12,7 @@ constexpr int kUiStorageVersion = 1;
 UiData::UiData() : IdbNode(kStorageNodeId) {}
 
 bool UiData::SeenBefore() {
-  return utils::NetNode::Exists(kStorageNodeId);
+  return ial::NetNode::Exists(kStorageNodeId);
 }
 
 void UiData::Save() {

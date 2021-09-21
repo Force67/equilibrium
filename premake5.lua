@@ -67,8 +67,8 @@ workspace("RETK")
     include("./retk")
 
     group("Plugins")
-    include("plugins/ida_plugin")
-    include("plugins/x64dbg_plugin")
+    include("plugins/ida")
+    include("plugins/x64dbg")
 
     group("Server")
     include("sync_server/dedi_server")

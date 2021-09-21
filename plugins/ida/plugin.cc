@@ -61,7 +61,7 @@ bool Plugin::Init() {
 
 bool Plugin::run(size_t arg) {
   // This is the menu available under the default IDA plugins dropdown menu.
-  if (utils::IDB::IsBusy()) {
+  if (ial::IDB::IsBusy()) {
     LOG_ERROR("IDA is busy. Must wait for Autoanalysis to finish before running.");
     return false;
   }

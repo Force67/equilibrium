@@ -114,8 +114,8 @@ void *PluginUi::qt_metacast(const char *_clname)
     if (!_clname) return Q_NULLPTR;
     if (!strcmp(_clname, qt_meta_stringdata_PluginUi.stringdata0))
         return static_cast<void*>(const_cast< PluginUi*>(this));
-    if (!strcmp(_clname, "utils::UiEventHandler"))
-        return static_cast< utils::UiEventHandler*>(const_cast< PluginUi*>(this));
+    if (!strcmp(_clname, "ial::UiEventHandler"))
+        return static_cast< ial::UiEventHandler*>(const_cast< PluginUi*>(this));
     return QObject::qt_metacast(_clname);
 }
 
