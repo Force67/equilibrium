@@ -51,12 +51,16 @@ constexpr size_t kSignatureMaxLength = 75u;
 constexpr size_t kMinSignatureByteLength = 5u;
 // max displacement size in bytes
 constexpr size_t kDisplacementStepSize = 100u;
-// max reference count to be considered this is done to limit
-// runtime, which scales up pretty badly, if we have loads of references :(
+// max reference count to be considered this is done to limit at
+// runtime where it scales up pretty badly if we have lots of references :(
 constexpr size_t kMaxRefCountAnalysisDepth = 10u;
 
+// Does this even make sense?
+static_assert(kDisplacementStepSize <= INT8_MAX,
+              "Displacement bounds exceeded");
+
 uint8_t GetOpCodeSize(const insn_t& instruction) {
-  for (unsigned int i = 0; i < UA_MAXOP; i++) {
+  for (uint32_t i = 0; i < UA_MAXOP; i++) {
     if (instruction.ops[i].type == o_void)
       return 0;
     if (instruction.ops[i].offb != 0)
@@ -136,12 +140,12 @@ SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
     // Copy this instructions mask to our pattern's mask.
     std::copy(instructionMask.begin(), instructionMask.end(),
               std::back_inserter(masks_));
-    //get_ph -> this gets the buffer!
-    //pack_dd(); 
-    //pack_dd 
+    // get_ph -> this gets the buffer!
+    // pack_dd();
+    // pack_dd
     // show_auto -> allows setting IDB BUSY
-        // search only within code.
-    //get_byte
+    // search only within code.
+    // get_byte
     /*
     *      v21 = getinf(57i64);
             v22 = get_compiler_name(v21);
@@ -229,6 +233,7 @@ SignatureMaker::Result SignatureMaker::GenerateFunctionReference(
 
     out_offset = GetOpCodeSize(instruction);
     // shitty optimization #1: if delta is low, skip the rest
+    // TODO: Is this optimization ever triggered????
     if ((ref_ea - kDisplacementStepSize) <= kDisplacementStepSize) {
       if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
           Result::kSuccess) {
@@ -366,14 +371,14 @@ SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
 }
 
 SignatureMaker::Result SignatureMaker::CreateUniqueSignature(
-    ea_t target_address,
+    const ea_t in_ea,
     std::string& out_pattern,
     ptrdiff_t& out_offset,
     bool mute_log,
-    bool& out_shit) {
-  uint32_t flags = (get_flags(target_address) & MS_CLS);
+    bool& is_data) {
   // disallow unsupported address types so it can only be code or data
   // going forward
+  uint32_t flags = (get_flags(in_ea) & MS_CLS);
   switch (flags) {
     case FF_TAIL:
     case FF_UNK: {
@@ -387,10 +392,10 @@ SignatureMaker::Result SignatureMaker::CreateUniqueSignature(
   const bool is_address_data = flags == FF_DATA;
   const char* type_name = is_address_data ? "data" : "code";
 
-  out_shit = is_address_data;
+  is_data = is_address_data;
 
   if (!mute_log) {
-    LOG_TRACE("Creating {} signature for {:x}", type_name, target_address);
+    LOG_TRACE("Creating {} signature for {:x}", type_name, in_ea);
   }
 
   std::string result_pattern{};
@@ -398,29 +403,27 @@ SignatureMaker::Result SignatureMaker::CreateUniqueSignature(
 
   const Result result =
       is_address_data
-          ? UniqueDataSignature(target_address, result_pattern, result_offset)
-          : UniqueCodeSignature(target_address, result_pattern, result_offset,
-                                out_shit);
+          ? UniqueDataSignature(in_ea, result_pattern, result_offset)
+          : UniqueCodeSignature(in_ea, result_pattern, result_offset, is_data);
 
   if (result == Result::kSuccess) {
     if (!mute_log) {
       if (result_offset > 0) {
-        LOG_INFO("{} signature: {:x} = {} + {}", type_name, target_address,
+        LOG_INFO("{} signature: {:x} = {} + {}", type_name, in_ea,
                  result_pattern, result_offset);
       } else {
-        LOG_INFO("{} signature: {:x} = {}", type_name, target_address,
-                 result_pattern);
+        LOG_INFO("{} signature: {:x} = {}", type_name, in_ea, result_pattern);
       }
     }
 
-    out_pattern = result_pattern;
+    out_pattern = std::move(result_pattern);
     out_offset = result_offset;
     return result;
   }
 
   if (!mute_log) {
     LOG_ERROR("Failed to generate reference to {} {:x} with error: {}",
-              type_name, target_address, ResultToString(result));
+              type_name, in_ea, ResultToString(result));
   }
 
   out_pattern = "";

@@ -16,11 +16,11 @@ class SignatureMaker {
   };
   static const char* const ResultToString(Result) noexcept;
 
-  Result CreateUniqueSignature(ea_t target_address,
+  Result CreateUniqueSignature(const ea_t target_address,
                                std::string& out_pattern,
                                ptrdiff_t& out_offset,
                                bool mute_log,
-                               bool& out_shit);
+                               bool& is_data);
 
  private:
   Result GenerateSignatureInternal_2(ea_t address, std::string& out_pattern);

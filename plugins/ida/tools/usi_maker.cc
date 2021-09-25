@@ -17,43 +17,6 @@ constexpr hash_type HashTypeName(const char* str, hash_type hash = fnv_basis) {
               : hash;
 }
 
-std::optional<qstring> AssembleFullTypeName(const ea_t ea) {
-  // extract function name
-  qstring symbol_name;
-  get_func_name(&symbol_name, ea);
-
-  const size_t pos = symbol_name.find("sub_");
-  if (pos != qstring::npos && pos == 0)
-    return std::nullopt;
-
-  symbol_name += "(";
-  // append arguments:
-  tinfo_t info;
-  if (!get_tinfo(&info, ea))
-    return std::nullopt;
-
-  func_type_data_t fi;
-  info.get_func_details(&fi);
-
-  //calc_c_cpp_name()
-
-  for (const funcarg_t& it : fi) {
-    // for future reference:
-    // this prints the current register name:
-    // print_argloc(nameBuf, sizeof(nameBuf), it.argloc);
-    qstring cpp_arg_type;
-    if (!print_tinfo(&cpp_arg_type, nullptr, 0, 2, 16, &it.type, nullptr,
-                     nullptr))
-      return std::nullopt;
-
-    symbol_name += ",";
-    symbol_name += cpp_arg_type;
-  }
-
-  symbol_name += ")";
-  return symbol_name;
-}
-
 // qstring.rfind doesn't confirm to standard behavior spec.
 size_t ReverseMatch(const qstring& str, char needle, size_t pos) {
   while (pos >= 0) {

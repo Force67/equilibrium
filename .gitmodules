@@ -13,3 +13,6 @@
 [submodule "external/sockpp"]
 	path = external/sockpp
 	url = https://github.com/fpagliughi/sockpp
+[submodule "external/rapidjson"]
+	path = external/rapidjson
+	url = https://github.com/Tencent/rapidjson
