@@ -24,15 +24,19 @@ class SymbolTableWriter final {
   bool Open(const char* const path);
   void JustCreate();
 
+  // without spacing a buffer should just require to be
+  // char buf[64] bytes big.
+  // we should denote with length
+
   struct CreateInfo {
     int8_t direct_offset;
     int8_t indirect_offset;
     uint16_t count;
     std::string signature;
-    Kind kind;
   };
   void CreateEntry(const char* pretty_name,
                    const char* symbol_name,
+                   const Kind kind,
                    const CreateInfo&);
 
   std::string DocToString();

@@ -149,3 +149,30 @@ project("imgui")
         "imgui/backends/imgui_impl_opengl3.cpp",
         "imgui/backends/imgui_impl_opengl3.h"
     })
+
+project("juce-aio")
+    language("C++")
+    kind("StaticLib")
+    includedirs({
+        --"JUCE/modules/juce_gui_basics",
+        --"JUCE/modules/juce_gui_extra",
+        "JUCE/modules/juce_opengl",
+    })
+    defines(
+        "JUCE_WINDOWS",
+        "JUCE_WEB_BROWSER=0",
+        "JUCE_USE_CURL=0",
+        "JUCE_APPLICATION_NAME_STRING",
+        "JUCE_APPLICATION_VERSION_STRING"
+    )
+    pchheader("JUCE/modules/juce_opengl/juce_gui_basics.h")
+    pchsource("JUCE/modules/juce_opengl/juce_gui_basics.cpp")
+    forceincludes("JUCE/modules/juce_opengl/juce_gui_basics.h")
+    files({
+        --"JUCE/modules/juce_gui_basics/**.cpp",
+        --"JUCE/modules/juce_gui_basics/**.h",
+        --"JUCE/modules/juce_gui_extra/**.cpp",
+        --"JUCE/modules/juce_gui_extra/**.h",
+        "JUCE/modules/juce_opengl/**.cpp",
+        "JUCE/modules/juce_opengl/**.h",
+    })

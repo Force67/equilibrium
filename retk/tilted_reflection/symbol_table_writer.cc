@@ -5,22 +5,13 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
+#include <base/hash/fnv1a.h>
 
 // USI mangle
 
 namespace tilted_reflection {
 using namespace rapidjson;
-
 namespace {
-// FNV-1a 64 bit hash
-using hash_type = SymbolTableWriter::HashType;
-constexpr hash_type fnv_basis = 14695981039346656037ull;
-constexpr hash_type fnv_prime = 1099511628211ull;
-constexpr hash_type HashTypeName(const char* str, hash_type hash = fnv_basis) {
-  return *str ? HashTypeName(str + 1, (hash ^ hash_type(*str)) * fnv_prime)
-              : hash;
-}
-
 void AddStr(Document& doc,
             std::string_view str_view,
             Value& dest,
@@ -35,6 +26,9 @@ void AddStr(Document& doc,
   // Append it to source
   dest.AddMember(string_ref, value, allocator);
 }
+
+// Keep this in sync with Reflection tool.
+constexpr int kTableVersion = 2;
 }  // namespace
 
 SymbolTableWriter::SymbolTableWriter(){};
@@ -51,10 +45,9 @@ bool SymbolTableWriter::Open(const char* const path) {
 void SymbolTableWriter::JustCreate() {
   doc_ = std::make_unique<Document>();
   doc_->SetObject();
-  doc_->AddMember("version", 1337, doc_->GetAllocator());
+  doc_->AddMember("version", kTableVersion, doc_->GetAllocator());
 
   list_ = std::make_unique<Value>(kArrayType);
-
 }
 
 std::string SymbolTableWriter::DocToString() {
@@ -67,6 +60,7 @@ std::string SymbolTableWriter::DocToString() {
 
 void SymbolTableWriter::CreateEntry(const char* pretty_name,
                                     const char* symbol_name,
+                                    const Kind kind,
                                     const CreateInfo& info) {
   // To Find out more about the symbol table spec, consult:
   // https://github.com/tiltedphoques/TiltedReflection/blob/questionable-fixes/reflection/SymbolTable.cpp
@@ -81,7 +75,7 @@ void SymbolTableWriter::CreateEntry(const char* pretty_name,
   auto& allocator = doc_->GetAllocator();
 
   Value json_entry(kObjectType);
-  json_entry.AddMember("hash", HashTypeName(symbol_name), allocator);
+  json_entry.AddMember("hash", base::FNV1a64(symbol_name), allocator);
   AddStr(*doc_, pretty_name, json_entry, "name");
 
   json_entry.AddMember("offset", info.direct_offset, allocator);
@@ -91,7 +85,7 @@ void SymbolTableWriter::CreateEntry(const char* pretty_name,
   AddStr(*doc_, info.signature, json_entry, "code-sig");
 
   if (info.indirect_offset) {
-    switch (info.kind) {
+    switch (kind) {
       case Kind::kFunction:
       case Kind::kMemberFunction: {
         json_entry.AddMember("get-call", info.indirect_offset, allocator);
