@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#if defined(WIN32)
+#if defined(OS_WIN)
 
 #if defined(BASE_IMPLEMENTATION)
 #define BASE_EXPORT __declspec(dllexport)

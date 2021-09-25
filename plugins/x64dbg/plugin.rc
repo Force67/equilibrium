@@ -1,5 +1,5 @@
--- Copyright (C) 2021 Force67 <github.com/Force67>.
--- For licensing information see LICENSE at the root of this distribution.
+// Copyright (C) 2021 Force67 <github.com/Force67>.
+// For licensing information see LICENSE at the root of this distribution.
 
 #include "winuser.h"
 
@@ -18,12 +18,12 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "NomadGroup"
-            VALUE "ProductName", "NODA"
-            VALUE "FileDescription", "Nomad IDA plugin"
-            VALUE "LegalCopyright", "Copyright (C) NOMAD Group <nomad-group.net>."
-            VALUE "InternalName", "NODA"
-            VALUE "OriginalFilename", "NODA.dll"
+            VALUE "CompanyName", "Force67"
+            VALUE "ProductName", "RETK"
+            VALUE "FileDescription", "Reverse Engineering Toolkit Plugin for X64Dbg"
+            VALUE "LegalCopyright", "Copyright (C) Force67 <github.com/Force67>."
+            VALUE "InternalName", "RETK"
+            VALUE "OriginalFilename", "x64dbg_RETK.dll"
         END
     END
     BLOCK "VarFileInfo"

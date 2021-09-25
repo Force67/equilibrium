@@ -10,7 +10,7 @@
 #include "utils/ida_log_impl.h"
 
 namespace {
-Plugin* g_Plugin = nullptr;
+Plugin* plugin_instance = nullptr;
 
 constexpr char kPluginComment[] = "Reverse Engineering Toolkit for IDA Pro";
 
@@ -76,8 +76,8 @@ plugmod_t* Plugin::Create() {
   // to avoid ending up with invalid references.
   utils::OptRegistry::Load();
 
-  g_Plugin = new Plugin();
-  return g_Plugin->Init() ? g_Plugin : nullptr;
+  plugin_instance = new Plugin();
+  return plugin_instance->Init() ? plugin_instance : nullptr;
 }
 
 const plugin_t& GetPluginDesc() {

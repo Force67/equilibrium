@@ -23,7 +23,7 @@ BEGIN
             VALUE "FileDescription", "Reverse Engineering Toolkit Plugin for IDA"
             VALUE "LegalCopyright", "Copyright (C) Force67 <github.com/Force67>."
             VALUE "InternalName", "RETK"
-            VALUE "OriginalFilename", "RETK.dll"
+            VALUE "OriginalFilename", "IDA_Retk.dll"
         END
     END
     BLOCK "VarFileInfo"
