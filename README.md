@@ -24,7 +24,7 @@ Copy IDA_Retk75.dll into your IDA plugin directory.
 First, [install Qt 5.6.3](https://download.qt.io/new_archive/qt/5.6/5.6.3/), which is required for the IDA plugin. Then clone the repo, like below:
 ```
 git clone https://github.com/Force67/RETK.git
-cd NODA
+cd RETK
 git submodule update --init
 ```
 #### Building the project
