@@ -1,0 +1,23 @@
+{
+  "name": "retk",
+  "version": "1.0.0",
+  "description": "<p align=\"center\"><img src=\"https://i.imgur.com/lOLpWuF.png\" width=\"150\" height=\"150\"></p>",
+  "main": "index.js",
+  "dependencies": {
+    "semantic-release": "^18.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Force67/RETK.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Force67/RETK/issues"
+  },
+  "homepage": "https://github.com/Force67/RETK#readme"
+}
