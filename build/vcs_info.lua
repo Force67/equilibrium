@@ -4,28 +4,39 @@
 blu.git_branch = ""
 blu.git_commit = ""
 blu.git_commit_long = ""
+blu.version = ""
 
-local f = io.popen('git symbolic-ref --short -q HEAD', 'r')
-local temp = f:read("*a")
-f:close()
--- sanitize
-blu.git_branch = string.gsub(temp, '\n$', '')
-f = io.popen('git rev-parse --short HEAD', 'r')
-temp = f:read("*a")
-f:close()
-blu.git_commit = string.gsub(temp, '\n$', '')
-f = io.popen('git rev-parse HEAD', 'r')
-temp = f:read("*a")
-f:close()
-blu.git_commit_long = string.gsub(temp, '\n$', '')
+local function io_exec(command)
+    local pipe = io.popen(command, 'r')
+    local rval = pipe:read("*a")
+    pipe:close()
+    return string.gsub(rval, '\n$', '')
+end
+
+local function to_double(version)
+    -- we want to convert the number to double, so first we strip the 'v' character
+    -- then we remove the second (dots)
+    local vnum = blu.version:sub(2)
+    local index = vnum:find("%.")
+    return vnum:sub(1, index + 1) .. (vnum:sub(index + 2, vnum:len()):gsub('%.', ''))
+end
+
+blu.git_branch = io_exec('git symbolic-ref --short -q HEAD')
+blu.git_commit = io_exec('git rev-parse --short HEAD')
+blu.git_commit_long = io_exec('git rev-parse HEAD')
+-- See https://stackoverflow.com/questions/1404796/how-can-i-get-the-latest-tag-name-in-current-branch-in-git
+blu.version = io_exec('git describe --tags ' .. io_exec('git rev-list --tags --max-count=1'))
 
 function include_meta()
 defines({
     ('GIT_BRANCH="' .. blu.git_branch .. '"'),
     ('GIT_COMMIT="' .. blu.git_commit .. '"'),
     ('GIT_COMMIT_LONG="' .. blu.git_commit_long .. '"'),
-    ('BLU_NAME="%{wks.name}"'),
-    ('BLU_NAME_WIDE=L"%{wks.name}"'),
-    ('BLU_COMPANY="Stronkat"')
+    ('TK_NAME="%{wks.name}"'),
+    ('TK_NAME_WIDE=L"%{wks.name}"'),
+    ('TK_COMPANY="Force67"'),
+    ('TK_VERSION_STR="' .. blu.version .. '"'),
+    -- delete the first character 'v'
+    ('TK_VERSION=' .. to_double(blu.version))
 })
 end

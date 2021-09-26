@@ -24,8 +24,8 @@ constexpr char kWantedPluginHotkey[] = "Ctrl-Y";
 
 Plugin::Plugin() : sync_(*this), ui_(*this), work_bench_(*this) {
   BindingBase::BindAll();
-  LOG_INFO("Loaded RETK, version " GIT_BRANCH "@" GIT_COMMIT
-           " Created by Force67 <github.com/Force67>.");
+  LOG_INFO("Loaded RETK " TK_VERSION_STR
+           " created by Force67 <github.com/Force67>.");
 }
 
 Plugin::~Plugin() {
