@@ -177,15 +177,30 @@ project("juce-aio")
         "JUCE/modules/juce_opengl/**.h",
     })
 
+project("lz4")
+    language("C")
+    kind("StaticLib")
+    includedirs({
+        "./lz4/lib",
+    })
+    files({
+        "lz4/lib/*.c",
+        "lz4/lib/*.h"
+    })
+
 project("rocksdb")
     language("C++")
     kind("StaticLib")
     characterset("MBCS")
     includedirs({
         "./rocksdb",
-        "./rocksdb/include"
+        "./rocksdb/include",
+        "./lz4/lib"
     })
-    defines("ROCKSDB_SUPPORT_THREAD_LOCAL")
+    defines({
+        "ROCKSDB_SUPPORT_THREAD_LOCAL",
+        "LZ4"
+    })
     files({
         "rocksdb/cache/cache_entry_roles.cc",
 		"rocksdb/cache/cache.cc",
