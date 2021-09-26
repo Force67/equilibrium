@@ -12,6 +12,17 @@
       }
     ],
     [
+      "@semantic-release/commit-analyzer", 
+      {
+        "preset": "angular",
+        "releaseRules": 
+        [
+          {"type": "tweak", "release": "patch"},
+          {"scope": "no-release", "release": false}
+        ]
+      }
+    ],
+    [
       "@semantic-release/changelog",
       {
         "changelogFile": "changelog.md",
