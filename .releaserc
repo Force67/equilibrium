@@ -1,5 +1,5 @@
 {
-  "branches": ["main", "devel2","prerel"]
+  "branches": ["main", "devel2","prerel"],
   "plugins": [
     ["@semantic-release/npm", {
       "npmPublish": false,
