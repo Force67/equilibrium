@@ -4,7 +4,7 @@ name: Release
   push:
     branches:
       - main
-      - devel
+      - devel2
       - prerel
 jobs:
   release:
