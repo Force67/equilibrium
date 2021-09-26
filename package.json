@@ -6,7 +6,11 @@
   "dependencies": {
     "semantic-release": "^18.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/release-notes-generator": "^10.0.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
