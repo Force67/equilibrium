@@ -23,15 +23,9 @@
       }
     ],
     [
-      "@semantic-release/changelog",
-      {
-        "changelogFile": "CHANGES.md"
-      }
-    ],
-    [
       "@semantic-release/git",
       {
-        "assets": ["CHANGES.md"]
+        "assets": ["package.json","CHANGELOG.md"]
       }
     ]
   ]
