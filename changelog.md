@@ -1,5 +1,12 @@
 Latest changes
 
+## [1.1.1](https://github.com/Force67/RETK/compare/v1.1.0...v1.1.1) (2021-09-26)
+
+
+### Bug Fixes
+
+* **vcs:** Introduce tweak type for commits. ([a14b4a6](https://github.com/Force67/RETK/commit/a14b4a610c55aa2f8ea342e45e7da57de1815b2d))
+
 # [1.1.0](https://github.com/Force67/RETK/compare/v1.0.0...v1.1.0) (2021-09-26)
 
 
