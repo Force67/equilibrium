@@ -1,3 +1,10 @@
+## [1.1.6](https://github.com/Force67/RETK/compare/v1.1.5...v1.1.6) (2021-09-26)
+
+
+### Bug Fixes
+
+* **package:** I AM NOT A NODE MODULE FFS.... ([e12dbd7](https://github.com/Force67/RETK/commit/e12dbd765516be07fe9c8b0c08f680122b53bf00))
+
 ## [1.1.5](https://github.com/Force67/RETK/compare/v1.1.4...v1.1.5) (2021-09-26)
 
 
