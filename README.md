@@ -34,4 +34,4 @@ Afterwards you can open `build/RETK.sln`. The recommended build configuration is
 
 # Credits
 * [Freeeaky](https://github.com/Freeeaky) for his original [sync plugin](https://github.com/Nomad-Group/IDASync), which inspired me to create RETK.
-* [Fontawesome](https://fontawesome.com) for icons used in the IDA plugin.
+* [Fontawesome](https://fontawesome.com) for icons used in the IDA plugin!
