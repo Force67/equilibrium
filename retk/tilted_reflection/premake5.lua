@@ -27,7 +27,7 @@ project("tilted_reflection_test")
         "*.cc",
         "*.h"
     })
-    links("googlemock")
+    links({"base", "googlemock"})
     includedirs({
         ".",
         "../",

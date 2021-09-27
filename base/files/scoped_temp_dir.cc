@@ -32,11 +32,10 @@ bool ScopedTempDir::Delete() {
   if (path_.empty())
     return false;
 
-  bool ret = fs::remove_all(path_);
-  if (ret) {
-    // We only clear the path if deleted the directory.
+  bool ret = fs::remove_all(path_) && fs::remove(path_);
+  if (ret)
+    // For debugging reasons.
     path_.clear();
-  }
 
   return ret;
 }
