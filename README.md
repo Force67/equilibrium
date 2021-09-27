@@ -18,7 +18,7 @@
 - **Inbuilt Tools**: Noda enhances the reverse engineering experience by adding tools such as PatternTool.
 
 # Setup
-Copy IDA_Retk75.dll into your IDA plugin directory.
+Copy IDA_Retk76.dll into your IDA plugin directory.
 
 # Building
 First, [install Qt 5.6.3](https://download.qt.io/new_archive/qt/5.6/5.6.3/), which is required for the IDA plugin. Then clone the repo, like below:
