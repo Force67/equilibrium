@@ -37,14 +37,10 @@ TEST_F(SymbolDatabaseTest, WriteEntries) {
   EXPECT_EQ(database.count(), 10);
   EXPECT_TRUE(database.StoreSymbols());
 
-  SymbolDatabase::Record r;
-  r.count = 11;
-  r.hash = 20;
-  r.direct_offset = 30;
-  r.indirect_offset = 40;
-  r.signature = "BB CC DD";
-  database.AddSymbol(r);
-  EXPECT_EQ(database.count(), 11);
+  // drain memory cache
+  database.clear();
+  EXPECT_TRUE(database.LoadSymbols());
+  EXPECT_EQ(database.count(), 10);
 }
 }  // namespace
 }  // namespace tilted_reflection

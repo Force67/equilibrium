@@ -33,8 +33,8 @@ class SymbolDatabase {
   bool LoadSymbols();
   bool StoreSymbols();
 
-  size_t count() const { return records_.size(); }
-
+  inline void clear() { records_.clear(); }
+  inline size_t count() const { return records_.size(); }
   // without spacing a buffer should just require to be
   // char buf[64] bytes big.
   // we should denote with length
