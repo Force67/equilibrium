@@ -1,3 +1,10 @@
+## [1.1.7](https://github.com/Force67/RETK/compare/v1.1.6...v1.1.7) (2021-09-27)
+
+
+### Bug Fixes
+
+* **readme:** Small tweak ([9ba6acd](https://github.com/Force67/RETK/commit/9ba6acdb52f5b32687948f3b7fd909d8e937f9a1))
+
 ## [1.1.6](https://github.com/Force67/RETK/compare/v1.1.5...v1.1.6) (2021-09-26)
 
 
