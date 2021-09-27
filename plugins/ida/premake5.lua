@@ -40,7 +40,8 @@ project("ida_plugin")
         "network",
         "database",
         "base",
-        "sync"
+        "sync",
+        "tilted_reflection"
     })
     -- configure IDA SDK
     defines({

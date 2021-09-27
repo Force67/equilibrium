@@ -18,6 +18,7 @@ struct RequestFunctor final : exec_request_t {
     execute_sync(*this, flags);
   }
 
+ private:
   int execute() override {
     callback_();
     return 0;

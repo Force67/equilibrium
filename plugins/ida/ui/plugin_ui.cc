@@ -68,11 +68,9 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   // register tray widgets
   window->statusBar()->addPermanentWidget(time_label_);
   window->statusBar()->addPermanentWidget(status_form_);
-
   // and connect everything
   connect(timer_, &QTimer::timeout, this, &PluginUi::Tick);
   connect(cnAct_, &QAction::triggered, &plugin_, &Plugin::SyncToggle);
-
   QObject::connect(abAct_, &QAction::triggered, this,
                    [&]() { address_view_->Show(true); });
 
@@ -88,7 +86,6 @@ PluginUi::PluginUi(Plugin& plugin) : plugin_(plugin) {
   connect(this, &PluginUi::ShellStateChange, this, [&](ShellState newState) {
     if (newState == ShellState::IN_DB)
       cnAct_->setEnabled(true);
-
     if (newState == ShellState::NO_DB)
       cnAct_->setEnabled(false);
   });

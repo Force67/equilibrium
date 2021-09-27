@@ -32,6 +32,8 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
 #define LOG_ERROR(...) \
   ::base::PrintLogMessage(::base::LogLevel::kError, __VA_ARGS__)
 
+#define TK_UNREACHABLE(expr) (void)expr
+
 #define TK_DCHECK(expression)                                     \
   do {                                                            \
     if (!(expression)) {                                          \

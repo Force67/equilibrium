@@ -3,14 +3,10 @@
 #pragma once
 
 #include "ui/plugin_ui.h"
-#include "tools/usi_maker.h"
 #include "tools/signature_maker.h"
-
+#include "tools/reflection_provider.h"
 #include "idb/workbench_data.h"
 
-// 'QuickRunner' is responsible for making quick links to features available.
-//	>Features are either exposed through the RunDialog ui component or through hot-keys
-//	>TODO: make user customizable
 class Workbench final : public QObject {
  public:
   Workbench(Plugin&);
@@ -23,16 +19,12 @@ class Workbench final : public QObject {
 	  kUSIMaker,
 	  kCount,
   };
-
+  
   void RunFeature(int data);
-
-  void ProduceUSI(const ea_t);
-
  private:
   WorkbenchData data_;
-
+  ReflectionProvider reflection_;
   FeatureIndex last_feature_{FeatureIndex::kSignatureMaker};
-  USIMaker usi_factory_;
 };
 
 inline Workbench* work_bench();

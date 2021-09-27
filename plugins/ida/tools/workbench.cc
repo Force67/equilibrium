@@ -7,7 +7,6 @@
 
 #include "bindings/binding.h"
 #include "signature_maker.h"
-#include "usi_maker.h"
 
 #include "ui/forms/input_dialog.h"
 
@@ -44,6 +43,7 @@ Workbench::~Workbench() {
   work_bench_instance = nullptr;
 }
 
+#if 0
 void Workbench::ProduceUSI(const ea_t ea) {
   // This should be moved somewhere else, such as a WorkSpace::Init Sub
   if (data_.sym_table_path.empty()) {
@@ -62,6 +62,7 @@ void Workbench::ProduceUSI(const ea_t ea) {
 
   usi_factory_.Create(ea);
 }
+#endif
 
 void Workbench::RunFeature(int data) {
   const ea_t screen_ea = get_screen_ea();
@@ -72,7 +73,7 @@ void Workbench::RunFeature(int data) {
       CreatePrintSignature(screen_ea);
       break;
     case FeatureIndex::kUSIMaker:
-      ProduceUSI(screen_ea);
+      reflection_.AddSymbol(screen_ea);
       break;
     default:
       LOG_ERROR("??? : {}", data);

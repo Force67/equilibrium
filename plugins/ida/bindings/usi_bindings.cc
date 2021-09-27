@@ -4,10 +4,11 @@
 #include "binding.h"
 #include "tools/workbench.h"
 
+#if 0
 // plain make a USI provided by given type name...
 Binding<uint64_t, ea_t> MakeUSI("MakeUSI", [](ea_t ea) { 
 	return work_bench()->ProduceUSI(ea);
 });
-
+#endif
 // create an USI, directly export it to given database
 // fails when executed on wrong thread.

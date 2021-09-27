@@ -79,8 +79,8 @@ void SymbolDatabase::AddSymbol(const Record& record) {
   auto it =
       std::find_if(records_.begin(), records_.end(),
                    [&](const Record& r) { return r.hash == record.hash; });
-  if (it == records_.end())
-    records_.push_back(record);
+  TK_DCHECK(it == records_.end());
+  records_.push_back(record);
 }
 
 //https://github.com/llvm/llvm-project/blob/d480f968ad8b56d3ee4a6b6df5532d485b0ad01e/clang/include/clang/Tooling/CompilationDatabase.h
