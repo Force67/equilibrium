@@ -6,12 +6,27 @@ qt = premake.modules.qt
 
 group("Dependencies")
 
+project("mbedtls")
+    kind("StaticLib")
+    language("C")
+    includedirs({
+        "mbedtls/include",
+        "mbedtls/library"
+    })
+    files({
+        "mbedtls/library/*.c",
+        "mbedtls/library/*.h",
+    })
+
 project("sockpp")
     kind("StaticLib")
     language("C++")
+    characterset("MBCS")
     includedirs({
-        "sockpp/include"
+        "sockpp/include",
+        "mbedtls/include"
     })
+    defines("MBEDTLS_ALLOW_PRIVATE_ACCESS")
     files({
         "sockpp/include/sockpp/*.h",
         "sockpp/src/*.cpp"
