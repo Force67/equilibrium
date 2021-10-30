@@ -13,10 +13,10 @@ project("mbedtls")
         "mbedtls/include",
         "mbedtls/library"
     })
-    publicincludes({
+    pubincludedirs({
         "mbedtls/include",
     })
-    publicdefines({
+    pubdefines({
         "MBEDTLS_ALLOW_PRIVATE_ACCESS"
     })
     files({
@@ -44,20 +44,20 @@ project("sockpp")
 project("sqlite")
     kind("StaticLib")
     language("C")
-    publicincludes("./sqlite")
+    pubincludedirs("./sqlite")
     files({
         "sqlite/*.h",
         "sqlite/*.c"
     })
-    publicdefines("SQLITE_ENABLE_SQLLOG")
+    pubdefines("SQLITE_ENABLE_SQLLOG")
     filter("configurations:Debug")
-        publicdefines("SQLITE_DEBUG")
+        pubdefines("SQLITE_DEBUG")
 
 project("fmtlib")
     language("C++")
     kind("StaticLib")
-    includedirs({
-        "fmt/include",
+    pubincludedirs({
+        "./fmt/include",
     })
     files({
         "fmt/src/format.cc",

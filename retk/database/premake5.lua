@@ -7,30 +7,10 @@ component("database")
         "sqlite/*.h",
     })
     dependencies({
-        "sqlite"
-    })
-    includedirs({
-        blu.extdir .. "/fmt/include",
-        blu.extdir .. "/googletest/googletest/include",
-    })
-
-group("Components/database")
-project("database")
-    kind("StaticLib")
-    files({
-        "sqlite/*.cc",
-        "sqlite/*.h",
-    })
-    links({
         "sqlite",
-        "base",
-        "googlemock"
+        "fmtlib"
     })
     includedirs({
-        ".",
-        "../../",
-        blu.extdir .. "/sqlite",
-        blu.extdir .. "/fmt/include",
         blu.extdir .. "/googletest/googletest/include",
     })
 

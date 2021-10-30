@@ -22,23 +22,16 @@ api.register {
 -- The Following functions automatically export given params
 -- through the 'dependencies' function:
 api.register {
-    name = "publicincludes",
+    name = "pubincludedirs",
     scope = "config",
     kind = "list:directory",
     tokens = true,
 }
 
 api.register {
-    name = "publiclinks",
+    name = "pubdefines",
     scope = "config",
-    kind = "list:directory",
-    tokens = true,
-}
-
-api.register {
-    name = "publicdefines",
-    scope = "config",
-    kind = "list:directory",
+    kind = "list:string",
     tokens = true,
 }
 
@@ -81,12 +74,33 @@ function remotematchconfig(prj, srcname)
     return nil
 end
 
+function merge_pubdirs(src_cfg, target_config)
+    for j = 1, #src_cfg.pubincludedirs do
+        local rpub = src_cfg.pubincludedirs[j]
+        table.insert(target_config.includedirs, rpub)
+        --print("For " .. src_cfg.name .. " pub dir is " .. rpub)
+    end
+end
+
+function merge_pubdefs(src_cfg, target_config)
+    for j = 1, #src_cfg.pubdefines do
+        local rdef = src_cfg.pubdefines[j]
+        table.insert(target_config.defines, rdef)
+        --print("For " .. rcfg.name .. "RDEF IS " .. rdef)
+    end
+end
+
 -- dependency -> getpublicdir
 premake.override(premake.project, "bake", function(oldfn, prj)
     -- bake the regular content first
     oldfn(prj)
     -- merge dependencies
     for cfg in premake.project.eachconfig(prj) do
+        -- public = private for source project in order to
+        -- avoid code duplication
+        merge_pubdirs(cfg, cfg)
+        merge_pubdefs(cfg, cfg)
+
         -- merge project links
         for i = 1, #cfg.dependencies do
             local d = cfg.dependencies[i]
@@ -98,19 +112,8 @@ premake.override(premake.project, "bake", function(oldfn, prj)
                 -- try matching it.
                 local rcfg = remotematchconfig(rp, cfg.name)
                 if rcfg then
-                    -- Merge public includes
-                    for j = 1, #rcfg.publicincludes do
-                        local rpub = rcfg.publicincludes[j]
-                        table.insert(cfg.includedirs, rpub)
-                        --print("For " .. rcfg.name .. "RPUB IS " .. rpub)
-                    end
-
-                    -- Merge public defines
-                    for j = 1, #rcfg.publicdefines do
-                        local rdef = rcfg.publicdefines[j]
-                        table.insert(cfg.defines, rdef)
-                        --print("For " .. rcfg.name .. "RDEF IS " .. rdef)
-                    end
+                    merge_pubdirs(rcfg, cfg)
+                    merge_pubdefs(rcfg, cfg)
                 else
                     print("Failed to match remote config (Source proj is " .. prj.name .. 
                     " dependency proj is " .. rp.name .. ")")
