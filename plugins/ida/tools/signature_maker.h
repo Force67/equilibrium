@@ -18,7 +18,7 @@ class SignatureMaker {
 
   Result CreateUniqueSignature(const ea_t target_address,
                                std::string& out_pattern,
-                               ptrdiff_t& out_offset,
+                               int8_t& out_offset,
                                bool mute_log,
                                bool& is_data);
 
@@ -27,16 +27,16 @@ class SignatureMaker {
 
   Result UniqueDataSignature(ea_t target_address,
                              std::string& out_pattern,
-                             ptrdiff_t& out_offset);
+                             int8_t& out_offset);
 
   Result UniqueCodeSignature(ea_t target_address,
                              std::string& out_pattern,
-                             ptrdiff_t& out_offset,
+                             int8_t& out_offset,
                              bool& very_dumb_flag);
 
   Result GenerateFunctionReference(ea_t target_address,
                                    std::string& out_pattern,
-                                   ptrdiff_t& out_offset);
+                                   int8_t& out_offset);
 
  private:
   qvector<uchar> bytes_;

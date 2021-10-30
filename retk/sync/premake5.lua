@@ -7,7 +7,7 @@ os.rmdir("protocol/generated")
 os.mkdir("protocol/generated")
 matches = os.matchfiles("protocol/**.fbs")
 for k,v in pairs(matches) do 
-    local fb_dir = path.getabsolute("../../build")
+    local fb_dir = path.getabsolute("../../build/bin")
     print(v)
     os.executef("%s --cpp -o protocol/generated %s", fb_dir .. "/flatc", v) 
 end

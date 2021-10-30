@@ -17,7 +17,7 @@ void CreatePrintSignature(ea_t ea) {
   SignatureMaker sigMaker;
 
   std::string signature;
-  ptrdiff_t offset = 0;
+  int8_t offset = 0;
   bool dumb = false;
 
   sigMaker.CreateUniqueSignature(ea, signature, offset, false, dumb);
@@ -31,7 +31,7 @@ Workbench* work_bench() {
   return work_bench_instance;
 }
 
-Workbench::Workbench(Plugin& plugin) {
+Workbench::Workbench(Plugin& plugin) : reflection_(data_.) {
   work_bench_instance = this;
 
   // glue UI request to runner.

@@ -50,8 +50,7 @@ bool ReflectionProvider::AddSymbol(const ea_t ea) {
   SignatureMaker sigmaker;
   bool is_data = false;
   auto result = sigmaker.CreateUniqueSignature(
-      ea, record.signature, reinterpret_cast<ptrdiff_t&>(record.direct_offset),
-      true, is_data);
+      ea, record.signature, record.direct_offset, true, is_data);
 
   if (result != SignatureMaker::Result::kSuccess) {
     LOG_ERROR(
@@ -64,6 +63,7 @@ bool ReflectionProvider::AddSymbol(const ea_t ea) {
   record.hash = base::FNV1a64(type_name.c_str());
   record.count = 1;
   record.indirect_offset = 0;
+  database_.AddSymbol(record);
 
   // for now we save on every symbol, this is less than optimal however
   // TODO: think about recovery strategy if this fails.

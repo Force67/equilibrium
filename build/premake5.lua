@@ -1,10 +1,14 @@
--- Copyright (c) Stronkat. All rights reserved.
+-- Copyright (C) Force67 <github.com/Force67>.
+-- For licensing information see LICENSE at the root of this distribution.
+-- This represents the root of the build directory
 
--- tool namespace
+-- Declare the blu build tool namespace
 blu = {}
 
 require('vstudio')
 
+-- pull in root dependencies
 include('artifacts.lua')
-include('vcs_info.lua')
+include('build_info.lua')
+include('dependency.lua')
 include('component.lua')

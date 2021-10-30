@@ -1,6 +1,19 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
+component("database")
+    files({
+        "sqlite/*.cc",
+        "sqlite/*.h",
+    })
+    dependencies({
+        "sqlite"
+    })
+    includedirs({
+        blu.extdir .. "/fmt/include",
+        blu.extdir .. "/googletest/googletest/include",
+    })
+
 group("Components/database")
 project("database")
     kind("StaticLib")

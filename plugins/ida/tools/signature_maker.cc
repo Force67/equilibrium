@@ -223,7 +223,7 @@ SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
 SignatureMaker::Result SignatureMaker::GenerateFunctionReference(
     ea_t ref_ea,
     std::string& out_pattern,
-    ptrdiff_t& out_offset) {
+    int8_t& out_offset) {
   Result result{Result::kEmpty};
   insn_t instruction{};
   // jump to start of the function and search from there
@@ -281,7 +281,7 @@ SignatureMaker::Result SignatureMaker::GenerateFunctionReference(
 SignatureMaker::Result SignatureMaker::UniqueDataSignature(
     ea_t target_ea,
     std::string& out_pattern,
-    ptrdiff_t& out_offset) {
+    int8_t& out_offset) {
   Result result{Result::kNoReferences};
   // iterate through references to data.
 
@@ -319,7 +319,7 @@ SignatureMaker::Result SignatureMaker::UniqueDataSignature(
 SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
     ea_t target_ea,
     std::string& out_pattern,
-    ptrdiff_t& out_offset,
+    int8_t& out_offset,
     bool& very_dumb_flag) {
   // valid code?
   if (!can_decode(target_ea)) {
@@ -373,7 +373,7 @@ SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
 SignatureMaker::Result SignatureMaker::CreateUniqueSignature(
     const ea_t in_ea,
     std::string& out_pattern,
-    ptrdiff_t& out_offset,
+    int8_t& out_offset,
     bool mute_log,
     bool& is_data) {
   // disallow unsupported address types so it can only be code or data
@@ -399,7 +399,7 @@ SignatureMaker::Result SignatureMaker::CreateUniqueSignature(
   }
 
   std::string result_pattern{};
-  ptrdiff_t result_offset = 0;
+  int8_t result_offset = 0;
 
   const Result result =
       is_address_data
