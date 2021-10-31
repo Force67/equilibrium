@@ -5,19 +5,22 @@
 -- Declare a component; use this in place of 'project'
 function component(name)
     group("Components/" .. name)
-        project(name)
+    project(name)
         kind("StaticLib")
         includedirs({
-            ".",
-            "../../",
+            ".",        --< current dir
+            "../",      --< component dir
+            "../../",   --< main dir for direct base access
         })
         -- each component links against google mock
-        links("base", "googlemock")
+        dependencies("googlemock")
+        links("base")
 end
 
+-- there may be several tests for one type of component
 function unittest(name, options)
+    group("Components/" .. name)
     project(name)
-    kind("ConsoleApp")
-    links("googlemock")
-    includedirs(blu.extdir .. "/googletest/googletest/include")
+        kind("ConsoleApp")
+        dependencies("googlemock")
 end

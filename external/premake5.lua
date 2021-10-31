@@ -28,11 +28,11 @@ project("sockpp")
     kind("StaticLib")
     language("C++")
     characterset("MBCS")
-    includedirs({
+    pubincludedirs({
         "sockpp/include",
         "mbedtls/include"
     })
-    defines("MBEDTLS_ALLOW_PRIVATE_ACCESS")
+    pubdefines("MBEDTLS_ALLOW_PRIVATE_ACCESS")
     files({
         "sockpp/include/sockpp/*.h",
         "sockpp/src/*.cpp"
@@ -67,7 +67,7 @@ project("fmtlib")
 project("googlemock")
     language("C++")
     kind("StaticLib")
-    includedirs({
+    pubincludedirs({
         "googletest/googlemock/include",
         "googletest/googletest/include",
         "googletest/googlemock",
@@ -85,10 +85,10 @@ project("googlemock")
 project("glew")
     language("C")
     kind("StaticLib")
-    includedirs({
+    pubincludedirs({
         "glew/include",
     })
-    defines({
+    pubdefines({
         "GLEW_STATIC"
     })
     files({
@@ -100,10 +100,8 @@ project("glew")
 project("glfw")
     language("C")
     kind("StaticLib")
-    includedirs({
-        "glfw/include",
-        "glfw/src"
-    })
+    pubincludedirs("glfw/include")
+    includedirs({"glfw/src"})
     files({
         "glfw/include/*.h",
         "glfw/src/context.c",
@@ -113,11 +111,11 @@ project("glfw")
         "glfw/src/vulkan.c",
         "glfw/src/window.c"
     })
-    defines({
+    pubdefines({
         "GLEW_STATIC"
     })
     filter("system:windows")
-        defines({
+        pubdefines({
             "_GLFW_WIN32",
             "GLFW_EXPOSE_NATIVE_WIN32"
         })
@@ -166,37 +164,10 @@ project("imgui")
         "imgui/backends/imgui_impl_opengl3.h"
     })
 
-project("juce-aio")
-    language("C++")
-    kind("StaticLib")
-    includedirs({
-        --"JUCE/modules/juce_gui_basics",
-        --"JUCE/modules/juce_gui_extra",
-        "JUCE/modules/juce_opengl",
-    })
-    defines(
-        "JUCE_WINDOWS",
-        "JUCE_WEB_BROWSER=0",
-        "JUCE_USE_CURL=0",
-        "JUCE_APPLICATION_NAME_STRING",
-        "JUCE_APPLICATION_VERSION_STRING"
-    )
-    pchheader("JUCE/modules/juce_opengl/juce_gui_basics.h")
-    pchsource("JUCE/modules/juce_opengl/juce_gui_basics.cpp")
-    forceincludes("JUCE/modules/juce_opengl/juce_gui_basics.h")
-    files({
-        --"JUCE/modules/juce_gui_basics/**.cpp",
-        --"JUCE/modules/juce_gui_basics/**.h",
-        --"JUCE/modules/juce_gui_extra/**.cpp",
-        --"JUCE/modules/juce_gui_extra/**.h",
-        "JUCE/modules/juce_opengl/**.cpp",
-        "JUCE/modules/juce_opengl/**.h",
-    })
-
 project("lz4")
     language("C")
     kind("StaticLib")
-    includedirs({
+    pubincludedirs({
         "./lz4/lib",
     })
     files({
@@ -208,12 +179,14 @@ project("rocksdb")
     language("C++")
     kind("StaticLib")
     characterset("MBCS")
+    pubincludedirs({
+        "./rocksdb/include",
+    })
     includedirs({
         "./rocksdb",
-        "./rocksdb/include",
         "./lz4/lib"
     })
-    defines({
+    pubdefines({
         "ROCKSDB_SUPPORT_THREAD_LOCAL",
         "LZ4"
     })

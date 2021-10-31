@@ -5,11 +5,6 @@
 local p = premake
 local api = p.api
 
-
--- TODO: on a per project config.
--- so we can support different configurations
--- e.g scope = config
-
 -- Use this to import a required dependency into your project
 -- it will parse public and private includes
 api.register {

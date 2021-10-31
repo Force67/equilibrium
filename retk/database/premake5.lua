@@ -14,6 +14,9 @@ component("database")
         blu.extdir .. "/googletest/googletest/include",
     })
 
+--unittest("sqlite_database_test")
+    -- add dependency to root component x)
+
 group("Components/database/test")
 project("sqlite_database_test")
     kind("ConsoleApp")

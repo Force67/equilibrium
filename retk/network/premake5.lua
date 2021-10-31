@@ -2,27 +2,19 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 function network_include()
-    links({
+    dependencies({
         "sockpp",
         "fmtlib",
         "googlemock",
-        "base"
     })
+    -- header only:
     includedirs({
-        ".",
-        "../",
-        "../../",
         blu.extdir .. "/xenium",
-        blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",
-        blu.extdir .. "/fmt/include",
-        blu.extdir .. "/googletest/googletest/include",
     })
 end
 
-group("Components/network")
-project("network")
-    kind("StaticLib")
+component("network")
     files({
         "base/*.cc",
         "base/*.h",
@@ -37,7 +29,7 @@ project("network")
         "zeta/readme.md",
     })
     network_include()
-
+    
 group("Components/network/test")
 project("network_unittests")
     kind("ConsoleApp")
