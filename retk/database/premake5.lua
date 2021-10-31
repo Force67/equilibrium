@@ -14,12 +14,7 @@ component("database")
         blu.extdir .. "/googletest/googletest/include",
     })
 
---unittest("sqlite_database_test")
-    -- add dependency to root component x)
-
-group("Components/database/test")
-project("sqlite_database_test")
-    kind("ConsoleApp")
+unittest("database:sqlite_test")
     files({
         "sqlite/test/run_all_tests.cc",
         "sqlite/test/sqlite_test_suite.cc",
@@ -27,21 +22,5 @@ project("sqlite_database_test")
         -- for now, just to get tests working...
         "sqlite/*.cc",
         "sqlite/*.h",
-
     })
-    links({
-        --"database",
-        "base",
-        "googlemock",
-        "base",
-
-        -- for now, just to get tests working...
-        "sqlite",
-    })
-    includedirs({
-        ".",
-        "../../",
-        blu.extdir .. "/sqlite",
-        blu.extdir .. "/fmt/include",
-        blu.extdir .. "/googletest/googletest/include",
-    })
+    dependencies({"sqlite", "fmtlib"})

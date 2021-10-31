@@ -29,10 +29,8 @@ component("network")
         "zeta/readme.md",
     })
     network_include()
-    
-group("Components/network/test")
-project("network_unittests")
-    kind("ConsoleApp")
+
+unittest("network:unittests")
     include_meta()
     files({
         "test/run_all_unittests.cc",
@@ -45,9 +43,7 @@ project("network_unittests")
         "./test",
     })
 
-group("Components/network/test")
-project("testclient")
-    kind("ConsoleApp")
+unittest("network:testclient")
     include_meta()
     files({
         "test/client/main.cc",
@@ -60,9 +56,7 @@ project("testclient")
         "test/client"
     })
 
-group("Components/network/test")
-project("testserver")
-    kind("ConsoleApp")
+unittest("network:testserver")
     include_meta()
     files({
         "test/server/main.cc",

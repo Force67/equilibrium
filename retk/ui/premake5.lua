@@ -32,9 +32,7 @@ component("ui")
         blu.extdir .. "/skia_sdk/lib/debug_static",
     })
 
-group("Components/ui/test")
-project("ui_test")
-    kind("ConsoleApp")
+unittest("ui_tests")
     files({
         "test/run_all_tests.cc",
         "test/ui_test_suite.cc",
@@ -44,16 +42,10 @@ project("ui_test")
         "gamma/*.h",
         "gamme/*.inl"
     })
-    links({
-        "base",
+    dependencies({
         "googlemock",
-        "base",
-        "ui",
+        "fmtlib"
     })
     includedirs({
-        ".",
-        "../../",
         blu.extdir .. "/ui",
-        blu.extdir .. "/fmt/include",
-        blu.extdir .. "/googletest/googletest/include",
     })

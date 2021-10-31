@@ -18,9 +18,17 @@ function component(name)
 end
 
 -- there may be several tests for one type of component
-function unittest(name, options)
-    group("Components/" .. name)
-    project(name)
+-- the name follows the following scheme component_name:test_name
+function unittest(name)
+    -- convert seperator into path
+    group("Components/" .. string.gsub(name, ":", "/"))
+    local pname = string.match(name, ":(.*)") or name
+    project(pname)
         kind("ConsoleApp")
+        includedirs({
+            ".",
+            "../../"
+        })
         dependencies("googlemock")
+        links("base")
 end

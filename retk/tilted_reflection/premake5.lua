@@ -12,9 +12,7 @@ component("tilted_reflection")
         blu.extdir .. "/rapidjson/include",
     })
 
-group("Components/tilted_reflection/test")
-project("tilted_reflection_test")
-    kind("ConsoleApp")
+unittest("tilted_reflection:refl_test")
     include_meta()
     files({
         "test/test_runner.cc",
