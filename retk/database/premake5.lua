@@ -10,9 +10,6 @@ component("database")
         "sqlite",
         "fmtlib"
     })
-    includedirs({
-        blu.extdir .. "/googletest/googletest/include",
-    })
 
 unittest("database:sqlite_test")
     files({

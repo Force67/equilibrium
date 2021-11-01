@@ -1,12 +1,7 @@
 -- Copyright (C) 2021 Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-component("ui")
-    files({
-        "**.cc",
-        "**.h",
-        "**.inl"
-    })
+local function include_ui()
     dependencies({
         "fmtlib",
         "glew",
@@ -31,8 +26,17 @@ component("ui")
     libdirs({
         blu.extdir .. "/skia_sdk/lib/debug_static",
     })
+end
 
-unittest("ui_tests")
+component("ui")
+    files({
+        "**.cc",
+        "**.h",
+        "**.inl"
+    })
+    include_ui()
+
+unittest("ui:gammatests")
     files({
         "test/run_all_tests.cc",
         "test/ui_test_suite.cc",
@@ -42,10 +46,14 @@ unittest("ui_tests")
         "gamma/*.h",
         "gamme/*.inl"
     })
-    dependencies({
-        "googlemock",
-        "fmtlib"
+    include_ui()
+
+unittest("ui:layout")
+    files({
+        "test/run_all_tests.cc",
+        "test/ui_test_suite.cc",
+        "test/ui_test_suite.h",
+        "layout/*.cc",
+        "layout/*.h"
     })
-    includedirs({
-        blu.extdir .. "/ui",
-    })
+    include_ui()

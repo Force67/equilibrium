@@ -140,12 +140,12 @@ project("glfw")
 project("imgui")
     language("C++")
     kind("StaticLib")
-    includedirs({
+    pubincludedirs({
         "./imgui",
         "glew/include",
         "glfw/include",
     })
-    defines({
+    pubdefines({
         "GLEW_STATIC"
     })
     files({

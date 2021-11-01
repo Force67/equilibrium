@@ -3,23 +3,31 @@
 #pragma once
 
 #include <vector>
+#include <core/SkPoint.h>
 #include <base/math/vec2.h>
 
 namespace ui {
 
 class Element {
  public:
+  inline Element() {
+    screen_pos = {0.f, 0.f};
+    bounds = {12.f, 12.f};
+  }
+
   std::vector<Element*> children_;
+
+  size_t child_count() const { return children_.size(); }
+
+  SkPoint screen_pos;
+  SkPoint bounds;
 };
 
-class LayoutBase {
+class Layout {
  public:
-  virtual ~LayoutBase() = default;
-
-  // current bounds
-  virtual base::Vec2i Size() = 0;
+  virtual ~Layout() = default;
 
   // Sets the current layout
-  virtual void Apply() = 0;
+  virtual void Build() = 0;
 };
 }  // namespace ui
