@@ -95,8 +95,8 @@ void cleanup_skia() {
 
 // https://gist.github.com/ad8e/dd150b775ae6aa4d5cf1a092e4713add
 
-const int kWidth = 960;
-const int kHeight = 640;
+const int kWidth = 1920;
+const int kHeight = 1080;
 const char* glsl_version = "#version 130";
 
 static GLFWwindow* g_window = nullptr;
@@ -152,7 +152,7 @@ SkPoint GetMonitorDpi() {
   HMONITOR monitor_handle =
       MonitorFromWindow(glfwGetWin32Window(g_window), MONITOR_DEFAULTTONEAREST);
 
-  UINT x, y = 0;
+  UINT x, y = 96;
   GetDpiForMonitor(monitor_handle, MONITOR_DPI_TYPE::MDT_EFFECTIVE_DPI, &x, &y);
 
   return SkPoint::Make(static_cast<float>(x), static_cast<float>(y));
@@ -197,13 +197,75 @@ void DrawButton(SkCanvas* c, const char* text, const SkPaint& p, SkFont &font) {
       font, textCol);
 }
 
+void DrawToggleButton(SkCanvas* c, const SkPaint& p, bool checked) {
+  SkRect r = SkRect::MakeXYWH(400, 100, 30, 20);
+  c->drawRoundRect(r, 10, 10, p);
+
+  float margin = r.height() / 4.f;
+
+  SkPaint lcol;
+  lcol.setColor(SK_ColorWHITE);
+
+  SkPoint circle_pos =
+      checked
+      ? SkPoint::Make(
+            (r.centerX() + (r.width() / 4.f) - (margin / 2.f)), r.centerY())
+              : SkPoint::Make((r.centerX() - (r.width() / 4.f)) + (margin / 2.f), r.centerY());
+
+  c->drawCircle(circle_pos, ((r.height() - margin) / 2), lcol);
+}
+
+// widgets/uikit
+
+static SkImage* g_img;
+
 void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
   const char* g_textRows[] = {"Allgemein", "Mitteilungen", "Töne", "Fokus",
                               "Bildschirmzeit"};
 
+  const SkRect bounds = SkRect::MakeXYWH(100, 200, 300, 300);
+  const size_t count = sizeof(g_textRows) / sizeof(const char*);
+  SkScalar row_height = bounds.height() / count;
 
-  SkRect r = SkRect::MakeXYWH(100, 200, 300, 300);
-  c->drawRoundRect(r, 10, 10, p);
+  c->drawRoundRect(bounds, 10, 10, p);
+
+  SkPaint lcol;
+  lcol.setColor(SK_ColorWHITE);
+  for (size_t i = 1; i < count; i++) {
+    c->drawLine({bounds.x(), bounds.y() + row_height * i},
+                {bounds.fRight, (bounds.y() + row_height * i)}, lcol);
+  }
+
+  for (size_t i = 0; i < count; i++) {
+    uint8_t storage[][5] = {{0xCA, 0xDA, 0xCA, 0xC9, 0xA3},
+                            {0xAC, 0xA8, 0x89, 0xA7, 0x87},
+                            {0x9B, 0xB5, 0xE5, 0x95, 0x46},
+                            {0x90, 0x81, 0xC5, 0x71, 0x33},
+                            {0x75, 0x55, 0x44, 0x40, 0x30}};
+
+    // THIS TAKES WIDTH AND HEIGHT FOR NOW
+    float img_width = bounds.width() / 8.f;
+
+    // TODO: collide image... so we get difference
+
+    SkImageInfo imageInfo = SkImageInfo::Make(
+        5, 5, kGray_8_SkColorType, kOpaque_SkAlphaType);
+    SkPixmap pixmap(imageInfo, storage[0], sizeof(storage) / 5);
+
+    SkBitmap bitmap;
+    bitmap.installPixels(pixmap);
+
+    SkRect img_bounds = SkRect::MakeXYWH(
+        bounds.x(), bounds.y() + i * row_height, img_width, img_width);
+    c->drawImageRect(bitmap.asImage(), img_bounds, SkSamplingOptions());
+
+    c->drawSimpleText(g_textRows[i], strlen(g_textRows[i]),
+                      SkTextEncoding::kUTF8, bounds.x(), 
+        (bounds.y() + i * row_height) + 
+        (row_height / 4.f), font,
+                      lcol);
+  }
+
 }
 
 int main(void) {
@@ -252,6 +314,7 @@ int main(void) {
     paint.setColor(SK_ColorBLACK);
 
     DrawButton(canvas, "test", paint, font);
+    DrawToggleButton(canvas, paint, true);
 
     DrawGroupBox(canvas, paint, font);
 
