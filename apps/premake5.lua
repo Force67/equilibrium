@@ -39,8 +39,7 @@ project("App_Main")
     })
     includedirs({
         ".",
-        "../../",
-        "../../retk",
+        "../retk",
         blu.extdir .. "/skia_sdk",
         blu.extdir .. "/skia_sdk/include",
     })

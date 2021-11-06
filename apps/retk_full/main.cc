@@ -25,6 +25,9 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+#include <ui/skia/skia_context.h>
+#include <ui/display/win/dpi_win.h>
+
 //#include <ui/layout/grid_layout.h>
 
 
@@ -32,189 +35,7 @@
 //#define GL_FRAMEBUFFER_SRGB 0x8DB9
 //#define GL_SRGB8_ALPHA8 0x8C43
 
-GrDirectContext* sContext = nullptr;
-SkSurface* sSurface = nullptr;
-
-ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-void error_callback(int error, const char* description) {
-  fputs(description, stderr);
-}
-
-void key_callback(GLFWwindow* window,
-                  int key,
-                  int scancode,
-                  int action,
-                  int mods) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-void init_skia(int w, int h) {
-  GrContextOptions options;
-  sContext = GrDirectContext::MakeGL(nullptr, options).release();
-
-  GrGLFramebufferInfo framebufferInfo;
-  framebufferInfo.fFBOID = 0;  // assume default framebuffer
-  // We are always using OpenGL and we use RGBA8 internal format for both RGBA
-  // and BGRA configs in OpenGL.
-  //(replace line below with this one to enable correct color spaces)
-  //framebufferInfo.fFormat = GL_SRGB8_ALPHA8;
-  framebufferInfo.fFormat = GL_RGBA8;
-  #if 0
-  SkColorType colorType;
-  if (kRGBA_8888_GrPixelConfig == kSkia8888_GrPixelConfig) {
-    colorType = kRGBA_8888_SkColorType;
-  } else {
-    colorType = kBGRA_8888_SkColorType;
-  }
-  #endif
-  SkColorType colorType = kBGRA_8888_SkColorType;
-
-  GrBackendRenderTarget backendRenderTarget(w, h,
-                                            0,  // sample count
-                                            0,  // stencil bits
-                                            framebufferInfo);
-
-  //(replace line below with this one to enable correct color spaces) sSurface =
-  //SkSurface::MakeFromBackendRenderTarget(sContext, backendRenderTarget,
-  //kBottomLeft_GrSurfaceOrigin, colorType, SkColorSpace::MakeSRGB(),
-  //nullptr).release();
-  sSurface = SkSurface::MakeFromBackendRenderTarget(
-                 sContext, backendRenderTarget, kBottomLeft_GrSurfaceOrigin,
-                 colorType, nullptr, nullptr)
-                 .release();
-  if (sSurface == nullptr)
-    abort();
-}
-
-void cleanup_skia() {
-  delete sSurface;
-  delete sContext;
-}
-
-// https://gist.github.com/ad8e/dd150b775ae6aa4d5cf1a092e4713add
-
-const int kWidth = 1920;
-const int kHeight = 1080;
-const char* glsl_version = "#version 130";
-
-static GLFWwindow* g_window = nullptr;
-
-HMONITOR GetCurrentMonitorHandle() {
-  return MonitorFromWindow(glfwGetWin32Window(g_window),
-                           MONITOR_DEFAULTTONEAREST);
-}
-
-SkPoint GetMonitorDpi(HMONITOR monitor_handle) {
-  // https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getscalefactorformonitor
-  // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
-  // usage with skia:
-  // https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f usage
-  // with imgui: https://ourmachinery.com/post/dpi-aware-imgui/ Don't forget to
-  // add the manifest to your application that specifies dpi awareness note
-  // however that this method is unsupported on systems running windows 8 or
-  // older but we don't provide fall back for these cases since we dropped
-  // windows 8 support. DPI
-  // https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-should-i-handle-dpi-in-my-application
-  UINT x, y;
-  x = y = USER_DEFAULT_SCREEN_DPI;
-  GetDpiForMonitor(monitor_handle, MONITOR_DPI_TYPE::MDT_EFFECTIVE_DPI, &x, &y);
-
-  return SkPoint::Make(static_cast<float>(x), static_cast<float>(y));
-}
-
-SkPoint GetCurrentDpiFactor() {
-  HMONITOR monitor_handle = GetCurrentMonitorHandle();
-
-  constexpr float kDefaultDpi = static_cast<float>(USER_DEFAULT_SCREEN_DPI);
-  auto raw_dpi = GetMonitorDpi(monitor_handle);
-
-  // TODO: this is not UWP compatible!
-  // https://github.com/chromium/chromium/blob/72ceeed2ebcd505b8d8205ed7354e862b871995e/ui/display/win/screen_win.cc#L66
-
-  // GetScalingFactorFromDPI
-  return {raw_dpi.fX / kDefaultDpi, raw_dpi.fY / kDefaultDpi};
-}
-
-void ApplyDpiScalingToSkiaCanvas(SkCanvas* canvas) {
-  // enable dpi scaling.
-  // TODO: handle monitor switching
-  // see: https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f
-  SkPoint dpi = GetCurrentDpiFactor();
-  canvas->restoreToCount(0);
-  canvas->save();
-  canvas->scale(dpi.fX, dpi.fY);
-  //canvas->resetMatrix();
-
-  SkMatrix transform{};
-  transform = SkMatrix() * SkMatrix::Scale(1.25, 1.25);
-  canvas->setMatrix(transform);
-
-  // apply global scaling
-  //auto mat = canvas->getTotalMatrix();
-  //mat = mat * SkMatrix::Scale(1.25, 1.25);
-  //canvas->setMatrix(mat);
-
-}
-
 static HMONITOR tracked_monitor_handle = nullptr;
-
-void TrackMonitorMovement() {
-  HMONITOR current_mon = GetCurrentMonitorHandle();
-  if (current_mon != tracked_monitor_handle) {
-    ApplyDpiScalingToSkiaCanvas(sSurface->getCanvas());
-    tracked_monitor_handle = current_mon;
-  }
-}
-
-void OnGlfwWindowMove(GLFWwindow*, int, int) {
-  TrackMonitorMovement();
-}
-
-void InitRendererBullshit() {
-  glfwSetErrorCallback(error_callback);
-  if (!glfwInit()) {
-    exit(EXIT_FAILURE);
-  }
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  //(uncomment to enable correct color spaces) glfwWindowHint(GLFW_SRGB_CAPABLE,
-  // GL_TRUE);
-  glfwWindowHint(GLFW_STENCIL_BITS, 0);
-  // glfwWindowHint(GLFW_ALPHA_BITS, 0);
-  glfwWindowHint(GLFW_DEPTH_BITS, 0);
-
-  g_window = glfwCreateWindow(kWidth, kHeight, "ReTK", NULL, NULL);
-  if (!g_window) {
-    glfwTerminate();
-    exit(EXIT_FAILURE);
-  }
-  glfwMakeContextCurrent(g_window);
-  //(uncomment to enable correct color spaces) glEnable(GL_FRAMEBUFFER_SRGB);
-  bool err = glewInit() != GLEW_OK;
-
-  init_skia(kWidth, kHeight);
-
-  tracked_monitor_handle = GetCurrentMonitorHandle();
-  ApplyDpiScalingToSkiaCanvas(sSurface->getCanvas());
-
-  glfwSwapInterval(1);
-  glfwSetKeyCallback(g_window, key_callback);
-  glfwSetWindowPosCallback(g_window, OnGlfwWindowMove);
-
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  (void)io;
-  ImGui::StyleColorsDark();
-  // Setup Platform/Renderer back ends
-  ImGui_ImplGlfw_InitForOpenGL(g_window, true);
-  ImGui_ImplOpenGL3_Init(glsl_version);
-}
 
 void RenderImGuiThisFrame(SkCanvas* c) {
   static float f = 0.0f;
@@ -234,7 +55,7 @@ void RenderImGuiThisFrame(SkCanvas* c) {
   ImGui::Render();
 }
 
-void DrawButton(SkCanvas* c, const char* text, SkFont &font) {
+void DrawButton(SkCanvas* c, const char* text, SkFont& font) {
   // todo: test if button has 'round' attribute
   SkRect r = SkRect::MakeXYWH(400, 100, 50, 20);
 
@@ -244,10 +65,9 @@ void DrawButton(SkCanvas* c, const char* text, SkFont &font) {
 
   SkPaint textCol;
   textCol.setColor(SK_ColorMAGENTA);
-  c->drawSimpleText(text, strlen(text), SkTextEncoding::kUTF8, 
-      r.centerX() - (r.width() / 4.f), 
-      r.centerY() + (r.height() / 4.f), 
-      font, textCol);
+  c->drawSimpleText(text, strlen(text), SkTextEncoding::kUTF8,
+                    r.centerX() - (r.width() / 4.f),
+                    r.centerY() + (r.height() / 4.f), font, textCol);
 }
 
 void DrawToggleButton(SkCanvas* c, bool checked) {
@@ -264,9 +84,10 @@ void DrawToggleButton(SkCanvas* c, bool checked) {
 
   SkPoint circle_pos =
       checked
-      ? SkPoint::Make(
-            (r.centerX() + (r.width() / 4.f) - (margin / 2.f)), r.centerY())
-              : SkPoint::Make((r.centerX() - (r.width() / 4.f)) + (margin / 2.f), r.centerY());
+          ? SkPoint::Make((r.centerX() + (r.width() / 4.f) - (margin / 2.f)),
+                          r.centerY())
+          : SkPoint::Make((r.centerX() - (r.width() / 4.f)) + (margin / 2.f),
+                          r.centerY());
 
   c->drawCircle(circle_pos, ((r.height() - margin) / 2), lcol);
 }
@@ -301,8 +122,8 @@ void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
 
     // TODO: collide image... so we get difference
 
-    SkImageInfo imageInfo = SkImageInfo::Make(
-        5, 5, kGray_8_SkColorType, kOpaque_SkAlphaType);
+    SkImageInfo imageInfo =
+        SkImageInfo::Make(5, 5, kGray_8_SkColorType, kOpaque_SkAlphaType);
     SkPixmap pixmap(imageInfo, storage[0], sizeof(storage) / 5);
 
     SkBitmap bitmap;
@@ -312,11 +133,9 @@ void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
         bounds.x(), bounds.y() + i * row_height, img_width, img_width);
     c->drawImageRect(bitmap.asImage(), img_bounds, SkSamplingOptions());
 
-    c->drawSimpleText(g_textRows[i], strlen(g_textRows[i]),
-                      SkTextEncoding::kUTF8, bounds.x(), 
-        (bounds.y() + i * row_height) + 
-        (row_height / 4.f), font,
-                      lcol);
+    c->drawSimpleText(
+        g_textRows[i], strlen(g_textRows[i]), SkTextEncoding::kUTF8, bounds.x(),
+        (bounds.y() + i * row_height) + (row_height / 4.f), font, lcol);
   }
 }
 
@@ -329,20 +148,129 @@ void DrawListModel(SkCanvas* c) {
 
   SkPaint p;
   p.setColor(SK_ColorDKGRAY);
-  //c->drawRoundRect(bounds, 10, 10, p);
+  // c->drawRoundRect(bounds, 10, 10, p);
   c->drawRect(bounds, p);
-
-
 }
 
-int main(void) {
-  InitRendererBullshit();
- 
-  // Draw to the surface via its SkCanvas.
-  SkCanvas* canvas =
-      sSurface->getCanvas();  // We don't manage this pointer's lifetime.
+ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-  #if 0
+void error_callback(int error, const char* description) {
+  fputs(description, stderr);
+}
+
+void key_callback(GLFWwindow* window,
+                  int key,
+                  int scancode,
+                  int action,
+                  int mods) {
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
+class App {
+ public:
+  App();
+  ~App();
+
+  void Run();
+
+  private:
+  void BindGLContext();
+  void DoCreateWindow();
+
+  static void OnWindowMove(GLFWwindow* window, int, int);
+
+ private:
+  GLFWwindow* window_ = nullptr;
+  std::unique_ptr<ui::SkiaContext> skia_;
+};
+
+App::App() {
+  BindGLContext();
+  DoCreateWindow();
+}
+
+App::~App() {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+
+  glfwDestroyWindow(window_);
+  glfwTerminate();
+  exit(EXIT_SUCCESS);
+}
+
+void App::BindGLContext() {
+  glfwSetErrorCallback(error_callback);
+  if (!glfwInit()) {
+    exit(EXIT_FAILURE);
+  }
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  //(uncomment to enable correct color spaces) glfwWindowHint(GLFW_SRGB_CAPABLE,
+  // GL_TRUE);
+  glfwWindowHint(GLFW_STENCIL_BITS, 0);
+  // glfwWindowHint(GLFW_ALPHA_BITS, 0);
+  glfwWindowHint(GLFW_DEPTH_BITS, 0);
+}
+
+void App::DoCreateWindow() {
+  ui::SkiaCreateInfo create_info;
+  create_info.width = 1920;
+  create_info.height = 1080;
+
+  window_ = glfwCreateWindow(create_info.width, create_info.height, "ReTK",
+                             NULL, NULL);
+  if (!window_) {
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
+
+  glfwMakeContextCurrent(window_);
+  glfwSetWindowUserPointer(window_, this);
+  //(uncomment to enable correct color spaces) glEnable(GL_FRAMEBUFFER_SRGB);
+  bool err = glewInit() != GLEW_OK;
+
+  skia_ = ui::CreateSkiaContext(create_info);
+  skia_->SetDpiAware(glfwGetWin32Window(window_));
+  tracked_monitor_handle =
+      ui::GetCurrentMonitorHandle(glfwGetWin32Window(window_));
+
+  glfwSwapInterval(1);
+  glfwSetKeyCallback(window_, key_callback);
+  glfwSetWindowPosCallback(window_, OnWindowMove);
+
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  (void)io;
+  ImGui::StyleColorsDark();
+
+  const char* glsl_version = "#version 130";
+
+  // Setup Platform/Renderer back ends
+  ImGui_ImplGlfw_InitForOpenGL(window_, true);
+  ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+void App::OnWindowMove(GLFWwindow* window, int x, int y) {
+  HWND hwnd = glfwGetWin32Window(window);
+  HMONITOR current_mon = ui::GetCurrentMonitorHandle(hwnd);
+  if (current_mon != tracked_monitor_handle) {
+    App* self = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+    assert(self);
+
+    // re-apply dpi awareness for new monitor
+    self->skia_->SetDpiAware(hwnd);
+    tracked_monitor_handle = current_mon;
+  }
+}
+
+void App::Run() {
+#if 0
   {
 
     float SCALE = dpi.fX / 96.f;
@@ -350,11 +278,13 @@ int main(void) {
     cfg.SizePixels = 13 * SCALE;
     ImGui::GetIO().Fonts->AddFontDefault(&cfg)->Scale = SCALE;
   }
-  #endif
+#endif
 
-  while (!glfwWindowShouldClose(g_window)) {
+  SkCanvas* canvas = skia_->canvas();
+
+  while (!glfwWindowShouldClose(window_)) {
     glfwWaitEvents();
-    
+
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -377,23 +307,22 @@ int main(void) {
     DrawListModel(canvas);
 
     // finalize context
-    sContext->flush();
+    skia_->Flush();
     RenderImGuiThisFrame(canvas);
 
     // present the frame
     int display_w, display_h;
-    glfwGetFramebufferSize(g_window, &display_w, &display_h);
+    glfwGetFramebufferSize(window_, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(g_window);
+    glfwSwapBuffers(window_);
   }
+}
 
-  cleanup_skia();
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
+// https://gist.github.com/ad8e/dd150b775ae6aa4d5cf1a092e4713add
 
-  glfwDestroyWindow(g_window);
-  glfwTerminate();
-  exit(EXIT_SUCCESS);
+int main(void) {
+  App app;
+  app.Run();
+  return 0;
 }
