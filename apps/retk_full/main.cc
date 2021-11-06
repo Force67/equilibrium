@@ -101,6 +101,77 @@ const char* glsl_version = "#version 130";
 
 static GLFWwindow* g_window = nullptr;
 
+HMONITOR GetCurrentMonitorHandle() {
+  return MonitorFromWindow(glfwGetWin32Window(g_window),
+                           MONITOR_DEFAULTTONEAREST);
+}
+
+SkPoint GetMonitorDpi(HMONITOR monitor_handle) {
+  // https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getscalefactorformonitor
+  // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
+  // usage with skia:
+  // https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f usage
+  // with imgui: https://ourmachinery.com/post/dpi-aware-imgui/ Don't forget to
+  // add the manifest to your application that specifies dpi awareness note
+  // however that this method is unsupported on systems running windows 8 or
+  // older but we don't provide fall back for these cases since we dropped
+  // windows 8 support. DPI
+  // https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-should-i-handle-dpi-in-my-application
+  UINT x, y;
+  x = y = USER_DEFAULT_SCREEN_DPI;
+  GetDpiForMonitor(monitor_handle, MONITOR_DPI_TYPE::MDT_EFFECTIVE_DPI, &x, &y);
+
+  return SkPoint::Make(static_cast<float>(x), static_cast<float>(y));
+}
+
+SkPoint GetCurrentDpiFactor() {
+  HMONITOR monitor_handle = GetCurrentMonitorHandle();
+
+  constexpr float kDefaultDpi = static_cast<float>(USER_DEFAULT_SCREEN_DPI);
+  auto raw_dpi = GetMonitorDpi(monitor_handle);
+
+  // TODO: this is not UWP compatible!
+  // https://github.com/chromium/chromium/blob/72ceeed2ebcd505b8d8205ed7354e862b871995e/ui/display/win/screen_win.cc#L66
+
+  // GetScalingFactorFromDPI
+  return {raw_dpi.fX / kDefaultDpi, raw_dpi.fY / kDefaultDpi};
+}
+
+void ApplyDpiScalingToSkiaCanvas(SkCanvas* canvas) {
+  // enable dpi scaling.
+  // TODO: handle monitor switching
+  // see: https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f
+  SkPoint dpi = GetCurrentDpiFactor();
+  canvas->restoreToCount(0);
+  canvas->save();
+  canvas->scale(dpi.fX, dpi.fY);
+  //canvas->resetMatrix();
+
+  SkMatrix transform{};
+  transform = SkMatrix() * SkMatrix::Scale(1.25, 1.25);
+  canvas->setMatrix(transform);
+
+  // apply global scaling
+  //auto mat = canvas->getTotalMatrix();
+  //mat = mat * SkMatrix::Scale(1.25, 1.25);
+  //canvas->setMatrix(mat);
+
+}
+
+static HMONITOR tracked_monitor_handle = nullptr;
+
+void TrackMonitorMovement() {
+  HMONITOR current_mon = GetCurrentMonitorHandle();
+  if (current_mon != tracked_monitor_handle) {
+    ApplyDpiScalingToSkiaCanvas(sSurface->getCanvas());
+    tracked_monitor_handle = current_mon;
+  }
+}
+
+void OnGlfwWindowMove(GLFWwindow*, int, int) {
+  TrackMonitorMovement();
+}
+
 void InitRendererBullshit() {
   glfwSetErrorCallback(error_callback);
   if (!glfwInit()) {
@@ -126,8 +197,14 @@ void InitRendererBullshit() {
   bool err = glewInit() != GLEW_OK;
 
   init_skia(kWidth, kHeight);
+
+  tracked_monitor_handle = GetCurrentMonitorHandle();
+  ApplyDpiScalingToSkiaCanvas(sSurface->getCanvas());
+
   glfwSwapInterval(1);
   glfwSetKeyCallback(g_window, key_callback);
+  glfwSetWindowPosCallback(g_window, OnGlfwWindowMove);
+
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -139,43 +216,16 @@ void InitRendererBullshit() {
   ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
-SkPoint GetMonitorDpi() {
-  // https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getscalefactorformonitor
-  // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
-  // usage with skia:  https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f
-  // usage with imgui: https://ourmachinery.com/post/dpi-aware-imgui/
-  // Don't forget to add the manifest to your application that specifies dpi awareness
-  // note however that this method is unsupported on systems running windows 8 or older
-  // but we don't provide fall back for these cases since we dropped windows 8 support.
-  // DPI https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-should-i-handle-dpi-in-my-application
-
-  HMONITOR monitor_handle =
-      MonitorFromWindow(glfwGetWin32Window(g_window), MONITOR_DEFAULTTONEAREST);
-
-  UINT x, y = 96;
-  GetDpiForMonitor(monitor_handle, MONITOR_DPI_TYPE::MDT_EFFECTIVE_DPI, &x, &y);
-
-  return SkPoint::Make(static_cast<float>(x), static_cast<float>(y));
-}
-
-void DebugPrintStats(SkCanvas *c) {
-  printf("Canvas local bounds %f:%f\n", c->getLocalClipBounds().width(),
-         c->getLocalClipBounds().height());
-
-  printf("Canvas device bounds %f:%f\n", c->getDeviceClipBounds().width(),
-         c->getDeviceClipBounds().height());
-}
-
-void RenderImGuiThisFrame() {
+void RenderImGuiThisFrame(SkCanvas* c) {
   static float f = 0.0f;
   static int counter = 0;
 
   ImGui::Begin("Ui Debug Stats");
 
-  if (ImGui::Button("Get Device Bounds")) 
-  {
-    DebugPrintStats(sSurface->getCanvas());
-  }
+  ImGui::Text("Local bounds: %f, %f", c->getLocalClipBounds().width(),
+              c->getLocalClipBounds().height());
+  ImGui::Text("Device bounds: %f, %f", c->getDeviceClipBounds().width(),
+              c->getDeviceClipBounds().height());
 
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
               1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -184,9 +234,12 @@ void RenderImGuiThisFrame() {
   ImGui::Render();
 }
 
-void DrawButton(SkCanvas* c, const char* text, const SkPaint& p, SkFont &font) {
+void DrawButton(SkCanvas* c, const char* text, SkFont &font) {
   // todo: test if button has 'round' attribute
-  SkRect r = SkRect::MakeXYWH(300, 100, 50, 20);
+  SkRect r = SkRect::MakeXYWH(400, 100, 50, 20);
+
+  SkPaint p;
+  p.setColor(SK_ColorBLUE);
   c->drawRoundRect(r, 10, 10, p);
 
   SkPaint textCol;
@@ -197,9 +250,12 @@ void DrawButton(SkCanvas* c, const char* text, const SkPaint& p, SkFont &font) {
       font, textCol);
 }
 
-void DrawToggleButton(SkCanvas* c, const SkPaint& p, bool checked) {
-  SkRect r = SkRect::MakeXYWH(400, 100, 30, 20);
-  c->drawRoundRect(r, 10, 10, p);
+void DrawToggleButton(SkCanvas* c, bool checked) {
+  SkRect r = SkRect::MakeXYWH(600, 100, 30, 20);
+
+  SkPaint pBg;
+  pBg.setColor(SK_ColorDKGRAY);
+  c->drawRoundRect(r, 10, 10, pBg);
 
   float margin = r.height() / 4.f;
 
@@ -216,21 +272,18 @@ void DrawToggleButton(SkCanvas* c, const SkPaint& p, bool checked) {
 }
 
 // widgets/uikit
-
-static SkImage* g_img;
-
 void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
   const char* g_textRows[] = {"Allgemein", "Mitteilungen", "Töne", "Fokus",
                               "Bildschirmzeit"};
 
-  const SkRect bounds = SkRect::MakeXYWH(100, 200, 300, 300);
+  const SkRect bounds = SkRect::MakeXYWH(200, 200, 300, 300);
   const size_t count = sizeof(g_textRows) / sizeof(const char*);
   SkScalar row_height = bounds.height() / count;
 
   c->drawRoundRect(bounds, 10, 10, p);
 
   SkPaint lcol;
-  lcol.setColor(SK_ColorWHITE);
+  lcol.setColor(SK_ColorBLACK);
   for (size_t i = 1; i < count; i++) {
     c->drawLine({bounds.x(), bounds.y() + row_height * i},
                 {bounds.fRight, (bounds.y() + row_height * i)}, lcol);
@@ -265,6 +318,20 @@ void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
         (row_height / 4.f), font,
                       lcol);
   }
+}
+
+void DrawListModel(SkCanvas* c) {
+  const char* g_textRows[] = {"A", "B", "C", "D", "E", "F", "G", "H", "I",
+                              "J", "K", "L", "M", "N", "O", "P", "Q", "R",
+                              "S", "T", "U", "V", "W", "X", "Y", "Z"};
+
+  auto bounds = SkRect::MakeXYWH(0, 0, 300, 300);
+
+  SkPaint p;
+  p.setColor(SK_ColorDKGRAY);
+  //c->drawRoundRect(bounds, 10, 10, p);
+  c->drawRect(bounds, p);
+
 
 }
 
@@ -275,18 +342,7 @@ int main(void) {
   SkCanvas* canvas =
       sSurface->getCanvas();  // We don't manage this pointer's lifetime.
 
-  DebugPrintStats(canvas);
-
-  // enable dpi scaling.
-  // TODO: handle monitor switching
-  // see: https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f
-  SkPoint dpi = GetMonitorDpi();
-  canvas->restoreToCount(0);
-  canvas->save();
-  // USER_DEFAULT_SCREEN_DPI 
-  canvas->scale(dpi.fX / 96.f, dpi.fY / 96.f);
-  canvas->resetMatrix();
-
+  #if 0
   {
 
     float SCALE = dpi.fX / 96.f;
@@ -294,6 +350,7 @@ int main(void) {
     cfg.SizePixels = 13 * SCALE;
     ImGui::GetIO().Fonts->AddFontDefault(&cfg)->Scale = SCALE;
   }
+  #endif
 
   while (!glfwWindowShouldClose(g_window)) {
     glfwWaitEvents();
@@ -311,16 +368,17 @@ int main(void) {
     SkFont font;
     font.setSubpixel(true);
     font.setSize(15);
-    paint.setColor(SK_ColorBLACK);
+    paint.setColor(SK_ColorWHITE);
 
-    DrawButton(canvas, "test", paint, font);
-    DrawToggleButton(canvas, paint, true);
+    DrawButton(canvas, "test", font);
+    DrawToggleButton(canvas, true);
 
     DrawGroupBox(canvas, paint, font);
+    DrawListModel(canvas);
 
     // finalize context
     sContext->flush();
-    RenderImGuiThisFrame();
+    RenderImGuiThisFrame(canvas);
 
     // present the frame
     int display_w, display_h;

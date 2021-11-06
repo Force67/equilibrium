@@ -18,7 +18,7 @@ project("App_Main")
         "imgui",
 
         -- system
-        --"ui",
+        "ui",
     })
     links({
         -- third party
