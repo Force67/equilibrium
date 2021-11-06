@@ -4,27 +4,31 @@
 group("Apps")
 project("App_Main")
     kind("WindowedApp")
-    staticruntime("on")
-    targetname("ReTK")
     include_meta()
     files({
         "retk_full/retk_full.rc",
+        "retk_full/retk.manifest",
         "retk_full/**.cc",
-        "retk_full/**.h",
-        "premake5.lua"
+        "retk_full/**.h"
     })
-    links({
-        -- third party
+    dependencies({
         "fmtlib",
-        "skia",
         "glew",
         "glfw",
         "imgui",
+
+        -- system
+        --"ui",
+    })
+    links({
+        -- third party
+        "skia",
         -- operating system
         "opengl32",
         "user32",
         "gdi32",
-        "shell32"
+        "shell32",
+        "Shcore"
     })
     linkoptions({
         -- use our regular main instead of winmain
@@ -39,15 +43,7 @@ project("App_Main")
         "../../retk",
         blu.extdir .. "/skia_sdk",
         blu.extdir .. "/skia_sdk/include",
-        blu.extdir .. "/sockpp/include",
-        blu.extdir .. "/flatbuffers/include",
-        blu.extdir .. "/fmt/include",
-        blu.extdir .. "/glew/include",
-        blu.extdir .. "/glfw/include",
-        blu.extdir .. "/imgui",
     })
     libdirs({
         blu.extdir .. "/skia_sdk/lib/debug_static",
     })
-    filter("system:windows")
-        defines("GLFW_EXPOSE_NATIVE_WIN32")

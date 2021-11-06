@@ -2,7 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <GL/glew.h>
+#include <ShellScalingApi.h>
+
 #include <glfw/glfw3.h>
+#include <glfw/glfw3native.h>
 
 #include <core/SkCanvas.h>
 #include <core/SkFont.h>
@@ -22,6 +25,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+//#include <ui/layout/grid_layout.h>
+
 
 // uncomment the two lines below to enable correct color spaces
 //#define GL_FRAMEBUFFER_SRGB 0x8DB9
@@ -30,7 +35,7 @@
 GrDirectContext* sContext = nullptr;
 SkSurface* sSurface = nullptr;
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 void error_callback(int error, const char* description) {
   fputs(description, stderr);
@@ -94,107 +99,172 @@ const int kWidth = 960;
 const int kHeight = 640;
 const char* glsl_version = "#version 130";
 
-int main(void) {
-  GLFWwindow* window;
+static GLFWwindow* g_window = nullptr;
+
+void InitRendererBullshit() {
   glfwSetErrorCallback(error_callback);
   if (!glfwInit()) {
     exit(EXIT_FAILURE);
   }
-
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   //(uncomment to enable correct color spaces) glfwWindowHint(GLFW_SRGB_CAPABLE,
-  //GL_TRUE);
+  // GL_TRUE);
   glfwWindowHint(GLFW_STENCIL_BITS, 0);
   // glfwWindowHint(GLFW_ALPHA_BITS, 0);
   glfwWindowHint(GLFW_DEPTH_BITS, 0);
 
-  window = glfwCreateWindow(kWidth, kHeight, "ReTK", NULL, NULL);
-  if (!window) {
+  g_window = glfwCreateWindow(kWidth, kHeight, "ReTK", NULL, NULL);
+  if (!g_window) {
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
-  glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(g_window);
   //(uncomment to enable correct color spaces) glEnable(GL_FRAMEBUFFER_SRGB);
-
   bool err = glewInit() != GLEW_OK;
 
   init_skia(kWidth, kHeight);
-
   glfwSwapInterval(1);
-  glfwSetKeyCallback(window, key_callback);
-
-   // Setup Dear ImGui context
+  glfwSetKeyCallback(g_window, key_callback);
+  // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
   (void)io;
-  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable
-  // Keyboard Controls io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; //
-  // Enable Gamepad Controls
-
-  // Setup Dear ImGui style
   ImGui::StyleColorsDark();
-  // ImGui::StyleColorsClassic();
-
-  // Setup Platform/Renderer backends
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  // Setup Platform/Renderer back ends
+  ImGui_ImplGlfw_InitForOpenGL(g_window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
+}
 
+SkPoint GetMonitorDpi() {
+  // https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getscalefactorformonitor
+  // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
+  // usage with skia:  https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f
+  // usage with imgui: https://ourmachinery.com/post/dpi-aware-imgui/
+  // Don't forget to add the manifest to your application that specifies dpi awareness
+  // note however that this method is unsupported on systems running windows 8 or older
+  // but we don't provide fall back for these cases since we dropped windows 8 support.
+  // DPI https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-should-i-handle-dpi-in-my-application
+
+  HMONITOR monitor_handle =
+      MonitorFromWindow(glfwGetWin32Window(g_window), MONITOR_DEFAULTTONEAREST);
+
+  UINT x, y = 0;
+  GetDpiForMonitor(monitor_handle, MONITOR_DPI_TYPE::MDT_EFFECTIVE_DPI, &x, &y);
+
+  return SkPoint::Make(static_cast<float>(x), static_cast<float>(y));
+}
+
+void DebugPrintStats(SkCanvas *c) {
+  printf("Canvas local bounds %f:%f\n", c->getLocalClipBounds().width(),
+         c->getLocalClipBounds().height());
+
+  printf("Canvas device bounds %f:%f\n", c->getDeviceClipBounds().width(),
+         c->getDeviceClipBounds().height());
+}
+
+void RenderImGuiThisFrame() {
+  static float f = 0.0f;
+  static int counter = 0;
+
+  ImGui::Begin("Ui Debug Stats");
+
+  if (ImGui::Button("Get Device Bounds")) 
+  {
+    DebugPrintStats(sSurface->getCanvas());
+  }
+
+  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+              1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  ImGui::End();
+
+  ImGui::Render();
+}
+
+void DrawButton(SkCanvas* c, const char* text, const SkPaint& p, SkFont &font) {
+  // todo: test if button has 'round' attribute
+  SkRect r = SkRect::MakeXYWH(300, 100, 50, 20);
+  c->drawRoundRect(r, 10, 10, p);
+
+  SkPaint textCol;
+  textCol.setColor(SK_ColorMAGENTA);
+  c->drawSimpleText(text, strlen(text), SkTextEncoding::kUTF8, 
+      r.centerX() - (r.width() / 4.f), 
+      r.centerY() + (r.height() / 4.f), 
+      font, textCol);
+}
+
+void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
+  const char* g_textRows[] = {"Allgemein", "Mitteilungen", "Töne", "Fokus",
+                              "Bildschirmzeit"};
+
+
+  SkRect r = SkRect::MakeXYWH(100, 200, 300, 300);
+  c->drawRoundRect(r, 10, 10, p);
+}
+
+int main(void) {
+  InitRendererBullshit();
+ 
   // Draw to the surface via its SkCanvas.
   SkCanvas* canvas =
       sSurface->getCanvas();  // We don't manage this pointer's lifetime.
 
-  while (!glfwWindowShouldClose(window)) {
-    glfwWaitEvents();
+  DebugPrintStats(canvas);
 
-        // Start the Dear ImGui frame
+  // enable dpi scaling.
+  // TODO: handle monitor switching
+  // see: https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f
+  SkPoint dpi = GetMonitorDpi();
+  canvas->restoreToCount(0);
+  canvas->save();
+  // USER_DEFAULT_SCREEN_DPI 
+  canvas->scale(dpi.fX / 96.f, dpi.fY / 96.f);
+  canvas->resetMatrix();
+
+  {
+
+    float SCALE = dpi.fX / 96.f;
+    ImFontConfig cfg;
+    cfg.SizePixels = 13 * SCALE;
+    ImGui::GetIO().Fonts->AddFontDefault(&cfg)->Scale = SCALE;
+  }
+
+  while (!glfwWindowShouldClose(g_window)) {
+    glfwWaitEvents();
+    
+    // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    // draw background canvas..
     SkPaint paint;
-    paint.setColor(SK_ColorWHITE);
+    paint.setColor(SK_ColorLTGRAY);
     canvas->drawPaint(paint);
-    paint.setColor(SK_ColorBLUE);
-    canvas->drawRect({100, 200, 300, 500}, paint);
+
+    SkFont font;
+    font.setSubpixel(true);
+    font.setSize(15);
+    paint.setColor(SK_ColorBLACK);
+
+    DrawButton(canvas, "test", paint, font);
+
+    DrawGroupBox(canvas, paint, font);
+
+    // finalize context
     sContext->flush();
+    RenderImGuiThisFrame();
 
-        {
-      static float f = 0.0f;
-      static int counter = 0;
-
-      ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!"
-                                      // and append into it.
-
-      ImGui::Text("This is some useful text.");  // Display some text (you can
-                                                 // use a format strings too)
-
-      ImGui::SliderFloat(
-          "float", &f, 0.0f,
-          1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
-
-      if (ImGui::Button(
-              "Button"))  // Buttons return true when clicked (most widgets
-                          // return true when edited/activated)
-        counter++;
-      ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
-
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                  1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      ImGui::End();
-    }
-
-        ImGui::Render();
+    // present the frame
     int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glfwGetFramebufferSize(g_window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(g_window);
   }
 
   cleanup_skia();
@@ -202,7 +272,7 @@ int main(void) {
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
-  glfwDestroyWindow(window);
+  glfwDestroyWindow(g_window);
   glfwTerminate();
   exit(EXIT_SUCCESS);
 }

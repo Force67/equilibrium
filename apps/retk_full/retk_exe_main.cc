@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Executable specific entry point.
 
+/*
 extern "C" {
 int ReTKMain(int argc, const char** argv);
 }
@@ -9,3 +10,4 @@ int ReTKMain(int argc, const char** argv);
 int main(int argc, const char** argv) {
   return ReTKMain(argc, argv);
 }
+*/

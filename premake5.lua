@@ -60,11 +60,12 @@ workspace("RETK")
         "MultiProcessorCompile"
     }
     defines("NOMINMAX")
-
-    include("./apps")
+    -- external must always come first
+    -- so 'dependencies' can link against them
     include("./external")
     include("./base")
     include("./retk")
+    include("./apps")
 
     group("Plugins")
     include("plugins/ida")
