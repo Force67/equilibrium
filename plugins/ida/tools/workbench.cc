@@ -5,24 +5,9 @@
 #include "plugin.h"
 #include "workbench.h"
 
-#include "bindings/binding.h"
 #include "signature_maker.h"
 
 #include "ui/forms/input_dialog.h"
-
-extern Binding<bool, ea_t> MakeSignature;
-
-namespace {
-void CreatePrintSignature(ea_t ea) {
-  SignatureMaker sigMaker;
-
-  std::string signature;
-  int8_t offset = 0;
-  bool dumb = false;
-
-  sigMaker.CreateUniqueSignature(ea, signature, offset, false, dumb);
-}
-}  // namespace
 
 // TODO: replace me with utility class
 static Workbench* work_bench_instance{nullptr};
@@ -31,7 +16,7 @@ Workbench* work_bench() {
   return work_bench_instance;
 }
 
-Workbench::Workbench(Plugin& plugin) : reflection_(data_.) {
+Workbench::Workbench(Plugin& plugin){
   work_bench_instance = this;
 
   // glue UI request to runner.
@@ -70,10 +55,10 @@ void Workbench::RunFeature(int data) {
 
   switch (code) {
     case FeatureIndex::kSignatureMaker:
-      CreatePrintSignature(screen_ea);
+      //CreatePrintSignature(screen_ea);
       break;
     case FeatureIndex::kUSIMaker:
-      reflection_.AddSymbol(screen_ea);
+      //reflection_.AddSymbol(screen_ea);
       break;
     default:
       LOG_ERROR("??? : {}", data);

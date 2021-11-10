@@ -8,6 +8,7 @@ class SignatureMaker {
 
   enum class Result {
     kSuccess,
+    kUnsupportedType,
     kDecodeError,
     kNoReferences,
     kRefLimitReached,
@@ -16,11 +17,12 @@ class SignatureMaker {
   };
   static const char* const ResultToString(Result) noexcept;
 
-  Result CreateUniqueSignature(const ea_t target_address,
+  Result CreateSignature(const ea_t target_address,
                                std::string& out_pattern,
                                int8_t& out_offset,
-                               bool mute_log,
                                bool& is_data);
+
+  bool CreateAndPrintSignature(const ea_t target_ea);
 
  private:
   Result GenerateSignatureInternal_2(ea_t address, std::string& out_pattern);

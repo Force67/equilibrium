@@ -1,7 +1,8 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
+// Exposes RETK plugin bindings to IDC and IDA-python.
 
-#include "binding.h"
+#include "script_binding.h"
 
 static BindingBase* rootBinding{nullptr};
 

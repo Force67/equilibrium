@@ -23,7 +23,6 @@ class Workbench final : public QObject {
   void RunFeature(int data);
  private:
   WorkbenchData data_;
-  ReflectionProvider reflection_;
   FeatureIndex last_feature_{FeatureIndex::kSignatureMaker};
 };
 

@@ -49,8 +49,8 @@ bool ReflectionProvider::AddSymbol(const ea_t ea) {
   SymbolDatabase::Record record;
   SignatureMaker sigmaker;
   bool is_data = false;
-  auto result = sigmaker.CreateUniqueSignature(
-      ea, record.signature, record.direct_offset, true, is_data);
+  auto result = sigmaker.CreateSignature(
+      ea, record.signature, record.direct_offset, is_data);
 
   if (result != SignatureMaker::Result::kSuccess) {
     LOG_ERROR(

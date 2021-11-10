@@ -68,6 +68,22 @@ uint8_t GetOpCodeSize(const insn_t& instruction) {
   }
   return 0;
 }
+
+uint32_t GetAddressFlags(const ea_t ea) {
+  return (get_flags(ea) & MS_CLS);
+}
+
+bool CheckAddressTypeAllowed(const ea_t ea) {
+  uint32_t flags = (get_flags(ea) & MS_CLS);
+  switch (flags) {
+    case FF_TAIL:
+    case FF_UNK: {
+      return false;
+    }
+    default:
+      return true;
+  }
+}
 }  // namespace
 
 SignatureMaker::SignatureMaker() = default;
@@ -370,64 +386,50 @@ SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
   return result;
 }
 
-SignatureMaker::Result SignatureMaker::CreateUniqueSignature(
+SignatureMaker::Result SignatureMaker::CreateSignature(
     const ea_t in_ea,
     std::string& out_pattern,
     int8_t& out_offset,
-    bool mute_log,
     bool& is_data) {
-  // disallow unsupported address types so it can only be code or data
-  // going forward
-  uint32_t flags = (get_flags(in_ea) & MS_CLS);
-  switch (flags) {
-    case FF_TAIL:
-    case FF_UNK: {
-      LOG_ERROR("Unsupported address flag {}", flags);
-      return Result::kDecodeError;
-    }
-    default:
-      break;
-  }
 
-  const bool is_address_data = flags == FF_DATA;
-  const char* type_name = is_address_data ? "data" : "code";
+  if (!CheckAddressTypeAllowed(in_ea))
+    return Result::kUnsupportedType;
 
-  is_data = is_address_data;
-
-  if (!mute_log) {
-    LOG_TRACE("Creating {} signature for {:x}", type_name, in_ea);
-  }
-
-  std::string result_pattern{};
-  int8_t result_offset = 0;
-
+  is_data = GetAddressFlags(in_ea) == FF_DATA;
   const Result result =
-      is_address_data
-          ? UniqueDataSignature(in_ea, result_pattern, result_offset)
-          : UniqueCodeSignature(in_ea, result_pattern, result_offset, is_data);
-
-  if (result == Result::kSuccess) {
-    if (!mute_log) {
-      if (result_offset > 0) {
-        LOG_INFO("{} signature: {:x} = {} + {}", type_name, in_ea,
-                 result_pattern, result_offset);
-      } else {
-        LOG_INFO("{} signature: {:x} = {}", type_name, in_ea, result_pattern);
-      }
-    }
-
-    out_pattern = std::move(result_pattern);
-    out_offset = result_offset;
+      is_data ? UniqueDataSignature(in_ea, out_pattern, out_offset)
+              : UniqueCodeSignature(in_ea, out_pattern, out_offset, is_data);
+  if (result == Result::kSuccess)
     return result;
-  }
-
-  if (!mute_log) {
-    LOG_ERROR("Failed to generate reference to {} {:x} with error: {}",
-              type_name, in_ea, ResultToString(result));
-  }
 
   out_pattern = "";
   out_offset = 0;
 
   return Result::kEmpty;
+}
+
+bool SignatureMaker::CreateAndPrintSignature(const ea_t ea) {
+  std::string pattern{};
+  int8_t offset = 0;
+  bool is_data = false;
+
+  LOG_TRACE("Creating signature for {:x}", ea);
+
+  const Result res = CreateSignature(ea, pattern, offset, is_data);
+  const char* type_name = is_data ? "data" : "code";
+
+  if (res == Result::kSuccess) {
+    if (offset > 0) {
+      LOG_INFO("{} signature: {:x} = {} + {}", type_name, ea, pattern,
+               offset);
+    } else {
+      LOG_INFO("{} signature: {:x} = {}", type_name, ea, pattern);
+    }
+
+    return true;
+  }
+
+  LOG_ERROR("Failed to generate reference to {} {:x} with error: {}", type_name,
+            ea, ResultToString(res));
+  return false;
 }
