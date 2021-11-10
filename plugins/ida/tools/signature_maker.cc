@@ -332,36 +332,38 @@ SignatureMaker::Result SignatureMaker::UniqueDataSignature(
   return result;
 }
 
+// This function allows manipulation of the data_flag parameter since
+// we might also use a data reference to point to code as a last resort
+// in the future.
 SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
     ea_t target_ea,
     std::string& out_pattern,
     int8_t& out_offset,
-    bool& very_dumb_flag) {
+    bool& data_flag) {
+
   // valid code?
-  if (!can_decode(target_ea)) {
+  if (!can_decode(target_ea))
     return Result::kDecodeError;
-  }
+
+  data_flag = false;
 
   // try the direct way first.
   Result result{Result::kNoReferences};
   if ((result = GenerateSignatureInternal_2(target_ea, out_pattern)) ==
       Result::kSuccess) {
     out_offset = 0;
-    // direct:
-    very_dumb_flag = false;
     return result;
   }
 
-  very_dumb_flag = true;
-
   // ordered map based by function size
   // sorted by key, which is our function size
-  std::map<ea_t, ea_t> refs;
+  std::map<uint32_t, ea_t> refs;
   for (auto ref_ea = get_first_cref_to(target_ea); ref_ea != BADADDR;
        ref_ea = get_next_cref_to(target_ea, ref_ea)) {
     if (target_ea == ref_ea)
       continue;
 
+    // collect functional references
     if (const func_t* func = get_func(ref_ea)) {
       refs.insert(std::make_pair(func->end_ea - func->start_ea, ref_ea));
     }
