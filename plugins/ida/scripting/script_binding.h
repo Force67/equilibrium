@@ -23,6 +23,49 @@ class BindingBase {
 
 // Add IDC class
 
+// TODO: custom free object
+#if 0
+class ScriptClass {
+ public:
+  virtual ~ScriptClass() = default;
+};
+
+class ScriptClassBinding final {
+ public:
+  ScriptClassBinding(const char* const name) : name_(name) {}
+
+  void BindThatShit() {
+    auto* idc_cvt_opaque = add_idc_class(name_);
+    if (idc_cvt_opaque == nullptr) {
+      __debugbreak();
+    }
+
+    add_idc_func(kDTorDesc);
+    set_idc_dtor(idc_cvt_opaque, kDTorDesc.name);
+
+    set_idc_method();
+  }
+
+ private:
+  // Destruct the underlying cxx object
+  static error_t idaapi DTorImpl(idc_value_t* argv, idc_value_t* /*res*/) {
+    idc_value_t idc_val;
+    get_idcv_attr(&idc_val, &argv[0], kIdcvName);
+
+    ScriptClass* user_object = static_cast<ScriptClass*>(idc_val.pvoid);
+    delete user_object;
+
+    return eOk;
+  }
+
+ private:
+  static constexpr char kIdcvName[] = "__idc_retk_cxx_obj_value__";
+  static constexpr char kDTorArgs[] = {VT_OBJ, 0};
+  static constexpr ext_idcfunc_t kDTorDesc = {};
+  const char* const name_;
+};
+#endif
+
 template <typename TRet, typename... Ts>
 class ScriptBinding final : public BindingBase {
  public:

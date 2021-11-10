@@ -22,6 +22,9 @@ void BindingBase::BindAll() {
     i->next_ = nullptr;
     i = j;
   }
+
+  //add_idc_class(nullptr, nullptr);
+
   rootBinding = nullptr;
 }
 

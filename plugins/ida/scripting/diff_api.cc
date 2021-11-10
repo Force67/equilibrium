@@ -1,10 +1,13 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
+// Bindings for binary diffing utilities.
 
 #include "script_binding.h"
 #include "tools/signature_maker.h"
 
 namespace {
+constexpr char kCSVExportName[] = R"(C:\Users\vince\Downloads\out.csv)";
+
 // Note that we have to take int64_t for conversion issues...
 // This needs to be done sadly.
 // We really should introduce some safe conversion method :(
@@ -13,15 +16,26 @@ ScriptBinding<bool, int64_t> s1("CreateAndPrintSignature", [](int64_t ea) {
   return sigMaker.CreateAndPrintSignature(static_cast<ea_t>(ea));
 });
 
-ScriptBinding<bool, ea_t> s2("CreateExportSignatureCSV", [](ea_t ea) {
+// This is more of a hack at the moment.
+ScriptBinding<bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
+  const ea_t ea = static_cast<ea_t>(in);
+
   SignatureMaker sigMaker;
 
   std::string pattern;
   int8_t ofs = 0;
   bool is_data = false;
+  auto result = sigMaker.CreateSignature(ea, pattern, ofs, is_data);
+  if (result != SignatureMaker::Result::kSuccess) {
+    ofs = 0;
+    pattern = "UNSET";
+  }
 
-  sigMaker.CreateSignature(ea, pattern, ofs, is_data);
+  if (FILE* fptr = qfopen(kCSVExportName, "a")) {
+    qfprintf(fptr, "%lld,%s+%d\n", ea, pattern.c_str(), ofs);
+    qfclose(fptr);
+  }
 
-  return false;
+  return true;
 });
 }  // namespace
