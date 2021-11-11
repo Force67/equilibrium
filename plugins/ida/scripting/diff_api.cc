@@ -32,9 +32,26 @@ ScriptBinding<bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
   }
 
   if (FILE* fptr = qfopen(kCSVExportName, "a")) {
-    qfprintf(fptr, "%lld,%s+%d\n", ea, pattern.c_str(), ofs);
+    qfprintf(fptr, "HACK_ImportSignature(0x%llx,%s,%d);\n", ea, pattern.c_str(), ofs);
     qfclose(fptr);
   }
+
+  return true;
+});
+
+ScriptBinding<bool, int64_t> s3("HACK_ImportSignature", [](int64_t in) {
+  const ea_t ea = static_cast<ea_t>(in);
+
+  #if 0
+  if (bin_search2(seg->start_ea, address, bytes_.begin(), masks_.begin(),
+                  bytes_.size(),
+                  seg->start_ea <= address ? BIN_SEARCH_FORWARD
+                                           : BIN_SEARCH_BACKWARD) == BADADDR) {
+  
+  }
+  #endif
+
+
 
   return true;
 });

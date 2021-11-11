@@ -4,8 +4,6 @@
 // This defines an executer class for IDA threaded functions
 #pragma once
 
-#include <base/container/detached_queue.h>
-
 class IdaSync;
 
 // so the compiler doesn't bitch around
@@ -21,7 +19,6 @@ struct RequestRunner final : exec_request_t {
   int execute(void) override;
 
  private:
-  base::detached_mpsc_queue<Packet> queue_;
   size_t queueSize_ = 0;
   IdaSync& sync_;
 };

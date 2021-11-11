@@ -44,7 +44,7 @@ filter("language:C or C++")
     staticruntime("on")
 
 filter("language:C++")
-    cppdialect("C++17")
+    cppdialect("C++20")
 
 filter("system:windows")
     defines("OS_WIN")

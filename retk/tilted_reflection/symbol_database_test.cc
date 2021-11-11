@@ -21,7 +21,7 @@ class SymbolDatabaseTest : public ::testing::Test {
 };
 
 TEST_F(SymbolDatabaseTest, WriteEntries) {
-  SymbolDatabase database(db_path().u8string().c_str());
+  SymbolDatabase database(db_path().string().c_str());
 
   // lay down 10 initial entries.
   for (int i = 0; i < 10; i++) {

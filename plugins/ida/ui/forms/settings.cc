@@ -38,7 +38,7 @@ Settings::Settings(bool connected, QWidget* pParent) : QDialog(pParent) {
   std::string username;
   {
     QSettings settings;
-    username = settings.value("RETK_SyncUser", "").toString().toUtf8();
+    username = settings.value("RETK_SyncUser", "").toString().toUtf8().data();
   }
 
   if (username.empty())

@@ -8,6 +8,7 @@ namespace sync {
 class SyncClient;
 }
 
+#if 0
 class ClientRunner final : public QThread {
  public:
   ClientRunner(sync::SyncClient&);
@@ -25,3 +26,4 @@ class ClientRunner final : public QThread {
   bool running_ = false;
   int idletime_ = 0;
 };
+#endif

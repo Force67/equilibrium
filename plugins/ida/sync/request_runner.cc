@@ -6,16 +6,6 @@
 #include "message_handler.h"
 #include "sync/protocol/generated/message_root_generated.h"
 
-#include <base/container/object_pool.h>
-
-struct RequestRunner::Packet {
-  uint32_t dataSize;
-  std::unique_ptr<uint8_t[]> data;
-  base::detached_queue_key<Packet> key;
-};
-
-static base::object_pool<RequestRunner::Packet> s_Pool;
-
 RequestRunner::RequestRunner(IdaSync& cl) : sync_(cl) {
 
 }
@@ -25,13 +15,6 @@ RequestRunner::~RequestRunner() {
 }
 
 void RequestRunner::Queue(const uint8_t* data, size_t size) {
-  auto* task = s_Pool.allocate();
-  task->key.next = nullptr;
-  task->data = std::make_unique<uint8_t[]>(size);
-
-  std::memcpy(task->data.get(), data, size);
-  queue_.push(&task->key);
-
   queueSize_++;
   if (queueSize_ == 1)
     execute_sync(*this, MFF_WRITE | MFF_NOWAIT);

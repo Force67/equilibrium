@@ -6,6 +6,7 @@
 
 #include <sync/engine/sync_client.h>
 
+#if 0
 namespace {
 utils::Opt<int> NetPort{/* sync::kDefaultSyncPort*/ 1337, "Nd_NetPort"};
 utils::Opt<QString> NetIp{"localhost", "Nd_NetIp"};
@@ -62,3 +63,4 @@ void ClientRunner::run() {
 bool ClientRunner::OnNetThread() {
   return s_Tid == QThread::currentThreadId();
 }
+#endif

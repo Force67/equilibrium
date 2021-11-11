@@ -107,8 +107,6 @@ class ScriptBinding final : public BindingBase {
   static constexpr char ToValueTypeIndex() {
     if constexpr (std::is_same_v<T, int64_t>)
       return VT_INT64;
-    if constexpr (std::is_same_v<T, uint64_t>)
-      return VT_INT64;
     if constexpr (std::is_same_v<T, const char*>)
       return VT_STR;
     if constexpr (std::is_same_v<T, sval_t>)
@@ -120,8 +118,6 @@ class ScriptBinding final : public BindingBase {
   static constexpr T ToConreteValueType(idc_value_t& value) {
     if constexpr (std::is_same_v<T, int64_t>)
       return value.i64;
-    if constexpr (std::is_same_v<T, uint64_t>)
-      return static_cast<uint64_t>(value.i64);
     if constexpr (std::is_same_v<T, const char*>)
       return value.c_str();
     if constexpr (std::is_same_v<T, sval_t>)
