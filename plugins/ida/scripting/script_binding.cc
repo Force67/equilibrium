@@ -9,7 +9,7 @@ static BindingBase* rootBinding{nullptr};
 BindingBase::BindingBase(const char* const name,
     const char* const args,
     idc_func_t* funcptr) {
-  desc_ = {name, funcptr, args, nullptr, 0, 0};
+  desc_ = {name, funcptr, args, nullptr, 0, EXTFUN_BASE};
   next_ = rootBinding;
   rootBinding = this;
 }

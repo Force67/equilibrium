@@ -11,13 +11,14 @@ constexpr char kCSVExportName[] = R"(C:\Users\vince\Downloads\out.csv)";
 // Note that we have to take int64_t for conversion issues...
 // This needs to be done sadly.
 // We really should introduce some safe conversion method :(
-ScriptBinding<bool, int64_t> s1("CreateAndPrintSignature", [](int64_t ea) {
+// Maybe ida really wants a string as 'the' parameter
+ScriptBinding<0, bool, int64_t> s1("CreateAndPrintSignature", [](int64_t ea) {
   SignatureMaker sigMaker;
   return sigMaker.CreateAndPrintSignature(static_cast<ea_t>(ea));
 });
 
 // This is more of a hack at the moment.
-ScriptBinding<bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
+ScriptBinding<1, bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
   const ea_t ea = static_cast<ea_t>(in);
 
   SignatureMaker sigMaker;
@@ -39,7 +40,7 @@ ScriptBinding<bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
   return true;
 });
 
-ScriptBinding<bool, int64_t> s3("HACK_ImportSignature", [](int64_t in) {
+ScriptBinding<2, bool, int64_t, const char*, int> s3("HACK_ImportSignature", [](int64_t in, const char*, int) {
   const ea_t ea = static_cast<ea_t>(in);
 
   #if 0

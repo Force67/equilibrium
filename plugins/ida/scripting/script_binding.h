@@ -3,23 +3,8 @@
 // Exposes RETK plugin bindings to IDC and IDA-python.
 #pragma once
 
+#include <functional>
 #include <expr.hpp>
-
-// Base class so the Binding can self (de)-register
-// during it's lifetime
-class BindingBase {
- public:
-  BindingBase(const char* const name,
-              const char* const args,
-              idc_func_t* funcptr);
-
-  static void BindAll();
-  static void UnBindAll();
-
- private:
-  BindingBase* next_;
-  ext_idcfunc_t desc_;
-};
 
 // Add IDC class
 
@@ -66,20 +51,36 @@ class ScriptClassBinding final {
 };
 #endif
 
-template <typename TRet, typename... Ts>
+// Base class so the Binding can self (de)-register
+// during it's lifetime
+class BindingBase {
+ public:
+  BindingBase(const char* const name,
+              const char* const args,
+              idc_func_t* funcptr);
+
+  static void BindAll();
+  static void UnBindAll();
+
+ private:
+  BindingBase* next_;
+  ext_idcfunc_t desc_;
+};
+
+template <int unique_id, typename TRet, typename... Ts>
 class ScriptBinding final : public BindingBase {
  public:
-  using TFunctor = TRet(Ts...);
+  using TFunc = TRet(*)(Ts...);
   static constexpr size_t N = sizeof...(Ts);
+  static inline int ID = unique_id;
 
-  ScriptBinding(const char* const name, TFunctor* function)
+  ScriptBinding(const char* const name, TFunc function)
       : BindingBase(name, args_, FunctorImpl),
         // create the type index list by converting each argument
         //  into its numeric representation, note that we need to store
         //  a null terminator for book-keeping at the end.
         args_{(ToValueTypeIndex<Ts>(), ...), 0} {
-    // decay type so we can support lambda syntax
-    functor_ = function;
+    functor_ = std::move(function);
   }
 
   inline void Invoke(Ts... args) { functor_(args...); }
@@ -128,5 +129,6 @@ class ScriptBinding final : public BindingBase {
  private:
   // +1 since we need to store a null terminator at the end
   const char args_[N + 1];
-  static inline TFunctor* functor_;
+  // marking this type as non static to avoid duplication
+  static inline TFunc functor_;
 };

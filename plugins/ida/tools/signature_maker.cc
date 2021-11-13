@@ -1,6 +1,10 @@
 
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
+// IDA implementation of the signature generator.
+// 
+// !!!! Note !!!! Please use release when attempting to seriously use this as its
+//                very compute intensive.
 
 #include "Pch.h"
 
@@ -56,6 +60,7 @@ constexpr size_t kDisplacementStepSize = 100u;
 constexpr size_t kMaxRefCountAnalysisDepth = 10u;
 
 // Does this even make sense?
+// Bounds checking?!?
 static_assert(kDisplacementStepSize <= INT8_MAX,
               "Displacement bounds exceeded");
 
@@ -83,6 +88,29 @@ bool CheckAddressTypeAllowed(const ea_t ea) {
     default:
       return true;
   }
+}
+
+bool ValidateWildcardCount(const std::string& pattern, bool with_spacing) {
+  size_t count = 0;
+  size_t i = with_spacing ? 3 : 1;
+  size_t offset = with_spacing ? 2 : 1;
+
+  for (; i < pattern.length(); i++) {
+    // count patterns in a row
+    if (pattern[i] == '?' && pattern[i - offset] == '?') {
+      count++;
+
+      // We only allow 4 patterns in a row e.g
+      // E9 ? ? ? ?
+      if (count > 3)
+        return false;
+    }
+    if (pattern[i] != '?' && pattern[i - offset] == '?') {
+      count = 0;
+    }
+  }
+
+  return true;
 }
 }  // namespace
 
@@ -229,7 +257,11 @@ SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
     }
   }
 
-  if (out_pattern.length() > kSignatureMaxLength) {
+  if (out_pattern.length() > kSignatureMaxLength || 
+      // patterns must not contain excessive spacing
+      // since too many wild-cards will inevitably lead to breakage
+      // if ABI changes occur
+      !ValidateWildcardCount(out_pattern, true)) {
     return Result::kLengthExceeded;
   }
 
