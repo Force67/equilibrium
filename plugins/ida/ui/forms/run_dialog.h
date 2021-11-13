@@ -13,7 +13,12 @@ class RunDialog final : public QDialog, public Ui::RunDialog {
   RunDialog(QWidget* parent, UiData&);
   ~RunDialog() = default;
 
-  int SelectedIndex() const { return data_.last_run_index; }
+  enum class FeatureIndex { 
+	  kTheSignature = 1,
+	  kTheUniqueIdentifier,
+  };
+
+  FeatureIndex index() const { return static_cast<FeatureIndex>(data_.last_run_index); }
 
  private:
   void OnClickOK();

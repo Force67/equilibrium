@@ -12,8 +12,8 @@ RunDialog::RunDialog(QWidget* parent, UiData& data)
     : QDialog(parent), data_(data) {
   setupUi(this);
   // remember last selection
-  SetSelectedItem(data.last_run_index);
-
+  //SetSelectedItem(data.last_run_index);
+  SetSelectedItem(0);
   // disallow multiple selection
   optionList->setSelectionMode(
       QAbstractItemView::SelectionMode::SingleSelection);

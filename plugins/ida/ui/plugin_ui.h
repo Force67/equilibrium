@@ -46,7 +46,6 @@ class PluginUi final : public QObject, public ial::UiEventHandler {
   void RunFeature();
  signals:
   void ShellStateChange(ShellState newState);
-  void RequestFeature(int featureCode);
 
  private:
   void Tick();

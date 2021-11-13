@@ -21,7 +21,7 @@ constexpr char kWantedPluginName[] = "RETKForIDA";
 constexpr char kWantedPluginHotkey[] = "Ctrl-Y";
 }  // namespace
 
-Plugin::Plugin() : sync_(*this), ui_(*this), work_bench_(*this) {
+Plugin::Plugin() : sync_(*this), ui_(*this) {
   BindingBase::BindAll();
   LOG_INFO("Loaded RETK " TK_VERSION_STR
            " created by Force67 <github.com/Force67>.");

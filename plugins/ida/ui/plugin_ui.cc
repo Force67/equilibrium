@@ -17,6 +17,7 @@
 #include "forms/settings.h"
 #include "forms/status_widget.h"
 #include "forms/address_book_view.h"
+#include "quick_runner.h"
 
 QT::QWidget* GetTopWidget() {
   return qobject_cast<QMainWindow*>(
@@ -175,5 +176,6 @@ void PluginUi::RunFeature() {
   forms::RunDialog dialog(GetTopWidget(), data_);
   if (dialog.exec() != QDialog::Accepted) 
       return;
-  emit RequestFeature(dialog.SelectedIndex());
+
+  RunQuickFeature(dialog.index());
 }

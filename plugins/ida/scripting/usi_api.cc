@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "script_binding.h"
-#include "tools/workbench.h"
 
 #if 0
 // plain make a USI provided by given type name...

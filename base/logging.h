@@ -40,9 +40,6 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
       ::base::PrintLogMessage(                                    \
           ::base::LogLevel::kError,                               \
           __FUNCTION__ "() -> assertion failed at " #expression); \
-      if (TK_DBG) {                                               \
-        __debugbreak();                                           \
-      }                                                           \
     }                                                             \
                                                                   \
   } while (0)
