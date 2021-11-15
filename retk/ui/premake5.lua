@@ -8,24 +8,7 @@ local function include_ui()
         "glfw",
         "imgui",
     })
-    links({
-        "skia",
-        -- operating system
-        "opengl32",
-        "user32",
-        "gdi32",
-        "shell32"
-    })
-    defines({
-        "SK_GL"
-    })
-    includedirs({
-        blu.extdir .. "/skia_sdk",
-        blu.extdir .. "/skia_sdk/include",
-    })
-    libdirs({
-        blu.extdir .. "/skia_sdk/lib/debug_static",
-    })
+    include_skia()
 end
 
 component("ui")

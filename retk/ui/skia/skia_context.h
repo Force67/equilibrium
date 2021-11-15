@@ -11,10 +11,16 @@ class GrDirectContext;
 
 namespace ui {
 
+	struct ContextCreateInfo {
+  int width, height;
+};
+
 class SkiaContext {
  public:
-  SkiaContext(sk_sp<SkSurface>, sk_sp<GrDirectContext>);
+  SkiaContext();
   ~SkiaContext();
+
+  bool Initialize(const ContextCreateInfo&);
 
   void SetDpiAware(void *window_handle);
 
@@ -23,13 +29,7 @@ class SkiaContext {
 
  private:
   // keep surface first as it needs to be destroyed first
-  sk_sp<SkSurface> surface_;
-  sk_sp<GrDirectContext> gpu_context_;
+  SkSurface *surface_;
+  GrDirectContext *gpu_context_;
 };
-
-struct SkiaCreateInfo {
-  int width, height;
-};
-
-std::unique_ptr<SkiaContext> CreateSkiaContext(const SkiaCreateInfo&);
 }  // namespace ui

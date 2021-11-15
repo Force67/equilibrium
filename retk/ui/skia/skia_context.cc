@@ -19,11 +19,50 @@
 
 namespace ui {
 
-SkiaContext::SkiaContext(sk_sp<SkSurface> surface,
-                         sk_sp<GrDirectContext> gr_context)
-    : gpu_context_(std::move(gr_context)), surface_(std::move(surface)) {}
+SkiaContext::SkiaContext() {}
 
-SkiaContext::~SkiaContext() {}
+SkiaContext::~SkiaContext() {
+  delete surface_;
+  delete gpu_context_;
+}
+
+bool SkiaContext::Initialize(const ContextCreateInfo& info) {
+  GrContextOptions options;
+  gpu_context_ = GrDirectContext::MakeGL(options).release();
+
+  GrGLFramebufferInfo framebufferInfo;
+  framebufferInfo.fFBOID = 0;  // assume default framebuffer
+  // We are always using OpenGL and we use RGBA8 internal format for both RGBA
+  // and BGRA configs in OpenGL.
+  //(replace line below with this one to enable correct color spaces)
+  // framebufferInfo.fFormat = GL_SRGB8_ALPHA8;
+  framebufferInfo.fFormat = GL_RGBA8;
+#if 0
+  SkColorType colorType;
+  if (kRGBA_8888_GrPixelConfig == kSkia8888_GrPixelConfig) {
+    colorType = kRGBA_8888_SkColorType;
+  } else {
+    colorType = kBGRA_8888_SkColorType;
+  }
+#endif
+  SkColorType colorType = kBGRA_8888_SkColorType;
+
+  GrBackendRenderTarget backendRenderTarget(info.width,
+                                            info.height,
+                                            0,  // sample count
+                                            0,  // stencil bits
+                                            framebufferInfo);
+
+  //(replace line below with this one to enable correct color spaces) sSurface =
+  // SkSurface::MakeFromBackendRenderTarget(sContext, backendRenderTarget,
+  // kBottomLeft_GrSurfaceOrigin, colorType, SkColorSpace::MakeSRGB(),
+  // nullptr).release();
+  surface_ = SkSurface::MakeFromBackendRenderTarget(
+      gpu_context_, backendRenderTarget, kBottomLeft_GrSurfaceOrigin,
+      colorType, nullptr, nullptr).release();
+
+  return surface_ != nullptr;
+}
 
 void SkiaContext::SetDpiAware(void* window_handle) {
   TK_DCHECK(window_handle && surface_);
@@ -46,48 +85,5 @@ void SkiaContext::SetDpiAware(void* window_handle) {
   // auto mat = canvas->getTotalMatrix();
   // mat = mat * SkMatrix::Scale(1.25, 1.25);
   // canvas->setMatrix(mat);
-}
-
-// TODO: Possibly move this to a factory..
-std::unique_ptr<SkiaContext> CreateSkiaContext(
-    const SkiaCreateInfo& create_info) {
-  GrContextOptions options;
-  auto gr_context = GrDirectContext::MakeGL(nullptr, options);
-
-  GrGLFramebufferInfo framebufferInfo;
-  framebufferInfo.fFBOID = 0;  // assume default framebuffer
-  // We are always using OpenGL and we use RGBA8 internal format for both RGBA
-  // and BGRA configs in OpenGL.
-  //(replace line below with this one to enable correct color spaces)
-  // framebufferInfo.fFormat = GL_SRGB8_ALPHA8;
-  framebufferInfo.fFormat = GL_RGBA8;
-#if 0
-  SkColorType colorType;
-  if (kRGBA_8888_GrPixelConfig == kSkia8888_GrPixelConfig) {
-    colorType = kRGBA_8888_SkColorType;
-  } else {
-    colorType = kBGRA_8888_SkColorType;
-  }
-#endif
-  SkColorType colorType = kBGRA_8888_SkColorType;
-
-  GrBackendRenderTarget backendRenderTarget(create_info.width,
-                                            create_info.height,
-                                            0,  // sample count
-                                            0,  // stencil bits
-                                            framebufferInfo);
-
-  //(replace line below with this one to enable correct color spaces) sSurface =
-  // SkSurface::MakeFromBackendRenderTarget(sContext, backendRenderTarget,
-  // kBottomLeft_GrSurfaceOrigin, colorType, SkColorSpace::MakeSRGB(),
-  // nullptr).release();
-  auto surface = SkSurface::MakeFromBackendRenderTarget(
-      gr_context.get(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin,
-      colorType, nullptr, nullptr);
-  if (surface == nullptr)
-    return nullptr;
-
-  return std::make_unique<SkiaContext>(std::move(surface),
-                                       std::move(gr_context));
 }
 }  // namespace ui

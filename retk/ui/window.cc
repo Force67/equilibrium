@@ -6,11 +6,12 @@
 
 namespace ui {
 
+/*
 void Window::Paint(SkSurface& surface) {
   SkCanvas* canvas = surface.getCanvas();
   canvas->clear(SK_ColorWHITE);
 
   if (root_item_)
     root_item_->Paint(*canvas, {});
-}
+}*/
 }  // namespace ui

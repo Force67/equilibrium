@@ -26,6 +26,7 @@
 #include <backends/imgui_impl_opengl3.h>
 
 #include <ui/skia/skia_context.h>
+#include <ui/skia/skia_context_factory.h>
 #include <ui/display/win/dpi_win.h>
 
 //#include <ui/layout/grid_layout.h>
@@ -216,7 +217,7 @@ void App::BindGLContext() {
 }
 
 void App::DoCreateWindow() {
-  ui::SkiaCreateInfo create_info;
+  ui::ContextCreateInfo create_info;
   create_info.width = 1920;
   create_info.height = 1080;
 

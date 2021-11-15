@@ -1,0 +1,29 @@
+// Copyright (C) 2021 Force67 <github.com/Force67>.
+// For licensing information see LICENSE at the root of this distribution.
+
+#include <core/SkGraphics.h>
+#include <core/SkSurface.h>
+#include <core/SkCanvas.h>
+
+#include <gpu/gl/GrGLInterface.h>
+#include <gpu/GrContextOptions.h>
+#include <gpu/GrDirectContext.h>
+#include <gpu/GrBackendSurface.h>
+#include <glfw/glfw3.h>
+#include <glfw/glfw3native.h>
+#include <base/logging.h>
+
+#include "skia_context_factory.h"
+
+namespace ui {
+// TODO: Possibly move this to a factory..
+std::unique_ptr<SkiaContext> CreateSkiaContext(
+    const ContextCreateInfo& create_info) {
+  auto context = std::make_unique<SkiaContext>();
+
+  if (!context->Initialize(create_info))
+    return nullptr;
+
+  return context;
+}
+}

@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "item.h"
 #include "key.h"
 
 #include <core/SkSurface.h>
@@ -19,6 +18,7 @@ class Window {
  public:
   virtual ~Window() = default;
 
+  #if 0
   virtual void show() = 0;
 
   // update
@@ -41,5 +41,6 @@ class Window {
   base::Vec2i bound_{250, 250};
   bool in_focus_ = true;
   Item* root_item_;
+  #endif
 };
 }  // namespace ui

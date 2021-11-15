@@ -6,6 +6,18 @@ qt = premake.modules.qt
 
 group("Dependencies")
 
+function include_skia()
+    defines("SK_GL")
+    links("skia")
+    includedirs({
+        blu.extdir .. "/skia_sdk",
+        blu.extdir .. "/skia_sdk/include",
+    })
+    -- Our debug mode differs from the one used by SKIA
+    -- so we need to use the release static libs
+    libdirs(blu.extdir .. "/skia_sdk/lib/release_static")
+end
+
 project("mbedtls")
     kind("StaticLib")
     language("C")

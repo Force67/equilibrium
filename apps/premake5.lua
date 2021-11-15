@@ -34,15 +34,8 @@ project("App_Main")
         -- use our regular main instead of winmain
         "/ENTRY:mainCRTStartup"
     })
-    defines({
-        "SK_GL"
-    })
     includedirs({
         ".",
         "../retk",
-        blu.extdir .. "/skia_sdk",
-        blu.extdir .. "/skia_sdk/include",
     })
-    libdirs({
-        blu.extdir .. "/skia_sdk/lib/debug_static",
-    })
+    include_skia()
