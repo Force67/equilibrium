@@ -19,7 +19,7 @@
 
 namespace ui {
 
-SkiaContext::SkiaContext() {}
+SkiaContext::SkiaContext() : surface_(nullptr), gpu_context_(nullptr) {}
 
 SkiaContext::~SkiaContext() {
   delete surface_;
@@ -30,6 +30,11 @@ bool SkiaContext::Initialize(const ContextCreateInfo& info) {
   GrContextOptions options;
   gpu_context_ = GrDirectContext::MakeGL(options).release();
 
+  Resize({static_cast<float>(info.width), static_cast<float>(info.height)});
+  return surface_ != nullptr;
+}
+
+void SkiaContext::Resize(SkPoint screen_size) {
   GrGLFramebufferInfo framebufferInfo;
   framebufferInfo.fFBOID = 0;  // assume default framebuffer
   // We are always using OpenGL and we use RGBA8 internal format for both RGBA
@@ -47,8 +52,8 @@ bool SkiaContext::Initialize(const ContextCreateInfo& info) {
 #endif
   SkColorType colorType = kBGRA_8888_SkColorType;
 
-  GrBackendRenderTarget backendRenderTarget(info.width,
-                                            info.height,
+  // should be stored
+  GrBackendRenderTarget backendRenderTarget(screen_size.fX, screen_size.fY,
                                             0,  // sample count
                                             0,  // stencil bits
                                             framebufferInfo);
@@ -57,11 +62,16 @@ bool SkiaContext::Initialize(const ContextCreateInfo& info) {
   // SkSurface::MakeFromBackendRenderTarget(sContext, backendRenderTarget,
   // kBottomLeft_GrSurfaceOrigin, colorType, SkColorSpace::MakeSRGB(),
   // nullptr).release();
-  surface_ = SkSurface::MakeFromBackendRenderTarget(
-      gpu_context_, backendRenderTarget, kBottomLeft_GrSurfaceOrigin,
-      colorType, nullptr, nullptr).release();
+  if (surface_) {
+    delete surface_;
+    surface_ = nullptr;
 
-  return surface_ != nullptr;
+  }
+
+  surface_ = SkSurface::MakeFromBackendRenderTarget(
+                 gpu_context_, backendRenderTarget, kBottomLeft_GrSurfaceOrigin,
+                 colorType, nullptr, nullptr)
+                 .release();
 }
 
 void SkiaContext::SetDpiAware(void* window_handle) {
@@ -73,8 +83,8 @@ void SkiaContext::SetDpiAware(void* window_handle) {
   canvas->restoreToCount(0);
   canvas->save();
 
-  SkPoint dpi = GetCurrentDpiScalingFactor(window_handle);
-  canvas->scale(dpi.fX, dpi.fY);
+  dpi_scale_ = GetCurrentDpiScalingFactor(window_handle);
+  canvas->scale(dpi_scale_.fX, dpi_scale_.fY);
   // canvas->resetMatrix();
 
   SkMatrix transform{};
@@ -85,5 +95,9 @@ void SkiaContext::SetDpiAware(void* window_handle) {
   // auto mat = canvas->getTotalMatrix();
   // mat = mat * SkMatrix::Scale(1.25, 1.25);
   // canvas->setMatrix(mat);
+}
+
+void SkiaContext::RestoreScaling() {
+  canvas()->scale(dpi_scale_.fX, dpi_scale_.fY);
 }
 }  // namespace ui

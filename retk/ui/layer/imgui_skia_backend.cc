@@ -9,9 +9,11 @@
  */
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <ui/keycode.inl>
 #include <ui/layer/imgui_skia_backend.h>
+#include <base/logging.h>
 
 #include <core/SkCanvas.h>
 #include <core/SkGraphics.h>
@@ -24,9 +26,12 @@
 namespace uikit {
 
 ImguiSkiaBackend::ImguiSkiaBackend() {
-  ImGui::CreateContext();
+#if defined(TK_DBG)
+  IMGUI_CHECKVERSION();
+#endif
 
-  ImGuiIO& io = ImGui::GetIO();
+  ImGuiContext *im_context = ImGui::CreateContext();
+  ImGuiIO& io = im_context->IO;
   io.KeyMap[ImGuiKey_Tab] = static_cast<int>(Key::kTab);
   io.KeyMap[ImGuiKey_LeftArrow] = static_cast<int>(Key::kLeft);
   io.KeyMap[ImGuiKey_RightArrow] = static_cast<int>(Key::kRight);
@@ -95,7 +100,7 @@ void ImguiSkiaBackend::Draw(SkCanvas* canvas) {
         drawCmd->UserCallback(drawList, drawCmd);
       } else {
           SkPaint* paint = static_cast<SkPaint*>(drawCmd->TextureId);
-          SkASSERT(paint);
+          TK_DCHECK(paint);
 
           canvas->clipRect(
               SkRect::MakeLTRB(drawCmd->ClipRect.x, drawCmd->ClipRect.y,

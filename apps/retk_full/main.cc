@@ -37,6 +37,9 @@
 
 static HMONITOR tracked_monitor_handle = nullptr;
 
+int g_THE_POS_X = 0;
+int g_THE_POS_Y = 0;
+
 void RenderImGuiThisFrame(SkCanvas* c) {
   static float f = 0.0f;
   static int counter = 0;
@@ -50,6 +53,11 @@ void RenderImGuiThisFrame(SkCanvas* c) {
 
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
               1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+  ImGui::SliderInt("Scale Pos X", &g_THE_POS_X, 0,
+                   c->getLocalClipBounds().width());
+  ImGui::SliderInt("Scale Pos Y", &g_THE_POS_Y, 0,
+                   c->getLocalClipBounds().height());
   ImGui::End();
 
   ImGui::Render();
@@ -139,16 +147,26 @@ void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
   }
 }
 
-void DrawListModel(SkCanvas* c) {
+void DrawListModel(SkCanvas* c, ui::SkiaContext* skCtx) {
   const char* g_textRows[] = {"A", "B", "C", "D", "E", "F", "G", "H", "I",
                               "J", "K", "L", "M", "N", "O", "P", "Q", "R",
                               "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
-  auto bounds = SkRect::MakeXYWH(0, 0, 300, 300);
+  auto bounds = SkRect::MakeXYWH(g_THE_POS_X, g_THE_POS_Y, 300.f, 300.f);
+  
+  // https://github.com/aseprite/laf/blob/80ec051ecf4b702d769d4b2483e1a34b52368bde/os/skia/skia_surface.cpp#L42
+
+  // https://github.com/NXPmicro/gtec-demo-framework/blob/master/Doc/FslSimpleUI.md
 
   SkPaint p;
   p.setColor(SK_ColorDKGRAY);
-  // c->drawRoundRect(bounds, 10, 10, p);
+  //c->drawRoundRect(bounds, 1, 1, p);
+
+  // http://microsoft.github.io/Win2D/WinUI2/html/DPI.htm
+  // https://mapsui.com/documentation/skia-scale.html
+
+  //c->drawCircle({bounds.x(), bounds.y()}, 100.f, p);
+  //skCtx->RestoreScaling();
   c->drawRect(bounds, p);
 }
 
@@ -177,8 +195,10 @@ class App {
  private:
   void BindGLContext();
   void DoCreateWindow();
+  void DoResize(int x, int y);
 
   static void OnWindowMove(GLFWwindow* window, int, int);
+  static void OnWindowSize(GLFWwindow*, int, int);
 
  private:
   GLFWwindow* window_ = nullptr;
@@ -241,6 +261,7 @@ void App::DoCreateWindow() {
   glfwSwapInterval(1);
   glfwSetKeyCallback(window_, key_callback);
   glfwSetWindowPosCallback(window_, OnWindowMove);
+  glfwSetWindowSizeCallback(window_, OnWindowSize);
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -256,6 +277,10 @@ void App::DoCreateWindow() {
   ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
+void App::DoResize(int x, int y) {
+  skia_->Resize({static_cast<float>(x), static_cast<float>(y)});
+}
+
 void App::OnWindowMove(GLFWwindow* window, int x, int y) {
   HWND hwnd = glfwGetWin32Window(window);
   HMONITOR current_mon = ui::GetCurrentMonitorHandle(hwnd);
@@ -267,6 +292,47 @@ void App::OnWindowMove(GLFWwindow* window, int x, int y) {
     self->skia_->SetDpiAware(hwnd);
     tracked_monitor_handle = current_mon;
   }
+}
+
+void App::OnWindowSize(GLFWwindow* window, int x, int y) {
+  HWND hwnd = glfwGetWin32Window(window);
+  HMONITOR current_mon = ui::GetCurrentMonitorHandle(hwnd);
+  App* self = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+  assert(self);
+
+  // tell skia to apply a new window size
+  self->DoResize(x, y);
+
+  /* THIS IS ALSO REQUIRED! Since we need to resize the window to what the DPI value has to say
+  * 
+  // DPI Change handler. on WM_DPICHANGE resize the window and
+// then call a function to redo layout for the child controls
+UINT HandleDpiChange(HWND hWnd, WPARAM wParam, LPARAM lParam)
+{
+    HWND hWndStatic = FindWindowEx(hWnd, nullptr, L"STATIC", nullptr);
+
+    if (hWndStatic != nullptr)
+    {
+        UINT uDpi = HIWORD(wParam);
+
+        // Resize the window
+        auto lprcNewScale = reinterpret_cast<RECT*>(lParam);
+
+        SetWindowPos(hWnd, nullptr, lprcNewScale->left, lprcNewScale->top,
+            lprcNewScale->right - lprcNewScale->left, lprcNewScale->bottom -
+lprcNewScale->top, SWP_NOZORDER | SWP_NOACTIVATE);
+
+        // Redo layout of the child controls
+        UpdateAndDpiScaleChildWindows(hWnd, uDpi);
+    }
+
+    return 0;
+}
+  */
+
+
+  // ensure monitor is re applied
+  self->skia_->SetDpiAware(hwnd);
 }
 
 void App::Run() {
@@ -300,11 +366,17 @@ void App::Run() {
     font.setSize(15);
     paint.setColor(SK_ColorWHITE);
 
+    //skia_->RestoreScaling();
+    // https://mapsui.com/documentation/skia-scale.html
+    // https://github.com/Mapsui/Mapsui/blob/d44f9cf0cdb30b118f3cb0d2342ac53717c50827/Mapsui.Rendering.Skia/SymbolStyleRenderer.cs
+    // https://github.com/Mapsui/Mapsui/blob/1e2565651eb043a92e41cb575a6928fb345ad64d/Mapsui.UI.Shared/MapControl.cs#L464
+    // Skia uses pixel based rendering, so we need to scale.
+
+        DrawListModel(canvas, skia_.get());
     DrawButton(canvas, "test", font);
     DrawToggleButton(canvas, true);
 
     DrawGroupBox(canvas, paint, font);
-    DrawListModel(canvas);
 
     // finalize context
     skia_->Flush();

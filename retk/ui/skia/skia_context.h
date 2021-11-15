@@ -24,12 +24,22 @@ class SkiaContext {
 
   void SetDpiAware(void *window_handle);
 
+  void Resize(SkPoint new_size);
+
+  // get the current canvas
   SkCanvas* canvas() { return surface_->getCanvas(); }
+  SkPoint dpi_scale() { return dpi_scale_; }
+
+
   void Flush() { surface_->flush(); }
+
+  void RestoreScaling();
 
  private:
   // keep surface first as it needs to be destroyed first
   SkSurface *surface_;
   GrDirectContext *gpu_context_;
+
+  SkPoint dpi_scale_;
 };
 }  // namespace ui
