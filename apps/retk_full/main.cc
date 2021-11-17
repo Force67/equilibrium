@@ -153,20 +153,20 @@ void DrawListModel(SkCanvas* c, ui::SkiaContext* skCtx) {
                               "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
   auto bounds = SkRect::MakeXYWH(g_THE_POS_X, g_THE_POS_Y, 300.f, 300.f);
-  
+
   // https://github.com/aseprite/laf/blob/80ec051ecf4b702d769d4b2483e1a34b52368bde/os/skia/skia_surface.cpp#L42
 
   // https://github.com/NXPmicro/gtec-demo-framework/blob/master/Doc/FslSimpleUI.md
 
   SkPaint p;
   p.setColor(SK_ColorDKGRAY);
-  //c->drawRoundRect(bounds, 1, 1, p);
+  // c->drawRoundRect(bounds, 1, 1, p);
 
   // http://microsoft.github.io/Win2D/WinUI2/html/DPI.htm
   // https://mapsui.com/documentation/skia-scale.html
 
-  //c->drawCircle({bounds.x(), bounds.y()}, 100.f, p);
-  //skCtx->RestoreScaling();
+  // c->drawCircle({bounds.x(), bounds.y()}, 100.f, p);
+  // skCtx->RestoreScaling();
   c->drawRect(bounds, p);
 }
 
@@ -199,6 +199,7 @@ class App {
 
   static void OnWindowMove(GLFWwindow* window, int, int);
   static void OnWindowSize(GLFWwindow*, int, int);
+  static void OnWindowScale(GLFWwindow*, float, float);
 
  private:
   GLFWwindow* window_ = nullptr;
@@ -222,6 +223,7 @@ App::~App() {
 
 void App::BindGLContext() {
   glfwSetErrorCallback(error_callback);
+
   if (!glfwInit()) {
     exit(EXIT_FAILURE);
   }
@@ -234,12 +236,20 @@ void App::BindGLContext() {
   glfwWindowHint(GLFW_STENCIL_BITS, 0);
   // glfwWindowHint(GLFW_ALPHA_BITS, 0);
   glfwWindowHint(GLFW_DEPTH_BITS, 0);
+
+  // ==================
+  // When switching dpi contexts, make the window automatically aware of the new
+  // desired size. Note that when this is enabled, we have to first bounce
+  // another resize call Make sure to pop this hint before actually creating the
+  // window
+  // https://github.com/glfw/glfw/blob/56a4cb0a3a2c7a44a2fd8ab3335adf915e19d30c/src/win32_window.c#L1303
+  glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 }
 
 void App::DoCreateWindow() {
   ui::ContextCreateInfo create_info;
-  create_info.width = 1920;
-  create_info.height = 1080;
+  create_info.width = 1280;
+  create_info.height = 720;
 
   window_ = glfwCreateWindow(create_info.width, create_info.height, "ReTK",
                              NULL, NULL);
@@ -253,15 +263,27 @@ void App::DoCreateWindow() {
   //(uncomment to enable correct color spaces) glEnable(GL_FRAMEBUFFER_SRGB);
   bool err = glewInit() != GLEW_OK;
 
-  skia_ = ui::CreateSkiaContext(create_info);
-  skia_->SetDpiAware(glfwGetWin32Window(window_));
-  tracked_monitor_handle =
-      ui::GetCurrentMonitorHandle(glfwGetWin32Window(window_));
-
   glfwSwapInterval(1);
   glfwSetKeyCallback(window_, key_callback);
   glfwSetWindowPosCallback(window_, OnWindowMove);
   glfwSetWindowSizeCallback(window_, OnWindowSize);
+  glfwSetWindowContentScaleCallback(window_, OnWindowScale);
+
+  // detect if we were up-scaled
+  // This is done to counter GLFW's initial upscaling when GLFW_SCALE_TO_MONITOR is specified.
+  {
+    int real_width = 0, real_height = 0;
+    glfwGetWindowSize(window_, &real_width, &real_height);
+
+    if (create_info.width != real_width || create_info.height != real_height) {
+      create_info = {.width = real_width, .height = real_height};
+    }
+  }
+
+  skia_ = ui::CreateSkiaContext(create_info);
+  skia_->SetDpiAware(glfwGetWin32Window(window_));
+  tracked_monitor_handle =
+      ui::GetCurrentMonitorHandle(glfwGetWin32Window(window_));
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -294,6 +316,12 @@ void App::OnWindowMove(GLFWwindow* window, int x, int y) {
   }
 }
 
+void App::OnWindowScale(GLFWwindow* window, float, float) {
+  HWND hwnd = glfwGetWin32Window(window);
+  App* self = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+  assert(self);
+}
+
 void App::OnWindowSize(GLFWwindow* window, int x, int y) {
   HWND hwnd = glfwGetWin32Window(window);
   HMONITOR current_mon = ui::GetCurrentMonitorHandle(hwnd);
@@ -303,8 +331,9 @@ void App::OnWindowSize(GLFWwindow* window, int x, int y) {
   // tell skia to apply a new window size
   self->DoResize(x, y);
 
-  /* THIS IS ALSO REQUIRED! Since we need to resize the window to what the DPI value has to say
-  * 
+  /* THIS IS ALSO REQUIRED! Since we need to resize the window to what the DPI
+value has to say
+  *
   // DPI Change handler. on WM_DPICHANGE resize the window and
 // then call a function to redo layout for the child controls
 UINT HandleDpiChange(HWND hWnd, WPARAM wParam, LPARAM lParam)
@@ -329,7 +358,6 @@ lprcNewScale->top, SWP_NOZORDER | SWP_NOACTIVATE);
     return 0;
 }
   */
-
 
   // ensure monitor is re applied
   self->skia_->SetDpiAware(hwnd);
@@ -366,13 +394,13 @@ void App::Run() {
     font.setSize(15);
     paint.setColor(SK_ColorWHITE);
 
-    //skia_->RestoreScaling();
+    // skia_->RestoreScaling();
     // https://mapsui.com/documentation/skia-scale.html
     // https://github.com/Mapsui/Mapsui/blob/d44f9cf0cdb30b118f3cb0d2342ac53717c50827/Mapsui.Rendering.Skia/SymbolStyleRenderer.cs
     // https://github.com/Mapsui/Mapsui/blob/1e2565651eb043a92e41cb575a6928fb345ad64d/Mapsui.UI.Shared/MapControl.cs#L464
     // Skia uses pixel based rendering, so we need to scale.
 
-        DrawListModel(canvas, skia_.get());
+    DrawListModel(canvas, skia_.get());
     DrawButton(canvas, "test", font);
     DrawToggleButton(canvas, true);
 
