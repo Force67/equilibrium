@@ -38,7 +38,7 @@
 static HMONITOR tracked_monitor_handle = nullptr;
 
 int g_THE_POS_X = 0;
-int g_THE_POS_Y = 0;
+int g_THE_POS_Y = 30;
 
 void RenderImGuiThisFrame(SkCanvas* c) {
   static float f = 0.0f;
@@ -147,12 +147,115 @@ void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
   }
 }
 
-void DrawListModel(SkCanvas* c, ui::SkiaContext* skCtx) {
-  const char* g_textRows[] = {"A", "B", "C", "D", "E", "F", "G", "H", "I",
-                              "J", "K", "L", "M", "N", "O", "P", "Q", "R",
-                              "S", "T", "U", "V", "W", "X", "Y", "Z"};
+void DrawMenubar(SkCanvas* c, SkFont& font) {
+  const char* g_textRows[] = {"File",    "Edit",    "Jump",
+                              "Search",  "View",    "Debugger",
+                              "Options", "Windows", "Help"};
+  const size_t count = sizeof(g_textRows) / sizeof(const char*);
 
-  auto bounds = SkRect::MakeXYWH(g_THE_POS_X, g_THE_POS_Y, 300.f, 300.f);
+  const auto bounds = SkRect::MakeXYWH(0, 0, 1000.f, 30.f);
+
+  SkPaint p;
+  p.setColor(SK_ColorMAGENTA);
+  c->drawRect(bounds, p);
+
+  SkPaint lcol;
+  lcol.setColor(SK_ColorBLACK);
+
+  // calculate average text height for all rows
+  SkRect text_bounds{};
+  SkScalar avg_text_height = 1.f;
+
+  // easy and cheap workaround of doing this
+  font.measureText("A", 1, SkTextEncoding::kUTF8, &text_bounds);
+  avg_text_height = text_bounds.height();
+
+  SkScalar x_offset = bounds.fLeft + 5.f;
+  for (size_t i = 0; i < count; i++) {
+    const auto text_ptr = g_textRows[i];
+
+    const size_t text_length = strlen(text_ptr);
+    font.measureText(text_ptr, text_length, SkTextEncoding::kUTF8,
+                     &text_bounds);
+
+    // Why are we using avg_text_height instead of text_bounds.width()?
+    // Well, we need to calculate the average text height since for instance
+    // the total x height will be affected by the presence of a p or q since
+    // they go below the start pos so the total height will
+    // appear larger than it should be.
+    const SkScalar pos_x = x_offset;
+    const SkScalar pos_y = bounds.centerY() + (avg_text_height / 2.f);
+
+    // move offset
+    x_offset += text_bounds.width() + 15.f;
+    c->drawSimpleText(text_ptr, text_length, SkTextEncoding::kUTF8, pos_x,
+                      pos_y, font, lcol);
+  }
+}
+
+void DrawStatusBar(SkCanvas* c, SkFont& font) {
+  const char* g_textRows[] = {"Status: Busy"};
+  const size_t count = sizeof(g_textRows) / sizeof(const char*);
+
+  const auto bounds = SkRect::MakeXYWH(
+      0, c->getLocalClipBounds().height() - 30.f, 1000.f, 30.f);
+
+  SkPaint p;
+  p.setColor(SK_ColorMAGENTA);
+  c->drawRect(bounds, p);
+
+  SkPaint lcol;
+  lcol.setColor(SK_ColorBLACK);
+
+  // calculate average text height for all rows
+  SkRect text_bounds{};
+  SkScalar avg_text_height = 1.f;
+
+  // easy and cheap workaround of doing this
+  font.measureText("A", 1, SkTextEncoding::kUTF8, &text_bounds);
+  avg_text_height = text_bounds.height();
+
+  SkScalar x_offset = bounds.fLeft + 5.f;
+  for (size_t i = 0; i < count; i++) {
+    const auto text_ptr = g_textRows[i];
+
+    const size_t text_length = strlen(text_ptr);
+    font.measureText(text_ptr, text_length, SkTextEncoding::kUTF8,
+                     &text_bounds);
+
+    // Why are we using avg_text_height instead of text_bounds.width()?
+    // Well, we need to calculate the average text height since for instance
+    // the total x height will be affected by the presence of a p or q since
+    // they go below the start pos so the total height will
+    // appear larger than it should be.
+    const SkScalar pos_x = x_offset;
+    const SkScalar pos_y = bounds.centerY() + (avg_text_height / 2.f);
+
+    // move offset
+    x_offset += text_bounds.width() + 15.f;
+    c->drawSimpleText(text_ptr, text_length, SkTextEncoding::kUTF8, pos_x,
+                      pos_y, font, lcol);
+  }
+}
+
+void DrawPlainTextBox(SkCanvas* c, SkFont& font) {
+  static constexpr char g_FunnyText[] =R"(
+push rsi push rdi sub rsp,
+60h movaps[rsp + 78h + var_28],
+xmm6 mov rax,
+cs : __security_cookie xor rax,
+rsp mov[rsp + 78h + var_30],
+rax mov rax,
+[rcx] mov rbx,
+rcx mov rsi,
+r9 movaps xmm6,
+xmm2 mov rdi,
+rdx mov ecx,
+[rax + 24h] mov rax,
+[rdx] cmp ecx,
+[rax + 24h] jz short loc_14006B66A xor al,
+al jmp short loc_14006B6D0)";
+  auto bounds = SkRect::MakeXYWH(200.f, 30.f, 600.f, 600.f);
 
   // https://github.com/aseprite/laf/blob/80ec051ecf4b702d769d4b2483e1a34b52368bde/os/skia/skia_surface.cpp#L42
 
@@ -164,13 +267,60 @@ void DrawListModel(SkCanvas* c, ui::SkiaContext* skCtx) {
 
   // http://microsoft.github.io/Win2D/WinUI2/html/DPI.htm
   // https://mapsui.com/documentation/skia-scale.html
-
-  // c->drawCircle({bounds.x(), bounds.y()}, 100.f, p);
-  // skCtx->RestoreScaling();
   c->drawRect(bounds, p);
+
+  SkPaint q;
+  q.setColor(SK_ColorWHITE);
+
+  SkRect text_bounds{};
+  SkScalar avg_text_offset = 1.f;
+
+  // easy and cheap workaround of doing this
+  font.measureText("Aq", 1, SkTextEncoding::kUTF8, &text_bounds);
+  avg_text_offset = text_bounds.height() + 5.f;
+
+  size_t last_i = 0;
+  size_t depth = 0;
+  for (size_t i = 0; i < strlen(g_FunnyText); i++) {
+    if (g_FunnyText[i] == '\n') {
+      const SkScalar fx = (bounds.fTop + (depth * avg_text_offset));
+
+      c->drawSimpleText(&g_FunnyText[last_i], i - last_i, SkTextEncoding::kUTF8,
+                        bounds.fLeft, fx, font, q);
+      last_i = i;
+      depth++;
+    }
+  }
 }
 
-ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+void DrawListModel(SkCanvas* c, ui::SkiaContext* skCtx) {
+  const char* g_textRows[] = {"A", "B", "C", "D", "E", "F", "G", "H", "I",
+                              "J", "K", "L", "M", "N", "O", "P", "Q", "R",
+                              "S", "T", "U", "V", "W", "X", "Y", "Z"};
+
+  auto bounds = SkRect::MakeXYWH(g_THE_POS_X, g_THE_POS_Y, 200.f, 300.f);
+
+  // https://github.com/aseprite/laf/blob/80ec051ecf4b702d769d4b2483e1a34b52368bde/os/skia/skia_surface.cpp#L42
+
+  // https://github.com/NXPmicro/gtec-demo-framework/blob/master/Doc/FslSimpleUI.md
+
+  SkPaint p;
+  p.setColor(SK_ColorDKGRAY);
+  // c->drawRoundRect(bounds, 1, 1, p);
+
+  // http://microsoft.github.io/Win2D/WinUI2/html/DPI.htm
+  // https://mapsui.com/documentation/skia-scale.html
+  c->drawRect(bounds, p);
+
+  SkPaint lcol;
+  lcol.setColor(SK_ColorWHITE);
+  const size_t count = sizeof(g_textRows) / sizeof(const char*);
+  SkScalar row_height = bounds.height() / count;
+  for (size_t i = 1; i < count; i++) {
+    c->drawLine({bounds.x(), bounds.y() + row_height * i},
+                {bounds.fRight, (bounds.y() + row_height * i)}, lcol);
+  }
+}
 
 void error_callback(int error, const char* description) {
   fputs(description, stderr);
@@ -231,17 +381,18 @@ void App::BindGLContext() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  //(uncomment to enable correct color spaces) glfwWindowHint(GLFW_SRGB_CAPABLE,
+  //(uncomment to enable correct color spaces)
+  // glfwWindowHint(GLFW_SRGB_CAPABLE,
   // GL_TRUE);
   glfwWindowHint(GLFW_STENCIL_BITS, 0);
   // glfwWindowHint(GLFW_ALPHA_BITS, 0);
   glfwWindowHint(GLFW_DEPTH_BITS, 0);
 
   // ==================
-  // When switching dpi contexts, make the window automatically aware of the new
-  // desired size. Note that when this is enabled, we have to first bounce
-  // another resize call Make sure to pop this hint before actually creating the
-  // window
+  // When switching dpi contexts, make the window automatically aware of the
+  // new desired size. Note that when this is enabled, we have to first
+  // bounce another resize call Make sure to pop this hint before actually
+  // creating the window
   // https://github.com/glfw/glfw/blob/56a4cb0a3a2c7a44a2fd8ab3335adf915e19d30c/src/win32_window.c#L1303
   glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 }
@@ -260,7 +411,8 @@ void App::DoCreateWindow() {
 
   glfwMakeContextCurrent(window_);
   glfwSetWindowUserPointer(window_, this);
-  //(uncomment to enable correct color spaces) glEnable(GL_FRAMEBUFFER_SRGB);
+  //(uncomment to enable correct color spaces)
+  // glEnable(GL_FRAMEBUFFER_SRGB);
   bool err = glewInit() != GLEW_OK;
 
   glfwSwapInterval(1);
@@ -270,7 +422,8 @@ void App::DoCreateWindow() {
   glfwSetWindowContentScaleCallback(window_, OnWindowScale);
 
   // detect if we were up-scaled
-  // This is done to counter GLFW's initial upscaling when GLFW_SCALE_TO_MONITOR is specified.
+  // This is done to counter GLFW's initial upscaling when
+  // GLFW_SCALE_TO_MONITOR is specified.
   {
     int real_width = 0, real_height = 0;
     glfwGetWindowSize(window_, &real_width, &real_height);
@@ -331,36 +484,10 @@ void App::OnWindowSize(GLFWwindow* window, int x, int y) {
   // tell skia to apply a new window size
   self->DoResize(x, y);
 
-  /* THIS IS ALSO REQUIRED! Since we need to resize the window to what the DPI
-value has to say
-  *
-  // DPI Change handler. on WM_DPICHANGE resize the window and
-// then call a function to redo layout for the child controls
-UINT HandleDpiChange(HWND hWnd, WPARAM wParam, LPARAM lParam)
-{
-    HWND hWndStatic = FindWindowEx(hWnd, nullptr, L"STATIC", nullptr);
-
-    if (hWndStatic != nullptr)
-    {
-        UINT uDpi = HIWORD(wParam);
-
-        // Resize the window
-        auto lprcNewScale = reinterpret_cast<RECT*>(lParam);
-
-        SetWindowPos(hWnd, nullptr, lprcNewScale->left, lprcNewScale->top,
-            lprcNewScale->right - lprcNewScale->left, lprcNewScale->bottom -
-lprcNewScale->top, SWP_NOZORDER | SWP_NOACTIVATE);
-
-        // Redo layout of the child controls
-        UpdateAndDpiScaleChildWindows(hWnd, uDpi);
-    }
-
-    return 0;
-}
-  */
-
   // ensure monitor is re applied
-  self->skia_->SetDpiAware(hwnd);
+  // TODO: this is improper, but fixes the resize bug
+  // i have no idea why
+  self->skia_->SetDpiAware(hwnd, true);
 }
 
 void App::Run() {
@@ -377,7 +504,11 @@ void App::Run() {
   SkCanvas* canvas = skia_->canvas();
 
   while (!glfwWindowShouldClose(window_)) {
+    // This is reponsible for slowing down our fps when unused.
     glfwWaitEvents();
+
+    // TODO: follow the DIP spec
+    // https:  // en.wikipedia.org/wiki/Device-independent_pixel
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -404,7 +535,10 @@ void App::Run() {
     DrawButton(canvas, "test", font);
     DrawToggleButton(canvas, true);
 
-    DrawGroupBox(canvas, paint, font);
+    // DrawGroupBox(canvas, paint, font);
+    DrawMenubar(canvas, font);
+    DrawStatusBar(canvas, font);
+    DrawPlainTextBox(canvas, font);
 
     // finalize context
     skia_->Flush();

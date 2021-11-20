@@ -22,7 +22,7 @@ class SkiaContext {
 
   bool Initialize(const ContextCreateInfo&);
 
-  void SetDpiAware(void *window_handle);
+  void SetDpiAware(void *window_handle, bool scale = true);
 
   void Resize(SkPoint new_size);
 

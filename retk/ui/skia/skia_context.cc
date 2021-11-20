@@ -72,9 +72,11 @@ void SkiaContext::Resize(SkPoint screen_size) {
                  gpu_context_, backendRenderTarget, kBottomLeft_GrSurfaceOrigin,
                  colorType, nullptr, nullptr)
                  .release();
+
+  TK_DCHECK(canvas());
 }
 
-void SkiaContext::SetDpiAware(void* window_handle) {
+void SkiaContext::SetDpiAware(void* window_handle, bool scale) {
   TK_DCHECK(window_handle && surface_);
   // enable dpi scaling.
   // TODO: handle monitor switching
@@ -83,18 +85,11 @@ void SkiaContext::SetDpiAware(void* window_handle) {
   canvas->restoreToCount(0);
   canvas->save();
 
-  dpi_scale_ = GetCurrentDpiScalingFactor(window_handle);
-  canvas->scale(dpi_scale_.fX, dpi_scale_.fY);
+  if (scale) {
+    dpi_scale_ = GetCurrentDpiScalingFactor(window_handle);
+    canvas->scale(dpi_scale_.fX, dpi_scale_.fY);
+  }
   // canvas->resetMatrix();
-
-  SkMatrix transform{};
-  transform = SkMatrix() * SkMatrix::Scale(1.25, 1.25);
-  canvas->setMatrix(transform);
-
-  // apply global scaling
-  // auto mat = canvas->getTotalMatrix();
-  // mat = mat * SkMatrix::Scale(1.25, 1.25);
-  // canvas->setMatrix(mat);
 }
 
 void SkiaContext::RestoreScaling() {
