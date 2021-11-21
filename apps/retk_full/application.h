@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <memory>
+#include "glfw_window.h"
 
 class Application {
  public:
@@ -10,4 +10,7 @@ class Application {
   ~Application();
 
   int Exec();
+
+ private:
+  WindowGlfw main_window_;
 };

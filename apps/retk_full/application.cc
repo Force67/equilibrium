@@ -2,15 +2,82 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "application.h"
+#include "widget_prototyping.h"
 
-Application::Application() {
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 
-}
+constexpr int kDefaultWindowWidth = 1280;
+constexpr int kDefaultWindowHeight = 720;
 
-Application::~Application() {
+Application::Application()
+    : main_window_(kDefaultWindowWidth, kDefaultWindowHeight) {}
 
-}
+Application::~Application() {}
 
 int Application::Exec() {
+#if 0
+  {
+
+    float SCALE = dpi.fX / 96.f;
+    ImFontConfig cfg;
+    cfg.SizePixels = 13 * SCALE;
+    ImGui::GetIO().Fonts->AddFontDefault(&cfg)->Scale = SCALE;
+  }
+#endif
+
+  SkCanvas* canvas = main_window_.canvas();
+
+  // while the window should not close
+  while (main_window_.IsOpen()) {
+    // Yield this thread when we don't have to redraw
+    main_window_.WaitForEventsThisFrame();
+
+    // TODO: follow the DIP spec
+    // https:  // en.wikipedia.org/wiki/Device-independent_pixel
+
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // draw background canvas..
+    SkPaint paint;
+    paint.setColor(SK_ColorLTGRAY);
+    canvas->drawPaint(paint);
+
+    SkFont font;
+    font.setSubpixel(true);
+    font.setSize(15);
+    paint.setColor(SK_ColorWHITE);
+
+    // skia_->RestoreScaling();
+    // https://mapsui.com/documentation/skia-scale.html
+    // https://github.com/Mapsui/Mapsui/blob/d44f9cf0cdb30b118f3cb0d2342ac53717c50827/Mapsui.Rendering.Skia/SymbolStyleRenderer.cs
+    // https://github.com/Mapsui/Mapsui/blob/1e2565651eb043a92e41cb575a6928fb345ad64d/Mapsui.UI.Shared/MapControl.cs#L464
+    // SKIA uses pixel based rendering, so we need to scale.
+
+    DrawListModel(canvas);
+    DrawButton(canvas, "test", font);
+    DrawToggleButton(canvas, true);
+
+    // DrawGroupBox(canvas, paint, font);
+    DrawMenubar(canvas, font);
+    DrawStatusBar(canvas, font);
+    DrawPlainTextBox(canvas, font);
+
+    // finalize context
+    main_window_.context()->Flush();
+    RenderImGuiThisFrame(canvas);
+
+    // present the frame
+    int display_w, display_h;
+    main_window_.QuerySize(display_w, display_h);
+    glViewport(0, 0, display_w, display_h);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glfwSwapBuffers(main_window_.HACK_GETGlfwWindow());
+  }
+
   return 0;
 }
