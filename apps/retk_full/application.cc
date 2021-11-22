@@ -29,8 +29,11 @@ int Application::Exec() {
     ImGui::GetIO().Fonts->AddFontDefault(&cfg)->Scale = SCALE;
   }
 #endif
-
   SkCanvas* canvas = main_window_.canvas();
+
+  SkScalar dpi = main_window_.context()->dpi_scale().x();
+
+  layer_.SetScaleFactor(dpi);
 
   // while the window should not close
   while (main_window_.IsOpen()) {

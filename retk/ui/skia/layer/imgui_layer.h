@@ -5,11 +5,12 @@
 
 #include <core/SkPaint.h>
 
+#include <imgui.h>
+#include "ui/imgui/imgui_context.h"
+
 class SkCanvas;
 
 namespace ui {
-
-class DearImGuiContext;
 
 class ImguiSkiaLayer final {
  public:
@@ -17,6 +18,8 @@ class ImguiSkiaLayer final {
 
   void Draw(SkCanvas* canvas);
 
+  // For DPI scaling.
+  void SetScaleFactor(float factor);
  private:
   DearImGuiContext& im_data_;
   SkPaint font_paint_;

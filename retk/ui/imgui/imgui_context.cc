@@ -14,8 +14,10 @@ namespace ui {
 DearImGuiContext::DearImGuiContext() {
   IMGUI_CHECKVERSION();
   im_context_ = ImGui::CreateContext();
-  SetKeyBindings();
+  // don't save pos to an ini
+  im_context_->IO.IniFilename = nullptr;
 
+  SetKeyBindings();
   ImGui::StyleColorsDark();
 
   // TODO: configure our own dpi scaling...

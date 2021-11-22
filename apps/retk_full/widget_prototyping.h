@@ -19,7 +19,9 @@ void RenderImGuiThisFrame(SkCanvas* c) {
   static float f = 0.0f;
   static int counter = 0;
 
-  ImGui::Begin("Ui Debug Stats");
+  ImGui::SetNextWindowSize({300.f, 300.f});
+ ImGui::Begin("Ui Debug Stats");
+ 
 
   ImGui::Text("Local bounds: %f, %f", c->getLocalClipBounds().width(),
               c->getLocalClipBounds().height());

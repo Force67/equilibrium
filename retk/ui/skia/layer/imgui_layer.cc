@@ -4,7 +4,6 @@
 // Largely based on
 // https://github.com/google/skia/blob/main/tools/viewer/ImGuiLayer.cpp
 
-#include <imgui.h>
 #include <base/logging.h>
 #include <core/SkCanvas.h>
 #include <core/SkGraphics.h>
@@ -14,8 +13,10 @@
 
 #include <private/SkTDArray.h>
 #include <private/SkTPin.h>
-
+#include "ui/imgui/imgui_context.h"
 #include "ui/skia/layer/imgui_layer.h"
+#include <imgui.h>
+#include <imgui_internal.h>
 
 namespace ui {
 
@@ -36,9 +37,21 @@ static void BuildImFontAtlas(ImFontAtlas& atlas, SkPaint& fontPaint) {
 }
 }  // namespace
 
-ImguiSkiaLayer::ImguiSkiaLayer(DearImGuiContext& ctx) : im_data_(ctx) {
-  auto* fonts = ImGui::GetIO().Fonts;
+ImguiSkiaLayer::ImguiSkiaLayer(ui::DearImGuiContext& ctx) : im_data_(ctx) {
+  auto *fonts = ctx.IO().Fonts;
   BuildImFontAtlas(*fonts, font_paint_);
+}
+
+void ImguiSkiaLayer::SetScaleFactor(float factor) {
+  im_data_.style().ScaleAllSizes(factor);
+  ImFontAtlas& atlas = *im_data_.IO().Fonts;
+  atlas.Clear();
+
+  ImFontConfig cfg;
+  cfg.SizePixels = 13 * factor;
+
+  atlas.AddFontDefault(&cfg)->Scale = factor * 0.5f;
+  BuildImFontAtlas(atlas, font_paint_);
 }
 
 void ImguiSkiaLayer::Draw(SkCanvas* canvas) {

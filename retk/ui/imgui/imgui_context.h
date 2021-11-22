@@ -3,13 +3,18 @@
 // ImGui context wrapper.
 #pragma once
 
-struct ImGuiContext;
+#include <imgui.h>
+#include <imgui_internal.h>
 
 namespace ui {
 class DearImGuiContext {
  public:
   DearImGuiContext();
   ~DearImGuiContext();
+
+  inline ImGuiContext* context() { return im_context_; }
+  inline ImGuiIO& IO() { return im_context_->IO; }
+  inline ImGuiStyle& style() { return im_context_->Style; }
 
  private:
   void SetKeyBindings();
