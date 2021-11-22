@@ -66,9 +66,9 @@ void WindowGlfw::CreateWindowWindowsIsStupid() {
 
   glfwSwapInterval(1);
   glfwSetKeyCallback(window_, key_callback);
-  glfwSetWindowPosCallback(window_, OnWindowMove);
-  glfwSetWindowSizeCallback(window_, OnWindowSize);
-  glfwSetWindowContentScaleCallback(window_, OnWindowScale);
+  glfwSetWindowPosCallback(window_, OnMove);
+  glfwSetWindowSizeCallback(window_, OnResize);
+  glfwSetWindowContentScaleCallback(window_, OnScale);
 
   // detect if we were up-scaled
   // This is done to counter GLFW's initial upscaling when
@@ -122,42 +122,25 @@ void WindowGlfw::BindContext() {
   glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 }
 
-void WindowGlfw::HandleResize(int x, int y) {
-  skia_->Resize({static_cast<float>(x), static_cast<float>(y)});
-}
-
-void WindowGlfw::OnWindowMove(GLFWwindow* window, int x, int y) {
-  HWND hwnd = glfwGetWin32Window(window);
+void WindowGlfw::HandleMove(int x, int y) {
+  HWND hwnd = glfwGetWin32Window(window_);
   HMONITOR current_mon = ui::GetCurrentMonitorHandle(hwnd);
   if (current_mon != tracked_monitor_handle) {
-    WindowGlfw* self =
-        reinterpret_cast<WindowGlfw*>(glfwGetWindowUserPointer(window));
-    assert(self);
-
     // re-apply DPI awareness for new monitor
-    self->skia_->SetDpiAware(hwnd);
+    skia_->SetDpiAware(hwnd);
     tracked_monitor_handle = current_mon;
   }
 }
 
-void WindowGlfw::OnWindowScale(GLFWwindow* window, float, float) {
-  HWND hwnd = glfwGetWin32Window(window);
-  WindowGlfw* self =
-      reinterpret_cast<WindowGlfw*>(glfwGetWindowUserPointer(window));
-  assert(self);
-}
-
-void WindowGlfw::OnWindowSize(GLFWwindow* window, int x, int y) {
-  HWND hwnd = glfwGetWin32Window(window);
-  WindowGlfw* self =
-      reinterpret_cast<WindowGlfw*>(glfwGetWindowUserPointer(window));
-  assert(hwnd && self);
-
-  // forward to self class
-  self->HandleResize(x, y);
-
+void WindowGlfw::HandleResize(int x, int y) {
+  skia_->Resize({static_cast<float>(x), static_cast<float>(y)});
   // ensure monitor is re applied
   // TODO: this is improper, but fixes the resize bug
   // i have no idea why
-  self->skia_->SetDpiAware(hwnd, true);
+  HWND hwnd = glfwGetWin32Window(window_);
+  skia_->SetDpiAware(hwnd, true);
+}
+
+void WindowGlfw::HandleScale(float, float) {
+  HWND hwnd = glfwGetWin32Window(window_);
 }

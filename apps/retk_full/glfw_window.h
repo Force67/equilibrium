@@ -10,6 +10,18 @@
 #include <core/SkSurface.h>
 #include <ui/skia/skia_context.h>
 
+// Generates the forwarders. Note that you have to declare these with a bit
+// of an awkward syntax, like: IMPL_GLFW_FORWARDER(Move, int(x), int(y))
+#define IMPL_GLFW_FORWARDER(name, ...)                                   \
+  static void On##name(GLFWwindow* window, __VA_ARGS__) {                \
+    WindowGlfw* self =                                                   \
+        reinterpret_cast<WindowGlfw*>(glfwGetWindowUserPointer(window)); \
+    assert(self);                                                        \
+    self->Handle##name(__VA_ARGS__);                                     \
+  }                                                                      \
+                                                                         \
+  void Handle##name(__VA_ARGS__);
+
 struct GlfwContextHolder {
   // TODO: consider reimplementing the allocator
   inline GlfwContextHolder() { assert(glfwInit()); }
@@ -44,11 +56,9 @@ class WindowGlfw {
   static void BindContext();
   void CreateWindowWindowsIsStupid();
 
-  void HandleResize(int x, int y);
-
-  static void OnWindowMove(GLFWwindow* window, int, int);
-  static void OnWindowSize(GLFWwindow*, int, int);
-  static void OnWindowScale(GLFWwindow*, float, float);
+  IMPL_GLFW_FORWARDER(Move, int(x), int(y))
+  IMPL_GLFW_FORWARDER(Resize, int(w), int(h))
+  IMPL_GLFW_FORWARDER(Scale, float(xscale), float(yscale))
 
  private:
   GlfwContextHolder context_owner_;
