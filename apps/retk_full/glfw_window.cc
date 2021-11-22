@@ -33,10 +33,6 @@ void key_callback(GLFWwindow* window,
 
 WindowGlfw::WindowGlfw(int width, int height) {
   glfwSetErrorCallback(error_callback);
-  if (!glfwInit()) {
-    exit(EXIT_FAILURE);
-  }
-
   BindContext();
   CreateWindowWindowsIsStupid();
 }
@@ -48,8 +44,6 @@ WindowGlfw::~WindowGlfw() {
 
   if (window_)
     glfwDestroyWindow(window_);
-
-  glfwTerminate();
 }
 
 void WindowGlfw::CreateWindowWindowsIsStupid() {

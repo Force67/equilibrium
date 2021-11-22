@@ -115,13 +115,22 @@ project("glfw")
     pubincludedirs("glfw/include")
     includedirs({"glfw/src"})
     files({
-        "glfw/include/*.h",
+        "glfw/include/glfw3.h",
+        "glfw/include/glfw3native.h",
+        "glfw/src/platform.h",
+        "glfw/src/platform.c",
         "glfw/src/context.c",
         "glfw/src/init.c",
+        "glfw/src/null_init.c",
+        "glfw/src/null_joystick.c",
+        "glfw/src/null_joystick.h",
+        "glfw/src/null_monitor.c",
+        "glfw/src/null_platform.h",
+        "glfw/src/null_window.c",
         "glfw/src/input.c",
         "glfw/src/monitor.c",
         "glfw/src/vulkan.c",
-        "glfw/src/window.c"
+        "glfw/src/window.c",
     })
     pubdefines({
         "GLEW_STATIC"
@@ -134,11 +143,10 @@ project("glfw")
         files({
             "glfw/src/win32_platform.h",
             "glfw/src/win32_joystick.h",
-            "glfw/src/wgl_context.h",
-            "glfw/src/egl_context.h",
             "glfw/src/osmesa_context.h",
             "glfw/src/win32_init.c",
             "glfw/src/win32_joystick.c",
+            "glfw/src/win32_module.c",
             "glfw/src/win32_monitor.c",
             "glfw/src/win32_time.c",
             "glfw/src/win32_thread.c",

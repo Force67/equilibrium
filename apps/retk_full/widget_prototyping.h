@@ -296,3 +296,7 @@ void DrawListModel(SkCanvas* c) {
                 {bounds.fRight, (bounds.y() + row_height * i)}, lcol);
   }
 }
+
+// NOTE ON dropShadow
+// https://docs.microsoft.com/en-us/dotnet/api/skiasharp.skimagefilter.createdropshadow?view=skiasharp-2.80.2
+// https://material.io/components/chips#usage

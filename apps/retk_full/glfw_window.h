@@ -3,11 +3,18 @@
 // Example window presentation based on GLFW
 #pragma once
 
+#include <assert.h>
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
 #include <core/SkSurface.h>
 #include <ui/skia/skia_context.h>
+
+struct GlfwContextHolder {
+  // TODO: consider reimplementing the allocator
+  inline GlfwContextHolder() { assert(glfwInit()); }
+  inline ~GlfwContextHolder() { glfwTerminate(); }
+};
 
 // This class is named 'WindowGlfw' so we can avoid collisions with
 // glfw's window struct name
@@ -23,18 +30,15 @@ class WindowGlfw {
     glfwWaitEvents();
   }
 
-  SkCanvas* canvas() { return skia_->canvas();
-  }
+  SkCanvas* canvas() { return skia_->canvas(); }
 
   void QuerySize(int& width, int& height) {
     glfwGetFramebufferSize(window_, &width, &height);
   }
 
-  GLFWwindow* HACK_GETGlfwWindow() { return window_;
-  }
+  GLFWwindow* HACK_GETGlfwWindow() { return window_; }
 
-  ui::SkiaContext* context() { return skia_.get();
-  }
+  ui::SkiaContext* context() { return skia_.get(); }
 
  private:
   static void BindContext();
@@ -47,6 +51,7 @@ class WindowGlfw {
   static void OnWindowScale(GLFWwindow*, float, float);
 
  private:
+  GlfwContextHolder context_owner_;
   GLFWwindow* window_ = nullptr;
   std::unique_ptr<ui::SkiaContext> skia_;
 };

@@ -6,7 +6,7 @@
 // in the LICENSE file.
 #pragma once
 
-namespace uikit {
+namespace ui {
 
 enum class Key {
   kNONE,  // corresponds to android's UNKNOWN
