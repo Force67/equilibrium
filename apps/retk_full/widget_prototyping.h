@@ -7,6 +7,8 @@
 #include <core/SkGraphics.h>
 #include <core/SkSurface.h>
 #include <core/SkColorSpace.h>
+#include <effects/SkImageFilters.h>
+
 #include <gpu/GrDirectContext.h>
 #include <gpu/GrBackendSurface.h>
 #include <effects/SkGradientShader.h>
@@ -122,17 +124,31 @@ void DrawGroupBox(SkCanvas* c, const SkPaint& p, SkFont& font) {
   }
 }
 
+void DrawDropShadow(SkCanvas* c) {
+  SkIRect cropRect = SkIRect::MakeXYWH(0.f, 30.f, 1000.f, 5.f);
+  sk_sp<SkImageFilter> input(SkImageFilters::Offset(0, 0, nullptr, &cropRect));
+
+    // draw dropshadow
+  SkImageFilters::DropShadow(SK_Scalar1, SK_Scalar1, SK_Scalar1, SK_Scalar1,
+                             SK_ColorGREEN, input, cropRect);
+}
+
 void DrawMenubar(SkCanvas* c, SkFont& font) {
+    // simple items
   const char* g_textRows[] = {"File",    "Edit",    "Jump",
                               "Search",  "View",    "Debugger",
                               "Options", "Windows", "Help"};
   const size_t count = sizeof(g_textRows) / sizeof(const char*);
-
+  // geometry
   const auto bounds = SkRect::MakeXYWH(0, 0, 1000.f, 30.f);
 
+  // draw the background
   SkPaint p;
-  p.setColor(SK_ColorMAGENTA);
+  p.setColor(SK_ColorLTGRAY);
   c->drawRect(bounds, p);
+  // add a dropshadow according to the google styleguide
+  // https://github.com/google/skia/blob/main/tests/ImageFilterTest.cpp
+  DrawDropShadow(c);
 
   SkPaint lcol;
   lcol.setColor(SK_ColorBLACK);
@@ -176,7 +192,7 @@ void DrawStatusBar(SkCanvas* c, SkFont& font) {
       0, c->getLocalClipBounds().height() - 30.f, 1000.f, 30.f);
 
   SkPaint p;
-  p.setColor(SK_ColorMAGENTA);
+  p.setColor(SK_ColorLTGRAY);
   c->drawRect(bounds, p);
 
   SkPaint lcol;
@@ -295,6 +311,15 @@ void DrawListModel(SkCanvas* c) {
     c->drawLine({bounds.x(), bounds.y() + row_height * i},
                 {bounds.fRight, (bounds.y() + row_height * i)}, lcol);
   }
+}
+
+void DrawDialogHeader(SkCanvas* c) {
+  SkPaint p;
+  p.setColor(SK_ColorWHITE);
+  auto bounds = SkRect::MakeXYWH(300.f, 300.f, 50.f, 50.f);
+  c->drawRoundRect(bounds, 10.f, 10.f, p);
+
+
 }
 
 // NOTE ON dropShadow

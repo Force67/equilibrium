@@ -51,7 +51,7 @@ int Application::Exec() {
     #if 1
     // draw background canvas..
     SkPaint paint;
-    paint.setColor(SK_ColorLTGRAY);
+    paint.setColor(SK_ColorGREEN);
     canvas->drawPaint(paint);
 
     SkFont font;
