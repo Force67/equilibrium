@@ -34,8 +34,6 @@ void RenderImGuiThisFrame(SkCanvas* c) {
   ImGui::SliderInt("Scale Pos Y", &g_THE_POS_Y, 0,
                    c->getLocalClipBounds().height());
   ImGui::End();
-
-  ImGui::Render();
 }
 
 void DrawButton(SkCanvas* c, const char* text, SkFont& font) {

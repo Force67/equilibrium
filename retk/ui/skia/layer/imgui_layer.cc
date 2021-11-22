@@ -1,12 +1,15 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 // ImGui render layer implementation on top of SKIA.
+// Largely based on
+// https://github.com/google/skia/blob/main/tools/viewer/ImGuiLayer.cpp
 
 #include <imgui.h>
 #include <base/logging.h>
 #include <core/SkCanvas.h>
 #include <core/SkGraphics.h>
 #include <core/SkVertices.h>
+#include <core/SkImage.h>
 #include <core/SkSwizzle.h>
 
 #include <private/SkTDArray.h>
@@ -15,6 +18,28 @@
 #include "ui/skia/layer/imgui_layer.h"
 
 namespace ui {
+
+namespace {
+static void BuildImFontAtlas(ImFontAtlas& atlas, SkPaint& fontPaint) {
+  int w, h;
+  unsigned char* pixels;
+  atlas.GetTexDataAsAlpha8(&pixels, &w, &h);
+  SkImageInfo info = SkImageInfo::MakeA8(w, h);
+  SkPixmap pmap(info, pixels, info.minRowBytes());
+  SkMatrix localMatrix = SkMatrix::Scale(1.0f / w, 1.0f / h);
+  auto fontImage = SkImage::MakeFromRaster(pmap, nullptr, nullptr);
+  auto fontShader = fontImage->makeShader(
+      SkSamplingOptions(SkFilterMode::kLinear), localMatrix);
+  fontPaint.setShader(fontShader);
+  fontPaint.setColor(SK_ColorWHITE);
+  atlas.TexID = &fontPaint;
+}
+}  // namespace
+
+ImguiSkiaLayer::ImguiSkiaLayer(DearImGuiContext& ctx) : im_data_(ctx) {
+  auto* fonts = ImGui::GetIO().Fonts;
+  BuildImFontAtlas(*fonts, font_paint_);
+}
 
 void ImguiSkiaLayer::Draw(SkCanvas* canvas) {
   ImGui::Render();

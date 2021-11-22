@@ -4,6 +4,9 @@
 
 #include "glfw_window.h"
 
+#include <ui/imgui/imgui_context.h>
+#include <ui/skia/layer/imgui_layer.h>
+
 class Application {
  public:
   Application();
@@ -12,5 +15,7 @@ class Application {
   int Exec();
 
  private:
+  ui::DearImGuiContext im_ctx_;
+  ui::ImguiSkiaLayer layer_;
   WindowGlfw main_window_;
 };

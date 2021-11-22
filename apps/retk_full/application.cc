@@ -8,11 +8,14 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
-constexpr int kDefaultWindowWidth = 1280;
-constexpr int kDefaultWindowHeight = 720;
+#include <ui/skia/layer/imgui_layer.h>
+
+constexpr int kDefaultSuggestedWindowWidth = 1280;
+constexpr int kDefaultSuggestedWindowHeight = 720;
 
 Application::Application()
-    : main_window_(kDefaultWindowWidth, kDefaultWindowHeight) {}
+    : main_window_(kDefaultSuggestedWindowWidth, kDefaultSuggestedWindowHeight),
+      layer_(im_ctx_) {}
 
 Application::~Application() {}
 
@@ -38,10 +41,11 @@ int Application::Exec() {
     // https:  // en.wikipedia.org/wiki/Device-independent_pixel
 
     // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+    // we should have some pre-paint event
     ImGui::NewFrame();
 
+    #if 1
     // draw background canvas..
     SkPaint paint;
     paint.setColor(SK_ColorLTGRAY);
@@ -66,16 +70,19 @@ int Application::Exec() {
     DrawMenubar(canvas, font);
     DrawStatusBar(canvas, font);
     DrawPlainTextBox(canvas, font);
+    #endif
 
     // finalize context
-    main_window_.context()->Flush();
     RenderImGuiThisFrame(canvas);
 
     // present the frame
     int display_w, display_h;
     main_window_.QuerySize(display_w, display_h);
     glViewport(0, 0, display_w, display_h);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    layer_.Draw(canvas);
+    main_window_.context()->Flush();
+
+    // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(main_window_.HACK_GETGlfwWindow());
   }
 

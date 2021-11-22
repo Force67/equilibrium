@@ -3,12 +3,22 @@
 // ImGui render layer implementation on top of SKIA.
 #pragma once
 
+#include <core/SkPaint.h>
+
 class SkCanvas;
 
 namespace ui {
 
+class DearImGuiContext;
+
 class ImguiSkiaLayer final {
  public:
-  static void Draw(SkCanvas* canvas);
+  explicit ImguiSkiaLayer(DearImGuiContext&);
+
+  void Draw(SkCanvas* canvas);
+
+ private:
+  DearImGuiContext& im_data_;
+  SkPaint font_paint_;
 };
 }  // namespace ui

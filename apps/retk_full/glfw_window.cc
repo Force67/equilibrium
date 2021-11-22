@@ -6,7 +6,6 @@
 #include <GL/glew.h>
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
 
 #include <ui/skia/skia_context.h>
 #include <ui/skia/skia_context_factory.h>
@@ -29,9 +28,7 @@ WindowGlfw::WindowGlfw(int width, int height) {
 }
 
 WindowGlfw::~WindowGlfw() {
-  ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
 
   if (window_)
     glfwDestroyWindow(window_);
@@ -74,19 +71,7 @@ void WindowGlfw::InternalCreateWindow(int width, int height) {
   skia_->SetDpiAware(glfwGetWin32Window(window_));
   tracked_monitor_handle =
       ui::GetCurrentMonitorHandle(glfwGetWin32Window(window_));
-
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  (void)io;
-  ImGui::StyleColorsDark();
-
-  const char* glsl_version = "#version 130";
-
-  // Setup Platform/Renderer back ends
-  ImGui_ImplGlfw_InitForOpenGL(window_, true);
-  ImGui_ImplOpenGL3_Init(glsl_version);
+  ImGui_ImplGlfw_InitForOther(window_, true);
 }
 
 void WindowGlfw::BindContext() {

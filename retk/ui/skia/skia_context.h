@@ -32,7 +32,8 @@ class SkiaContext {
   SkCanvas* canvas() { return surface_->getCanvas(); }
   SkPoint dpi_scale() { return dpi_scale_; }
 
-  inline void Flush() { surface_->flush(); }
+  // changed flush() to flushAndSubmit()
+  inline void Flush() { surface_->flushAndSubmit(); }
 
   void RestoreScaling();
 
