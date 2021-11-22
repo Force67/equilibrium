@@ -20,21 +20,12 @@ HMONITOR tracked_monitor_handle = nullptr;
 void error_callback(int error, const char* description) {
   fputs(description, stderr);
 }
-
-void key_callback(GLFWwindow* window,
-                  int key,
-                  int scancode,
-                  int action,
-                  int mods) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, GL_TRUE);
-}
 }  // namespace
 
 WindowGlfw::WindowGlfw(int width, int height) {
   glfwSetErrorCallback(error_callback);
   BindContext();
-  CreateWindowWindowsIsStupid();
+  InternalCreateWindow(width, height);
 }
 
 WindowGlfw::~WindowGlfw() {
@@ -46,26 +37,23 @@ WindowGlfw::~WindowGlfw() {
     glfwDestroyWindow(window_);
 }
 
-void WindowGlfw::CreateWindowWindowsIsStupid() {
+void WindowGlfw::InternalCreateWindow(int width, int height) {
   ui::ContextCreateInfo create_info;
-  create_info.width = 1280;
-  create_info.height = 720;
+  create_info.width = width;
+  create_info.height = height;
 
   window_ = glfwCreateWindow(create_info.width, create_info.height, "ReTK",
                              NULL, NULL);
-  if (!window_) {
-    glfwTerminate();
-    exit(EXIT_FAILURE);
-  }
+  assert(window_);
 
   glfwMakeContextCurrent(window_);
   glfwSetWindowUserPointer(window_, this);
   //(uncomment to enable correct color spaces)
   // glEnable(GL_FRAMEBUFFER_SRGB);
-  bool err = glewInit() != GLEW_OK;
+  assert(glewInit() == GLEW_OK);
 
   glfwSwapInterval(1);
-  glfwSetKeyCallback(window_, key_callback);
+  glfwSetKeyCallback(window_, OnKeyInput);
   glfwSetWindowPosCallback(window_, OnMove);
   glfwSetWindowSizeCallback(window_, OnResize);
   glfwSetWindowContentScaleCallback(window_, OnScale);
@@ -143,4 +131,9 @@ void WindowGlfw::HandleResize(int x, int y) {
 
 void WindowGlfw::HandleScale(float, float) {
   HWND hwnd = glfwGetWin32Window(window_);
+}
+
+void WindowGlfw::HandleKeyInput(int key, int scancode, int action, int mods) {
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    glfwSetWindowShouldClose(window_, GL_TRUE);
 }

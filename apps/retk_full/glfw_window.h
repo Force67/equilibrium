@@ -54,11 +54,12 @@ class WindowGlfw {
 
  private:
   static void BindContext();
-  void CreateWindowWindowsIsStupid();
+  void InternalCreateWindow(int w, int h);
 
   IMPL_GLFW_FORWARDER(Move, int(x), int(y))
   IMPL_GLFW_FORWARDER(Resize, int(w), int(h))
   IMPL_GLFW_FORWARDER(Scale, float(xscale), float(yscale))
+  IMPL_GLFW_FORWARDER(KeyInput, int(key), int(scancode), int(action), int(mods))
 
  private:
   GlfwContextHolder context_owner_;
