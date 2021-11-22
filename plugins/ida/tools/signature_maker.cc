@@ -91,6 +91,8 @@ bool CheckAddressTypeAllowed(const ea_t ea) {
 }
 
 bool ValidateWildcardCount(const std::string& pattern, bool with_spacing) {
+  return true;
+
   size_t count = 0;
   size_t i = with_spacing ? 3 : 1;
   size_t offset = with_spacing ? 2 : 1;
@@ -453,8 +455,9 @@ bool SignatureMaker::CreateAndPrintSignature(const ea_t ea) {
   const char* type_name = is_data ? "data" : "code";
 
   if (res == Result::kSuccess) {
-    if (offset > 0) {
-      LOG_INFO("{} signature: {:x} = {} + {}", type_name, ea, pattern,
+    // offsets may also be negative
+    if (offset != 0) {
+      LOG_INFO("{} signature: {:x} = {}@{}", type_name, ea, pattern,
                offset);
     } else {
       LOG_INFO("{} signature: {:x} = {}", type_name, ea, pattern);

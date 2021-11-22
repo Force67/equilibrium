@@ -79,7 +79,8 @@ class ScriptBinding final : public BindingBase {
         // create the type index list by converting each argument
         //  into its numeric representation, note that we need to store
         //  a null terminator for book-keeping at the end.
-        args_{(ToValueTypeIndex<Ts>(), ...), 0} {
+        // That actually doesnt work...
+        args_{(ToValueTypeIndex<Ts>())..., 0} {
     functor_ = std::move(function);
   }
 

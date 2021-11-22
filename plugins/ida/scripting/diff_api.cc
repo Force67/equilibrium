@@ -5,8 +5,13 @@
 #include "script_binding.h"
 #include "tools/signature_maker.h"
 
+#include <bytes.hpp>
+
 namespace {
-constexpr char kCSVExportName[] = R"(C:\Users\vince\Downloads\out.csv)";
+constexpr char kCSVExportName[] =
+    R"(C:\Users\vince\Documents\Development\Tilted\Reverse\diffing\out.csv)";
+constexpr char kFinalCSVExportName[] = 
+R"(C:\Users\vince\Documents\Development\Tilted\Reverse\diffing\mapping.csv)";
 
 // Note that we have to take int64_t for conversion issues...
 // This needs to be done sadly.
@@ -33,27 +38,53 @@ ScriptBinding<1, bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
   }
 
   if (FILE* fptr = qfopen(kCSVExportName, "a")) {
-    qfprintf(fptr, "HACK_ImportSignature(0x%llx,%s,%d);\n", ea, pattern.c_str(), ofs);
+    qfprintf(fptr, "HACK_ImportSignature(0x%llx,\"%s\",%d);\n", ea, pattern.c_str(),
+             ofs);
     qfclose(fptr);
   }
 
   return true;
 });
 
-ScriptBinding<2, bool, int64_t, const char*, int> s3("HACK_ImportSignature", [](int64_t in, const char*, int) {
-  const ea_t ea = static_cast<ea_t>(in);
+ScriptBinding<2, bool, int64_t, const char*, int64_t> s3(
+    "HACK_ImportSignature",
+    [](int64_t in, const char* pattern, int64_t offset) {
+      const ea_t target_ea = static_cast<ea_t>(in);
 
-  #if 0
-  if (bin_search2(seg->start_ea, address, bytes_.begin(), masks_.begin(),
-                  bytes_.size(),
-                  seg->start_ea <= address ? BIN_SEARCH_FORWARD
-                                           : BIN_SEARCH_BACKWARD) == BADADDR) {
-  
-  }
-  #endif
+      if (strcmp(pattern, "UNSET") == 0) {
+        if (FILE* fptr = qfopen(kFinalCSVExportName, "a")) {
+          qfprintf(fptr, "0x%llx,0x%llx\n", target_ea, "UNSET");
+          qfclose(fptr);
 
+          return true;
+        }
 
+        return false;
+      }
 
-  return true;
-});
+      for (const segment_t* seg = get_first_seg(); seg != nullptr;
+           seg = get_next_seg(seg->start_ea)) {
+        // patterns may only exist within code segments.
+        if (seg->type != SEG_CODE)
+          continue;
+
+        int mode = seg->start_ea <= target_ea ? BIN_SEARCH_FORWARD
+                                              : BIN_SEARCH_BACKWARD;
+
+        const ea_t needle = bin_search2(seg->start_ea, target_ea,
+                                        reinterpret_cast<const uchar*>(pattern),
+                                        nullptr, strlen(pattern), mode);
+
+        if (needle != BADADDR) {
+          if (FILE* fptr = qfopen(kFinalCSVExportName, "a")) {
+            qfprintf(fptr, "0x%llx,0x%llx\n", target_ea, needle);
+            qfclose(fptr);
+          }
+
+          return true;
+        }
+      }
+
+      return false;
+    });
 }  // namespace
