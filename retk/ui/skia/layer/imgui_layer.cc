@@ -4,7 +4,7 @@
 // Largely based on
 // https://github.com/google/skia/blob/main/tools/viewer/ImGuiLayer.cpp
 
-#include <base/logging.h>
+#include <base/check.h>
 #include <core/SkCanvas.h>
 #include <core/SkGraphics.h>
 #include <core/SkVertices.h>

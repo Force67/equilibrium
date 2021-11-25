@@ -1,7 +1,7 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <base/logging.h>
+#include <base/check.h>
 #include "grid_layout.h"
 
 namespace ui {
@@ -13,7 +13,7 @@ GridLayout::GridLayout() {
 void GridLayout::Build() {
   const size_t CS = column_count();
   const size_t RS = row_count();
-  TK_DCHECK(CS);
+  TK_BUGCHECK(CS);
 
   // calculate sizes
   if (CS) {

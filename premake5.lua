@@ -66,6 +66,7 @@ workspace("RETK")
     include("./base")
     include("./retk")
     include("./apps")
+    include("./tools")
 
     group("Plugins")
     include("plugins/ida")

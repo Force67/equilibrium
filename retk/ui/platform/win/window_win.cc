@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Windows platform window implementation.
 
-#include <base/logging.h>
+#include <base/check.h>
 #include "window_win.h"
 
 namespace ui {
@@ -42,7 +42,7 @@ void WindowWin::Init(HWND parent, const SkRect& bounds) {
 
   if (parent == HWND_DESKTOP) {
     // Only non-child windows can have HWND_DESKTOP (0) as their parent.
-    TK_DCHECK((window_style_ & WS_CHILD) == 0);
+    TK_BUGCHECK((window_style_ & WS_CHILD) == 0);
     parent = GetWindowToParentTo(false);
   } else if (parent == ::GetDesktopWindow()) {
     // Any type of window can have the "Desktop Window" as their parent.

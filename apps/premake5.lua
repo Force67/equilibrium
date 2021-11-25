@@ -16,7 +16,6 @@ project("App_Main")
         "glew",
         "glfw",
         "imgui",
-
         -- system
         "ui",
     })
@@ -36,6 +35,7 @@ project("App_Main")
     })
     includedirs({
         ".",
+        "../",
         "../retk",
     })
     include_skia()

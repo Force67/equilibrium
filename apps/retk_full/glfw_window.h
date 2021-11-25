@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
-
+#include <base/compiler.h>
 #include <core/SkSurface.h>
 #include <ui/skia/skia_context.h>
 
@@ -20,7 +20,7 @@
     self->Handle##name(__VA_ARGS__);                                     \
   }                                                                      \
                                                                          \
-  void Handle##name(__VA_ARGS__);
+  STRONG_INLINE void Handle##name(__VA_ARGS__);
 
 struct GlfwContextHolder {
   // TODO: consider reimplementing the allocator

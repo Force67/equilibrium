@@ -11,6 +11,7 @@ project("base")
     links({
         "fmtlib"
     })
+    defines("BASE_IMPLEMENTATION")
     includedirs({
         ".",
         "../",

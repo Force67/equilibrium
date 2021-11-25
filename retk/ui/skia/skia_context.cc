@@ -12,7 +12,7 @@
 #include <gpu/GrBackendSurface.h>
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
-#include <base/logging.h>
+#include <base/check.h>
 
 #include "display/dpi.h"
 #include "skia/skia_context.h"
