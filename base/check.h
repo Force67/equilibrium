@@ -19,14 +19,14 @@
                                                                 \
   } while (0)
 
-#define TK_BUGCHECK(expression)                         \
-  do {                                                  \
-    if (!(expression)) {                                \
-      ::base::PrintLogMessage(::base::LogLevel::kError, \
-                              "TKBugcheck FAILED at __FUNCTION__ \
-                               ->  " #expression);      \
-    }                                                   \
-                                                        \
+#define TK_BUGCHECK(expression)                                    \
+  do {                                                             \
+    if (!(expression)) {                                           \
+      ::base::PrintLogMessage(                                     \
+          ::base::LogLevel::kError,                                \
+          "TKBugcheck FAILED at " __FUNCTION__ "-> " #expression); \
+    }                                                              \
+                                                                   \
   } while (0)
 
 // (Unreachable)

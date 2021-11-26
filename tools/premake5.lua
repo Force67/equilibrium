@@ -7,6 +7,7 @@ project("Hits")
     include_meta()
     files({
         "hits/**.cc",
+        "hits/**.h"
     })
     links({
         "base",

@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-namespace base {
+namespace arch_types {
 // These reside in the base namespace to avoid conflict, but you are encouraged
 // to use these with using namespace;
 
@@ -20,4 +20,4 @@ using i32 = int32_t;
 using i64 = int64_t;
 
 using byte = u8;
-}  // namespace base
+}  // namespace arch_types

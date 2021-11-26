@@ -2,34 +2,75 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Utility for matching 'hits' of patterns.
 
-#include <base/io/file/file.h>
+#include <base/arch.h>
+#include <base/xstring.h>
+using namespace arch_types;
 
-class Executable {
- public:
-  void Load(const base::FilePath& path) {
-    base::File file(path, false);
-    if (!file.IsValid()) {
-      return;
-    }
+#include "nt_executable_scanner.h"
 
-    size_t length = file.Seek(base::File::Whence::FROM_END, 0);
-    ptr_ = std::make_unique<char[]>(length);
-    file.Seek(base::File::Whence::FROM_BEGIN, 0);
-    file.Read(0, ptr_.get(), length);
+struct PatternEntry {
+  u64 former;
+  i32 offset;
+  base::XString<char> pattern;
+};
+
+bool ParseCSVList(const base::FilePath& path, std::vector<PatternEntry>& out) {
+  base::File file(path, false);
+  if (!file.IsValid()) {
+    return false;
   }
 
-  private:
-  std::unique_ptr<char[]> ptr_;
-};
+  base::XString<char> contents;
+  auto length = file.Seek(base::File::Whence::FROM_END, 0);
+  contents.resize(length);
+  file.Seek(base::File::Whence::FROM_BEGIN, 0);
+  file.Read(0, contents.data(), length);
+
+  size_t last_pos = 0;
+  size_t depth = 0;
+
+  // world's shittiest CSV parser
+  PatternEntry& e = out.emplace_back();
+  for (size_t i = 0; i < contents.length(); i++) {
+    const char c = contents[i];
+    if (c == ',') {
+      if (depth == 0)
+        e.former = _atoi64(&contents[i - last_pos]);
+      if (depth == 1)
+        e.pattern = &contents[i - last_pos];
+      if (depth == 2)
+        e.offset = std::atoi(&contents[i - last_pos]);
+
+      last_pos = i;
+      depth++;
+    }
+    if (c == '\n') {
+      last_pos = 0;
+      depth = 0;
+
+      e = out.emplace_back();
+    }
+  }
+
+  return true;
+}
 
 int main(int argc, char** argv) {
   constexpr char kFileName[] =
       R"(C:\Users\vince\Documents\Development\Tilted\Reverse\diffing\test.txt)";
+  const base::FilePath csv_path(kFileName);
 
-  const base::FilePath p(kFileName);
+  std::vector<PatternEntry> entries;
+  TK_BUGCHECK(ParseCSVList(csv_path, entries));
 
-  Executable ex;
-  ex.Load(p);
+  constexpr char kExeName[] = "";
+  const base::FilePath exe_path(kExeName);
+  NtExecutableScanner scanner(exe_path);
+
+  for (const PatternEntry& e : entries) {
+    auto r = scanner.Scan(e.pattern);
+    __debugbreak();
+  }
 
   return 0;
 }
