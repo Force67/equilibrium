@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "peer_base.h"
-#include <base/logging.h>
+#include <base/check.h>
 
 namespace network {
 using namespace util;
@@ -19,7 +19,7 @@ void PeerBase::Touch() {
 }
 
 void PeerBase::Kill() {
-  TK_DCHECK(immortal);
+  TK_BUGCHECK(immortal);
 
   last_seen = kPeerTimeout + 1s;
 }

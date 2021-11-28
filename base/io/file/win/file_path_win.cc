@@ -10,16 +10,7 @@ FilePath::FilePath(const char* type) {
   path_buf_ = base::UTF8ToWide(type);
 }
 
-FilePath& FilePath::operator/(const char* rhs) {
-  // TODO: this requires tuning
-  auto native = kSeperator + base::UTF8ToWide(rhs);
-  path_buf_ += native;
-  return *this;
-}
-
-FilePath& FilePath::operator/(const wchar_t* rhs) {
-  auto native = kSeperator + BufferType(rhs);
-  path_buf_ += native;
-  return *this;
+FilePath::FilePath(const wchar_t* type) {
+  path_buf_ = type;
 }
 }  // namespace base

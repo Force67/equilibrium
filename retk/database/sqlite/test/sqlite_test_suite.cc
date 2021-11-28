@@ -10,7 +10,9 @@ namespace database {
 void SqliteTestSuite::SetUp() {
   ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
 
-  const std::string path = db_path().string();
+  //const std::string path = db_path().c_str();
+  __debugbreak();
+  std::string path = "";
   ASSERT_TRUE(db_.open(path));
 }
 
@@ -18,8 +20,8 @@ void SqliteTestSuite::TearDown() {
   db_.close();
 }
 
-base::fs::path SqliteTestSuite::db_path() {
-  return temp_dir_.Path() / "SqliteTestSuite.db";
+base::Path SqliteTestSuite::db_path() {
+  return temp_dir_.path() / "SqliteTestSuite.db";
 }
 
 }  // namespace database

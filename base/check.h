@@ -5,7 +5,7 @@
 
 #include "base/logging.h"
 
-#define TK_UNREACHABLE(expr) (void)expr
+#define TK_UNUSED(expr) (void)expr
 
 // Google style legacy compatability for older code;
 // prefer TK_BUGCHECK.

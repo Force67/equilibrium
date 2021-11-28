@@ -1,7 +1,7 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <base/logging.h>
+#include <base/check.h>
 #include <network/tksp/tksp_protocol.h>
 
 namespace network::tksp {

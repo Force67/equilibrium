@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "user_info.h"
-#include "base/string_util.h"
+#include "base/string/code_convert.h"
 
 #if defined(OS_WIN)
 #include <Windows.h>
@@ -12,13 +12,8 @@ namespace sync::utils {
 
 #if defined(OS_WIN)
 std::string GetSysUserName() {
-  wchar_t username[260]{};
-#ifdef _WIN32
-  DWORD username_len = 260;
-  GetUserNameW(username, &username_len);
-#endif
 
-  return base::utf16_to_utf8(username);
+  return {};
 }
 
 std::string GetUniqueUserId() {
@@ -26,7 +21,8 @@ std::string GetUniqueUserId() {
   if (!GetCurrentHwProfileW(&hwProfileInfo))
     return {};
 
-  return base::utf16_to_utf8(hwProfileInfo.szHwProfileGuid);
+  return {};
+  //return base::utf16_to_utf8(hwProfileInfo.szHwProfileGuid);
 }
 #endif
 }

@@ -10,7 +10,7 @@
 #include <rapidjson/istreamwrapper.h>
 
 #include <base/hash/fnv1a.h>
-#include <base/logging.h>
+#include <base/check.h>
 
 // USI mangle
 
@@ -72,14 +72,14 @@ void ReadJSONEntry(Document& doc,
 constexpr int kTableVersion = 2;
 }  // namespace
 
-SymbolDatabase::SymbolDatabase(const char* path) : path_(path){};
+SymbolDatabase::SymbolDatabase(const base::Path& path) : path_(path){};
 SymbolDatabase::~SymbolDatabase(){};
 
 void SymbolDatabase::AddSymbol(const Record& record) {
   auto it =
       std::find_if(records_.begin(), records_.end(),
                    [&](const Record& r) { return r.hash == record.hash; });
-  TK_DCHECK(it == records_.end());
+  TK_BUGCHECK(it == records_.end());
   records_.push_back(record);
 }
 
@@ -87,9 +87,9 @@ void SymbolDatabase::AddSymbol(const Record& record) {
 //https://github.com/llvm/llvm-project/blob/d480f968ad8b56d3ee4a6b6df5532d485b0ad01e/clang/lib/Tooling/CompilationDatabase.cpp
 
 bool SymbolDatabase::LoadSymbols() {
-  TK_DCHECK(path_);
+  TK_BUGCHECK(!path_.empty());
 
-  std::ifstream ifs(path_);
+  std::ifstream ifs(path_.c_str());
   if (!ifs.good())
     return false;
   IStreamWrapper isw(ifs);
@@ -113,7 +113,7 @@ bool SymbolDatabase::LoadSymbols() {
 }
 
 bool SymbolDatabase::StoreSymbols() {
-  TK_DCHECK(path_);
+  TK_BUGCHECK(!path_.empty());
 
   Document doc;
   doc.SetObject();
@@ -126,7 +126,7 @@ bool SymbolDatabase::StoreSymbols() {
   doc.AddMember("override-list", list, doc.GetAllocator());
 
   // I know this sucks, at it needs a proper fix in the future
-  std::ofstream ofs(path_);
+  std::ofstream ofs(path_.c_str());
   if (!ofs.good())
     return false;
 

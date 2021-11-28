@@ -9,12 +9,15 @@ using namespace arch_types;
 #include "nt_executable_scanner.h"
 
 struct PatternEntry {
-  u64 former;
-  i32 offset;
+  u64 former = 0;
+  u64 latter = 0;
+  i32 offset = 0;
   base::XString<char> pattern;
 };
 
-bool ParseCSVList(const base::FilePath& path, std::vector<PatternEntry>& out) {
+using PatternBucket = std::vector<PatternEntry>;
+
+bool ParseCSVList(const base::FilePath& path, PatternBucket& out) {
   base::File file(path, false);
   if (!file.IsValid()) {
     return false;
@@ -53,6 +56,12 @@ bool ParseCSVList(const base::FilePath& path, std::vector<PatternEntry>& out) {
   }
 
   return true;
+}
+
+void WriteNewMappingCSV(const PatternBucket& bucket) {
+  for (const auto& it : bucket) {
+
+  }
 }
 
 int main(int argc, char** argv) {

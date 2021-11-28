@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#if 0
 #include <utils/ial/event.h>
 #include <tilted_reflection/symbol_database.h>
 
@@ -17,3 +18,4 @@ class ReflectionProvider final : public ial::UiEventHandler {
  private:
   tilted_reflection::SymbolDatabase database_;
 };
+#endif

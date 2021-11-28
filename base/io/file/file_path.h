@@ -23,16 +23,34 @@ class BASE_EXPORT FilePath {
   using BufferType = base::XString<CharType>;
 
   FilePath() = default;
-  explicit FilePath(const char* type);
+  // from raw c string
+  FilePath(const char* path);
+  FilePath(const wchar_t* path);
+  // from x string
+  FilePath(const BufferType& path);
+  // from other.
+  FilePath(const FilePath& other);
 
-  FilePath& operator/(const char* rhs);
-  FilePath& operator/(const wchar_t* rhs);
+  // this surely can be improved
+  [[nodiscard]] friend FilePath operator/(const FilePath& lhs,
+                                          const FilePath& rhs) {
+    return FilePath(lhs.path_buf_ + PATH_SEP_MACRO + rhs.path_buf_);
+  }
 
+  // is the path valid
+  operator bool() { return !empty(); }
+
+  [[nodiscard]] FilePath DirName() const;
   [[nodiscard]] FilePath BaseName() const;
   [[nodiscard]] FilePath Extension() const;
 
+  // cxx adapters
+  inline bool empty() const { return path_buf_.empty(); }
   const CharType* c_str() const { return path_buf_.c_str(); }
+
  private:
   BufferType path_buf_;
 };
+
+using Path = FilePath;
 }  // namespace base

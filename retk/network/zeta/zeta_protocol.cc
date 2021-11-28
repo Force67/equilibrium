@@ -1,7 +1,7 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <base/logging.h>
+#include <base/check.h>
 #include <network/zeta/zeta_protocol.h>
 
 namespace network {

@@ -40,7 +40,7 @@ filter("configurations:Shipping")
     })
 
 filter("language:C or C++")
-    vectorextensions("SSE4.1")
+    vectorextensions("SSE4.2")
     staticruntime("on")
 
 filter("language:C++")

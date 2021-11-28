@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 
+#include "base/io/file/file_path.h"
+
 namespace tilted_reflection {
 
 // TODO for the future: refactor this in a SymbolDatabaseBase class
@@ -14,7 +16,7 @@ namespace tilted_reflection {
 // implementation, as the binary db will just keep a db handle instead.
 class SymbolDatabase {
  public:
-  SymbolDatabase(const char* path);
+  SymbolDatabase(const base::Path&);
   ~SymbolDatabase();
 
   using HashType = uint64_t;
@@ -39,7 +41,7 @@ class SymbolDatabase {
   // char buf[64] bytes big.
   // we should denote with length
  private:
-  const char* path_;
+  const base::Path path_;
   std::vector<Record> records_;
 };
 }  // namespace tilted_reflection

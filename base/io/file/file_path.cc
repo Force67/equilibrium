@@ -6,6 +6,18 @@
 
 namespace base {
 
+FilePath::FilePath(const FilePath& other) {
+  path_buf_ = other.path_buf_;
+}
+
+FilePath::FilePath(const BufferType& path) {
+  path_buf_ = path;
+}
+
+FilePath FilePath::DirName() const {
+  return {};
+}
+
 FilePath FilePath::BaseName() const {
   return {};
 }
@@ -13,4 +25,5 @@ FilePath FilePath::BaseName() const {
 FilePath FilePath::Extension() const {
   return {};
 }
+
 }  // namespace base

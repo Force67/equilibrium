@@ -1,12 +1,14 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#if 0
 #include "reflection_provider.h"
 #include "signature_maker.h"
 
 #include <typeinf.hpp>
 #include <base/hash/fnv1a.h>
 #include <utils/ida_plus.h>
+#include <base/check.h>
 
 // qstring.rfind doesn't confirm to standard behavior spec.
 static size_t ReverseMatch(const qstring& str, char needle, size_t pos) {
@@ -77,6 +79,7 @@ void ReflectionProvider::HandleEvent(ui_notification_t code, va_list args) {
     utils::RequestFunctor<void()> functor([&]() { database_.LoadSymbols(); },
                                           MFF_READ);
 
-    TK_UNREACHABLE(functor);
+    TK_UNUSED(functor);
   }
 }
+#endif
