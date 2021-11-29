@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "io/file/file.h"
 #include <utility>
 
 #include "base/compiler.h"
 #include "build/build_config.h"
+#include "base/filesystem/file.h"
 
 #if defined(OS_POSIX) || defined(OS_FUCHSIA)
 #include <errno.h>
@@ -21,7 +21,7 @@ File::Info::~Info() = default;
 File::File() = default;
 
 #if !defined(OS_NACL)
-File::File(const FilePath& path, uint32_t flags) : error_details_(FILE_OK) {
+File::File(const Path& path, uint32_t flags) : error_details_(FILE_OK) {
   Initialize(path, flags);
 }
 #endif
@@ -70,7 +70,7 @@ File& File::operator=(File&& other) {
 }
 
 #if !defined(OS_NACL)
-void File::Initialize(const FilePath& path, uint32_t flags) {
+void File::Initialize(const Path& path, uint32_t flags) {
   path_ = path;
   DoInitialize(path, flags);
 }

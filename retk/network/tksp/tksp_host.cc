@@ -4,8 +4,8 @@
 #include <network/tksp/tksp_host.h>
 #include <base/logging.h>
 #include <base/random.h>
-#include <base/container/object_pool.h>
 
+#if 0
 namespace network::tksp {
 
 struct Host::OutgoingCommand {
@@ -173,3 +173,4 @@ void Host::WriteChunks() {
   }
 }
 }  // namespace network::tksp
+#endif

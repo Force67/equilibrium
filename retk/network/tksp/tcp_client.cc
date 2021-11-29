@@ -1,6 +1,7 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#if 0
 #include "tcp_client.h"
 #include <base/container/object_pool.h>
 #include <base/logging.h>
@@ -88,3 +89,4 @@ PeerBase& Client::MainPeer() {
   return (*peer_list_[0]);
 }
 }  // namespace network::tksp
+#endif

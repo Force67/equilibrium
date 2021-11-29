@@ -4,7 +4,7 @@
 
 #include "base/compiler.h"
 #include "base/check.h"
-#include "base/io/file/file.h"
+#include "base/filesystem/file.h"
 
 #include <io.h>
 #include <stdint.h>
@@ -54,10 +54,10 @@ int File::Read(int64_t offset, char* data, int size) {
   if (size < 0)
     return -1;
 
-  LARGE_INTEGER offset_li;
+  LARGE_INTEGER offset_li{};
   offset_li.QuadPart = offset;
 
-  OVERLAPPED overlapped = {};
+  OVERLAPPED overlapped{};
   overlapped.Offset = offset_li.LowPart;
   overlapped.OffsetHigh = offset_li.HighPart;
 
@@ -93,7 +93,7 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
   return ReadAtCurrentPos(data, size);
 }
 
-int File::Write(int64_t offset, const char* data, int size) {
+int File::Write(int64_t offset, const char* data, size_t size) {
   TK_BUGCHECK(IsValid());
   TK_BUGCHECK(!async_);
 
@@ -105,7 +105,7 @@ int File::Write(int64_t offset, const char* data, int size) {
   overlapped.OffsetHigh = offset_li.HighPart;
 
   DWORD bytes_written;
-  if (::WriteFile(file_.Get(), data, size, &bytes_written, &overlapped))
+  if (::WriteFile(file_.Get(), data, static_cast<DWORD>(size), &bytes_written, &overlapped))
     return bytes_written;
 
   return -1;
@@ -297,7 +297,7 @@ File::Error File::OSErrorToFileError(uint32_t last_error) {
   }
 }
 
-void File::DoInitialize(const FilePath& path, uint32_t flags) {
+void File::DoInitialize(const Path& path, uint32_t flags) {
   TK_BUGCHECK(!IsValid());
 
   DWORD disposition = 0;

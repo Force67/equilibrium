@@ -1,6 +1,7 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#if 0
 #include <network/tksp/tcp_server.h>
 #include <network/util/sock_util.h>
 #include <base/logging.h>
@@ -63,3 +64,4 @@ bool Server::Process() {
 }
 
 }  // namespace network
+#endif

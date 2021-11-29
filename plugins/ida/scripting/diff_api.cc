@@ -5,6 +5,7 @@
 #include "script_binding.h"
 #include "tools/signature_maker.h"
 
+#include <base/check.h>
 #include <bytes.hpp>
 
 namespace {
@@ -22,6 +23,18 @@ ScriptBinding<0, bool, int64_t> s1("CreateAndPrintSignature", [](int64_t ea) {
   return sigMaker.CreateAndPrintSignature(static_cast<ea_t>(ea));
 });
 
+static char EncodeReferenceType(SignatureMaker::ReferenceType type) {
+  switch (type) {
+    case SignatureMaker::ReferenceType::kDirect:
+      return 'D';
+    case SignatureMaker::ReferenceType::kRef3:
+      return 'R';
+  }
+
+  TK_BUGCHECK(false);
+  return 0;
+}
+
 // This is more of a hack at the moment.
 ScriptBinding<1, bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
   const ea_t ea = static_cast<ea_t>(in);
@@ -31,16 +44,17 @@ ScriptBinding<1, bool, int64_t> s2("HACK_CreateAddExportCSV", [](int64_t in) {
   std::string pattern;
   int8_t ofs = 0;
   bool is_data = false;
-  auto result = sigMaker.CreateSignature(ea, pattern, ofs, is_data);
+  SignatureMaker::ReferenceType rt;
+
+  auto result = sigMaker.CreateSignature(ea, pattern, ofs, is_data, rt);
   if (result != SignatureMaker::Result::kSuccess) {
     ofs = 0;
     pattern = "UNSET";
   }
 
   if (FILE* fptr = qfopen(kCSVExportName, "a")) {
-    /* qfprintf(fptr, "HACK_ImportSignature(0x%llx,\"%s\",%d);\n", ea,
-             pattern.c_str(), ofs);*/
-    qfprintf(fptr, "0x%llx,%s,%d\n", ea, pattern.c_str(), ofs);
+    qfprintf(fptr, "0x%llx,%s,%d,%c\n", ea, pattern.c_str(), ofs,
+             EncodeReferenceType(rt));
     qfclose(fptr);
   }
 

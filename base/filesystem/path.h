@@ -7,7 +7,7 @@
 
 namespace base {
 
-class BASE_EXPORT FilePath {
+class BASE_EXPORT Path {
  public:
 #if defined(OS_WIN)
   static constexpr wchar_t kSeperator = L'\\';
@@ -22,27 +22,29 @@ class BASE_EXPORT FilePath {
 
   using BufferType = base::XString<CharType>;
 
-  FilePath() = default;
+  Path() = default;
   // from raw c string
-  FilePath(const char* path);
-  FilePath(const wchar_t* path);
+  Path(const char* path);
+  Path(const wchar_t* path);
   // from x string
-  FilePath(const BufferType& path);
+  Path(const BufferType& path);
   // from other.
-  FilePath(const FilePath& other);
+  Path(const Path& other);
 
   // this surely can be improved
-  [[nodiscard]] friend FilePath operator/(const FilePath& lhs,
-                                          const FilePath& rhs) {
-    return FilePath(lhs.path_buf_ + PATH_SEP_MACRO + rhs.path_buf_);
+  [[nodiscard]] friend Path operator/(const Path& lhs, const Path& rhs) {
+    return Path(lhs.path_buf_ + PATH_SEP_MACRO + rhs.path_buf_);
   }
+
+  // result may be ignored
+  Path& operator/=(const Path& other);
 
   // is the path valid
   operator bool() { return !empty(); }
 
-  [[nodiscard]] FilePath DirName() const;
-  [[nodiscard]] FilePath BaseName() const;
-  [[nodiscard]] FilePath Extension() const;
+  [[nodiscard]] Path DirName() const;
+  [[nodiscard]] Path BaseName() const;
+  [[nodiscard]] Path Extension() const;
 
   // cxx adapters
   inline bool empty() const { return path_buf_.empty(); }
@@ -51,6 +53,4 @@ class BASE_EXPORT FilePath {
  private:
   BufferType path_buf_;
 };
-
-using Path = FilePath;
 }  // namespace base

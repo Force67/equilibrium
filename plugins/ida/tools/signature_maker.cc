@@ -373,7 +373,8 @@ SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
     ea_t target_ea,
     std::string& out_pattern,
     int8_t& out_offset,
-    bool& data_flag) {
+    bool& data_flag,
+    ReferenceType& ref_type) {
 
   // valid code?
   if (!can_decode(target_ea))
@@ -386,6 +387,7 @@ SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
   if ((result = GenerateSignatureInternal_2(target_ea, out_pattern)) ==
       Result::kSuccess) {
     out_offset = 0;
+    ref_type = ReferenceType::kDirect;
     return result;
   }
 
@@ -426,15 +428,19 @@ SignatureMaker::Result SignatureMaker::CreateSignature(
     const ea_t in_ea,
     std::string& out_pattern,
     int8_t& out_offset,
-    bool& is_data) {
+    bool& is_data,
+    ReferenceType& ref_type) {
 
   if (!CheckAddressTypeAllowed(in_ea))
     return Result::kUnsupportedType;
 
   is_data = GetAddressFlags(in_ea) == FF_DATA;
+  ref_type = ReferenceType::kRef3;
+
   const Result result =
       is_data ? UniqueDataSignature(in_ea, out_pattern, out_offset)
-              : UniqueCodeSignature(in_ea, out_pattern, out_offset, is_data);
+              : UniqueCodeSignature(in_ea, out_pattern, out_offset, is_data,
+                                    ref_type);
   if (result == Result::kSuccess)
     return result;
 
@@ -448,19 +454,23 @@ bool SignatureMaker::CreateAndPrintSignature(const ea_t ea) {
   std::string pattern{};
   int8_t offset = 0;
   bool is_data = false;
+  ReferenceType ref_type;
 
   LOG_TRACE("Creating signature for {:x}", ea);
 
-  const Result res = CreateSignature(ea, pattern, offset, is_data);
+  const Result res = CreateSignature(ea, pattern, offset, is_data, ref_type);
   const char* type_name = is_data ? "data" : "code";
+  const char* ref_name =
+      ref_type == ReferenceType::kDirect ? "direct" : "reference";
 
   if (res == Result::kSuccess) {
     // offsets may also be negative
     if (offset != 0) {
-      LOG_INFO("{} signature: {:x} = {}@{}", type_name, ea, pattern,
+      LOG_INFO("{} {} signature: {:x} = {}@{}", type_name, ref_name, ea,
+               pattern,
                offset);
     } else {
-      LOG_INFO("{} signature: {:x} = {}", type_name, ea, pattern);
+      LOG_INFO("{} {} signature: {:x} = {}", type_name, ref_name, ea, pattern);
     }
 
     return true;

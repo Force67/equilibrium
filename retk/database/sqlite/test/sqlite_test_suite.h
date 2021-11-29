@@ -3,9 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <sqlite/sqlite_db.h>
-
-#include <base/io/file/scoped_temp_dir.h>
-#include <base/io/file/file_path.h>
+#include <base/filesystem/scoped_temp_dir.h>
 
 namespace database {
 

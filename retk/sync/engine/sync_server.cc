@@ -2,8 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "sync_server.h"
-#include <base/container/object_pool.h>
-
 #include "protocol/generated/message_root_generated.h"
 
 namespace sync {

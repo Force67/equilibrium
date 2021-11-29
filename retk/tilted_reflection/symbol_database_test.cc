@@ -5,9 +5,7 @@
 #include "symbol_database.h"
 #include <gtest/gtest.h>
 
-#include <base/io/file/scoped_temp_dir.h>
-
-#include <filesystem>
+#include <base/filesystem/scoped_temp_dir.h>
 
 namespace tilted_reflection {
 namespace {
@@ -16,7 +14,7 @@ class SymbolDatabaseTest : public ::testing::Test {
   void SetUp() override { ASSERT_TRUE(temp_dir_.CreateUniqueTempDir()); }
   void TearDown() override {}
 
-  base::FilePath db_path() {
+  base::Path db_path() {
     return temp_dir_.path() / "test.json";
   }
 

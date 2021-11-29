@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 #pragma once
 
-#include "base/io/file/scoped_file.h"
+#include "base/filesystem/scoped_file.h"
 #include "build/build_config.h"
 
 #if defined(OS_WIN)

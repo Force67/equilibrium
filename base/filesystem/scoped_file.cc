@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "io/file/scoped_file.h"
+#include "base/filesystem/scoped_file.h"
 
 #include "base/check.h"
 #include "build/build_config.h"

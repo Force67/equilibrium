@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#if 0
 #include <sockpp/tcp_connector.h>
 #include <base/container/detached_queue.h>
 #include <network/tksp/tksp_host.h>
@@ -35,3 +36,5 @@ class Client : public tksp::Host {
   util::MilliSeconds last_ping_;
 };
 }  // namespace network::tksp
+
+#endif

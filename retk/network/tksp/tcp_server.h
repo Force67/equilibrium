@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#if 0
 #include <base/container/detached_queue.h>
 #include <base/container/object_pool.h>
 #include <sockpp/tcp_acceptor.h>
@@ -47,3 +48,5 @@ class Server : public tksp::Host {
   sockpp::tcp_acceptor socket_;
 };
 }  // namespace network::tksp
+
+#endif

@@ -3,7 +3,7 @@
 #pragma once
 
 #include <network/base/peer_base.h>
-#include <base/container/quic_circular_deque.h>
+#include <base/containers/quic_circular_deque.h>
 
 namespace network {
 

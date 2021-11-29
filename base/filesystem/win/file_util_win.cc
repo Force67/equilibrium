@@ -1,18 +1,18 @@
 // Copyright(C) 2021 Force67<github.com / Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "base/io/file/file_path.h"
-#include "base/io/file/file_util.h"
+#include "base/filesystem/path.h"
+#include "base/filesystem/file_util.h"
 
 #include "base/random.h"
 #include <windows.h>
 
 namespace base {
 
-bool CreateTemporaryDirInDir(const FilePath& base_dir,
-                             const FilePath::BufferType& prefix,
-                             FilePath* new_dir) {
-  FilePath path_to_create;
+bool CreateTemporaryDirInDir(const Path& base_dir,
+                             const Path::BufferType& prefix,
+                             Path* new_dir) {
+  Path path_to_create;
 
   for (int count = 0; count < 50; ++count) {
     const auto proc_id = std::to_wstring(::GetCurrentProcessId());
@@ -28,14 +28,14 @@ bool CreateTemporaryDirInDir(const FilePath& base_dir,
   return false;
 }
 
-bool DirectoryExists(const FilePath& path) {
+bool DirectoryExists(const Path& path) {
   DWORD fileattr = GetFileAttributes(path.c_str());
   if (fileattr != INVALID_FILE_ATTRIBUTES)
     return (fileattr & FILE_ATTRIBUTE_DIRECTORY) != 0;
   return false;
 }
 
-bool CreateDirectory(const FilePath& full_path) {
+bool CreateDirectory(const Path& full_path) {
   const wchar_t* const full_path_str = full_path.c_str();
   const DWORD fileattr = ::GetFileAttributes(full_path_str);
   if (fileattr != INVALID_FILE_ATTRIBUTES) {
@@ -64,7 +64,7 @@ bool CreateDirectory(const FilePath& full_path) {
   return false;
 }
 
-bool GetTempDir(FilePath* path) {
+bool GetTempDir(Path* path) {
   wchar_t temp_path[MAX_PATH + 1];
   DWORD path_len = ::GetTempPath(MAX_PATH, temp_path);
   if (path_len >= MAX_PATH || path_len <= 0)
@@ -72,9 +72,9 @@ bool GetTempDir(FilePath* path) {
   return true;
 }
 
-bool CreateNewTempDirectory(const FilePath::BufferType& prefix,
-                            FilePath* new_temp_path) {
-  FilePath system_temp_dir;
+bool CreateNewTempDirectory(const Path::BufferType& prefix,
+                            Path* new_temp_path) {
+  Path system_temp_dir;
   if (!GetTempDir(&system_temp_dir))
     return false;
 

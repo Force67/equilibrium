@@ -15,9 +15,9 @@
 #include <string>
 
 #include "base/export.h"
-#include "base/io/file/file.h"
-#include "base/io/file/file_path.h"
-#include "base/io/file/scoped_file.h"
+#include "base/filesystem/file.h"
+#include "base/filesystem/path.h"
+#include "base/filesystem/scoped_file.h"
 #include "build/build_config.h"
 
 #if defined(OS_WIN)
@@ -34,15 +34,15 @@ namespace base {
 // Create a directory within another directory.
 // Extra characters will be appended to |prefix| to ensure that the
 // new directory does not have the same name as an existing directory.
-BASE_EXPORT bool CreateTemporaryDirInDir(const FilePath& base_dir,
-                                         const FilePath::BufferType& prefix,
-                                         FilePath* new_dir);
+BASE_EXPORT bool CreateTemporaryDirInDir(const Path& base_dir,
+                                         const Path::BufferType& prefix,
+                                         Path* new_dir);
 
 // Backward-compatible convenience method for the above.
-BASE_EXPORT bool CreateDirectory(const FilePath& full_path);
+BASE_EXPORT bool CreateDirectory(const Path& full_path);
 
-BASE_EXPORT bool DirectoryExists(const FilePath& path);
+BASE_EXPORT bool DirectoryExists(const Path& path);
 
-BASE_EXPORT bool CreateNewTempDirectory(const FilePath::BufferType& prefix,
-                                        FilePath* new_temp_path);
+BASE_EXPORT bool CreateNewTempDirectory(const Path::BufferType& prefix,
+                                        Path* new_temp_path);
 }  // namespace base

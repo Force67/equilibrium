@@ -1,15 +1,13 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
-// Scan a windows 'pe' image for patterns.
+// Scan a windows portable executbale image for patterns.
 
 #include <mem/pattern.h>
 #include "nt_executable_scanner.h"
 
-NtExecutableScanner::NtExecutableScanner(const base::FilePath& path) {
+NtExecutableScanner::NtExecutableScanner(const base::Path& path) {
   LoadFromFile(path);
   TK_BUGCHECK(buffer_);
-
-  module_ = mem::module::nt(buffer_.get());
 }
 NtExecutableScanner::~NtExecutableScanner() {}
 
@@ -45,15 +43,18 @@ mem::pointer NtExecutableScanner::Scan(const std::string_view signature) {
   // but return on first hit
   for (const mem::region& r : m_codeSegs) {
     if (mem::pointer p = mem::scan(Pattern, r)) {
-      return p;
+      uint32_t offset = (p.as<char*>() - buffer_.get());
+
+      return 0x140000000 +
+          TranslateToVirtual(offset);
     }
   }
 
   return {};
 }
 
-void NtExecutableScanner::LoadFromFile(const base::FilePath& path) {
-  base::File file(path, false);
+void NtExecutableScanner::LoadFromFile(const base::Path& path) {
+  base::File file(path, base::File::FLAG_OPEN | base::File::FLAG_READ);
   if (!file.IsValid()) {
     return;
   }
@@ -62,6 +63,7 @@ void NtExecutableScanner::LoadFromFile(const base::FilePath& path) {
   buffer_ = std::make_unique<char[]>(length);
   file.Seek(base::File::Whence::FROM_BEGIN, 0);
   file.Read(0, buffer_.get(), length);
+  module_ = mem::module::nt(buffer_.get());
 
   if (!CheckAndLoad()) {
     buffer_.reset();

@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#if 0
 #include <network/tksp/tksp_delegate.h>
 #include <base/container/detached_queue.h>
 
@@ -74,3 +75,5 @@ class Host {
   std::vector<std::unique_ptr<PeerBase>> peer_list_;
 };
 }  // namespace network::tksp
+
+#endif

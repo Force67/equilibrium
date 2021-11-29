@@ -2,17 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "base/io/file/scoped_temp_dir.h"
 #include "base/check.h"
-
-#include "base/io/file/file_util.h"
+#include "base/filesystem/scoped_temp_dir.h"
+#include "base/filesystem/file_util.h"
 #include "base/logging.h"
 
 namespace base {
 
 namespace {
 
-constexpr FilePath::CharType kScopedDirPrefix[] = L"scoped_dir";
+constexpr Path::CharType kScopedDirPrefix[] = L"scoped_dir";
 
 }  // namespace
 
@@ -36,7 +35,7 @@ bool ScopedTempDir::CreateUniqueTempDir() {
   return true;
 }
 
-bool ScopedTempDir::CreateUniqueTempDirUnderPath(const FilePath& base_path) {
+bool ScopedTempDir::CreateUniqueTempDirUnderPath(const Path& base_path) {
   if (!path_.empty())
     return false;
 
@@ -51,7 +50,7 @@ bool ScopedTempDir::CreateUniqueTempDirUnderPath(const FilePath& base_path) {
   return true;
 }
 
-bool ScopedTempDir::Set(const FilePath& path) {
+bool ScopedTempDir::Set(const Path& path) {
   if (!path_.empty())
     return false;
 
@@ -76,7 +75,7 @@ bool ScopedTempDir::IsValid() const {
 }
 
 // static
-const FilePath::CharType* ScopedTempDir::GetTempDirPrefix() {
+const Path::CharType* ScopedTempDir::GetTempDirPrefix() {
   return kScopedDirPrefix;
 }
 

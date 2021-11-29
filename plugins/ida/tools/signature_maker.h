@@ -15,12 +15,16 @@ class SignatureMaker {
     kLengthExceeded,
     kEmpty,
   };
+
+  enum class ReferenceType { kDirect, kRef3 };
+
   static const char* const ResultToString(Result) noexcept;
 
   Result CreateSignature(const ea_t target_address,
-                               std::string& out_pattern,
-                               int8_t& out_offset,
-                               bool& is_data);
+                         std::string& out_pattern,
+                         int8_t& out_offset,
+                         bool& is_data,
+                         ReferenceType& ref_type);
 
   bool CreateAndPrintSignature(const ea_t target_ea);
 
@@ -34,7 +38,8 @@ class SignatureMaker {
   Result UniqueCodeSignature(ea_t target_address,
                              std::string& out_pattern,
                              int8_t& out_offset,
-                             bool& very_dumb_flag);
+                             bool& very_dumb_flag,
+                             ReferenceType& ref_type);
 
   Result GenerateFunctionReference(ea_t target_address,
                                    std::string& out_pattern,

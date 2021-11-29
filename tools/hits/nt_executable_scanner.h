@@ -3,18 +3,16 @@
 // Scan a windows 'pe' image for patterns.
 #pragma once
 
-#include <base/io/file/file_path.h>
-#include <base/io/file/file.h>
-
+#include <base/filesystem/file.h>
 #include <vector>
 #include <mem/module.h>
 
 class NtExecutableScanner {
  public:
-  explicit NtExecutableScanner(const base::FilePath&);
+  explicit NtExecutableScanner(const base::Path&);
   ~NtExecutableScanner();
 
-  void LoadFromFile(const base::FilePath&);
+  void LoadFromFile(const base::Path&);
 
   mem::pointer Scan(const std::string_view signature);
 

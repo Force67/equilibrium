@@ -5,9 +5,9 @@
 #include <span>
 
 #include "base/export.h"
-#include "base/io/file/file_path.h"
-#include "base/io/file/scoped_file.h"
-#include "base/io/file/platform_file.h"
+#include "base/filesystem/path.h"
+#include "base/filesystem/scoped_file.h"
+#include "base/filesystem/platform_file.h"
 
 #include "build/build_config.h"
 
@@ -133,7 +133,7 @@ class BASE_EXPORT File {
 
   // Creates or opens the given file. This will fail with 'access denied' if the
   // |path| contains path traversal ('..') components.
-  File(const FilePath& path, uint32_t flags);
+  File(const Path& path, uint32_t flags);
 
   // Takes ownership of |platform_file| and sets async to false.
   explicit File(ScopedPlatformFile platform_file);
@@ -158,7 +158,7 @@ class BASE_EXPORT File {
   File& operator=(File&& other);
 
   // Creates or opens the given file.
-  void Initialize(const FilePath& path, uint32_t flags);
+  void Initialize(const Path& path, uint32_t flags);
 
   // Returns |true| if the handle / fd wrapped by this object is valid.  This
   // method doesn't interact with the file system and is thus safe to be called
@@ -221,7 +221,7 @@ class BASE_EXPORT File {
   // all platforms. |data| can be nullptr when |size| is 0.
   // Ignores the offset and writes to the end of the file if the file was opened
   // with FLAG_APPEND.
-  int Write(int64_t offset, const char* data, int size);
+  int Write(int64_t offset, const char* data, size_t size);
 
   // Save as above but without seek.
   int WriteAtCurrentPos(const char* data, int size);
@@ -357,7 +357,7 @@ class BASE_EXPORT File {
  private:
   // Creates or opens the given file. Only called if |path| has no
   // traversal ('..') components.
-  void DoInitialize(const FilePath& path, uint32_t flags);
+  void DoInitialize(const Path& path, uint32_t flags);
 
   void SetPlatformFile(PlatformFile file);
 
@@ -365,7 +365,7 @@ class BASE_EXPORT File {
 
   // A path to use for tracing purposes. Set if file tracing is enabled during
   // |Initialize()|.
-  FilePath path_;
+  Path path_;
 
   Error error_details_ = FILE_ERROR_FAILED;
   bool created_ = false;
