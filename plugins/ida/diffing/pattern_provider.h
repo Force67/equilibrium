@@ -1,12 +1,14 @@
 // Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
+// IDA implementation of a pattern generation engine.
+// TODO: consider if this should be named PatternGenerator instead.
 #pragma once
 
-class SignatureMaker {
- public:
-  explicit SignatureMaker();
+#include "diffing/pattern.h"
 
-  enum class Result {
+class PatternProvider {
+ public:
+  enum class Status {
     kSuccess,
     kUnsupportedType,
     kDecodeError,
@@ -15,8 +17,19 @@ class SignatureMaker {
     kLengthExceeded,
     kEmpty,
   };
+  static const char* const TranslateStatus(Status);
 
-  enum class ReferenceType { kDirect, kRef3 };
+  PatternProvider();
+
+  Status CreateSignature(const ea_t target_address, diffing::Pattern& out);
+  bool CreatePrintSignature(const ea_t ea);
+ private:
+  Status ComposeSignature(const ea_t in_address, std::string& out_pattern);
+};
+
+class SignatureMaker {
+ public:
+  explicit SignatureMaker();
 
   static const char* const ResultToString(Result) noexcept;
 

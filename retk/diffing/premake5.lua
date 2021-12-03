@@ -1,7 +1,7 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-component("diff")
+component("diffing")
     files({
         "*.cc",
         "*.h",
@@ -12,7 +12,7 @@ component("diff")
         blu.extdir .. "/rapidjson/include",
     })
 
-unittest("diff:multimatch")
+unittest("diffing:multimatch")
     include_meta()
     files({
         "test/test_runner.cc",

@@ -4,6 +4,7 @@
 group("Components")
 include("network")
 include("database")
+include("diffing")
 include("ui")
 include("sync")
 include("tilted_reflection")

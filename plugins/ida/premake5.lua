@@ -21,6 +21,16 @@ project("ida_plugin")
     pchheader("pch.h")
     pchsource("pch.cc")
     forceincludes("pch.h")
+    dependencies({
+        "fmtlib",
+        -- system
+        "ui",
+        "network",
+        "database",
+        "sync",
+        "diffing",
+        "tilted_reflection"
+    })
     links({
         -- ida libraries
         "ida",
@@ -32,16 +42,6 @@ project("ida_plugin")
         "Qt5Gui.lib",
         "Qt5PrintSupport.lib",
         "Qt5Widgets.lib",
-        
-        -- third party
-        "network",
-        "fmtlib",
-
-        "network",
-        "database",
-        "base",
-        "sync",
-        "tilted_reflection"
     })
     -- configure IDA SDK
     defines({
@@ -50,10 +50,9 @@ project("ida_plugin")
         --"__UI__",          -- < Define ida types as QT types
         "__EA64__",          -- < Use 64 Bit addressing (Even ida 32 is 64 bit nowadays)
         "NO_OBSOLETE_FUNCS", -- < No depricated functions (Target for latest IDA)
-
-        -- qt symbol workaround, read more here:
-        -- https://www.hex-rays.com/blog/ida-qt-under-the-hood/
-        "QT_NAMESPACE=QT",
+        "QT_NAMESPACE=QT",   -- < qt symbol workaround, read more here:
+                             --   https://www.hex-rays.com/blog/ida-qt-under-the-hood/
+        
         -- corelib
         "USE_STANDARD_FILE_FUNCTIONS",
         "BASE_IMPLEMENTATION"
@@ -65,8 +64,6 @@ project("ida_plugin")
         blu.extdir .. "/idasdk75/include",
         blu.extdir .. "/sockpp/include",
         blu.extdir .. "/flatbuffers/include",
-        blu.extdir .. "/fmt/include",
-        blu.extdir .. "/xenium"
     })
     libdirs({
         blu.extdir .. "/idasdk75/lib/x64_win_vc_64",

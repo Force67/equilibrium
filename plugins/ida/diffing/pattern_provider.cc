@@ -3,38 +3,17 @@
 // For licensing information see LICENSE at the root of this distribution.
 // IDA implementation of the signature generator.
 // 
-// !!!! Note !!!! Please use release when attempting to seriously use this as its
-//                very compute intensive.
+// Warning: Please consider always running this in release mode unless needed,
+//          as it's very compute intensive.
 
 #include "Pch.h"
-
-#include <QVector>
 #include <bytes.hpp>
-#include <array>
-#include "signature_maker.h"
 
-#include <chrono>
+#include "pattern_provider.h"
+#include "pattern_provider_config.h"
 
-namespace cn = std::chrono;
-
-struct ScopedProfile {
-  cn::high_resolution_clock::time_point delta;
-  const char* const name;
-
-  ScopedProfile(const char* const name)
-      : name(name), delta(cn::high_resolution_clock::now()) {}
-
-  ~ScopedProfile(void) {
-    auto now = std::chrono::high_resolution_clock::now();
-    auto nanos =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - delta)
-            .count();
-    auto seconds =
-        std::chrono::duration_cast<std::chrono::seconds>(now - delta).count();
-
-    LOG_INFO("~ScopedTimer() : <{}> : {} ms ({} s)", name, nanos, seconds);
-  }
-};
+#include <base/check.h>
+#include <base/scoped_profile.h>
 
 // too tired to fix this
 #ifndef MS_CLS
@@ -47,22 +26,6 @@ struct ScopedProfile {
 #endif
 
 namespace {
-// how many instructions the generator can try to use to build a pattern
-constexpr size_t kInstructionLimit = 100u;
-// max length of a signature, including spaces and question marks
-constexpr size_t kSignatureMaxLength = 75u;
-// min length of a signature in bytes
-constexpr size_t kMinSignatureByteLength = 5u;
-// max displacement size in bytes
-constexpr size_t kDisplacementStepSize = 100u;
-// max reference count to be considered this is done to limit at
-// runtime where it scales up pretty badly if we have lots of references :(
-constexpr size_t kMaxRefCountAnalysisDepth = 10u;
-
-// Does this even make sense?
-// Bounds checking?!?
-static_assert(kDisplacementStepSize <= INT8_MAX,
-              "Displacement bounds exceeded");
 
 uint8_t GetOpCodeSize(const insn_t& instruction) {
   for (uint32_t i = 0; i < UA_MAXOP; i++) {
@@ -116,56 +79,56 @@ bool ValidateWildcardCount(const std::string& pattern, bool with_spacing) {
 }
 }  // namespace
 
-SignatureMaker::SignatureMaker() = default;
+PatternProvider::PatternProvider() = default;
 
-const char* const SignatureMaker::ResultToString(Result result) noexcept {
+const char* const PatternProvider::TranslateStatus(Status result) noexcept {
   switch (result) {
-    case Result::kSuccess:
+    case Status::kSuccess:
       return "Success";
-    case Result::kDecodeError:
+    case Status::kDecodeError:
       return "Failed to decode";
-    case Result::kLengthExceeded:
+    case Status::kLengthExceeded:
       return "Length exceeded";
-    case Result::kNoReferences:
+    case Status::kNoReferences:
       return "No references found";
-    case Result::kRefLimitReached:
+    case Status::kRefLimitReached:
       return "Ref Limit reached";
-    case Result::kEmpty:
+    case Status::kEmpty:
       return "Empty";
     default:
-      // TK_IMPOSSIBLE;
+      TK_IMPOSSIBLE;
       return "<unknown>";
   }
 }
 
-SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
-    ea_t address,
+PatternProvider::Status PatternProvider::ComposeSignature(
+    const ea_t in_address,
     std::string& out_pattern) {
-  ScopedProfile profile_frame("GenerateSignatureInternal");
+  // enter timed scope
+  base::ScopedProfile profile_frame("ComposeSignature");
   (void)profile_frame;
 
-  bytes_.clear();
-  masks_.clear();
-  out_pattern.clear();
+  std::vector<uchar> bytes;
+  std::vector<uchar> masks;
 
-  ea_t current_address = address;
+  ea_t current_ea = in_address;
   bool done_flag = false;
 
   // Analyze up to k bytes.
-  for (size_t i = 0; i < kInstructionLimit; i++) {
+  for (size_t i = 0; i < pattern_config::kInstructionLimit; i++) {
+      // gather information about the current info
     insn_t instruction{};
-    if (decode_insn(&instruction, current_address) == 0) {
-      return Result::kDecodeError;
+    if (decode_insn(&instruction, current_ea) == 0) {
+      return Status::kDecodeError;
     }
 
     // Add the bytes of the instruction to the bytes of our pattern.
     for (uint16_t j = 0; j < instruction.size; ++j) {
       const uchar byte = get_byte(instruction.ea + j);
-      bytes_.add(byte);
+      bytes.push_back(byte);
     }
 
-    // todo: yeet
-    QVector<uchar> instructionMask(instruction.size, 1);
+    std::vector<uchar> instructionMask(instruction.size, 1);
 
     for (const op_t& op : instruction.ops) {
       if (op.type == o_void) {
@@ -185,18 +148,7 @@ SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
 
     // Copy this instructions mask to our pattern's mask.
     std::copy(instructionMask.begin(), instructionMask.end(),
-              std::back_inserter(masks_));
-    // get_ph -> this gets the buffer!
-    // pack_dd();
-    // pack_dd
-    // show_auto -> allows setting IDB BUSY
-    // search only within code.
-    // get_byte
-    /*
-    *      v21 = getinf(57i64);
-            v22 = get_compiler_name(v21);
-            v23 = get_compiler_name(*((_BYTE *)v14 + 36));
-    */
+              std::back_inserter(masks));
 
     for (const segment_t* seg = get_first_seg(); seg != nullptr;
          seg = get_next_seg(seg->start_ea)) {
@@ -204,16 +156,16 @@ SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
       if (seg->type != SEG_CODE)
         continue;
       // search from the segment start to address.
-      if (bin_search2(seg->start_ea, address, bytes_.begin(), masks_.begin(),
-                      bytes_.size(),
-                      seg->start_ea <= address
+      if (bin_search2(seg->start_ea, in_address, bytes.data(), masks.data(),
+                      bytes.size(),
+                      seg->start_ea <= in_address
                           ? BIN_SEARCH_FORWARD
                           : BIN_SEARCH_BACKWARD) == BADADDR) {
         // Search from the address we're making the pattern for + current
         // pattern size to the max-most address.
-        const ea_t start = address + bytes_.size();
-        if (bin_search2(start, seg->end_ea, bytes_.begin(), masks_.begin(),
-                        bytes_.size(),
+        const ea_t start = in_address + bytes.size();
+        if (bin_search2(start, seg->end_ea, bytes.data(), masks.data(),
+                        bytes.size(),
                         start <= seg->end_ea
                             ? BIN_SEARCH_FORWARD
                             : BIN_SEARCH_BACKWARD) == BADADDR) {
@@ -227,19 +179,19 @@ SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
       break;
 
     // continue seeking
-    current_address += instruction.size;
+    current_ea += instruction.size;
   }
 
-  if (bytes_.empty() || masks_.empty())
-    return Result::kEmpty;
+  if (bytes.empty() || masks.empty())
+    return Status::kEmpty;
 
   constexpr char kHexChars[] = "0123456789ABCDEF";
-  for (size_t i = 0; i < bytes_.size(); ++i) {
+  for (size_t i = 0; i < bytes.size(); ++i) {
     if (i)
       out_pattern += ' ';
 
-    const uchar mask = masks_[i];
-    const uchar value = bytes_[i];
+    const uchar mask = masks[i];
+    const uchar value = bytes[i];
 
     if (mask != 0x00) {
       out_pattern += kHexChars[static_cast<size_t>(value >> 4)];
@@ -259,18 +211,64 @@ SignatureMaker::Result SignatureMaker::GenerateSignatureInternal_2(
     }
   }
 
-  if (out_pattern.length() > kSignatureMaxLength || 
+  if (out_pattern.length() > pattern_config::kSignatureMaxLength ||
       // patterns must not contain excessive spacing
       // since too many wild-cards will inevitably lead to breakage
       // if ABI changes occur
       !ValidateWildcardCount(out_pattern, true)) {
-    return Result::kLengthExceeded;
+    return Status::kLengthExceeded;
   }
 
-  return Result::kSuccess;
+  return Status::kSuccess;
 }
 
-SignatureMaker::Result SignatureMaker::GenerateFunctionReference(
+PatternProvider::Status PatternProvider::CreateSignature(
+    const ea_t target_address,
+    diffing::Pattern& out) {
+  // Must be within code
+  if (!CheckAddressTypeAllowed(target_address))
+    return Status::kUnsupportedType;
+
+  out.is_data = GetAddressFlags(target_address) == FF_DATA;
+  out.type = diffing::Pattern::ReferenceType::kRef3;
+
+  const Status s =
+      is_data ? UniqueDataSignature(in_ea, out_pattern, out_offset)
+              : UniqueCodeSignature(in_ea, out_pattern, out_offset, is_data,
+                                    ref_type);
+
+  return result;
+}
+
+bool PatternProvider::CreatePrintSignature(const ea_t ea) {
+  LOG_TRACE("Creating signature for {:x}", ea);
+
+  diffing::Pattern pattern{};
+  const Status s = CreateSignature(ea, pattern);
+
+  // pretty format the name data
+  const char* type_name = pattern.is_data ? "data" : "code";
+  const char* ref_name =
+      pattern.type == diffing::Pattern::ReferenceType::kDirect ? "direct"
+                                                               : "reference";
+
+  if (s == Status::kSuccess) {
+    // offsets may also be negative
+    if (pattern.function_offset != 0) {
+      LOG_INFO("{} {} signature: {:x} = {}@{}", type_name, ref_name, ea,
+               pattern, offset);
+    } else {
+      LOG_INFO("{} {} signature: {:x} = {}", type_name, ref_name, ea, pattern);
+    }
+
+    return true;
+  }
+
+  LOG_ERROR("Failed to generate reference to {} {:x} with error: {}", type_name,
+            ea, TranslateStatus(s));
+}
+
+PatternProvider::Result PatternProvider::GenerateFunctionReference(
     ea_t ref_ea,
     std::string& out_pattern,
     int8_t& out_offset) {
@@ -288,6 +286,8 @@ SignatureMaker::Result SignatureMaker::GenerateFunctionReference(
       if ((result = GenerateSignatureInternal_2(func->start_ea, out_pattern)) ==
           Result::kSuccess) {
         // again, 10/10 code.
+
+          // MUST not subtract this difference, by rather we need to go DO ref_ea + opcodesize - start_ea
         out_offset += (ref_ea - func->start_ea);
         return result;
       }
@@ -328,7 +328,7 @@ SignatureMaker::Result SignatureMaker::GenerateFunctionReference(
   return result;
 }
 
-SignatureMaker::Result SignatureMaker::UniqueDataSignature(
+PatternProvider::Result PatternProvider::UniqueDataSignature(
     ea_t target_ea,
     std::string& out_pattern,
     int8_t& out_offset) {
@@ -342,7 +342,6 @@ SignatureMaker::Result SignatureMaker::UniqueDataSignature(
        ref_ea = get_next_dref_to(target_ea, ref_ea)) {
     if (target_ea == ref_ea)
       continue;
-
     if (const func_t* func = get_func(ref_ea)) {
       refs.insert(std::make_pair(func->end_ea - func->start_ea, ref_ea));
     }
@@ -369,7 +368,7 @@ SignatureMaker::Result SignatureMaker::UniqueDataSignature(
 // This function allows manipulation of the data_flag parameter since
 // we might also use a data reference to point to code as a last resort
 // in the future.
-SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
+PatternProvider::Result PatternProvider::UniqueCodeSignature(
     ea_t target_ea,
     std::string& out_pattern,
     int8_t& out_offset,
@@ -422,61 +421,4 @@ SignatureMaker::Result SignatureMaker::UniqueCodeSignature(
   }
 
   return result;
-}
-
-SignatureMaker::Result SignatureMaker::CreateSignature(
-    const ea_t in_ea,
-    std::string& out_pattern,
-    int8_t& out_offset,
-    bool& is_data,
-    ReferenceType& ref_type) {
-
-  if (!CheckAddressTypeAllowed(in_ea))
-    return Result::kUnsupportedType;
-
-  is_data = GetAddressFlags(in_ea) == FF_DATA;
-  ref_type = ReferenceType::kRef3;
-
-  const Result result =
-      is_data ? UniqueDataSignature(in_ea, out_pattern, out_offset)
-              : UniqueCodeSignature(in_ea, out_pattern, out_offset, is_data,
-                                    ref_type);
-  if (result == Result::kSuccess)
-    return result;
-
-  out_pattern = "";
-  out_offset = 0;
-
-  return Result::kEmpty;
-}
-
-bool SignatureMaker::CreateAndPrintSignature(const ea_t ea) {
-  std::string pattern{};
-  int8_t offset = 0;
-  bool is_data = false;
-  ReferenceType ref_type;
-
-  LOG_TRACE("Creating signature for {:x}", ea);
-
-  const Result res = CreateSignature(ea, pattern, offset, is_data, ref_type);
-  const char* type_name = is_data ? "data" : "code";
-  const char* ref_name =
-      ref_type == ReferenceType::kDirect ? "direct" : "reference";
-
-  if (res == Result::kSuccess) {
-    // offsets may also be negative
-    if (offset != 0) {
-      LOG_INFO("{} {} signature: {:x} = {}@{}", type_name, ref_name, ea,
-               pattern,
-               offset);
-    } else {
-      LOG_INFO("{} {} signature: {:x} = {}", type_name, ref_name, ea, pattern);
-    }
-
-    return true;
-  }
-
-  LOG_ERROR("Failed to generate reference to {} {:x} with error: {}", type_name,
-            ea, ResultToString(res));
-  return false;
 }
