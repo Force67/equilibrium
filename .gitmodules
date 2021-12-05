@@ -4,9 +4,6 @@
 [submodule "external/fmt"]
 	path = external/fmt
 	url = https://github.com/fmtlib/fmt
-[submodule "external/xenium"]
-	path = external/xenium
-	url = https://github.com/mpoeter/xenium
 [submodule "external/googletest"]
 	path = external/googletest
 	url = https://github.com/google/googletest
@@ -16,9 +13,6 @@
 [submodule "external/rapidjson"]
 	path = external/rapidjson
 	url = https://github.com/Tencent/rapidjson
-[submodule "external/JUCE"]
-	path = external/JUCE
-	url = https://github.com/juce-framework/JUCE
 [submodule "external/rocksdb"]
 	path = external/rocksdb
 	url = https://github.com/facebook/rocksdb
