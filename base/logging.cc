@@ -1,6 +1,8 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <cstdarg>
+#include "xstring.h"
 #include "logging.h"
 
 namespace base {
@@ -35,6 +37,24 @@ void Core_PrintLogMessage(LogLevel ll,
 
   if (s_callback)
     s_callback(ll, fmt.c_str());
+}
+
+void Core_PrintLogMessage(LogLevel ll,
+                          const char* text) {
+  if (s_callback)
+    s_callback(ll, text);
+}
+
+void PrintLogMessagePF(LogLevel ll, const char* format...) {
+  va_list ap;
+  va_start(ap, format);
+  
+  char buf[1024]{};
+  vsprintf(buf, format, ap); 
+  va_end(ap);
+
+  if (s_callback)
+    s_callback(ll, buf);
 }
 
 void PrintLegals() {

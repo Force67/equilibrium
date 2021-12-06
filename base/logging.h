@@ -26,16 +26,26 @@ void InitLogging(LogHandler, bool no_logo = false);
 void PrintLegals();
 
 void Core_PrintLogMessage(LogLevel, const char*, const fmt::format_args&);
+void Core_PrintLogMessage(LogLevel, const char*);
 
 template <typename... Args>
 void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
   Core_PrintLogMessage(level, format, fmt::make_format_args(args...));
 }
+
+// adadpter function for legacy printf style systems
+// please use the LOG_X macros
+void PrintLogMessagePF(LogLevel level, const char* format...);
 }  // namespace base
 
-#if 1
-#define LOG_TRACE(...)
+#if defined(TK_DBG)
+#define LOG_DEBUG(...) \
+  ::base::PrintLogMessage(::base::LogLevel::kDebug, __VA_ARGS__)
+#else
+#define LOG_DEBUG(...)
 #endif
+#define LOG_TRACE(...) \
+  ::base::PrintLogMessage(::base::LogLevel::kTrace, __VA_ARGS__)
 #define LOG_INFO(...) \
   ::base::PrintLogMessage(::base::LogLevel::kInfo, __VA_ARGS__)
 #define LOG_WARNING(...) \
