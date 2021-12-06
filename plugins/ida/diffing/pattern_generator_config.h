@@ -12,13 +12,8 @@ constexpr size_t kSignatureMaxLength = 75u;
 // min length of a signature in bytes
 constexpr size_t kMinSignatureByteLength = 5u;
 // max displacement size in bytes
-constexpr size_t kDisplacementStepSize = 100u;
+constexpr size_t kMaxDisplacementBound = 127;
 // max reference count to be considered this is done to limit at
 // runtime where it scales up pretty badly if we have lots of references :(
 constexpr size_t kMaxRefCountAnalysisDepth = 10u;
-
-// Does this even make sense?
-// Bounds checking?!?
-static_assert(kDisplacementStepSize <= INT8_MAX,
-              "Displacement bounds exceeded");
-}
+}  // namespace pattern_config

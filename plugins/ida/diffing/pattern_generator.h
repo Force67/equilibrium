@@ -34,7 +34,7 @@ class PatternGenerator {
   using ref_collection_t = std::map<asize_t, ea_t>;
   void CollectDataReferences(const ea_t, ref_collection_t&);
   void CollectCodeReferences(const ea_t, ref_collection_t&);
-  Status MakeReference(const ea_t target_ea, diffing::Pattern& out);
+  Status WalkFunction(const ea_t target_ea, diffing::Pattern& out);
 
  private:
 };

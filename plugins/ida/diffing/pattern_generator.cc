@@ -54,6 +54,9 @@ bool CheckAddressTypeAllowed(const ea_t ea) {
       return true;
   }
 }
+
+static_assert(pattern_config::kMaxDisplacementBound <= INT8_MIN,
+              "Displacement bounds exceeded");
 }  // namespace
 
 PatternGenerator::PatternGenerator() = default;
@@ -208,9 +211,8 @@ PatternGenerator::Status PatternGenerator::ComposeSignature(
 }
 
 // Too lazy to write an iterator adapeter for this.
-void PatternGenerator::CollectCodeReferences(
-    const ea_t ea,
-    ref_collection_t& refs) {
+void PatternGenerator::CollectCodeReferences(const ea_t ea,
+                                             ref_collection_t& refs) {
   for (auto cur_ea = get_first_cref_to(ea); cur_ea != BADADDR;
        cur_ea = get_next_cref_to(ea, cur_ea)) {
     if (ea == cur_ea)
@@ -221,9 +223,8 @@ void PatternGenerator::CollectCodeReferences(
   }
 }
 
-void PatternGenerator::CollectDataReferences(
-    const ea_t ea,
-    ref_collection_t& refs) {
+void PatternGenerator::CollectDataReferences(const ea_t ea,
+                                             ref_collection_t& refs) {
   for (auto cur_ea = get_first_dref_to(ea); cur_ea != BADADDR;
        cur_ea = get_next_dref_to(ea, cur_ea)) {
     if (ea == cur_ea)
@@ -246,19 +247,20 @@ PatternGenerator::Status PatternGenerator::CreateSignature(
 
   Status s{Status::kNoReferences};
   if (!out.is_data) {
-    // is it code?
-    if (!can_decode(target_ea))
-      return Status::kDecodeError;
-    // try the direct way first.
-    if ((s = ComposeSignature(target_ea, out.bytes)) == Status::kSuccess) {
+    if ((s = WalkFunction(target_ea, out)) == Status::kSuccess) {
       // This is a direct offset, we have zero levels of indirection
-      out.lv0_offset = out.lv1_offset = 0;
+
+        // dumb hack
+      out.lv0_offset = out.lv1_offset;
+      out.lv1_offset = 0;
       out.type = diffing::Pattern::ReferenceType::kDirect;
       return s;
     }
+
+    // TODO: idea: binary search on function
   }
 
-  //func_item_iterator_t 
+  // func_item_iterator_t
 
   ref_collection_t refs;
   out.is_data ? CollectDataReferences(target_ea, refs)
@@ -273,58 +275,97 @@ PatternGenerator::Status PatternGenerator::CreateSignature(
 
     const auto& pair = *std::next(refs.begin(), i);
     LOG_TRACE("Ref: {:x} {}/{}", pair.second, i, refs.size());
-    s = MakeReference(pair.second, out);
-    if (s == Status::kSuccess)
+    s = WalkFunction(pair.second, out);
+    if (s == Status::kSuccess) {
+      // BUGCHECK(out.is_data && out.lv0_offset != 0);
+
+      if (!out.is_data) {
+        const func_t* func = get_func(target_ea);
+        out.lv0_offset = (target_ea - func->start_ea);
+      }
+
       return s;
+    }
   }
 
   return s;
 }
 
-PatternGenerator::Status PatternGenerator::MakeReference(
+PatternGenerator::Status PatternGenerator::WalkFunction(
     const ea_t ref_ea,
     diffing::Pattern& out) {
   const func_t* func = get_func(ref_ea);
   if (!func)
     return Status::kDecodeError;
 
-  insn_t insn{};
-  if (decode_insn(&insn, ref_ea) == 0) {
+  insn_t ref_insn{};
+  if (decode_insn(&ref_insn, ref_ea) == 0) {
     return Status::kDecodeError;
   }
 
   // the needle is in the middle
   // we go down.
-  ea_t needle = ref_ea + GetOpCodeSize(insn);
-  while (needle >= func->start_ea) {
-    if (decode_insn(&insn, needle) == 0)
+  insn_t insn{};
+
+  ea_t bytes_walked = 0;
+  ea_t needle = ref_ea;
+  while (needle > func->start_ea &&
+         bytes_walked <= pattern_config::kMaxDisplacementBound) {
+    // Decode the previous instruction length
+    ea_t former = decode_prev_insn(&insn, needle);
+    if (former == BADADDR)
       return Status::kDecodeError;
 
-    if (ComposeSignature(needle, out.bytes) == Status::kSuccess) {
-      // set the offset of the second indirection
-      BUGCHECK(ref_ea - needle < INT8_MAX);
+    // Investigate: 0x00000001408cffc6
 
-      out.lv1_offset = ref_ea - needle;
+    if (ComposeSignature(needle, out.bytes) == Status::kSuccess) {
+      i32 delta = ref_ea - needle;
+      // we only accept small enough displacement as larger displacements
+      // simple dont make sense, due to the rapid increase of breakage
+      // probability
+      if (delta > INT8_MAX || delta < INT8_MIN) {
+        continue;
+      }
+
+      // the delta + the the required dispositon
+      out.lv1_offset = static_cast<i8>(delta) + GetOpCodeSize(ref_insn);
       return Status::kSuccess;
     }
 
-    needle -= GetOpCodeSize(insn);
+    // move on to the previous instruction
+    // e.g move back one row of bytes in ida
+    bytes_walked += (needle - former);
+
+    needle = former;
   }
+
+  // reset
+  bytes_walked = 0;
 
   // the same dance again, upwards
   needle = ref_ea + GetOpCodeSize(insn);
-  while (needle <= func->end_ea) {
+  while (needle <= func->end_ea &&
+         bytes_walked <= pattern_config::kMaxDisplacementBound) {
     if (decode_insn(&insn, needle) == 0)
       return Status::kDecodeError;
 
+    ea_t latter = decode_insn(&insn, needle);
+
     if (ComposeSignature(needle, out.bytes) == Status::kSuccess) {
-      BUGCHECK(ref_ea - needle < INT8_MAX);
-      // set the offset of the second indirection
-      out.lv1_offset = needle - ref_ea;
+      i32 delta = needle - ref_ea;
+      // we only accept small enough displacement as larger displacements
+      // simple dont make sense, due to the rapid increase of breakage
+      // probability
+      if (delta > INT8_MAX || delta < INT8_MIN) {
+        continue;
+      }
+
+      out.lv1_offset = static_cast<i8>(delta) + GetOpCodeSize(ref_insn);
       return Status::kSuccess;
     }
 
-    needle += GetOpCodeSize(insn);
+    bytes_walked += (latter - needle);
+    needle = latter;
   }
 
   return Status::kEmpty;
