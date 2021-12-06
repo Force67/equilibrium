@@ -34,10 +34,11 @@ filter("configurations:Release")
 
 filter("configurations:Shipping")
     runtime("Release")
-    optimize("Speed")
+    optimize("Full")
     flags({
         "LinkTimeOptimization"
     })
+    defines("SHIPPING")
 
 filter("language:C or C++")
     vectorextensions("SSE4.2")
@@ -48,7 +49,11 @@ filter("language:C++")
 
 filter("system:windows")
     defines("OS_WIN")
-    
+filter{}
+
+-- This is here rather temporarily
+defines("PROJECT_NAME=\"%{prj.name}\"")    
+
 workspace("RETK")
     configurations({
         "Debug",

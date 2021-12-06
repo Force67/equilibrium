@@ -13,7 +13,7 @@ GridLayout::GridLayout() {
 void GridLayout::Build() {
   const size_t CS = column_count();
   const size_t RS = row_count();
-  TK_BUGCHECK(CS);
+  BUGCHECK(CS);
 
   // calculate sizes
   if (CS) {

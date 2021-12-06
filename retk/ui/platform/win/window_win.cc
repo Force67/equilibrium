@@ -42,13 +42,13 @@ void WindowWin::Init(HWND parent, const SkRect& bounds) {
 
   if (parent == HWND_DESKTOP) {
     // Only non-child windows can have HWND_DESKTOP (0) as their parent.
-    TK_BUGCHECK((window_style_ & WS_CHILD) == 0);
+    BUGCHECK((window_style_ & WS_CHILD) == 0);
     parent = GetWindowToParentTo(false);
   } else if (parent == ::GetDesktopWindow()) {
     // Any type of window can have the "Desktop Window" as their parent.
     parent = GetWindowToParentTo(true);
   } else if (parent != HWND_MESSAGE) {
-    TK_DCHECK(::IsWindow(parent));
+    DCHECK(::IsWindow(parent));
   }
 
   int x, y, width, height;
@@ -112,7 +112,7 @@ LRESULT CALLBACK WindowWin::WndProc(HWND hwnd,
   if (message == WM_NCCREATE) {
     CREATESTRUCT* cs = reinterpret_cast<CREATESTRUCT*>(l_param);
     window = reinterpret_cast<WindowWin*>(cs->lpCreateParams);
-    TK_DCHECK(window);
+    DCHECK(window);
     SetWindowUserData(hwnd, window);
     window->hwnd_ = hwnd;
   } else {

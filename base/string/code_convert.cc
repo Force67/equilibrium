@@ -336,23 +336,23 @@ std::string WideToUTF8(WStringPiece wide) {
 #endif  // defined(WCHAR_T_IS_UTF32)
 
 std::u16string ASCIIToUTF16(StringPiece ascii) {
-  TK_BUGCHECK(IsStringASCII(ascii));
+  BUGCHECK(IsStringASCII(ascii));
   return std::u16string(ascii.begin(), ascii.end());
 }
 
 std::string UTF16ToASCII(StringPiece16 utf16) {
-  TK_BUGCHECK(IsStringASCII(utf16));
+  BUGCHECK(IsStringASCII(utf16));
   return std::string(utf16.begin(), utf16.end());
 }
 
 #if defined(WCHAR_T_IS_UTF16)
 std::wstring ASCIIToWide(StringPiece ascii) {
-  TK_BUGCHECK(IsStringASCII(ascii));
+  BUGCHECK(IsStringASCII(ascii));
   return std::wstring(ascii.begin(), ascii.end());
 }
 
 std::string WideToASCII(WStringPiece wide) {
-  TK_BUGCHECK(IsStringASCII(wide));
+  BUGCHECK(IsStringASCII(wide));
   return std::string(wide.begin(), wide.end());
 }
 #endif  // defined(WCHAR_T_IS_UTF16)

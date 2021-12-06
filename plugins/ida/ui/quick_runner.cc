@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "ui/quick_runner.h"
-#include "tools/signature_maker.h"
+#include "diffing/pattern_generator.h"
 
 namespace {
 #if 0
@@ -31,8 +31,8 @@ void RunQuickFeature(forms::RunDialog::FeatureIndex index) {
   const ea_t screen_ea = get_screen_ea();
   switch (index) {
     case forms::RunDialog::FeatureIndex::kTheSignature: {
-      SignatureMaker sigMaker;
-      sigMaker.CreateAndPrintSignature(static_cast<ea_t>(screen_ea));
+      PatternGenerator gen;
+      gen.CreatePrintSignature(static_cast<ea_t>(screen_ea));
       break;
     }
     case forms::RunDialog::FeatureIndex::kTheUniqueIdentifier:

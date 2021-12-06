@@ -5,15 +5,25 @@
 #include <fmt/format.h>
 
 // TODO: support concept of spaces
+// TODO: support channels
 namespace base {
 
-enum class LogLevel { kTrace, kDebug, kInfo, kWarning, kError, kAll };
-
+enum class LogLevel : uint32_t {
+  kTrace,
+  kDebug,
+  kInfo,
+  kWarning,
+  kError,
+  kFatal,
+  kAll
+};
 const char* LevelToName(LogLevel level) noexcept;
 
 using LogHandler = void (*)(LogLevel, const char*);
-
-void InitLogging(LogHandler);
+// Init the global log device
+void InitLogging(LogHandler, bool no_logo = false);
+// Print the copyright message to the device
+void PrintLegals();
 
 void Core_PrintLogMessage(LogLevel, const char*, const fmt::format_args&);
 

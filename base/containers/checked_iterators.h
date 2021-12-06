@@ -61,9 +61,9 @@ class CheckedContiguousIterator {
       : start_(other.start_), current_(other.current_), end_(other.end_) {
     // We explicitly don't delegate to the 3-argument constructor here. Its
     // CHECKs would be redundant, since we expect |other| to maintain its own
-    // invariant. However, TK_BUGCHECKs never hurt anybody. Presumably.
-    TK_BUGCHECK_LE(other.start_, other.current_);
-    TK_BUGCHECK_LE(other.current_, other.end_);
+    // invariant. However, BUGCHECKs never hurt anybody. Presumably.
+    BUGCHECK_LE(other.start_, other.current_);
+    BUGCHECK_LE(other.current_, other.end_);
   }
 
   ~CheckedContiguousIterator() = default;

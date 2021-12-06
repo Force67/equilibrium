@@ -79,7 +79,7 @@ void SymbolDatabase::AddSymbol(const Record& record) {
   auto it =
       std::find_if(records_.begin(), records_.end(),
                    [&](const Record& r) { return r.hash == record.hash; });
-  TK_BUGCHECK(it == records_.end());
+  BUGCHECK(it == records_.end());
   records_.push_back(record);
 }
 
@@ -87,7 +87,7 @@ void SymbolDatabase::AddSymbol(const Record& record) {
 //https://github.com/llvm/llvm-project/blob/d480f968ad8b56d3ee4a6b6df5532d485b0ad01e/clang/lib/Tooling/CompilationDatabase.cpp
 
 bool SymbolDatabase::LoadSymbols() {
-  TK_BUGCHECK(!path_.empty());
+  BUGCHECK(!path_.empty());
 
   std::ifstream ifs(path_.c_str());
   if (!ifs.good())
@@ -102,7 +102,7 @@ bool SymbolDatabase::LoadSymbols() {
     return false;
 
   Value& list = doc["override-list"];
-  TK_DCHECK(list.IsArray());
+  DCHECK(list.IsArray());
 
   records_.resize(list.Size());
   for (SizeType i = 0; i < list.Size(); i++) {
@@ -113,7 +113,7 @@ bool SymbolDatabase::LoadSymbols() {
 }
 
 bool SymbolDatabase::StoreSymbols() {
-  TK_BUGCHECK(!path_.empty());
+  BUGCHECK(!path_.empty());
 
   Document doc;
   doc.SetObject();

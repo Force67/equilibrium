@@ -5,6 +5,7 @@ component("diffing")
     files({
         "*.cc",
         "*.h",
+        "*.inl"
     })
     dependencies("fmtlib")
     -- header only:

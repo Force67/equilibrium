@@ -5,9 +5,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <ui/keycode.inl>
-
-// TODO: define our own IM_ASSERT handler
-// TODO: force it to use our own allocators
 #include "imgui_context.h"
 
 namespace ui {

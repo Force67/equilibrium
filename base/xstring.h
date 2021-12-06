@@ -31,6 +31,9 @@ base::XString<CharType>::XString(const char* const) {
 template <typename T>
 using XString = std::basic_string<T>;
 
+
+using String = XString<char>;
+
 //static_assert(sizeof(XString<char>) == sizeof(uintptr_t) * 2);
 
 class BASE_EXPORT FixedString {

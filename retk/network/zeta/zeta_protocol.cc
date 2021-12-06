@@ -19,7 +19,7 @@ const char* FrameTypeToString(FrameType type) {
     case FrameType::kPayload:
       return "Payload";
     default:
-      TK_IMPOSSIBLE;
+      IMPOSSIBLE;
       return "<invalid>";
   }
 }

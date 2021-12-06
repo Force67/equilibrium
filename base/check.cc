@@ -3,5 +3,13 @@
 #include "base/check.h"
 
 namespace base {
+static AssertHandler s_handler{};
 
+void SetAssertHandler(AssertHandler handler) {
+  s_handler = handler;
+}
+
+void InvokeAssertHandler() {
+  s_handler();
+}
 }  // namespace base

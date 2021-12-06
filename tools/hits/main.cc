@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
   const base::Path csv_path(kInputFileName);
 
   PatternBucket bucket;
-  TK_BUGCHECK(ParseCSVList(csv_path, bucket));
+  BUGCHECK(ParseCSVList(csv_path, bucket));
 
   constexpr char kExeName[] =
       R"(D:\Games\steamapps\common\Skyrim Special Edition\SkyrimSE.exe.unpacked.exe)";

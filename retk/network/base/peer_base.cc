@@ -19,7 +19,7 @@ void PeerBase::Touch() {
 }
 
 void PeerBase::Kill() {
-  TK_BUGCHECK(immortal);
+  BUGCHECK(immortal);
 
   last_seen = kPeerTimeout + 1s;
 }

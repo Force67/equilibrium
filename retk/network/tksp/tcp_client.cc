@@ -23,7 +23,7 @@ bool Client::Connect(const PeerBase::Adress& remote_address) {
   }
 
 
-  TK_DCHECK(!peer_list_.empty());
+  DCHECK(!peer_list_.empty());
 
   // hacky workaround thing:
   //peer_list_.push_back(std::make_unique<PeerBase>());
@@ -84,7 +84,7 @@ bool Client::Connected() const {
 }
 
 PeerBase& Client::MainPeer() {
-  TK_DCHECK(IsClient());
+  DCHECK(IsClient());
 
   return (*peer_list_[0]);
 }

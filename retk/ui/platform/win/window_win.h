@@ -46,7 +46,7 @@ class WindowWin final : public Window, MessageMapInterface {
   // Sets the class style to use. The default is CS_DBLCLKS.
   void set_initial_class_style(UINT class_style) {
     // We dynamically generate the class name, so don't register it globally!
-    TK_DCHECK((class_style & CS_GLOBALCLASS), 0u);
+    DCHECK((class_style & CS_GLOBALCLASS), 0u);
     class_style_ = class_style;
   }
 

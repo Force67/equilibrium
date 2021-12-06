@@ -18,7 +18,7 @@ void Flexbox::Build() {
       break;
     }
     default:
-      TK_IMPOSSIBLE;
+      IMPOSSIBLE;
   }
 }
 }  // namespace ui

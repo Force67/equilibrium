@@ -7,7 +7,7 @@
 
 NtExecutableScanner::NtExecutableScanner(const base::Path& path) {
   LoadFromFile(path);
-  TK_BUGCHECK(buffer_);
+  BUGCHECK(buffer_);
 }
 NtExecutableScanner::~NtExecutableScanner() {}
 

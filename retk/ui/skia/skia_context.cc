@@ -73,11 +73,11 @@ void SkiaContext::Resize(SkPoint screen_size) {
                  colorType, nullptr, nullptr)
                  .release();
 
-  TK_DCHECK(canvas());
+  DCHECK(canvas());
 }
 
 void SkiaContext::SetDpiAware(void* window_handle, bool scale) {
-  TK_DCHECK(window_handle && surface_);
+  DCHECK(window_handle && surface_);
   // enable dpi scaling.
   // TODO: handle monitor switching
   // see: https://gitter.im/AvaloniaUI/Avalonia?at=5802746c891a53016311d46f

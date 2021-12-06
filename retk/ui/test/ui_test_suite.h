@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <gtest/gtest.h>
-#include <base/files/scoped_temp_dir.h>
+#include <base/filesystem/scoped_temp_dir.h>
 
 namespace database {
 

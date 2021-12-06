@@ -94,7 +94,7 @@ void ImguiSkiaLayer::Draw(SkCanvas* canvas) {
         drawCmd->UserCallback(drawList, drawCmd);
       } else {
         SkPaint* paint = static_cast<SkPaint*>(drawCmd->TextureId);
-        TK_DCHECK(paint);
+        DCHECK(paint);
 
         canvas->clipRect(
             SkRect::MakeLTRB(drawCmd->ClipRect.x, drawCmd->ClipRect.y,

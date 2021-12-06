@@ -139,7 +139,7 @@ std::string File::ErrorToString(Error error) {
       break;
   }
 
-  TK_IMPOSSIBLE;
+  IMPOSSIBLE;
   return "";
 }
 }  // namespace base

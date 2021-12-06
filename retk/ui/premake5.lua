@@ -9,6 +9,8 @@ local function include_ui()
         "imgui",
     })
     include_skia()
+    -- define our own imgui config file.
+    pubdefines("IMGUI_USER_CONFIG=<ui/imgui/imgui_config.h>")
 end
 
 component("ui")
