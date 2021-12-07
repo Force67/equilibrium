@@ -31,3 +31,7 @@
 [submodule "external/mem"]
 	path = external/mem
 	url = https://github.com/0x1F9F1/mem
+[submodule "external/capstone"]
+	path = external/capstone
+	url = https://github.com/capstone-engine/capstone
+	branch = next

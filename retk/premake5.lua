@@ -2,9 +2,11 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 group("Components")
-include("network")
 include("database")
+include("decompiler")
 include("diffing")
-include("ui")
+include("entitlement")
+include("network")
 include("sync")
 include("tilted_reflection")
+include("ui")

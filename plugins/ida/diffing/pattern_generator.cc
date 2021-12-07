@@ -245,6 +245,7 @@ PatternGenerator::Status PatternGenerator::CreateSignature(
   out.is_data = GetAddressFlags(target_ea) == FF_DATA;
   out.type = diffing::Pattern::ReferenceType::kRef3;
 
+  // level 0 indirection walk
   Status s{Status::kNoReferences};
   if (!out.is_data) {
     if ((s = WalkFunction(target_ea, out)) == Status::kSuccess) {

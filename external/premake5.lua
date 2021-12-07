@@ -18,6 +18,16 @@ function include_skia()
     libdirs(blu.extdir .. "/skia_sdk/lib/release_static")
 end
 
+project("capstone")
+    kind("StaticLib")
+    language("C++")
+    includedirs("./capstone")
+    pubincludedirs("capstone/include")
+    files({
+        "capstone/*.c",
+        "capstone/*.h",
+    })
+    
 project("mbedtls")
     kind("StaticLib")
     language("C")
