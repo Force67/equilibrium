@@ -15,5 +15,7 @@ int main(void) {
   base::InitLogging(
       [](base::LogLevel level, const char* msg) { OutputDebugStringA(msg); });
   Application app;
-  return app.Exec();
+  int rc = app.Exec();
+  __debugbreak();
+  return rc;
 }

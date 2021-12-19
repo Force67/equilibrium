@@ -318,7 +318,9 @@ void DrawDialogHeader(SkCanvas* c) {
   p.setColor(SK_ColorWHITE);
   auto bounds = SkRect::MakeXYWH(300.f, 300.f, 50.f, 50.f);
   c->drawRoundRect(bounds, 10.f, 10.f, p);
+}
 
+void DrawCard() {
 
 }
 
