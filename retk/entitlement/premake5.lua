@@ -6,7 +6,9 @@ component("entitlement")
         "*.cc",
         "*.h",
     })
-    dependencies("fmtlib")
+    dependencies({
+        "fmtlib", 
+        "mbedtls"})
     -- header only:
     includedirs({
         blu.extdir .. "/rapidjson/include",

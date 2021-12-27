@@ -4,8 +4,6 @@
 #pragma once
 
 #include <arch.h>
-#include <export.h>
-#include <compiler.h>
 #include <base/containers/init_chain.h>
 
 namespace base {
@@ -16,6 +14,8 @@ struct BASE_EXPORT Feature : InitChain<Feature> {
 
   constexpr STRONG_INLINE Feature(const char* name, Flags f, bool enabled)
       : InitChain(this), name(name), flags(f), enabled(enabled) {}
+
+  inline operator bool() { return enabled; }
 
   const char* name;
   Flags flags;

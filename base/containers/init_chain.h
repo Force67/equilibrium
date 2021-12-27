@@ -4,6 +4,7 @@
 // Guarantees good assembly quality.
 #pragma once
 
+#include <export.h>
 #include "base/compiler.h"
 
 namespace base {

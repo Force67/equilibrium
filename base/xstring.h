@@ -28,11 +28,14 @@ base::XString<CharType>::XString(const char* const) {
 }
 */ 
 
+// Aliased to standard CXX types for now.
 template <typename T>
 using XString = std::basic_string<T>;
-
+template <typename T>
+using XStringRef = std::basic_string_view<T>;
 
 using String = XString<char>;
+using StringRef = XStringRef<char>;
 
 //static_assert(sizeof(XString<char>) == sizeof(uintptr_t) * 2);
 
