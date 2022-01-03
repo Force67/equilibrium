@@ -21,16 +21,6 @@ It also comes with integrations (plugins) for IDA Pro and X64Dbg.
 
 # Building
 
-First clone the repo, like below:
-```
-git clone https://github.com/Force67/RETK.git
-cd RETK
-git submodule update --init
-```
-Afterwards, execute pmake.cmd or pmake.sh depending on your operating system in order to generate the files required for building. You will find them in the `./out/` directory.
-
-## Special requirements for the integration plugins:
-
 For building the IDA plugin, you'll need a copy of the IDA plugin sdk and Qt 5.6.3, which you can find [here](https://download.qt.io/new_archive/qt/5.6/5.6.3/)
 
 # Installation

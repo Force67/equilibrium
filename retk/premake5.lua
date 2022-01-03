@@ -4,3 +4,7 @@
 push_scope("RETK")
 include("loader")
 include("main")
+include("sync_server/dedi_server")
+include("sync_server/server")
+include("integrations/ida")
+include("integrations/x64dbg")

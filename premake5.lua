@@ -54,7 +54,7 @@ filter{}
 -- This is here rather temporarily
 defines("PROJECT_NAME=\"%{prj.name}\"")    
 
-workspace("RETK")
+workspace("Equilibrium")
     configurations({
         "Debug",
         "DebugAsan",
@@ -72,11 +72,3 @@ workspace("RETK")
     include("./components")
     include("./retk")
     include("./tools")
-
-    group("Plugins")
-    include("plugins/ida")
-    include("plugins/x64dbg")
-
-    group("Server")
-    include("sync_server/dedi_server")
-    include("sync_server/server")
