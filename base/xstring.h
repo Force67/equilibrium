@@ -1,6 +1,6 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
-// XString implementation - our better optimized string class.
+// XString implementation - our optimized string class.
 #pragma once
 
 #include <memory>

@@ -92,6 +92,9 @@ char EncodeProductCode() {
 // i8 version
 // 
 
+// entitlement_block.cc
+// key_file_writer.cc
+
 struct License {
   // Base64 begin:
   i8 version;
@@ -99,7 +102,7 @@ struct License {
   u16 reserved;
   u64 start_date;
   u64 end_date;
-  // These are all rounded.
+  // These are all rounded. up
   base::String issuing_authority; // VH-Tech by default
   base::String licensee_name;
   base::String payload;

@@ -16,7 +16,7 @@
   static void On##name(GLFWwindow* window, __VA_ARGS__) {                \
     WindowGlfw* self =                                                   \
         reinterpret_cast<WindowGlfw*>(glfwGetWindowUserPointer(window)); \
-    assert(self);                                                        \
+    BUGCHECK(self);                                                      \
     self->Handle##name(__VA_ARGS__);                                     \
   }                                                                      \
                                                                          \
@@ -29,7 +29,7 @@ struct GlfwContextHolder {
 };
 
 // This class is named 'WindowGlfw' so we can avoid collisions with
-// glfw's window struct name
+// GLFW's window struct name
 class WindowGlfw {
  public:
   explicit WindowGlfw(int width, int height);
