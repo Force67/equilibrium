@@ -69,8 +69,8 @@ workspace("RETK")
     -- so 'dependencies' can link against them
     include("./external")
     include("./base")
+    include("./components")
     include("./retk")
-    include("./apps")
     include("./tools")
 
     group("Plugins")

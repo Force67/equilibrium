@@ -2,9 +2,15 @@
 -- For licensing information see LICENSE at the root of this distribution.
 -- This implements the component model used for the buildsystem.
 
+scope_name = "Components"
+
+function push_scope(name)
+    scope_name = name
+end
+
 -- Declare a component; use this in place of 'project'
 function component(name)
-    group("Components/" .. name)
+    group(scope_name .. "/" .. name)
     project(name)
         kind("StaticLib")
         includedirs({
@@ -21,7 +27,7 @@ end
 -- the name follows the following scheme component_name:test_name
 function unittest(name)
     -- convert seperator into path
-    group("Components/" .. string.gsub(name, ":", "/"))
+    group(scope_name .. "/" .. string.gsub(name, ":", "/"))
     local pname = string.match(name, ":(.*)") or name
     project(pname)
         kind("ConsoleApp")

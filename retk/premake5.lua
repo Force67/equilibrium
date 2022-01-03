@@ -1,13 +1,6 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-group("Components")
-include("database")
-include("decompiler")
-include("diffing")
-include("entitlement")
+push_scope("RETK")
 include("loader")
-include("network")
-include("sync")
-include("tilted_reflection")
-include("ui")
+include("main")
