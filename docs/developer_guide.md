@@ -1,5 +1,5 @@
 # About the build system
-Equilibrium framework is using a customized build system built ontop of premake5. Check out `build/` for more info
+Equilibrium framework is using a customized build system built on top of premake5. Check out `build/` for more info
 
 ## Dependency management
 Dependencies generally go into the toplevel `external/` directory. They can be configured using the following pub_ functions, which mark given data as transitive:
