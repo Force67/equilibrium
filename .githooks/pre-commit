@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for FILE in $(git diff --cached --name-only | grep -E '.*\.(c|cc|cpp|h|hpp|in|inl)')
+do
+    clang-format -style=file -i $FILE
+done
