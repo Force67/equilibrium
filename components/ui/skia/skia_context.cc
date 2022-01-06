@@ -85,6 +85,8 @@ void SkiaContext::SetDpiAware(void* window_handle, bool scale) {
   canvas->restoreToCount(0);
   canvas->save();
 
+  canvas->drawLine()
+
   if (scale) {
     dpi_scale_ = GetCurrentDpiScalingFactor(window_handle);
     canvas->scale(dpi_scale_.fX, dpi_scale_.fY);

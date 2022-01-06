@@ -1,9 +1,6 @@
 # `retk/`
-<p align="center"><img src="https://i.imgur.com/lOLpWuF.png" width="150" height="150"></p>
+# ![Logo](https://i.imgur.com/W7tqzZg.png) **R**everse **E**ngineering **T**ool**K**it
 
-# **R**everse **E**ngineering **T**ool**K**it
-> By [Force67](https://github.com/Force67) &middot; [Demo](https://i.imgur.com/pwlmRZx.png)
-> 
 **RETK** is tool for decompiling applications back to human readable code. 
 It also comes with integrations (plugins) for IDA Pro and X64Dbg.
 
@@ -30,4 +27,4 @@ Copy `x64dbg_RETK` into the `X64Dbg/release/x64 (or x32)/plugins` directory.
 
 # Credits
 * [Freeeaky](https://github.com/Freeeaky) for his original [sync plugin](https://github.com/Nomad-Group/IDASync), which was one of the inspirations for creating RETK.
-* [Fontawesome](https://fontawesome.com) for icons used in the IDA plugin!
+* [Fontawesome](https://fontawesome.com) for icons used in the IDA plugin.
