@@ -65,7 +65,6 @@ void SkiaContext::Resize(SkPoint screen_size) {
   if (surface_) {
     delete surface_;
     surface_ = nullptr;
-
   }
 
   surface_ = SkSurface::MakeFromBackendRenderTarget(
@@ -85,7 +84,7 @@ void SkiaContext::SetDpiAware(void* window_handle, bool scale) {
   canvas->restoreToCount(0);
   canvas->save();
 
-  //canvas->drawLine()
+  // canvas->drawLine()
 
   if (scale) {
     dpi_scale_ = GetCurrentDpiScalingFactor(window_handle);
