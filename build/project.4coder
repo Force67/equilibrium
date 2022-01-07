@@ -1,0 +1,61 @@
+version(1);
+project_name = "Equilibrium";
+open_recursively=true;
+patterns = {
+"*.c",
+"*.cc",
+"*.cpp",
+"*.h",
+"*.hpp",
+"*.bat",
+"*.sh",
+"*.4coder",
+"*.lua",
+};
+
+blacklist_patterns = {
+".*",
+"./external/.*"
+};
+
+load_paths = {
+ { { {"../", .relative = true, .recursive = true, } }, .os = "win" },
+ { { {"../", .relative = true, .recursive = true, } }, .os = "linux" },
+ { { {"../", .relative = true, .recursive = true, } }, .os = "mac" },
+};
+
+premake_win = "call ../premake.bat";
+
+command_list = {
+ { 
+   .name = "build_debug",
+   .out = "*compile_debug*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = false,
+   .cmd = {
+          {"build_win.cmd", .os = "win"},
+          {"make", .os = "linux"},
+          {"make", .os = "mac"},
+   },
+ },
+ { 
+   .name = "build_release",
+   .out = "*compile_release*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = false,
+   .cmd = {
+          {"build_win.cmd", .os = "win"},
+          {"make", .os = "linux"},
+          {"make", .os = "mac"},
+   },
+ },
+ { 
+   .name = "premake",
+   .out = "*premake*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = false,
+   .cmd = {
+          {"premake_win.bat", .os = "win"},
+          {"make", .os = "linux"},
+          {"make", .os = "mac"},
+   },
+ },
+};
+
+fkey_command[1] = "build_debug";
+fkey_command[2] = "build_release";
+fkey_command[4] = "premake";
