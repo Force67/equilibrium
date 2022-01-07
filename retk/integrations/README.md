@@ -1,6 +1,6 @@
-# `plugins/`
+# `integrations/`
 
-**Various sync clients for different programs**
+**RETK Sync client implemenations for other platforms**
 
-* [**idaplugin/**](./idaplugin): The original NODA plugin, which adds sync and much more for IDA Pro.
-* [**xdbgplugin/**](./xdbgplugin): A plugin which provides Noda sync to the popular X64Dbg debugger.
+* [**ida/**](./ida): Adds sync and more custom stuff for IDA Pro.
+* [**x64dbg/**](./x64dbg): Sync client for the X64Dbg debugger.

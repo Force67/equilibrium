@@ -21,3 +21,8 @@ using i64 = int64_t;
 
 using byte = u8;
 }  // namespace arch_types
+
+// In case of incompatibility with library custom types.
+#ifndef BASE_FORBID_ARCHTYPES
+using namespace arch_types;
+#endif

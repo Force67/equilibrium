@@ -5,10 +5,10 @@ project("App_Main")
     kind("WindowedApp")
     include_meta()
     files({
-        "retk_full/retk_full.rc",
-        "retk_full/retk.manifest",
-        "retk_full/**.cc",
-        "retk_full/**.h"
+        "retk_full.rc",
+        "retk.manifest",
+        "**.cc",
+        "**.h"
     })
     dependencies({
         "fmtlib",
@@ -35,6 +35,7 @@ project("App_Main")
     includedirs({
         ".",
         "../",
-        "../retk",
+        "../../",
+        "../../components"
     })
     include_skia()

@@ -3,21 +3,6 @@
 
 include("./build")
 
-local function insertASAN(prj)
-	premake.w('<EnableASAN>true</EnableASAN>')
-end
-
--- todo: move this
-premake.override(premake.vstudio.vc2010.elements, "configurationProperties", function(base, cfg)
-	local calls = base(cfg)
-
-    if premake.vstudio.projectPlatform(cfg) == "DebugAsan" then
-        table.insertafter(calls, premake.vstudio.vc2010.useDebugLibraries, insertASAN)
-    end
-
-	return calls
-end)
-
 filter("architecture:x86_64")
     targetsuffix("_64")
 
@@ -25,8 +10,13 @@ filter("configurations:Debug")
     defines("TK_DBG")
 
 filter("configurations:DebugAsan")
-    defines("TK_DBG")
+    flags({
+        "NoRuntimeChecks", 
+        "NoIncrementalLink"})
+    editAndContinue("Off")
+    enableASAN("true")
     flags("NoIncrementalLink")
+    defines("TK_DBG")
 
 filter("configurations:Release")
     runtime("Release")

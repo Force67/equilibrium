@@ -80,3 +80,5 @@
 
 // for compatibility with chromium source code
 #define WARN_UNUSED_RESULT
+
+// TODO: CACHELINE_SIZE 64

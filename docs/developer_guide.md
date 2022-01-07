@@ -17,5 +17,4 @@ component("<componentname>")
         "*.h",
     })
     dependencies("fmtlib") -- list of dependencies to link against and resolve transitive data from
-    -- header only:
 ```

@@ -15,8 +15,8 @@ struct LicenseInfo {
   base::String payload;
 };
 
-https
-    :  // github.com/chromium/chromium/blob/78a418673dacb3ed95482a33ff593af0ea9da0f6/ash/components/arc/mojom/oemcrypto.mojom#L152
+//https
+  //  :  // github.com/chromium/chromium/blob/78a418673dacb3ed95482a33ff593af0ea9da0f6/ash/components/arc/mojom/oemcrypto.mojom#L152
 
 // Returns base64 encoded data so it also remains human readable in the .key
 // file

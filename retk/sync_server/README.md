@@ -1,7 +1,7 @@
 # `sync_server/`
 
-**Sync Server implementation modules.**
+Database sync server.
 
-* [**dedicated_main/**](./dedicated_main): Dedicated server application.
-* [**server/**](./server): Core server implementation.
+* [**dedicated_main/**](./dedicated_main): Dedicated server runner.
+* [**server/**](./server): Server implementation.
 * [**tests/**](./tests): Various tests for the server stack.
