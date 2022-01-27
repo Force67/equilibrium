@@ -5,8 +5,4 @@
 
 namespace loader {
 
-std::unique_ptr<loader::Data> LoaderFactory::LoadFile(const base::File& f) {
-
-}
-
 }  // namespace loader

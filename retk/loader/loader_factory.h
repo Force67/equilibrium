@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <loader/loader.h>
+#include <loader/file_classifier.h>
 
 namespace loader {
 // The purpose of this class is to automatically select the best matching file
@@ -23,6 +24,6 @@ class LoaderFactory {
   LoaderFactory() = default;
 
   // in an ideal world this returns multiple close matches
-  std::unique_ptr<Data> LoadFile(const base::File& f);
+  std::unique_ptr<Data> LoadFile(const FileClassificationInfo& type_info);
 };
 }  // namespace loader

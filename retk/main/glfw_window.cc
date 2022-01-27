@@ -17,7 +17,7 @@ namespace {
 HMONITOR tracked_monitor_handle = nullptr;
 
 void error_callback(int error, const char* description) {
-  fputs(description, stderr);
+  LOG_ERROR("GLFW error: {}", description);
 }
 }  // namespace
 

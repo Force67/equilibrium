@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "base/export.h"
-#include "base/xstring.h"
+#include <base/export.h>
+#include <base/xstring.h>
 
 namespace base {
 
@@ -20,7 +20,7 @@ class BASE_EXPORT Path {
 #define PATH_SEP_MACRO '/'
 #endif
 
-  using BufferType = base::XString<CharType>;
+  using BufferType = base::BasicString<CharType>;
 
   Path() = default;
   // from raw c string

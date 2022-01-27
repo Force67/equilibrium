@@ -10,10 +10,11 @@
 // https://gist.github.com/ad8e/dd150b775ae6aa4d5cf1a092e4713add
 
 #include <base/check.h>
-// hAHA TEstr
-void m(){}
+#include <base/external/folly/fbstring.h>
 
-int main(void) {
+int main() {
+  folly::fbstring str = "Test";
+
   base::InitLogging(
       [](base::LogLevel level, const char* msg) { OutputDebugStringA(msg); });
   Application app;

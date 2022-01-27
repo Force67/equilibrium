@@ -78,7 +78,62 @@
 #define ATTR_UNLIKELY
 #endif
 
+// requires a rename later on.
+#if defined(__GNUC__) || defined(__clang__)
+// Clang & GCC
+#define FOLLY_PUSH_WARNING _Pragma("GCC diagnostic push")
+#define FOLLY_POP_WARNING _Pragma("GCC diagnostic pop")
+#define FOLLY_GNU_DISABLE_WARNING_INTERNAL2(warningName) #warningName
+#define FOLLY_GNU_DISABLE_WARNING(warningName) \
+  _Pragma(                                     \
+      FOLLY_GNU_DISABLE_WARNING_INTERNAL2(GCC diagnostic ignored warningName))
+#ifdef __clang__
+#define FOLLY_CLANG_DISABLE_WARNING(warningName) \
+  FOLLY_GNU_DISABLE_WARNING(warningName)
+#define FOLLY_GCC_DISABLE_WARNING(warningName)
+#else
+#define FOLLY_CLANG_DISABLE_WARNING(warningName)
+#define FOLLY_GCC_DISABLE_WARNING(warningName) \
+  FOLLY_GNU_DISABLE_WARNING(warningName)
+#endif
+#define FOLLY_MSVC_DISABLE_WARNING(warningNumber)
+#elif defined(_MSC_VER)
+#define FOLLY_PUSH_WARNING __pragma(warning(push))
+#define FOLLY_POP_WARNING __pragma(warning(pop))
+// Disable the GCC warnings.
+#define FOLLY_GNU_DISABLE_WARNING(warningName)
+#define FOLLY_GCC_DISABLE_WARNING(warningName)
+#define FOLLY_CLANG_DISABLE_WARNING(warningName)
+#define FOLLY_MSVC_DISABLE_WARNING(warningNumber) \
+  __pragma(warning(disable : warningNumber))
+#else
+#define FOLLY_PUSH_WARNING
+#define FOLLY_POP_WARNING
+#define FOLLY_GNU_DISABLE_WARNING(warningName)
+#define FOLLY_GCC_DISABLE_WARNING(warningName)
+#define FOLLY_CLANG_DISABLE_WARNING(warningName)
+#define FOLLY_MSVC_DISABLE_WARNING(warningNumber)
+#endif
+
 // for compatibility with chromium source code
 #define WARN_UNUSED_RESULT
 
+#define FALLTHROUGH [[fallthrough]]		
+
+
 // TODO: CACHELINE_SIZE 64
+
+// TODO: Evaluate if this belongs here.
+namespace base {
+#ifdef _MSC_VER
+// It's MSVC, so we just have to guess ... and allow an override
+#ifdef FOLLY_ENDIAN_BE
+constexpr auto kIsLittleEndian = false;
+#else
+constexpr auto kIsLittleEndian = true;
+#endif
+#else
+constexpr auto kIsLittleEndian = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
+#endif
+constexpr auto kIsBigEndian = !kIsLittleEndian;
+}  // namespace folly

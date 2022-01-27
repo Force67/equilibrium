@@ -22,8 +22,7 @@ void RenderImGuiThisFrame(SkCanvas* c) {
   static int counter = 0;
 
   ImGui::SetNextWindowSize({300.f, 300.f});
- ImGui::Begin("Ui Debug Stats");
- 
+  ImGui::Begin("Ui Debug Stats");
 
   ImGui::Text("Local bounds: %f, %f", c->getLocalClipBounds().width(),
               c->getLocalClipBounds().height());
@@ -128,13 +127,13 @@ void DrawDropShadow(SkCanvas* c) {
   SkIRect cropRect = SkIRect::MakeXYWH(0.f, 30.f, 1000.f, 5.f);
   sk_sp<SkImageFilter> input(SkImageFilters::Offset(0, 0, nullptr, &cropRect));
 
-    // draw dropshadow
+  // draw dropshadow
   SkImageFilters::DropShadow(SK_Scalar1, SK_Scalar1, SK_Scalar1, SK_Scalar1,
                              SK_ColorGREEN, input, cropRect);
 }
 
 void DrawMenubar(SkCanvas* c, SkFont& font) {
-    // simple items
+  // simple items
   const char* g_textRows[] = {"File",    "Edit",    "Jump",
                               "Search",  "View",    "Debugger",
                               "Options", "Windows", "Help"};
@@ -320,9 +319,7 @@ void DrawDialogHeader(SkCanvas* c) {
   c->drawRoundRect(bounds, 10.f, 10.f, p);
 }
 
-void DrawCard() {
-
-}
+void DrawCard() {}
 
 // NOTE ON dropShadow
 // https://docs.microsoft.com/en-us/dotnet/api/skiasharp.skimagefilter.createdropshadow?view=skiasharp-2.80.2
