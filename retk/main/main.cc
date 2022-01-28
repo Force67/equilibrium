@@ -12,11 +12,15 @@
 #include <base/check.h>
 #include <base/external/folly/fbstring.h>
 
-int main() {
-  folly::fbstring str = "Test";
+static void AssertHandler() {
+  // TBD
+}
 
+int main() {
   base::InitLogging(
       [](base::LogLevel level, const char* msg) { OutputDebugStringA(msg); });
+  base::SetAssertHandler(AssertHandler);
+
   Application app;
   int rc = app.Exec();
   __debugbreak();

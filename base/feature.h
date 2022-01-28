@@ -29,7 +29,7 @@ inline Feature::Flags operator|(Feature::Flags lhs, Feature::Flags rhs) {
 }
 
 // Use as follows:
-// static const Feature myFeature("Test", Feature::Flags::kHidden, true);
+// static const Feature myFeature{"Test", Feature::Flags::kHidden, true};
 
 // access all features like:
 // Feature::VisitAll([](const Feature* f) {});

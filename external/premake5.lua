@@ -27,6 +27,24 @@ project("capstone")
         "capstone/*.c",
         "capstone/*.h",
     })
+
+project("zydis")
+    kind("StaticLib")
+    language("C++")
+    pubincludedirs({
+        "zydis/include",
+        "zydis/dependencies/zycore/include",
+    })
+    includedirs("zydis/src")
+    pubdefines({
+        "ZYDIS_STATIC_BUILD",
+        "ZYCORE_STATIC_BUILD"})
+    files({
+        "zydis/src/*.c",
+        "zydis/include/**.h",
+        "zydis/dependencies/zycore/include/**.h",
+        "zydis/dependencies/zycore/src/**.c",
+    })
     
 project("mbedtls")
     kind("StaticLib")

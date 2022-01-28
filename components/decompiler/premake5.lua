@@ -9,7 +9,8 @@ component("decompiler")
     })
     dependencies({
         "fmtlib",
-        "capstone"
+        "capstone",
+        "zydis"
     })
     -- header only:
     includedirs({

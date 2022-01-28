@@ -118,8 +118,7 @@
 // for compatibility with chromium source code
 #define WARN_UNUSED_RESULT
 
-#define FALLTHROUGH [[fallthrough]]		
-
+#define FALLTHROUGH [[fallthrough]]
 
 // TODO: CACHELINE_SIZE 64
 
@@ -136,4 +135,4 @@ constexpr auto kIsLittleEndian = true;
 constexpr auto kIsLittleEndian = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
 #endif
 constexpr auto kIsBigEndian = !kIsLittleEndian;
-}  // namespace folly
+}  // namespace base

@@ -24,5 +24,7 @@ struct FileClassificationInfo {
 };
 
 // TODO(Force): need some span
-bool ClassifyFile(const u8* buffer, size_t buf_len, FileClassificationInfo* info);
+bool ClassifyFile(const u8* buffer,
+                  size_t buf_len,
+                  FileClassificationInfo* info);
 }  // namespace loader

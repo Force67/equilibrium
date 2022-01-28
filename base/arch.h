@@ -3,6 +3,7 @@
 // Core type definitions to be portable across architectures.
 #pragma once
 
+// TODO: get rid of this include.
 #include <cstdint>
 
 namespace arch_types {

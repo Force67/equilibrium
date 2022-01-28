@@ -61,6 +61,7 @@ void PrintLegals() {
   LOG_INFO(kLegalText);
 }
 
+// Note: This is the only function that may not assert.
 void InitLogging(LogHandler callback, bool surpress_logo) {
   s_callback = callback;
 

@@ -3,6 +3,4 @@
 
 #include <loader/loader_factory.h>
 
-namespace loader {
-
-}  // namespace loader
+namespace loader {}  // namespace loader
