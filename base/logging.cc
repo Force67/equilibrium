@@ -39,8 +39,7 @@ void Core_PrintLogMessage(LogLevel ll,
     s_callback(ll, fmt.c_str());
 }
 
-void Core_PrintLogMessage(LogLevel ll,
-                          const char* text) {
+void Core_PrintLogMessage(LogLevel ll, const char* text) {
   if (s_callback)
     s_callback(ll, text);
 }
@@ -48,9 +47,9 @@ void Core_PrintLogMessage(LogLevel ll,
 void PrintLogMessagePF(LogLevel ll, const char* format...) {
   va_list ap;
   va_start(ap, format);
-  
+
   char buf[1024]{};
-  vsprintf(buf, format, ap); 
+  vsprintf(buf, format, ap);
   va_end(ap);
 
   if (s_callback)

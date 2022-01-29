@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Simple cxx wrapper around a zydis instance.
 
+#include <base/check.h>
 #include <decompiler/zydis/zydis_disassembler.h>
 
 namespace decompiler {
@@ -32,6 +33,8 @@ void ZydisDisassembler::SetUp(MachineType mt) {
   if (TargetInfo* info = GetZydisTargetInfo(mt)) {
     ZydisDecoderInit(&decoder_, info->mode, info->stack_width);
   }
+
+  BUGCHECK(false);
 }
 
 void ZydisDisassembler::Teardown() {

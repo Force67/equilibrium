@@ -25,6 +25,6 @@ class ZydisDisassembler {
  private:
   ZydisDecoder decoder_{};
   ZydisDecodedInstruction instruction_{};
-  ZydisDecodedOperand operands_[ZYDIS_MAX_OPERAND_COUNT_VISIBLE]{};
+  ZydisDecodedOperand operands_[ZYDIS_MAX_OPERAND_COUNT_VISIBLE]{}; 
 };
 }  // namespace decompiler

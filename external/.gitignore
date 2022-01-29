@@ -6,3 +6,6 @@ skia_sdk
 
 # Copy this from the root of your ida directory
 idasdk75
+
+# Get the latest one from zig distribution
+llvm
