@@ -24,17 +24,18 @@ namespace capstone2llvmir {
  */
 llvm::Value* generateValueNegate(llvm::IRBuilder<>& irb, llvm::Value* val);
 
-llvm::IntegerType* getIntegerTypeFromByteSize(llvm::Module* module, unsigned sz);
+llvm::IntegerType* getIntegerTypeFromByteSize(llvm::Module* module,
+                                              unsigned sz);
 
 llvm::Type* getFloatTypeFromByteSize(llvm::Module* module, unsigned sz);
 
 /**
  * Generate if-then statement at the current insert point of @p irb builder.
  * @code{.cpp}
-	if (cond) {
-	  // body
-	}
-	// after
+        if (cond) {
+          // body
+        }
+        // after
  * @endcode
  * @param cond Value used as condition in @c if() statement.
  * @param irb  Reference to IR builder. After if-then is generated,
@@ -43,32 +44,29 @@ llvm::Type* getFloatTypeFromByteSize(llvm::Module* module, unsigned sz);
  * @return IR builder whose insert point is set to if-then body BB's
  *         terminator instruction. Use this builder to fill the body.
  */
-llvm::IRBuilder<> generateIfThen(
-		llvm::Value* cond,
-		llvm::IRBuilder<>& irb);
+llvm::IRBuilder<> generateIfThen(llvm::Value* cond, llvm::IRBuilder<>& irb);
 
 /**
  * Same as @c generateIfThen() but if @p cond is @c true, body is skipped:
  * @code{.cpp}
-	if (!cond) {
-	  // body
-	}
-	// after
+        if (!cond) {
+          // body
+        }
+        // after
  * @endcode
  */
-llvm::IRBuilder<> generateIfNotThen(
-		llvm::Value* cond,
-		llvm::IRBuilder<>& irb);
+llvm::IRBuilder<> generateIfNotThen(llvm::Value* cond, llvm::IRBuilder<>& irb);
 
 /**
- * Generate if-then-else statement at the current insert point of @p irb builder.
+ * Generate if-then-else statement at the current insert point of @p irb
+ builder.
  * @code{.cpp}
-	if (cond) {
-	  // bodyIf
-	} else {
-	  // bodyElse
-	}
-	// after
+        if (cond) {
+          // bodyIf
+        } else {
+          // bodyElse
+        }
+        // after
  * @endcode
  * @param cond Value used as condition in @c if() statement.
  * @param irb  Reference to IR builder. After if-then-else is
@@ -79,17 +77,17 @@ llvm::IRBuilder<> generateIfNotThen(
  *         Use these builders to fill the bodies.
  */
 std::pair<llvm::IRBuilder<>, llvm::IRBuilder<>> generateIfThenElse(
-		llvm::Value* cond,
-		llvm::IRBuilder<>& irb);
+    llvm::Value* cond,
+    llvm::IRBuilder<>& irb);
 
 /**
  * Generate while statement at the current insert point of @p irb builder.
  * @code{.cpp}
-	// before
-	while (cond) {
-	  // body
-	}
-	// after
+        // before
+        while (cond) {
+          // body
+        }
+        // after
  * @endcode
  * @param branch Reference to a branch instruction pointer that will be filled
  *               with a while's conditional branch, whose condition is set to
@@ -103,10 +101,10 @@ std::pair<llvm::IRBuilder<>, llvm::IRBuilder<>> generateIfThenElse(
  *         Use these builders to fill while's condition and body.
  */
 std::pair<llvm::IRBuilder<>, llvm::IRBuilder<>> generateWhile(
-		llvm::BranchInst*& branch,
-		llvm::IRBuilder<>& irb);
+    llvm::BranchInst*& branch,
+    llvm::IRBuilder<>& irb);
 
-} // namespace capstone2llvmir
-} // namespace retdec
+}  // namespace capstone2llvmir
+}  // namespace retdec
 
 #endif
