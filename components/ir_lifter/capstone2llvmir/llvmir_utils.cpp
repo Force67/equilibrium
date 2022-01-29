@@ -44,23 +44,7 @@ llvm::IRBuilder<> _generateIfThen(llvm::Value* cond,
                                   bool reverse) {
   if (auto* ci = llvm::dyn_cast<llvm::ConstantInt>(cond)) {
     if (ci->isZero()) {
-      if (reverse) {
-        // llvm::BranchInst::Create(after, body, cond, ipBb->getTerminator());
-        // cond == false -> never jump to after -> body always executed
-        return irb;
-      } else {
-        // llvm::BranchInst::Create(body, after, cond, ipBb->getTerminator());
-        // todo: cond == false -> never jump to body -> body never executed
-      }
-    } else {
-      if (reverse) {
-        // llvm::BranchInst::Create(after, body, cond, ipBb->getTerminator());
-        // todo: cond == true -> always jump to after -> body never executed
-      } else {
-        // llvm::BranchInst::Create(body, after, cond, ipBb->getTerminator());
-        // cond == true -> always jump to body -> body always executed
-        return irb;
-      }
+      return llvm::IRBuilder<>(irb.getContext());
     }
   }
 

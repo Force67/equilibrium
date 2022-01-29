@@ -6,10 +6,6 @@
 
 #include "capstone2llvmir/capstone2llvmir.h"
 
-#include "capstone2llvmir/arm/arm_impl.h"
-#include "capstone2llvmir/arm64/arm64_impl.h"
-#include "capstone2llvmir/mips/mips_impl.h"
-#include "capstone2llvmir/powerpc/powerpc_impl.h"
 #include "capstone2llvmir/x86/x86_impl.h"
 
 namespace retdec {
@@ -79,44 +75,37 @@ Capstone2LlvmIrTranslator::createArch(cs_arch a,
 std::unique_ptr<Capstone2LlvmIrTranslator> Capstone2LlvmIrTranslator::createArm(
     llvm::Module* m,
     cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorArm_impl>(m, CS_MODE_ARM,
-                                                             extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createThumb(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorArm_impl>(m, CS_MODE_THUMB,
-                                                             extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createArm64(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorArm64_impl>(m, CS_MODE_ARM,
-                                                               extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createMips32(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorMips_impl>(m, CS_MODE_MIPS32,
-                                                              extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createMips64(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorMips_impl>(m, CS_MODE_MIPS64,
-                                                              extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createMips3(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorMips_impl>(m, CS_MODE_MIPS3,
-                                                              extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createMips32R6(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorMips_impl>(
-      m, CS_MODE_MIPS32R6, extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
@@ -139,20 +128,17 @@ Capstone2LlvmIrTranslator::createX86_64(llvm::Module* m, cs_mode extra) {
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createPpc32(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorPowerpc_impl>(m, CS_MODE_32,
-                                                                 extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createPpc64(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorPowerpc_impl>(m, CS_MODE_64,
-                                                                 extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
 Capstone2LlvmIrTranslator::createPpcQpx(llvm::Module* m, cs_mode extra) {
-  return std::make_unique<Capstone2LlvmIrTranslatorPowerpc_impl>(m, CS_MODE_QPX,
-                                                                 extra);
+  return nullptr;
 }
 
 std::unique_ptr<Capstone2LlvmIrTranslator>
