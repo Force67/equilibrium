@@ -29,7 +29,7 @@ premake_win = "call ../premake.bat";
 command_list = {
  { 
    .name = "build_debug",
-   .out = "*compile_debug*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = false,
+   .out = "*compile_debug*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = true,
    .cmd = {
           {"build_win.cmd", .os = "win"},
           {"make", .os = "linux"},
@@ -38,7 +38,7 @@ command_list = {
  },
  { 
    .name = "build_release",
-   .out = "*compile_release*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = false,
+   .out = "*compile_release*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = true,
    .cmd = {
           {"build_win.cmd", .os = "win"},
           {"make", .os = "linux"},
@@ -46,8 +46,17 @@ command_list = {
    },
  },
  { 
+   .name = "clang_format",
+   .out = "*format*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = false,
+   .cmd = {
+          {"clang-format.exe -i -style=file *.cc *.h *.in", .os = "win"},
+          {"make", .os = "linux"},
+          {"make", .os = "mac"},
+   },
+ },
+ { 
    .name = "premake",
-   .out = "*premake*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = false,
+   .out = "*premake*", .footer_panel = true, .save_dirty_files = true, .cursor_at_end = true,
    .cmd = {
           {"premake_win.bat", .os = "win"},
           {"make", .os = "linux"},
@@ -58,4 +67,5 @@ command_list = {
 
 fkey_command[1] = "build_debug";
 fkey_command[2] = "build_release";
-fkey_command[4] = "premake";
+fkey_command[11] = "clang_format";
+fkey_command[12] = "premake";

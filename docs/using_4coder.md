@@ -14,12 +14,20 @@ indent_width = 2;
 ...
 ```
 ## Opening the project:
-Open 4Coder from the `equilibrium/` directory. Press `Alt+X` to open the command and execute the `load_project/` command.
+Open 4Coder from the `equilibrium/build` directory. Press `Alt+X` to open the command and execute the [load_project](https://4coder.net/docs/load_project.html) command.
 
-Now that the project is opened you can switch files by pressing `CTRL+I`.
+## Interacting with files
 
-TODO: Toggle configuration script...
-## Keybindings
+* Switch/Create files: `CTRL+O`
+* Create a new file: `CTRL+N`
+* Reload a file: `CTRL+SHIFT+O`
+* Save a file: `CTRL+S`
+* Find within file: `CTRL+F`
+* Enumerate all files: `CTRL+I`
+* Create a new directory: `interactive_open`
+
+## Project key bindings
 * `F1` - Build in release
 * `F2` - Build in debug
-* `F4` - Execute premake
+* `F11` - Clang-Format current file
+* `F12` - Execute premake

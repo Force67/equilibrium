@@ -1,6 +1,12 @@
 #!/bin/sh
 
-for FILE in $(git diff --cached --name-only | grep -E '.*\.(c|cc|h|in|inl)')
+# Run two passes
+for FILE in $(git diff --cached --name-only | grep -E '.*\.(c|cc|h|in)')
+do
+    clang-format -style=file -i $FILE
+done
+
+for FILE in $(git diff --cached --name-only | grep -E '.*\.(c|cc|h|in)')
 do
     clang-format -style=file -i $FILE
 done
