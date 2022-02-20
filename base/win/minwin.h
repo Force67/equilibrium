@@ -3,16 +3,6 @@
 // This header helps us to get rid of all instances of <Windows.h>
 #pragma once
 
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-// This file contains defines and typedefs that allow popular Windows types to
-// be used without the overhead of including windows.h.
-
-#ifndef BASE_WIN_WINDOWS_TYPES_H_
-#define BASE_WIN_WINDOWS_TYPES_H_
-
 // Needed for function prototypes.
 #include <concurrencysal.h>
 #include <sal.h>
@@ -361,5 +351,3 @@ inline MSG* ChromeToWindowsType(CHROME_MSG* p) {
 #define SendMessage SendMessageW
 #define SendMessageCallback SendMessageCallbackW
 #define SetCurrentDirectory SetCurrentDirectoryW
-
-#endif  // BASE_WIN_WINDOWS_TYPES_H_

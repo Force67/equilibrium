@@ -20,6 +20,6 @@ int RandomInt(int start, int end) {
 }
 
 uint32_t RandomUint(uint32_t start, uint32_t end) {
-    return XORandomIntegral(start, end);
-  }
+  return XORandomIntegral(start, end);
+}
 }  // namespace base

@@ -29,6 +29,8 @@
 #include "base/posix/eintr_wrapper.h"
 #endif
 
+#include <base/arch.h>
+
 namespace base {
 
 // Create a directory within another directory.
@@ -45,4 +47,6 @@ BASE_EXPORT bool DirectoryExists(const Path& path);
 
 BASE_EXPORT bool CreateNewTempDirectory(const Path::BufferType& prefix,
                                         Path* new_temp_path);
+
+BASE_EXPORT std::unique_ptr<u8[]> LoadFile(const Path& path);
 }  // namespace base

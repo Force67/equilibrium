@@ -2,7 +2,7 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 push_scope("RETK")
-include("loader")
+include("program_loader")
 
 scope_group("App")
 include("main")

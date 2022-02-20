@@ -23,7 +23,7 @@ struct BASE_EXPORT Feature : InitChain<Feature> {
 };
 
 // For concentration of flags
-inline Feature::Flags operator|(Feature::Flags lhs, Feature::Flags rhs) {
+inline constexpr Feature::Flags operator|(Feature::Flags lhs, Feature::Flags rhs) {
   return static_cast<Feature::Flags>(static_cast<arch_types::u32>(lhs) |
                                      static_cast<arch_types::u32>(rhs));
 }

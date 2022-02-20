@@ -1,11 +1,11 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-component("loader")
+component("program_loader")
     files({
-        "*.cc",
-        "*.h",
-        "*.inl"
+        "**.cc",
+        "**.h",
+        "**.in"
     })
     dependencies("fmtlib")
     -- header only:
