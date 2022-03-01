@@ -8,7 +8,9 @@ blu = {}
 require('vstudio')
 
 -- pull in root dependencies
+-- by order of importance.
 include('asan_support.lua')
+include('build_config.lua')
 include('artifacts.lua')
 include('build_info.lua')
 include('dependency.lua')

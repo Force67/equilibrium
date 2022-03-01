@@ -1,7 +1,7 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-local rootdir = os.getcwd() .. '/../out'
+local rootdir = os.getcwd() .. '/../out/' .. _ACTION
 blu.bindir = rootdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
 blu.libdir = rootdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"
 blu.objdir = rootdir .. "/link/%{cfg.platform}/%{cfg.buildcfg}"
@@ -29,3 +29,6 @@ filter("kind:not StaticLib")
     targetdir(blu.bindir)
 filter("kind:StaticLib")
     targetdir(blu.libdir)
+
+-- LEAVE FILTER BARRIER
+filter{}
