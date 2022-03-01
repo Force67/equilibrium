@@ -31,7 +31,8 @@ std::unique_ptr<ProgramLoader> LoaderFactory::CreateLoader(
   if (!is_inbuilt) {
     // destroy is optional
     if (!desc.CreateLoader) {
-      LOG_WARNING("Unable to create loader {} as desc.CreateLoader is not set", desc.name);
+      LOG_WARNING("Unable to create loader {} as desc.CreateLoader is not set",
+                  desc.name);
       return nullptr;
     }
   }

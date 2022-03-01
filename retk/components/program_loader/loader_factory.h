@@ -24,7 +24,7 @@ class LoaderFactory {
 
   // in an ideal world this returns multiple close matches
   std::unique_ptr<ProgramLoader> CreateLoader(const ProgramLoadDescriptor&,
-                                       const FileClassificationInfo&);
+                                              const FileClassificationInfo&);
 
   // Search for user created loaders.
   void CollectCustomLoaders();

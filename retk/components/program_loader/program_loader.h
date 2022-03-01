@@ -51,9 +51,7 @@ struct ProgramLoadDescriptor {
   // combined architectures supported
   Arch arch;
 
-  enum class Flags : u32 {
-    kInternal = 1 << 0, kFix = 1 << 1
-  } flags;
+  enum class Flags : u32 { kInternal = 1 << 0, kFix = 1 << 1 } flags;
 
   // These must be null for an internal loader
   ProgramLoader* (*CreateLoader)();

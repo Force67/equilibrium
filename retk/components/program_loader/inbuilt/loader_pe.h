@@ -12,8 +12,8 @@ class LoaderPE final : public ProgramLoader {
 
   // Inherited via ProgramLoader
   bool Parse(const FileClassificationInfo& intel,
-                     ProgramData& out,
-                     const u8* ptr) override;
+             ProgramData& out,
+             const u8* ptr) override;
 
   static ProgramLoadDescriptor* descriptor();
 };
