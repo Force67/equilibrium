@@ -1,0 +1,47 @@
+// Copyright (C) 2021 Force67 <github.com/Force67>.
+// For licensing information see LICENSE at the root of this distribution.
+// These musn't be in a namespace as they override the global symbols.
+
+#include <memory>
+#include <base/export.h>
+
+BASE_EXPORT void* operator new(size_t size) {
+  return base::XAlloc(size);
+}
+
+BASE_EXPORT void operator delete(void* p) noexcept {
+  base::XFree(p);
+}
+
+BASE_EXPORT void* operator new[](size_t size) {
+  return base::XAlloc(size);
+}
+
+BASE_EXPORT void operator delete[](void* p) noexcept {
+  base::XFree(p);
+}
+
+BASE_EXPORT void* operator new(size_t size, const std::nothrow_t&) noexcept {
+  // TODO(Force): NoThrow shit..
+  return base::XAlloc(size);
+}
+
+BASE_EXPORT void* operator new[](size_t size, const std::nothrow_t&) noexcept {
+  return base::XAlloc(size);
+}
+
+BASE_EXPORT void operator delete(void* p, const std::nothrow_t&) noexcept {
+  base::XFree(p);
+}
+
+BASE_EXPORT void operator delete[](void* p, const std::nothrow_t&) noexcept {
+  base::XFree(p);
+}
+
+BASE_EXPORT void operator delete(void* p, size_t) noexcept {
+  base::XFree(p);
+}
+
+BASE_EXPORT void operator delete[](void* p, size_t) noexcept {
+  base::XFree(p);
+}

@@ -79,6 +79,10 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
 
 #ifdef _MSC_VER
 
+u32 GetCurrentThreadIndex() {
+  return ::GetCurrentThreadId();
+}
+
 // Sets the debugger-visible name of the current thread.
 // Uses trick documented in:
 // https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code

@@ -105,7 +105,8 @@ int File::Write(int64_t offset, const char* data, size_t size) {
   overlapped.OffsetHigh = offset_li.HighPart;
 
   DWORD bytes_written;
-  if (::WriteFile(file_.Get(), data, static_cast<DWORD>(size), &bytes_written, &overlapped))
+  if (::WriteFile(file_.Get(), data, static_cast<DWORD>(size), &bytes_written,
+                  &overlapped))
     return bytes_written;
 
   return -1;
@@ -371,7 +372,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
     create_flags |= FILE_FLAG_SEQUENTIAL_SCAN;
 
   file_.Set(CreateFileW(path.c_str(), access, sharing, NULL, disposition,
-                       create_flags, NULL));
+                        create_flags, NULL));
 
   if (file_.IsValid()) {
     error_details_ = FILE_OK;
