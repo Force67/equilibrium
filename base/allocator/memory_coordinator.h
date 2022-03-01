@@ -20,6 +20,7 @@ class MemoryCoordinator {
 
   void* Allocate(size_t size);
   void Free(void*);
+
  private:
   AllocatorBase* allocators_[3]{};
 };

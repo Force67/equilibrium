@@ -145,4 +145,4 @@ void SetCurrentThreadName(const char* name) {
 
 #endif
 
-}  // namespace utility
+}  // namespace base

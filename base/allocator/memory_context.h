@@ -15,7 +15,7 @@ class MemoryScope {
   MemoryScope(MemoryCategory type, bool force = false);
   ~MemoryScope();
 
-  private:
+ private:
   void Enter(MemoryCategory type);
 
  private:
