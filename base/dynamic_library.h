@@ -15,7 +15,12 @@ class BASE_EXPORT DynamicLibrary {
   bool Load(const base::Path&);
   bool Free();
 
-  void* FindSymbol(const char* symbol_name);
+  void* FindSymbolPointer(const char* symbol_name);
+
+  template<typename T>
+  T FindSymbol(const char* symbol_name) {
+    return reinterpret_cast<T>(FindSymbolPointer(symbol_name));
+  }
 
   bool loaded() const { return handle_; }
 

@@ -4,15 +4,14 @@
 // Alternative name: memory_primitives.
 
 #include <malloc.h>
-#include <base/allocator/xalloc.h>
+#include <base/allocator/allocator_primitives.h>
 
 namespace base {
-void* XAlloc(size_t size) {
+void* Allocate(size_t size) {
   return malloc(size);
 }
 
-void XFree(void* block) {
+void Free(void* block) {
   free(block);
 }
-
 }  // namespace base

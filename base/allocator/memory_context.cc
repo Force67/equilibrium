@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <base/thread.h>
-#include <base/allocator/allocation_context.h>
+#include <base/allocator/memory_context.h>
 
 namespace base {
 static thread_local MemoryCategory current_context{MemoryCategory::kMain};

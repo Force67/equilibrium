@@ -15,11 +15,11 @@ static T XORandomIntegral(T start, T end) {
   return limits(rng);
 }
 
-int RandomInt(int start, int end) {
+i32 RandomInt(i32 start, i32 end) {
   return XORandomIntegral(start, end);
 }
 
-uint32_t RandomUint(uint32_t start, uint32_t end) {
+u32 RandomUint(u32 start, u32 end) {
   return XORandomIntegral(start, end);
 }
 }  // namespace base

@@ -2,11 +2,11 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstdint>
+#include <base/arch.h>
 
 namespace base {
 // FNV-1a 64 bit hash
-using hash_type = uint64_t;
+using hash_type = u64;
 constexpr hash_type fnv_basis = 14695981039346656037ull;
 constexpr hash_type fnv_prime = 1099511628211ull;
 

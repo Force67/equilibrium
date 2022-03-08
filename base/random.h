@@ -2,10 +2,11 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstdint>
+#include <base/arch.h>
+#include <base/export.h>
 
 namespace base {
-int RandomInt(int start = INT_MIN, int end = INT_MAX);
-uint32_t RandomUint(uint32_t start = 0u, uint32_t end = UINT32_MAX);
+BASE_EXPORT i32 RandomInt(i32 start = INT_MIN, i32 end = INT_MAX);
+BASE_EXPORT u32 RandomUint(u32 start = 0u, u32 end = UINT32_MAX);
 
 }  // namespace base

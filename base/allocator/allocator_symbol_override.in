@@ -4,44 +4,45 @@
 
 #include <memory>
 #include <base/export.h>
+#include <base/allocator/allocator_primitives.h>
 
 BASE_EXPORT void* operator new(size_t size) {
-  return base::XAlloc(size);
+  return base::Allocate(size);
 }
 
 BASE_EXPORT void operator delete(void* p) noexcept {
-  base::XFree(p);
+  base::Free(p);
 }
 
 BASE_EXPORT void* operator new[](size_t size) {
-  return base::XAlloc(size);
+  return base::Allocate(size);
 }
 
 BASE_EXPORT void operator delete[](void* p) noexcept {
-  base::XFree(p);
+  base::Free(p);
 }
 
 BASE_EXPORT void* operator new(size_t size, const std::nothrow_t&) noexcept {
   // TODO(Force): NoThrow shit..
-  return base::XAlloc(size);
+  return base::Allocate(size);
 }
 
 BASE_EXPORT void* operator new[](size_t size, const std::nothrow_t&) noexcept {
-  return base::XAlloc(size);
+  return base::Allocate(size);
 }
 
 BASE_EXPORT void operator delete(void* p, const std::nothrow_t&) noexcept {
-  base::XFree(p);
+  base::Free(p);
 }
 
 BASE_EXPORT void operator delete[](void* p, const std::nothrow_t&) noexcept {
-  base::XFree(p);
+  base::Free(p);
 }
 
 BASE_EXPORT void operator delete(void* p, size_t) noexcept {
-  base::XFree(p);
+  base::Free(p);
 }
 
 BASE_EXPORT void operator delete[](void* p, size_t) noexcept {
-  base::XFree(p);
+  base::Free(p);
 }

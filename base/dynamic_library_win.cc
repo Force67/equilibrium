@@ -18,7 +18,7 @@ bool DynamicLibrary::Free() {
   return FreeLibrary(static_cast<HMODULE>(handle_));
 }
 
-void* DynamicLibrary::FindSymbol(const char* name) {
+void* DynamicLibrary::FindSymbolPointer(const char* name) {
   return reinterpret_cast<void*>(
       GetProcAddress(static_cast<HMODULE>(handle_), name));
 }

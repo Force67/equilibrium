@@ -8,16 +8,18 @@
 
 namespace base {
 
-enum class ThreadPriority : u32 {
-  Low = 0,
-  Normal = 1,
-  High = 2,
-  VeryHigh = 3,
+class Thread {
+ public:
+  enum class Priority { kLow, kNormal, kHigh, kVeryHigh };
+
+
+ private:
+  void* handle_ = nullptr;
 };
 
 u32 GetCurrentThreadIndex();
 
-void SetCurrentThreadPriority(ThreadPriority new_priority);
+void SetCurrentThreadPriority(Thread::Priority new_priority);
 void SetCurrentThreadName(const char* name);
 
 }  // namespace base

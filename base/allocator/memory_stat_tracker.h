@@ -4,9 +4,8 @@
 
 namespace base {
 
-class MemoryStatTracker {
- public:
- private:
+struct MemoryStatTracker {
   size_t bytes_used;
+  size_t times_hit;
 };
 }  // namespace base
