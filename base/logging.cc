@@ -61,10 +61,7 @@ void PrintLegals() {
 }
 
 // Note: This is the only function that may not assert.
-void InitLogging(LogHandler callback, bool surpress_logo) {
+void SetLogHandler(LogHandler callback) {
   s_callback = callback;
-
-  if (!surpress_logo)
-    PrintLegals();
 }
 }  // namespace base

@@ -21,7 +21,7 @@ const char* LevelToName(LogLevel level) noexcept;
 
 using LogHandler = void (*)(LogLevel, const char*);
 // Init the global log device
-void InitLogging(LogHandler, bool no_logo = false);
+void SetLogHandler(LogHandler);
 // Print the copyright message to the device
 void PrintLegals();
 

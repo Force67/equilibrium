@@ -42,7 +42,7 @@ void InvokeAssertHandler();
 #if defined(TK_DBG)
 #define BREAK __debugbreak()
 #else
-#define BREAK InvokeAssertHandler()
+#define BREAK ::base::InvokeAssertHandler()
 #endif
 
 // All checks follow this format:

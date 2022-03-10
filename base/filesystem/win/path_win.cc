@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "base/filesystem/path.h"
-#include "string/code_convert.h"
+#include "text/code_convert.h"
 
 namespace base {
 

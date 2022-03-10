@@ -24,13 +24,13 @@
 
 struct GlfwContextHolder {
   // TODO: consider reimplementing the allocator
-  inline GlfwContextHolder() { assert(glfwInit()); }
-  inline ~GlfwContextHolder() { glfwTerminate(); }
+  GlfwContextHolder() { BUGCHECK(glfwInit()); }
+  ~GlfwContextHolder() { glfwTerminate(); }
 };
 
 // This class is named 'WindowGlfw' so we can avoid collisions with
 // GLFW's window struct name
-class WindowGlfw {
+class WindowGlfw final {
  public:
   explicit WindowGlfw(int width, int height);
   ~WindowGlfw();
@@ -62,7 +62,6 @@ class WindowGlfw {
   IMPL_GLFW_FORWARDER(KeyInput, int(key), int(scancode), int(action), int(mods))
 
  private:
-  GlfwContextHolder context_owner_;
   GLFWwindow* window_ = nullptr;
   std::unique_ptr<ui::SkiaContext> skia_;
 };

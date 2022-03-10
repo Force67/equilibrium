@@ -5,7 +5,7 @@
 #include <VersionHelpers.h>
 #include <base/thread.h>
 #include <base/feature.h>
-#include <base/string/code_convert.h>
+#include <base/text/code_convert.h>
 #include <base/dynamic_library.h>
 
 namespace base {

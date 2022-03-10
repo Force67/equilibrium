@@ -15,7 +15,9 @@ class Application {
   int Exec();
 
  private:
+  // Order here matters
   ui::DearImGuiContext im_ctx_;
   ui::ImguiSkiaLayer layer_;
-  WindowGlfw main_window_;
+  GlfwContextHolder context_;
+  //WindowGlfw main_window_;
 };

@@ -10,16 +10,6 @@
 
 #include <ui/skia/layer/imgui_layer.h>
 
-constexpr int kDefaultSuggestedWindowWidth = 1280;
-constexpr int kDefaultSuggestedWindowHeight = 720;
-
-Application::Application()
-    : main_window_(kDefaultSuggestedWindowWidth, kDefaultSuggestedWindowHeight),
-      layer_(im_ctx_) {}
-
-Application::~Application() {}
-
-int Application::Exec() {
 #if 0
   {
 
@@ -29,6 +19,20 @@ int Application::Exec() {
     ImGui::GetIO().Fonts->AddFontDefault(&cfg)->Scale = SCALE;
   }
 #endif
+
+constexpr int kDefaultSuggestedWindowWidth = 1280;
+constexpr int kDefaultSuggestedWindowHeight = 720;
+
+Application::Application()
+    : //main_window_(kDefaultSuggestedWindowWidth, kDefaultSuggestedWindowHeight),
+      layer_(im_ctx_) {}
+
+Application::~Application() {
+}
+
+int Application::Exec() {
+
+  #if 0
   SkCanvas* canvas = main_window_.canvas();
 
   SkScalar dpi = main_window_.context()->dpi_scale().x();
@@ -88,6 +92,7 @@ int Application::Exec() {
     // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(main_window_.HACK_GETGlfwWindow());
   }
+  #endif
 
   return 0;
 }

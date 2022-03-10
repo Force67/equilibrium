@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <type_traits>
 
-#include "base/string/code_convert.h"
-#include "base/string/code_conv_validate.h"
+#include "base/text/code_convert.h"
+#include "base/text/code_conv_validate.h"
 
 #include "base/external/icu/icu_utf.h"
 #include "build/build_config.h"
