@@ -7,5 +7,6 @@
 
 namespace ui {
 
+SkPoint GetCurrentDpi(void* os_window);
 SkPoint GetCurrentDpiScalingFactor(void* os_window);
 }

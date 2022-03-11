@@ -32,14 +32,16 @@ consteval const char* const TrimSourcePath(
               : (nullptr == lastslash ? str : lastslash);
 }
 
-using AssertHandler = void (*)();
+// Asserts are user facing exceptional cases, after which the program state is
+// expected to be broken. A key philosphy of our system is to ensure the user
+// gets to see the assert.
+using AssertHandler = void(const char*, const char*);
 
-void SetAssertHandler(AssertHandler);
-void InvokeAssertHandler();
+void SetAssertHandler(AssertHandler*);
+void InvokeAssertHandler(const char* message, const char* origin_file_name);
 }  // namespace base
 
-// TODO: yeet legacy macro
-#if defined(TK_DBG)
+#if defined(CONFIG_DEBUG)
 #define BREAK __debugbreak()
 #else
 #define BREAK ::base::InvokeAssertHandler()
@@ -53,22 +55,22 @@ void InvokeAssertHandler();
 //
 // Q: How do DCHECKs relate to asserts?
 // A: As asserts usually get stripped in shipping builds, a dcheck is the
-//    logical choice to use in most places.
+//    logical choice to use in cases which can be triggered and fixed during
+//    development.
 #ifndef SHIPPING
-#define DCHECK(expression)                                                      \
-  do {                                                                          \
-    if (!(expression)) {                                                        \
-      static constexpr const char* kShortFile{                                  \
-          ::base::TrimSourcePath(__FILE__)};                                    \
-      ::base::PrintLogMessage(                                               \
-          ::base::LogLevel::kFatal,                                          \
-          "DCheck failed at " PROJECT_NAME                                   \
-          "!{}!" __FUNCTION__ "!" EVAL_MACRO__(   \__LINE__) " >>"           \
-                                                             " " #expression \
-                                                             " <<",          \
-          kShortFile); \
-      BREAK;                                                                    \
-    }                                                                           \
+#define DCHECK(expression, message)                                           \
+  do {                                                                        \
+    if (!(expression)) {                                                      \
+      static constexpr const char* kShortFile{                                \
+          ::base::TrimSourcePath(__FILE__)};                                  \
+      ::base::InvokeAssertHandler(                                            \
+          "DCheck failed at " PROJECT_NAME                                    \
+          "!{}!" __FUNCTION__ "!" EVAL_MACRO__(   \__LINE__) " >>"            \
+                                                             " " #expression  \
+                                                             " << (" #message \
+                                                             ")",             \
+          kShortFile);                                                        \
+    }                                                                         \
   } while (0)
 
 #else

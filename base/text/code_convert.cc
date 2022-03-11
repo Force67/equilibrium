@@ -72,12 +72,38 @@ bool IsStringASCII(base::StringRef str) {
   return DoIsStringASCII(str.data(), str.length());
 }
 
+bool IsStringASCII(base::StringRefU8 str) {
+  return DoIsStringASCII(str.data(), str.length());
+}
+
 bool IsStringASCII(base::StringRefU16 str) {
   return DoIsStringASCII(str.data(), str.length());
 }
 
 template <typename DestChar>
 bool DoUTFConversion(const char* src,
+                     int32_t src_len,
+                     DestChar* dest,
+                     int32_t* dest_len) {
+  bool success = true;
+
+  for (int32_t i = 0; i < src_len;) {
+    int32_t code_point;
+    CBU8_NEXT(src, i, src_len, code_point);
+
+    if (!IsValidCodepoint(code_point)) {
+      success = false;
+      code_point = kErrorCodePoint;
+    }
+
+    UnicodeAppendUnsafe(dest, dest_len, code_point);
+  }
+
+  return success;
+}
+
+template <typename DestChar>
+bool DoUTFConversion(const char8_t* src,
                      int32_t src_len,
                      DestChar* dest,
                      int32_t* dest_len) {
@@ -278,7 +304,11 @@ bool UTF8ToWide(const char* src, size_t src_len, base::StringW* output) {
   return UTFConversion(base::StringRef(src, src_len), output);
 }
 
-base::StringW UTF8ToWide(base::StringRef utf8) {
+bool UTF8ToWide(const char8_t* src, size_t src_len, base::StringW* output) {
+  return UTFConversion(base::StringRefU8(src, src_len), output);
+}
+
+base::StringW UTF8ToWide(base::StringRefU8 utf8) {
   base::StringW ret;
   // Ignore the success flag of this call, it will do the best it can for
   // invalid input, which is what we want here.

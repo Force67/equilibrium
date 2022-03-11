@@ -18,17 +18,22 @@ class WindowDelegateWin {
                                     LPARAM l_param,
                                     LRESULT& result,
                                     DWORD msg_map_id = 0) = 0;
+
+  virtual void OnDisplayChanged(NativeWindow::handle native_handle) = 0;
 };
 
-class WindowWin final : public ui::NativeWindow {
+class NativeWindowWin32 final : public ui::NativeWindow {
  public:
-  explicit WindowWin(base::StringRef name,
+  explicit NativeWindowWin32(base::StringRefU8 name,
                      WindowDelegateWin* delegate = nullptr);
-  ~WindowWin();
+  ~NativeWindowWin32();
 
-  void Init(HWND parent, const SkRect& bounds);
+  bool Init(handle parent, const SkIRect bounds) override;
+  bool SetTitle(const base::StringRefU8) override;
 
-  void Show() override;
+  void SendCommand(Command) override;
+
+  const SkIRect bounds() const override;
 
  private:
   // static item.
@@ -40,11 +45,18 @@ class WindowWin final : public ui::NativeWindow {
 
   void ClearUserData();
 
+  void HandleWindowMove();
+  void HandleWindowResize(const SkIPoint new_size);
+
+  bool ResizeBounds(const SkIPoint window_pos, const SkIPoint in_dimension);
  private:
   DWORD window_style_;
   DWORD window_ex_style_ = 0;
   UINT class_style_;
   HWND hwnd_ = nullptr;
+  HMONITOR tracked_monitor_ = nullptr;
+  SkIPoint user_size_{};
+  bool request_resize_{false};
   WindowDelegateWin* delegate_;
 };
 }  // namespace ui

@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Force67 <github.com/Force67>.
+﻿// Copyright (C) 2021 Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "application.h"
@@ -30,7 +30,7 @@ static void AssertHandler() {
 #endif
 }
 
-#include <ui/platform/win/native_window_win.h>
+#include <ui/platform/win/native_window_win32.h>
 #include <ui/platform/win/message_pump_win.h>
 
 int main() {
@@ -40,7 +40,8 @@ int main() {
   base::SetAssertHandler(AssertHandler);
 #endif
 
-  ui::WindowWin win("RETK");
+#if 1
+  ui::NativeWindowWin32 win(u8"RETK");
   win.Init(nullptr, {0,0, 1920, 1080});
   win.Show();
 
@@ -48,9 +49,11 @@ int main() {
   while (loop.Update()) {
     loop.Pump();
   }
+#endif
 
-  //Application app;
-  //return app.Exec();
+  // Application app;
+  // return app.Exec();
+
 
   return 0;
 }

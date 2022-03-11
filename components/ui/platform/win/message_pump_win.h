@@ -10,7 +10,6 @@ namespace ui {
 class MessagePumpWin {
  public:
   bool Update();
-
   void Pump();
 
  private:

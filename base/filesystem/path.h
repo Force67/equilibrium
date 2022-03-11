@@ -23,10 +23,9 @@ class BASE_EXPORT Path {
   using BufferType = base::BasicString<CharType>;
 
   Path() = default;
-  // from raw c string
-  Path(const char* path);
-  Path(const wchar_t* path);
-  // from x string
+  Path(const char* ascii_only);
+  Path(const base::StringRefU8);
+  Path(const base::StringRefW);
   Path(const BufferType& path);
   // from other.
   Path(const Path& other);

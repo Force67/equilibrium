@@ -8,15 +8,50 @@
 namespace ui {
 class NativeWindow {
  public:
-  inline NativeWindow(const base::StringRef title) : title_(title) {}
-  inline NativeWindow() : title_("<unknown>") {}
+  // On windows this aliases directly to the native handle type, however
+  // on other platforms we store a metadata struct block in the handle.
+  using handle = void*;
 
-  // optional
-  virtual void SetTitle(const base::StringRef title){};
+  inline NativeWindow(const base::StringRefU8 title) : title_(title) {}
 
-  virtual void Show() = 0;
+  // create the window, if a parent handle is passed the style and other
+  // properties get inherited.
+  virtual bool Init(handle native_parent_handle, const SkIRect bounds) = 0;
+
+  virtual bool SetTitle(const base::StringRefU8 title) = 0;
+  const base::StringRefU8 title() const { return title_; }
+
+  // may return an empty rect if the getter function fails.
+  virtual const SkIRect bounds() const = 0;
+  SkScalar dpi() const { return dpi_; }
+
+  inline void Show() { SendCommand(Command::kShow); }
+  inline void Hide() { SendCommand(Command::kHide); }
+  inline void ToggleVisibility(bool b) {
+    SendCommand(b ? Command::kShow : Command::kHide);
+  }
 
  protected:
-  base::String title_;
+  // implementation specific commands
+  enum class Command {
+    kHide,
+    kNormal,
+    kMinimized,
+    kMaximized,
+    kMaximize,
+    kShowNoActivate,
+    kShow,
+    kMinimize,
+    kShowMinnoActive,
+    kRestore,
+    kShowDefault,
+    kForceMinimize,
+    kMax
+  };
+  virtual void SendCommand(Command) = 0;
+
+ protected:
+  base::StringU8 title_;
+  SkScalar dpi_{};
 };
 }  // namespace ui

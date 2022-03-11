@@ -17,7 +17,7 @@ BASE_EXPORT bool UTF8ToWide(const char* src,
                             size_t src_len,
                             base::StringW* output);
 
-[[nodiscard]] BASE_EXPORT base::StringW UTF8ToWide(base::StringRef utf8);
+[[nodiscard]] BASE_EXPORT base::StringW UTF8ToWide(base::StringRefU8 utf8);
 
 BASE_EXPORT bool WideToUTF16(const wchar_t* src,
                              size_t src_len,
