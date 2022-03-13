@@ -2,6 +2,7 @@
 BasedOnStyle: Chromium
 SortIncludes: 'false'
 Standard: Latest
+ColumnLimit: 85
 
 # Style for ghidra things
 JavaImportGroups: ['android', 'androidx', 'com', 'dalvik', 'junit', 'org', 'com.google.android.apps.chrome', 'org.chromium', 'java', 'javax']

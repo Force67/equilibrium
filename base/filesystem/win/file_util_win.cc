@@ -5,6 +5,8 @@
 #include "base/filesystem/file_util.h"
 
 #include "base/random.h"
+#include "base/logging.h"
+
 #include <windows.h>
 
 namespace base {

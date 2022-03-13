@@ -4,6 +4,7 @@
 #pragma once
 
 #include <base/check.h>
+#include <base/logging.h>
 #include <core/SkTypes.h>
 
 #ifndef SkUserConfig_DEFINED
@@ -48,7 +49,7 @@ inline void SkDebugf(const char format[], ...) {
 
   char buf[1024]{};
   vsprintf(buf, format, ap);
-  ::base::Core_PrintLogMessage(::base::LogLevel::kDebug, buf);
+  ::base::detail::WriteLogMessage(::base::LogLevel::kDebug, buf);
   va_end(ap);
 }
 

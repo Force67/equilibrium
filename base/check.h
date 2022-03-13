@@ -3,7 +3,7 @@
 // Defines the global CHECK utility macros.
 #pragma once
 
-#include "base/logging.h"
+#include <base/compiler.h>
 
 #define TK_UNUSED(expr) (void)expr
 
@@ -21,10 +21,22 @@
 #endif
 
 namespace base {
+// implementation detail
+namespace detail {
+struct SourceLocation {
+  const char* text;
+  const char* file;
+};
+
+// Second parameter defaults to null, so the __VA_OPT__ macro can insert the param
+// if needed.
+STRONG_INLINE void DCheck(const SourceLocation&, const char* message = nullptr);
+STRONG_INLINE void BugCheck(const SourceLocation&, const char* message = nullptr);
+}  // namespace detail
+
 // Small utility function to trim down the source path of any function
-consteval const char* const TrimSourcePath(
-    const char* const str,
-    const char* const lastslash = nullptr) {
+consteval const char* const TrimSourcePath(const char* const str,
+                                           const char* const lastslash = nullptr) {
   return *str ? TrimSourcePath(str + 1,
                                ((*str == '/' || *str == '\\')
                                     ? str + 1
@@ -35,20 +47,26 @@ consteval const char* const TrimSourcePath(
 // Asserts are user facing exceptional cases, after which the program state is
 // expected to be broken. A key philosphy of our system is to ensure the user
 // gets to see the assert.
-using AssertHandler = void(const char*, const char*);
+using AssertHandler = void(const char*, const char*, const char*);
 
+// Those are check handlers.
 void SetAssertHandler(AssertHandler*);
-void InvokeAssertHandler(const char* message, const char* origin_file_name);
 }  // namespace base
 
 #if defined(CONFIG_DEBUG)
-#define BREAK __debugbreak()
+#define CHECK_BREAK DEBUG_TRAP
 #else
-#define BREAK ::base::InvokeAssertHandler()
+#define CHECK_BREAK /*noop*/
 #endif
 
-// All checks follow this format:
-// ProjectName (This is the solution on vs), FilePath, FileLine,
+#define MAKE_SOURCE_LOC(function, file, line)                        \
+  static constexpr const ::base::detail::SourceLocation kSourceLoc { \
+    PROJECT_NAME "!{}!" #function "!" EVAL_MACRO__(line),            \
+        ::base::TrimSourcePath(file)                                 \
+  }
+
+// All checks follow the format:
+// check: project!file.cc!function!line >conidition< (Reason)
 
 // A DCHECK is only present in non shipping builds and is ment for catching
 // programmer misuse that needs to be fixed before release
@@ -57,54 +75,34 @@ void InvokeAssertHandler(const char* message, const char* origin_file_name);
 // A: As asserts usually get stripped in shipping builds, a dcheck is the
 //    logical choice to use in cases which can be triggered and fixed during
 //    development.
-#ifndef SHIPPING
-#define DCHECK(expression, message)                                           \
-  do {                                                                        \
-    if (!(expression)) {                                                      \
-      static constexpr const char* kShortFile{                                \
-          ::base::TrimSourcePath(__FILE__)};                                  \
-      ::base::InvokeAssertHandler(                                            \
-          "DCheck failed at " PROJECT_NAME                                    \
-          "!{}!" __FUNCTION__ "!" EVAL_MACRO__(   \__LINE__) " >>"            \
-                                                             " " #expression  \
-                                                             " << (" #message \
-                                                             ")",             \
-          kShortFile);                                                        \
-    }                                                                         \
-  } while (0)
-
+#ifndef CONFIG_SHIPPING
+#define DCHECK(expression, ...)                          \
+  do {                                                   \
+    if (!(expression)) {                                 \
+      MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
+      ::base::detail::DCheck(kSourceLoc __VA_OPT__);     \
+      CHECK_BREAK;                                       \
+    }                                                    \
+  } while (0);
 #else
 #define DCHECK(x)
 #endif
 
-// BugChecks indicate a hard programmer error and
-// are compiled into shipping builds aswell, as
-// these need to be immedeatly fixed. In Shipping
-// mode, these are forwarded to the user.
-#define BUGCHECK(expression)                                          \
-  do {                                                                \
-    if (!(expression)) {                                              \
-      static constexpr const char* kShortFile{                        \
-          ::base::TrimSourcePath(__FILE__)};                          \
-      ::base::PrintLogMessage(::base::LogLevel::kFatal,               \
-                              "Bugcheck failed at " PROJECT_NAME      \
-                              "!{}!" __FUNCTION__ "!" EVAL_MACRO__(   \
-                                  __LINE__) " >> " #expression " <<", \
-                              kShortFile);                            \
-      BREAK;                                                          \
-    }                                                                 \
-  } while (0)
+// BugChecks indicate a hard programmer error and are compiled into shipping builds
+// aswell, as these need to be immedeatly fixed
+#define BUGCHECK(expression, ...)                        \
+  do {                                                   \
+    if (!(expression)) {                                 \
+      MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
+      ::base::detail::BugCheck(kSourceLoc __VA_OPT__);   \
+      CHECK_BREAK;                                       \
+    }                                                    \
+  } while (0);
 
-// Indicate an impossible to reach case, such as a
-// default value in a switch being it with a named
-// enum These are also being compiled in shipping
-// builds.
-#define IMPOSSIBLE                                                             \
-  {                                                                            \
-    static constexpr const char* kShortFile{::base::TrimSourcePath(__FILE__)}; \
-    ::base::PrintLogMessage(::base::LogLevel::kFatal,                          \
-                            "Impossible case at " PROJECT_NAME                 \
-                            "!{}!" __FUNCTION__ "!" EVAL_MACRO__(__LINE__),    \
-                            kShortFile);                                       \
-    BREAK;                                                                     \
+// Another form of bugcheck.
+#define IMPOSSIBLE                                     \
+  {                                                    \
+    MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
+    ::base::detail::BugCheck(kSourceLoc);              \
+    CHECK_BREAK;                                       \
   }

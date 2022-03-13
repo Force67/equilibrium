@@ -60,6 +60,14 @@
 #define NOINLINE
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define DEBUG_TRAP __asm__ volatile("int $0x03")
+#elif defined(_MSC_VER)
+#define DEBUG_TRAP __debugbreak()
+#else
+#define DEBUG_TRAP
+#endif
+
 #if defined(__cplusplus) && defined(__has_cpp_attribute)
 #define HAS_ATTRIBUTE(attrib, value) (__has_cpp_attribute(attrib) >= value)
 #else
@@ -77,6 +85,7 @@
 #else
 #define ATTR_UNLIKELY
 #endif
+
 
 // requires a rename later on.
 #if defined(__GNUC__) || defined(__clang__)

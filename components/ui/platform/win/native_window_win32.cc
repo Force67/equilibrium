@@ -326,6 +326,7 @@ bool NativeWindowWin32::ResizeBounds(const SkIPoint window_pos,
   const SkIPoint scaled_bounds = {in_dimension.x() * dpi_factor,
                                   in_dimension.y() * dpi_factor};
 
+  // what we get out is the new desired size, but what if we update that only after the
   int new_width = 0, new_height = 0;
   ScaleWindowSize(window_style_, window_ex_style_, scaled_bounds.x(),
                   scaled_bounds.y(), new_width, new_height,

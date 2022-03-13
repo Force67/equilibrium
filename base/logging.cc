@@ -7,7 +7,8 @@
 
 namespace base {
 
-static constexpr char kLegalText[] = R"(
+namespace {
+constexpr char kLegalText[] = R"(
 
 ===============================================
 ::
@@ -18,30 +19,17 @@ static constexpr char kLegalText[] = R"(
 ===============================================
 )";
 
-static const char* const kLevelToNames[] = {"trace",   "debug", "info",
-                                            "warning", "error", "fatal"};
+const char* const kLevelToNames[] = {"trace",   "debug", "info",
+                                     "warning", "error", "fatal"};
 static_assert(sizeof(kLevelToNames) / sizeof(const char*) ==
                   static_cast<size_t>(LogLevel::kAll),
               "Mapping mismatch");
 
+LogHandler s_callback{nullptr};
+}  // namespace
+
 const char* LevelToName(LogLevel level) noexcept {
   return kLevelToNames[static_cast<size_t>(level)];
-}
-
-static LogHandler s_callback{nullptr};
-
-void Core_PrintLogMessage(LogLevel ll,
-                          const char* text,
-                          const fmt::format_args& args) {
-  auto fmt = fmt::vformat(text, args);
-
-  if (s_callback)
-    s_callback(ll, fmt.c_str());
-}
-
-void Core_PrintLogMessage(LogLevel ll, const char* text) {
-  if (s_callback)
-    s_callback(ll, text);
 }
 
 void PrintLogMessagePF(LogLevel ll, const char* format...) {
@@ -64,4 +52,20 @@ void PrintLegals() {
 void SetLogHandler(LogHandler callback) {
   s_callback = callback;
 }
+
+namespace detail {
+void WriteLogMessage(LogLevel ll,
+                          const char* text,
+                          const fmt::format_args& args) {
+  auto fmt = fmt::vformat(text, args);
+
+  if (s_callback)
+    s_callback(ll, fmt.c_str());
+}
+
+void WriteLogMessage(LogLevel ll, const char* text) {
+  if (s_callback)
+    s_callback(ll, text);
+}
+}  // namespace detail
 }  // namespace base
