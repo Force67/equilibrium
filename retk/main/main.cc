@@ -24,7 +24,7 @@ static void TKLogHandler(base::LogLevel level, const char* msg) {
 #endif
 }
 
-static void AssertHandler() {
+static void AssertHandler(const char*, const char*, const char*) {
 #if defined(OS_WIN)
   MessageBoxW(nullptr, L"An assertion failed. quitting.", L"RETK", MB_ICONSTOP);
 #endif
