@@ -29,9 +29,18 @@ consteval const char* const TrimSourcePath(const char* const str,
               : (nullptr == lastslash ? str : lastslash);
 }
 
-namespace {
-// based off: https://stackoverflow.com/questions/56471708/c-compile-time-substring
+static constexpr int PastLastOffset(int last_offset,
+                                    int current_offset,
+                                    const char* const str) {
+  if (*str == '\0')
+    return last_offset;
+  if (*str == '/' || *str == '\\')
+    return PastLastOffset(current_offset + 1, current_offset + 1, str + 1);
+  return PastLastOffset(last_offset, current_offset + 1, str + 1);
+}
 
+// based off: https://stackoverflow.com/questions/56471708/c-compile-time-substring
+// TODO(Force): move this to some compile time string util.
 template <int... I>
 struct Seq {};
 
@@ -76,25 +85,6 @@ template <typename WRAPPER, typename SEQ>
 struct LiteralToVariadicChars {
   using type = typename LiteralToVariadicCharsImpl<WRAPPER, SEQ>::type;
 };
-
-static constexpr int PastLastOffset(int last_offset,
-                                    int current_offset,
-                                    const char* const str) {
-  if (*str == '\0')
-    return last_offset;
-  if (*str == '/' || *str == '\\')
-    return PastLastOffset(current_offset + 1, current_offset + 1, str + 1);
-  return PastLastOffset(last_offset, current_offset + 1, str + 1);
-}
-
-constexpr int StrLen(const char* str) {
-  if (*str == '\0')
-    return 0;
-  return StrLen(str + 1) + 1;
-}
-
-}  // namespace
-
 }  // namespace base::detail
 
 #ifndef EVAL_MACRO_
@@ -102,15 +92,16 @@ constexpr int StrLen(const char* str) {
 #define EVAL_MACRO__(x) EVAL_MACRO_(x)
 #endif
 
-#define COMPILE_TIME_PAST_LAST_SLASH(STR)                                        \
-  []() {                                                                         \
-    struct Wrapper {                                                             \
-      constexpr static const char* get() { return STR; }                         \
-    };                                                                           \
-    using Seq = ::base::detail::MakeSeq<::base::detail::PastLastOffset(          \
-                                            0, 0, Wrapper::get()),               \
-                                        ::base::detail::StrLen(Wrapper::get())>; \
-    return ::base::detail::LiteralToVariadicChars<Wrapper, Seq>::type::value;    \
+#define COMPILE_TIME_PAST_LAST_SLASH(STR)                                       \
+  []() {                                                                        \
+    struct Wrapper {                                                            \
+      constexpr static const char* get() { return STR; }                        \
+    };                                                                          \
+    using Seq =                                                                 \
+        ::base::detail::MakeSeq<::base::detail::PastLastOffset(0, 0,            \
+                                                               Wrapper::get()), \
+                                ::base::detail::CountStrlen(Wrapper::get())>;   \
+    return ::base::detail::LiteralToVariadicChars<Wrapper, Seq>::type::value;   \
   }()
 
 #define MAKE_SOURCE_LOC(function, file, line)                \
