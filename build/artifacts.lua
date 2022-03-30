@@ -1,27 +1,29 @@
 -- Copyright (C) Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-local rootdir = os.getcwd() .. '/../out/' .. _ACTION
-blu.bindir = rootdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
-blu.libdir = rootdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"
-blu.objdir = rootdir .. "/link/%{cfg.platform}/%{cfg.buildcfg}"
-blu.symdir = rootdir .. "/sym/%{cfg.platform}/%{cfg.buildcfg}"
+blu.rootdir = os.getcwd() .. '/../'
+
+local outdir = os.getcwd() .. '/../out/' .. _ACTION
+blu.bindir = outdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
+blu.libdir = outdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"
+blu.objdir = outdir .. "/link/%{cfg.platform}/%{cfg.buildcfg}"
+blu.symdir = outdir .. "/sym/%{cfg.platform}/%{cfg.buildcfg}"
 
 -- newprojectformat tries to outsmarten me
-blu.netdir = rootdir .. "/clr/%{cfg.platform}"
-blu.netout = rootdir .. "/net"
+blu.netdir = outdir .. "/clr/%{cfg.platform}"
+blu.netout = outdir .. "/net"
 
-location(rootdir)
+location(outdir)
 
 filter("language:C or C++")
-    location(rootdir)
+    location(outdir)
     objdir(blu.objdir)
     libdirs({blu.libdir})
     architecture("x86_64")
 filter{}
 
 -- workaround a premake bug
-os.mkdir(rootdir .. "/sym")
+os.mkdir(outdir .. "/sym")
 blu.extdir = path.getabsolute(os.getcwd() .."/../external")
 
 -- dont bloat output folder with libs

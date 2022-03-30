@@ -1,13 +1,8 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
-#ifndef BASE_CONTAINERS_RING_BUFFER_H_
-#define BASE_CONTAINERS_RING_BUFFER_H_
-
-#include <stddef.h>
-
-#include "base/check.h"
+#pragma once
+#include <base/check.h>
 
 namespace base {
 
@@ -42,13 +37,13 @@ class RingBuffer {
   // n = bufferSize() - 1 returns the most recent value.
   const T& ReadBuffer(size_t n) const {
     const size_t buffer_index = BufferIndex(n);
-    CHECK(IsFilledIndexByBufferIndex(buffer_index));
+    DCHECK(IsFilledIndexByBufferIndex(buffer_index));
     return buffer_[buffer_index];
   }
 
   T* MutableReadBuffer(size_t n) {
     const size_t buffer_index = BufferIndex(n);
-    CHECK(IsFilledIndexByBufferIndex(buffer_index));
+    DCHECK(IsFilledIndexByBufferIndex(buffer_index));
     return &buffer_[buffer_index];
   }
 
@@ -116,7 +111,7 @@ class RingBuffer {
   }
 
   // This specialization of |IsFilledIndex| is a micro-optimization that enables
-  // us to do e.g. `CHECK(IsFilledIndex(n))` without calling |BufferIndex|
+  // us to do e.g. `DCHECK(IsFilledIndex(n))` without calling |BufferIndex|
   // twice. Since |BufferIndex| involves a % operation, it's not quite free at a
   // micro-scale.
   inline bool IsFilledIndexByBufferIndex(size_t buffer_index) const {
@@ -128,5 +123,3 @@ class RingBuffer {
 };
 
 }  // namespace base
-
-#endif  // BASE_CONTAINERS_RING_BUFFER_H_

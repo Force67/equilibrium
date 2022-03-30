@@ -3,6 +3,8 @@
 
 -- ENTER FILTER BARRIER: ONLY FILTERS AFTER THIS POINT
 
+io.write(os.getcwd())
+
 filter("architecture:x86_64 or ARM64")
   targetsuffix("_64")
 filter("architecture:x86")

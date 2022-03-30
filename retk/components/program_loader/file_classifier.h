@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/containers/span.h>
 #include <base/filesystem/file.h>
 
 namespace program_loader {
@@ -10,7 +11,7 @@ enum class Format : u16 {
   kELF,     //< Linux Elf Format,
   kXEX,     //< XBOX 360 Executable
   kPE,      //< Windows portable executable
-  kMarchO,  //< MacOS executable
+  kMachO,  //< MacOS executable
   kSELF,    //< Signed Elf for PS4
 };
 
@@ -40,8 +41,5 @@ struct FileClassificationInfo {
   std::unique_ptr<PrivateData> data;
 };
 
-// TODO(Force): need some span
-bool ClassifyFile(const u8* buffer, /*BufferedReader*/
-                  size_t buf_len,
-                  FileClassificationInfo* info);
+bool ClassifyFile(base::Span<byte> buffer, FileClassificationInfo* info);
 }  // namespace program_loader

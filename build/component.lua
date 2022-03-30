@@ -20,7 +20,7 @@ function component(name)
         includedirs({
             ".",        --< current dir
             "../",      --< component dir
-            "../../",   --< main dir for direct base access
+            blu.rootdir,   --< main dir for direct base access
         })
         -- each component links against google mock
         dependencies("googlemock")
@@ -37,7 +37,8 @@ function unittest(name)
         kind("ConsoleApp")
         includedirs({
             ".",
-            "../../"
+            "../../",
+            blu.rootdir
         })
         dependencies("googlemock")
         links("base")

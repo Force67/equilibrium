@@ -1,17 +1,11 @@
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
-#ifndef BASE_CONTAINERS_ADAPTERS_H_
-#define BASE_CONTAINERS_ADAPTERS_H_
-
-#include <stddef.h>
-
-#include <iterator>
-#include <utility>
+#pragma once
 
 namespace base {
 
+	#if 0
 namespace internal {
 
 // Internal adapter class for implementing base::Reversed.
@@ -46,7 +40,5 @@ template <typename T>
 internal::ReversedAdapter<T> Reversed(T& t) {
   return internal::ReversedAdapter<T>(t);
 }
-
+#endif
 }  // namespace base
-
-#endif  // BASE_CONTAINERS_ADAPTERS_H_
