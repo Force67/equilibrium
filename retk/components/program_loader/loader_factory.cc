@@ -46,7 +46,7 @@ std::unique_ptr<ProgramLoader> LoaderFactory::CreateLoader(
 
       return nullptr;
     }
-    case Format::kMarchO:
+    case Format::kMachO:
     case Format::kSELF:
       break;
     default:

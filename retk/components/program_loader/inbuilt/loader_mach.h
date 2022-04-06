@@ -6,7 +6,7 @@
 
 namespace program_loader {
 
-class LoaderPE final : public ProgramLoader {
+class LoaderMach final : public ProgramLoader {
  public:
   bool Accept(const base::Span<byte> data, FileClassificationInfo&) override;
 

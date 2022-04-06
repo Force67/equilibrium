@@ -29,12 +29,14 @@ class ProgramLoader {
  public:
   virtual ~ProgramLoader() = default;
   // If the loader wants to consider given file.
-  virtual bool Accept(const base::File&) { return false; }
+  virtual bool Accept(const base::Span<byte>, FileClassificationInfo&) {
+    return false;
+  }
 
   // Parse the file into given data.
-  virtual bool Parse(const FileClassificationInfo& intel,
-                     ProgramData& out,
-                     const u8* ptr) = 0;
+  virtual bool Parse(const base::Span<byte> data,
+                     const FileClassificationInfo& intel,
+                     ProgramData& out) = 0;
 
  private:
   // You may set this from your loader in order to share state across functions
