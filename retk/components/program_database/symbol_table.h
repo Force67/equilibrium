@@ -4,6 +4,12 @@
 // function names, type info etc.
 #pragma once
 
+#include <base/arch.h>
+
 namespace program_database {
 
-}
+class SymbolTable {
+ public:
+
+};
+}  // namespace program_database

@@ -28,11 +28,12 @@ struct ProgramData {
 class ProgramLoader {
  public:
   virtual ~ProgramLoader() = default;
-  // If the loader wants to consider given file.
-  virtual bool Accept(const base::Span<byte>, FileClassificationInfo&) {
-    return false;
+  // Can this particular loader deal with this particular form of format?
+  // Using this you could have multiple PE loaders for different architectures
+  // for instance this is used to have a windows PE loader, and an XBOX 360 PE loader
+  virtual bool Accept(const base::Span<byte>, const FileClassificationInfo&) {
+    return true;
   }
-
   // Parse the file into given data.
   virtual bool Parse(const base::Span<byte> data,
                      const FileClassificationInfo& intel,
@@ -59,4 +60,12 @@ struct ProgramLoadDescriptor {
   ProgramLoader* (*CreateLoader)();
   void (*DestroyLoader)(ProgramLoader*);
 };
+
+// beautiful, isn't it
+inline constexpr bool operator&(ProgramLoadDescriptor::Flags lhs,
+                                ProgramLoadDescriptor::Flags rhs) {
+  return static_cast<bool>(static_cast<arch_types::u32>(lhs) &
+                           static_cast<arch_types::u32>(rhs));
+}
+
 }  // namespace program_loader

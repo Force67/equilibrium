@@ -24,8 +24,8 @@ class Span {
   size_t length() const { return len_; }
   bool empty() const { return ptr_; }
 
-  constexpr T& operator[](size_t index) const noexcept {
-    DCHECK(i < len_);
+  constexpr T& operator[](size_t index) {
+    //DCHECK(i < len_);
     return ptr_[index];
   }
 

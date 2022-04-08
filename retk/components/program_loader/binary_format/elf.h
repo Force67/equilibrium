@@ -7,6 +7,7 @@
 #include <program_loader/file_classifier.h>
 
 namespace program_loader {
+// https://github.com/llvm/llvm-project/blob/d480f968ad8b56d3ee4a6b6df5532d485b0ad01e/llvm/include/llvm/BinaryFormat/ELF.h
 static constexpr const char kElfMagic[] = {0x7f, 'E', 'L', 'F', '\0'};
 
 enum class ElfMachineType {
@@ -209,14 +210,4 @@ struct ElfHeader {
     return (memcmp(ident, kElfMagic, strlen(kElfMagic))) == 0;
   }
 };
-
-static Arch TranslateElfMachineType(ElfMachineType type) {
-  switch (type) {
-    case ElfMachineType::k386:
-      return Arch::kX86;
-    case ElfMachineType::kX86_64:
-      return Arch::kX64;
-  }
-  return Arch::kNone;
-}
 }  // namespace program_loader

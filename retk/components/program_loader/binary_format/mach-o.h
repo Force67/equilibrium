@@ -8,19 +8,32 @@
 
 namespace program_loader {
 
-enum class MachCPUType : u32 {
-  CPU_TYPE_ANY = -1,
-  CPU_TYPE_X86 = 7,
-  CPU_TYPE_I386 = CPU_TYPE_X86,
-  CPU_TYPE_X86_64 = CPU_TYPE_X86 | CPU_ARCH_ABI64,
-  /* CPU_TYPE_MIPS      = 8, */
-  CPU_TYPE_MC98000 = 10,  // Old Motorola PowerPC
-  CPU_TYPE_ARM = 12,
-  CPU_TYPE_ARM64 = CPU_TYPE_ARM | CPU_ARCH_ABI64,
-  CPU_TYPE_ARM64_32 = CPU_TYPE_ARM | CPU_ARCH_ABI64_32,
-  CPU_TYPE_SPARC = 14,
-  CPU_TYPE_POWERPC = 18,
-  CPU_TYPE_POWERPC64 = CPU_TYPE_POWERPC | CPU_ARCH_ABI64
+enum class MachCPUArch : u32 {
+  // Capability bits used in the definition of cpu_type.
+  kMASK = 0xff000000,      // Mask for architecture bits
+  kABI64 = 0x01000000,     // 64 bit ABI
+  kABI64_32 = 0x02000000,  // ILP32 ABI on 64-bit hardware
+};
+enum class MachCPUType : i32;
+
+inline consteval i32 operator|(i32 lhs, MachCPUArch rhs) {
+  return static_cast<i32>(static_cast<arch_types::i32>(lhs) |
+                          static_cast<arch_types::u32>(rhs));
+}
+
+enum class MachCPUType : i32 {
+  kANY = -1,
+  kX86 = 7,
+  kI386 = kX86,
+  kX86_64 = kX86 | MachCPUArch::kABI64,
+  /* kMIPS      = 8, */
+  kMC98000 = 10,  // Old Motorola PowerPC
+  kARM = 12,
+  kARM64 = kARM | MachCPUArch::kABI64,
+  kARM64_32 = kARM | MachCPUArch::kABI64_32,
+  kSPARC = 14,
+  kPOWERPC = 18,
+  kPOWERPC64 = kPOWERPC | MachCPUArch::kABI64
 };
 
 enum class MachMagic : u32 {
@@ -61,15 +74,5 @@ struct MachHeader {
     }
   }
 };
-
-static Arch TranslateMachMachineType(MachCPUType type) {
-  switch (type) {
-    case MachCPUType::CPU_TYPE_X86:
-      return Arch::kX86;
-    case MachCPUType::CPU_TYPE_X86_64:
-      return Arch::kX64;
-  }
-  return Arch::kNone;
-}
 
 }  // namespace program_loader

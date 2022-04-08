@@ -15,14 +15,14 @@ class FileReader {
   template <typename T>
   T* Fetch(size_t at_offset = 0) {
     T* head = nullptr;
-    return Read(reinterpret_cast<void*>(head), sizeof(T)) ? head : nullptr;
+    return Read(reinterpret_cast<byte*>(head), sizeof(T)) ? head : nullptr;
   }
 
   template <typename T>
   T* FetchRewind(size_t at_offset = 0) {
     T* head = nullptr;
     pos_ = 0;
-    return Read(reinterpret_cast<void*>(head), sizeof(T)) ? head : nullptr;
+    return Read(reinterpret_cast<byte*>(head), sizeof(T)) ? head : nullptr;
   }
 
   void Advance(size_t pos) { pos_ += pos; }

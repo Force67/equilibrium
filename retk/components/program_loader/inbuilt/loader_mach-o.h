@@ -6,9 +6,9 @@
 
 namespace program_loader {
 
-class LoaderMach final : public ProgramLoader {
+class LoaderMachO final : public ProgramLoader {
  public:
-  bool Accept(const base::Span<byte> data, FileClassificationInfo&) override;
+  bool Accept(const base::Span<byte> data, const FileClassificationInfo&) override;
 
   // Inherited via ProgramLoader
   bool Parse(const base::Span<byte> data,
@@ -16,5 +16,7 @@ class LoaderMach final : public ProgramLoader {
              ProgramData& out) override;
 
   static ProgramLoadDescriptor* descriptor();
+  // TODO(Vince): Move in the future.
+  static FileClassifier* classifier();
 };
 }  // namespace program_loader

@@ -8,11 +8,11 @@
 
 namespace program_loader {
 enum class Format : u16 {
-  kELF,     //< Linux Elf Format,
-  kXEX,     //< XBOX 360 Executable
-  kPE,      //< Windows portable executable
+  kELF,    //< Linux Elf Format,
+  kXEX,    //< XBOX 360 Executable
+  kPE,     //< Windows portable executable
   kMachO,  //< MacOS executable
-  kSELF,    //< Signed Elf for PS4
+  kSELF,   //< Signed Elf for PS4
 };
 
 enum class Arch : u32 {
@@ -41,5 +41,13 @@ struct FileClassificationInfo {
   std::unique_ptr<PrivateData> data;
 };
 
+struct FileClassifier {
+  Format format;
+  Arch arch;
+  // this function must be implemented, or the classifier will be ignored
+  bool (*classify)(base::Span<byte>, FileClassificationInfo&) = nullptr;
+};
+
+// this will try to determine some common format.
 bool ClassifyFile(base::Span<byte> buffer, FileClassificationInfo* info);
 }  // namespace program_loader

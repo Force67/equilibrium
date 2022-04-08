@@ -111,14 +111,4 @@ struct CoffFileHeader {
 
   bool IsImportLibrary() const { return section_count == 0xffff; }
 };
-
-inline static Arch TranslateCoffMachineType(CoffMachineType machine_type) {
-  switch (machine_type) {
-    case CoffMachineType::kIntel86:
-      return Arch::kX86;
-    case CoffMachineType::kAmd64:
-      return Arch::kX64;
-  }
-  return Arch::kNone;
-}
 }  // namespace program_loader

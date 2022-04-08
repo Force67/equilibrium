@@ -5,12 +5,17 @@
 #include <program_loader/loader_factory.h>
 
 #include "inbuilt/loader_pe.h"
+#include "inbuilt/loader_elf.h"
+#include "inbuilt/loader_mach-o.h"
 
 namespace program_loader {
 
 LoaderFactory::LoaderFactory() {
   // register inbuilt loaders.
+  known_loaders_.resize(3);
   known_loaders_.push_back(LoaderPE::descriptor());
+  known_loaders_.push_back(LoaderELF::descriptor());
+  known_loaders_.push_back(LoaderMachO::descriptor());
 }
 
 void LoaderFactory::FindApplicableCanidates(
@@ -23,6 +28,7 @@ void LoaderFactory::FindApplicableCanidates(
   }
 }
 
+// TODO: owningptr, class 
 std::unique_ptr<ProgramLoader> LoaderFactory::CreateLoader(
     const ProgramLoadDescriptor& desc,
     const FileClassificationInfo& info) {
@@ -35,18 +41,18 @@ std::unique_ptr<ProgramLoader> LoaderFactory::CreateLoader(
                   desc.name);
       return nullptr;
     }
+
+    return std::unique_ptr<ProgramLoader>(desc.CreateLoader());
   }
 
   switch (info.format_type) {
     case Format::kELF:
+      return std::make_unique<LoaderELF>();
     case Format::kXEX:
-    case Format::kPE: {
-      if (is_inbuilt)
-        return std::make_unique<LoaderPE>();
-
-      return nullptr;
-    }
+    case Format::kPE:
+      return std::make_unique<LoaderPE>();
     case Format::kMachO:
+      return std::make_unique<LoaderMachO>();
     case Format::kSELF:
       break;
     default:
