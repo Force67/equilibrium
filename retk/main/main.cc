@@ -33,6 +33,10 @@ static void AssertHandler(const char*, const char*, const char*) {
 #include <ui/platform/win/native_window_win32.h>
 #include <ui/platform/win/message_pump_win.h>
 
+#include <base/filesystem/file_util.h>
+#include <program_loader/file_classifier.h>
+#include <program_loader/loader_factory.h>
+
 int main() {
   base::SetCurrentThreadName("AppMain");
   base::SetLogHandler(TKLogHandler);
@@ -40,7 +44,7 @@ int main() {
   base::SetAssertHandler(AssertHandler);
 #endif
 
-#if 1
+#if 0
   ui::NativeWindowWin32 win(u8"RETK");
   win.Init(nullptr, {0,0, 1920, 1080});
   win.Show();
@@ -51,6 +55,27 @@ int main() {
   }
 #endif
 
+  i64 size = 0;
+  auto contents{base::LoadFile(R"(S:\Work\Tilted\TiltedEvolution\build\windows\x64\debug\SkyrimTogether.exe)", &size)};
+
+  base::Span view{contents.get(), static_cast<size_t>(size)};
+
+  program_loader::FileClassificationInfo info;
+  program_loader::ClassifyFile(view, info);
+
+  program_loader::LoaderFactory fa;
+
+  std::vector<const program_loader::ProgramLoadDescriptor*> canidates; 
+  fa.FindApplicableCanidates(info, canidates);
+
+  std::unique_ptr<program_loader::ProgramLoader> loader;
+  for (auto* c : canidates) {
+    loader = fa.CreateLoader(*c, info);
+  }
+
+  program_loader::ProgramData data;
+  if (loader)
+    loader->Parse(view, info, data);
   // Application app;
   // return app.Exec();
 

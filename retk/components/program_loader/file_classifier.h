@@ -37,8 +37,11 @@ struct PrivateData {};
 struct FileClassificationInfo {
   Format format_type;
   Arch architecture{Arch::kNone};
-  // Data specific to the file format, to be consumed by the loader.
-  std::unique_ptr<PrivateData> data;
+
+  union {
+    PrivateData* data;
+    size_t offset;
+  };
 };
 
 struct FileClassifier {
@@ -49,5 +52,5 @@ struct FileClassifier {
 };
 
 // this will try to determine some common format.
-bool ClassifyFile(base::Span<byte> buffer, FileClassificationInfo* info);
+bool ClassifyFile(base::Span<byte> buffer, FileClassificationInfo& out);
 }  // namespace program_loader

@@ -8,7 +8,9 @@
 namespace program_loader {
 // On 64bit versions of Windows the smallest 32bit executable is 268 bytes
 constexpr size_t kMinimumPEExecutableSize = 268;
-constexpr i16 kDosMagic = 'MZ';
+
+// TODO(Vince): constexpr endian swapped.
+constexpr i16 kDosMagic = 'ZM';
 
 struct DOSHeader {
   i16 magic;
@@ -30,6 +32,28 @@ struct DOSHeader {
   u16 oem_info;
   u16 reserved2[10];
   u32 farnew;
+};
+
+enum class CoffMachineType : u16 { kIntel86 = 0x14c, kAmd64 = 0x8664 };
+
+struct CoffFileHeader {
+  CoffMachineType machine;
+  u16 section_count;
+  u32 time_date_stamp;
+  u32 pointer_to_symtab;
+  u32 number_of_symbols;
+  u16 size_optional_header;
+  u16 characteristics;
+
+  bool IsImportLibrary() const { return section_count == 0xffff; }
+};
+
+// 17744
+constexpr u32 kNtSignature = 17744;
+
+struct NtHeaders {
+  u32 signature;
+  CoffFileHeader coff;
 };
 
 struct PE32Header {
@@ -98,17 +122,16 @@ struct PE32PlusHeader {
   u32 number_rva_and_sizes;
 };
 
-enum class CoffMachineType : u16 { kIntel86 = 0x14c, kAmd64 = 0x8664 };
-
-struct CoffFileHeader {
-  CoffMachineType machine;
-  u16 section_count;
-  u32 time_date_stamp;
-  u32 pointer_to_symtab;
-  u32 number_of_symbols;
-  u16 size_optional_header;
-  u16 characteristics;
-
-  bool IsImportLibrary() const { return section_count == 0xffff; }
+struct NtSectionHeader {
+  char name[8];
+  u32 virtual_size;
+  u32 virtual_address;
+  u32 raw_data_size;
+  u32 raw_data_pointer;
+  u32 relocations_pointer;
+  u32 line_number_pointer;
+  u16 relocation_count;
+  u16 line_count;
+  u32 characteristics;
 };
 }  // namespace program_loader

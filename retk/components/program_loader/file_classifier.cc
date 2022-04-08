@@ -15,12 +15,12 @@ namespace program_loader {
 static FileClassifier* kClassifiers[]{
     LoaderPE::classifier(), LoaderELF::classifier(), LoaderMachO::classifier()};
 
-bool ClassifyFile(base::Span<byte> buffer, FileClassificationInfo* info) {
-  *info = {};
+bool ClassifyFile(base::Span<byte> buffer, FileClassificationInfo& info_out) {
+  info_out = {};
 
   for (const FileClassifier* f : kClassifiers) {
-    if (!f->classify(buffer, *info)) {
-      __debugbreak();
+    if (f->classify(buffer, info_out)) {
+      return true;
     }
   }
 

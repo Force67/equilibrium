@@ -12,7 +12,7 @@ namespace program_loader {
 
 LoaderFactory::LoaderFactory() {
   // register inbuilt loaders.
-  known_loaders_.resize(3);
+  //known_loaders_.resize(3);
   known_loaders_.push_back(LoaderPE::descriptor());
   known_loaders_.push_back(LoaderELF::descriptor());
   known_loaders_.push_back(LoaderMachO::descriptor());

@@ -17,6 +17,7 @@ project("App_Main")
         "imgui",
         -- system
         "ui",
+        "program_loader"
     })
     links({
         -- third party
@@ -36,6 +37,7 @@ project("App_Main")
         ".",
         "../",
         "../../",
+        "../components/",
         "../../components"
     })
     include_skia()

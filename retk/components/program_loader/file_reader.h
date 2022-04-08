@@ -12,28 +12,37 @@ class FileReader {
  public:
   FileReader(base::Span<byte> buffer) : buffer_(buffer) {}
 
+  void AdvanceFromStart(size_t pos) { pos_ = pos;
+  }
+
   template <typename T>
-  T* Fetch(size_t at_offset = 0) {
+  T* Fetch() {
     T* head = nullptr;
-    return Read(reinterpret_cast<byte*>(head), sizeof(T)) ? head : nullptr;
+    return Read(reinterpret_cast<byte**>(&head), sizeof(T)) ? head : nullptr;
+  }
+
+  template <typename T>
+  T* FetchNoAdvance() {
+    T* head = nullptr;
+    return Read(reinterpret_cast<byte**>(&head), sizeof(T), false) ? head : nullptr;
   }
 
   template <typename T>
   T* FetchRewind(size_t at_offset = 0) {
     T* head = nullptr;
     pos_ = 0;
-    return Read(reinterpret_cast<byte*>(head), sizeof(T)) ? head : nullptr;
+    return Read(reinterpret_cast<byte**>(&head), sizeof(T)) ? head : nullptr;
   }
 
   void Advance(size_t pos) { pos_ += pos; }
 
  private:
-  bool Read(byte* new_head, size_t n) {
-    pos_ += n;
+  bool Read(byte** new_head, size_t n, bool advance = true) {
     if (pos_ > buffer_.size())
       return false;
-
-    new_head = &buffer_[pos_];
+    *new_head = &buffer_[pos_];
+    if (advance)
+        pos_ += n;
     return true;
   }
 
