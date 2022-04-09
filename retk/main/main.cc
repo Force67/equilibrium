@@ -80,7 +80,10 @@ int main() {
 #endif
 
   //DOLoadFile(R"(S:\Work\Tilted\TiltedEvolution\build\windows\x64\debug\SkyrimTogether.exe)");
-  DOLoadFile(R"(S:\Work\Research\fuchsia\third_party\go\src\debug\dwarf\testdata\line-gcc.elf)");
+  //DOLoadFile(R"(S:\Work\Research\fuchsia\third_party\go\src\debug\dwarf\testdata\line-gcc.elf)");
+  DOLoadFile(
+      R"(C:\Users\vince\AppData\Roaming\PS4Tools\dd\depots\406202\7841814\Rise of the Tomb Raider.app\Contents\MacOS\Rise of the Tomb Raider)");
+  
   // Application app;
   // return app.Exec();
 
