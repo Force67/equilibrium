@@ -24,6 +24,15 @@ enum class Arch : u32 {
   kARMV732 = 1 << 4,
 };
 
+inline bool Is64BitArchitecture(Arch arch) {
+  switch (arch) {
+    case Arch::kX64:
+      return true;
+  }
+
+  return false;
+}
+
 // For concentration of flags
 inline consteval Arch operator|(Arch lhs, Arch rhs) {
   return static_cast<Arch>(static_cast<arch_types::u32>(lhs) |
@@ -40,7 +49,7 @@ struct FileClassificationInfo {
 
   union {
     PrivateData* data;
-    size_t offset;
+    size_t numeric;
   };
 };
 

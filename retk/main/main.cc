@@ -37,6 +37,30 @@ static void AssertHandler(const char*, const char*, const char*) {
 #include <program_loader/file_classifier.h>
 #include <program_loader/loader_factory.h>
 
+void DOLoadFile(const char *name) {
+  i64 size = 0;
+  auto contents{base::LoadFile(name, &size)};
+
+  base::Span view{contents.get(), static_cast<size_t>(size)};
+
+  program_loader::FileClassificationInfo info;
+  program_loader::ClassifyFile(view, info);
+
+  program_loader::LoaderFactory fa;
+
+  std::vector<const program_loader::ProgramLoadDescriptor*> canidates;
+  fa.FindApplicableCanidates(info, canidates);
+
+  std::unique_ptr<program_loader::ProgramLoader> loader;
+  for (auto* c : canidates) {
+    loader = fa.CreateLoader(*c, info);
+  }
+
+  program_loader::ProgramData data;
+  if (loader)
+    loader->Parse(view, info, data);
+}
+
 int main() {
   base::SetCurrentThreadName("AppMain");
   base::SetLogHandler(TKLogHandler);
@@ -55,27 +79,8 @@ int main() {
   }
 #endif
 
-  i64 size = 0;
-  auto contents{base::LoadFile(R"(S:\Work\Tilted\TiltedEvolution\build\windows\x64\debug\SkyrimTogether.exe)", &size)};
-
-  base::Span view{contents.get(), static_cast<size_t>(size)};
-
-  program_loader::FileClassificationInfo info;
-  program_loader::ClassifyFile(view, info);
-
-  program_loader::LoaderFactory fa;
-
-  std::vector<const program_loader::ProgramLoadDescriptor*> canidates; 
-  fa.FindApplicableCanidates(info, canidates);
-
-  std::unique_ptr<program_loader::ProgramLoader> loader;
-  for (auto* c : canidates) {
-    loader = fa.CreateLoader(*c, info);
-  }
-
-  program_loader::ProgramData data;
-  if (loader)
-    loader->Parse(view, info, data);
+  //DOLoadFile(R"(S:\Work\Tilted\TiltedEvolution\build\windows\x64\debug\SkyrimTogether.exe)");
+  DOLoadFile(R"(S:\Work\Research\fuchsia\third_party\go\src\debug\dwarf\testdata\line-gcc.elf)");
   // Application app;
   // return app.Exec();
 

@@ -83,8 +83,8 @@ struct PE32Header {
   u16 dll_characteristics;
   u32 size_stack_reserve;
   u32 size_stack_commit;
-  u32 size_heap_reserve;
-  u32 size_heap_commit;
+  u32 size_heareserve;
+  u32 size_heacommit;
   u32 loader_flags;
   u32 number_rva_and_sizes;
 };
@@ -116,10 +116,51 @@ struct PE32PlusHeader {
   u16 dll_characteristics;
   u64 size_stack_reserve;
   u64 size_stack_commit;
-  u64 size_heap_reserve;
-  u64 size_heap_commit;
+  u64 size_heareserve;
+  u64 size_heacommit;
   u32 loader_flags;
   u32 number_rva_and_sizes;
+};
+
+enum SectionCharacteristics : u32 {
+  kInvalid = 0xffffffff,
+  kTYPE_NOLOAD = 0x00000002,
+  kTYPE_NO_PAD = 0x00000008,
+  kCNT_CODE = 0x00000020,
+  kCNT_INITIALIZED_DATA = 0x00000040,
+  kCNT_UNINITIALIZED_DATA = 0x00000080,
+  kLNK_OTHER = 0x00000100,
+  kLNK_INFO = 0x00000200,
+  kLNK_REMOVE = 0x00000800,
+  kLNK_COMDAT = 0x00001000,
+  kGPREL = 0x00008000,
+  kMEM_PURGEABLE = 0x00020000,
+  kMEM_16BIT = 0x00020000,
+  kMEM_LOCKED = 0x00040000,
+  kMEM_PRELOAD = 0x00080000,
+  kALIGN_1BYTES = 0x00100000,
+  kALIGN_2BYTES = 0x00200000,
+  kALIGN_4BYTES = 0x00300000,
+  kALIGN_8BYTES = 0x00400000,
+  kALIGN_16BYTES = 0x00500000,
+  kALIGN_32BYTES = 0x00600000,
+  kALIGN_64BYTES = 0x00700000,
+  kALIGN_128BYTES = 0x00800000,
+  kALIGN_256BYTES = 0x00900000,
+  kALIGN_512BYTES = 0x00A00000,
+  kALIGN_1024BYTES = 0x00B00000,
+  kALIGN_2048BYTES = 0x00C00000,
+  kALIGN_4096BYTES = 0x00D00000,
+  kALIGN_8192BYTES = 0x00E00000,
+  kALIGN_MASK = 0x00F00000,
+  kLNK_NRELOC_OVFL = 0x01000000,
+  kMEM_DISCARDABLE = 0x02000000,
+  kMEM_NOT_CACHED = 0x04000000,
+  kMEM_NOT_PAGED = 0x08000000,
+  kMEM_SHARED = 0x10000000,
+  kMEM_EXECUTE = 0x20000000,
+  kMEM_READ = 0x40000000,
+  kMEM_WRITE = 0x80000000
 };
 
 struct NtSectionHeader {
@@ -132,6 +173,6 @@ struct NtSectionHeader {
   u32 line_number_pointer;
   u16 relocation_count;
   u16 line_count;
-  u32 characteristics;
+  SectionCharacteristics characteristics;
 };
 }  // namespace program_loader

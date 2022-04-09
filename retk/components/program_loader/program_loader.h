@@ -9,19 +9,35 @@
 
 namespace program_loader {
 struct ProgramData {
+  // we use 64 bit here everywhere, since ELF uses direct addressing on 64 bit
   struct Info {
     u64 base_addr;
-    u32 entry_ea;
+    u64 entry_ea;
   } info;
   struct Segment {
-    u32 start_va;
-    u32 size;
-    const char* name;
-
-    enum class Flags { kRW, kR, KW } flags;
+    u64 start_va;
+    u64 disk_size;
+    u64 mem_size;
+    base::String name;
+    enum class Flags { kNone = 0, kX = 1, kW = 2, kR = 4 } flags;
   };
   std::vector<Segment> segments;
 };
+
+inline consteval ProgramData::Segment::Flags operator|(
+    ProgramData::Segment::Flags lhs,
+    ProgramData::Segment::Flags rhs) {
+  return static_cast<ProgramData::Segment::Flags>(static_cast<arch_types::u32>(lhs) |
+                                                  static_cast<arch_types::u32>(rhs));
+}
+
+// This sucks, and in the future we should use a bitset class.
+inline ProgramData::Segment::Flags operator|=(ProgramData::Segment::Flags& lhs,
+                                              ProgramData::Segment::Flags rhs) {
+  auto new_val = reinterpret_cast<arch_types::u32*>(&lhs);
+  *new_val |= static_cast<arch_types::u32>(rhs);
+  return static_cast<ProgramData::Segment::Flags>(*new_val);
+}
 
 // 'Loader' represents a unit that can be asked to provide specific data about
 // given program

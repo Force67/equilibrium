@@ -21,13 +21,16 @@ inline Arch TranslateCoffMachineType(CoffMachineType machine_type) {
   return Arch::kNone;
 }
 
-bool Is64BitArchitecture(Arch arch) {
-  switch (arch) {
-    case Arch::kX64:
-      return true;
-  }
-
-  return false;
+ProgramData::Segment::Flags TranslateSectionFlags(u32 pe_flags) {
+  using SF = ProgramData::Segment::Flags;
+  SF new_flags{SF::kNone};
+  if (pe_flags & SectionCharacteristics::kMEM_EXECUTE)
+    new_flags |= SF::kX;
+  if (pe_flags & SectionCharacteristics::kMEM_WRITE)
+    new_flags |= SF::kW;
+  if (pe_flags & SectionCharacteristics::kMEM_READ)
+    new_flags |= SF::kR;
+  return new_flags;
 }
 
 bool ClassifyPlainPE(base::Span<byte> data, FileClassificationInfo& out) {
@@ -46,7 +49,7 @@ bool ClassifyPlainPE(base::Span<byte> data, FileClassificationInfo& out) {
     return false;
 
   out.format_type = Format::kPE;
-  out.offset = as_dos->farnew;
+  out.numeric = as_dos->farnew;
   out.architecture = TranslateCoffMachineType(nt_header->coff.machine);
 
   return out.architecture != Arch::kNone;
@@ -79,7 +82,7 @@ bool LoaderPE::Parse(const base::Span<byte> data,
                      const FileClassificationInfo& intel,
                      ProgramData& out) {
   FileReader reader(data);
-  reader.Advance(intel.offset);
+  reader.Advance(intel.numeric);
 
   // this should be valid at all times, since the classifier already validated this
   NtHeaders* nt_header;
@@ -106,8 +109,10 @@ bool LoaderPE::Parse(const base::Span<byte> data,
   for (u16 i = 0; i < nt_header->coff.section_count; i++) {
     NtSectionHeader* section = reader.Fetch<NtSectionHeader>();
     seg.name = section->name;
-    seg.size = section->raw_data_size;
+    seg.disk_size = section->raw_data_size;
+    seg.mem_size = section->virtual_size;
     seg.start_va = section->virtual_address;
+    seg.flags = TranslateSectionFlags(section->characteristics);
     segs.push_back(seg);
   }
 

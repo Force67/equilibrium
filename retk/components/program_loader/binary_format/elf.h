@@ -10,7 +10,7 @@ namespace program_loader {
 // https://github.com/llvm/llvm-project/blob/d480f968ad8b56d3ee4a6b6df5532d485b0ad01e/llvm/include/llvm/BinaryFormat/ELF.h
 static constexpr const char kElfMagic[] = {0x7f, 'E', 'L', 'F', '\0'};
 
-enum class ElfMachineType {
+enum class ElfMachineType : u16 {
   kNONE = 0,             //< No machine
   kM32 = 1,              //< AT&T WE 32100
   kSPARC = 2,            //< SPARC
@@ -88,7 +88,7 @@ enum class ElfMachineType {
   kPJ = 91,              //< picoJava
   kOPENRISC = 92,        //< OpenRISC 32-bit embedded processor
   kARC_COMPACT = 93,     //< ARC International ARCompact processor (old
-                           //< spelling/synonym: kARC_A5)
+                         //< spelling/synonym: kARC_A5)
   kXTENSA = 94,          //< Tensilica Xtensa Architecture
   kVIDEOCORE = 95,       //< Alphamosaic VideoCore processor
   kTMM_GPP = 96,         //< Thompson Multimedia General Purpose Processor
@@ -106,7 +106,7 @@ enum class ElfMachineType {
   kSEP = 108,            //< Sharp embedded microprocessor
   kARCA = 109,           //< Arca RISC Microprocessor
   kUNICORE = 110,        //< Microprocessor series from PKU-Unity Ltd. and MPRC
-                           //< of Peking University
+                         //< of Peking University
   kEXCESS = 111,         //< eXcess: 16/32/64-bit configurable embedded CPU
   kDXP = 112,            //< Icera Semiconductor Inc. Deep Execution Processor
   kALTERA_NIOS2 = 113,   //< Altera Nios II soft-core processor
@@ -115,13 +115,13 @@ enum class ElfMachineType {
   kC166 = 116,           //< Infineon C16x/XC16x processor
   kM16C = 117,           //< Renesas M16C series microprocessors
   kDSPIC30F = 118,       //< Microchip Technology dsPIC30F Digital Signal
-                           //< Controller
+                         //< Controller
   kCE = 119,             //< Freescale Communication Engine RISC core
   kM32C = 120,           //< Renesas M32C series microprocessors
   kTSK3000 = 131,        //< Altium TSK3000 core
   kRS08 = 132,           //< Freescale RS08 embedded processor
   kSHARC = 133,          //< Analog Devices SHARC family of 32-bit DSP
-                           //< processors
+                         //< processors
   kECOG2 = 134,          //< Cyan Technology eCOG2 microprocessor
   kSCORE7 = 135,         //< Sunplus S+core7 RISC processor
   kDSP24 = 136,          //< New Japan Radio (NJR) 24-bit DSP Processor
@@ -131,16 +131,16 @@ enum class ElfMachineType {
   kTI_C6000 = 140,       //< The Texas Instruments TMS320C6000 DSP family
   kTI_C2000 = 141,       //< The Texas Instruments TMS320C2000 DSP family
   kTI_C5500 = 142,       //< The Texas Instruments TMS320C55x DSP family
-  kMMDSP_PLUS = 160,     //< STMicroelectronics 64bit VLIW Data Signal Processor
+  kMMDSPLUS = 160,       //< STMicroelectronics 64bit VLIW Data Signal Processor
   kCYPRESS_M8C = 161,    //< Cypress M8C microprocessor
   kR32C = 162,           //< Renesas R32C series microprocessors
   kTRIMEDIA = 163,       //< NXP Semiconductors TriMedia architecture family
   kHEXAGON = 164,        //< Qualcomm Hexagon processor
   k8051 = 165,           //< Intel 8051 and variants
   kSTXP7X = 166,         //< STMicroelectronics STxP7x family of configurable
-                           //< and extensible RISC processors
+                         //< and extensible RISC processors
   kNDS32 = 167,          //< Andes Technology compact code size embedded RISC
-                           //< processor family
+                         //< processor family
   kECOG1 = 168,          //< Cyan Technology eCOG1X family
   kECOG1X = 168,         //< Cyan Technology eCOG1X family
   kMAXQ30 = 169,         //< Dallas Semiconductor MAXQ30 Core Micro-controllers
@@ -149,11 +149,11 @@ enum class ElfMachineType {
   kCRAYNV2 = 172,        //< Cray Inc. NV2 vector architecture
   kRX = 173,             //< Renesas RX family
   kMETAG = 174,          //< Imagination Technologies META processor
-                           //< architecture
+                         //< architecture
   kMCST_ELBRUS = 175,    //< MCST Elbrus general purpose hardware architecture
   kECOG16 = 176,         //< Cyan Technology eCOG16 family
   kCR16 = 177,           //< National Semiconductor CompactRISC CR16 16-bit
-                           //< microprocessor
+                         //< microprocessor
   kETPU = 178,           //< Freescale Extended Time Processing Unit
   kSLE9X = 179,          //< Infineon Technologies SLE9X core
   kL10M = 180,           //< Intel L10M
@@ -177,7 +177,7 @@ enum class ElfMachineType {
   kBA1 = 201,            //< Beyond BA1 CPU architecture
   kBA2 = 202,            //< Beyond BA2 CPU architecture
   kXCORE = 203,          //< XMOS xCORE processor family
-  kMCHP_PIC = 204,       //< Microchip 8-bit PIC(r) family
+  kMCHPIC = 204,         //< Microchip 8-bit PIC(r) family
   kINTEL205 = 205,       //< Reserved by Intel
   kINTEL206 = 206,       //< Reserved by Intel
   kINTEL207 = 207,       //< Reserved by Intel
@@ -201,13 +201,123 @@ enum class ElfMachineType {
   kCSKY = 252,           //< C-SKY 32-bit processor
 };
 
-struct ElfHeader {
-  byte ident[16];  //< ELF Identification bytes
-  u16 type;
-  ElfMachineType machine;
+enum class ElfType : u16 {
+  kNONE = 0,         // No file type
+  kREL = 1,          // Relocatable file
+  kEXEC = 2,         // Executable file
+  kDYN = 3,          // Shared object file
+  kCORE = 4,         // Core file
+  kLOOS = 0xfe00,    // Beginning of operating system-specific codes
+  kHIOS = 0xfeff,    // Operating system-specific
+  kLOPROC = 0xff00,  // Beginning of processor-specific codes
+  kHIPROC = 0xffff   // Processor-specific
+};
 
-  bool checkMagic() const {
-    return (memcmp(ident, kElfMagic, strlen(kElfMagic))) == 0;
-  }
+struct Elf32Header {
+  byte ident[16];  //< ELF Identification bytes
+  ElfType type;
+  ElfMachineType machine;
+  u32 version;  //< must be 1
+  u32 entry_address;
+  u32 program_header_offset;
+  u32 section_header_offset;
+  u32 flags;
+  u16 ehsize;
+  u16 phentsize;
+  u16 program_header_count;
+  u16 shentsize;
+  u16 shnum;
+  u16 shstrndx;
+};
+static_assert(sizeof(Elf32Header) == 52, "Elf32Header size improperly aligned");
+
+struct Elf64Header {
+  byte ident[16];  //< ELF Identification bytes
+  ElfType type;
+  ElfMachineType machine;
+  u32 version;
+  u64 entry_address;
+  u64 program_header_offset;
+  u64 section_header_offset;
+  u32 flags;
+  u16 ehsize;
+  u16 phentsize;
+  u16 program_header_count;
+  u16 shentsize;
+  u16 shnum;
+  u16 shstrndx;
+};
+static_assert(sizeof(Elf64Header) == 64, "Elf64Header size improperly aligned");
+
+enum class ElfProgramType : u32 {
+  kNULL = 0,             // Unused segment.
+  kLOAD = 1,             // Loadable segment.
+  kDYNAMIC = 2,          // Dynamic linking information.
+  kINTERP = 3,           // Interpreter pathname.
+  kNOTE = 4,             // Auxiliary information.
+  kSHLIB = 5,            // Reserved.
+  kPHDR = 6,             // The program header table itself.
+  kTLS = 7,              // The thread-local storage template.
+  kLOOS = 0x60000000,    // Lowest operating system-specific pt entry type.
+  kHIOS = 0x6fffffff,    // Highest operating system-specific pt entry type.
+  kLOPROC = 0x70000000,  // Lowest processor-specific program hdr entry type.
+  kHIPROC = 0x7fffffff,  // Highest processor-specific program hdr entry type.
+
+  // x86-64 program header types.
+  // These all contain stack unwind tables.
+  kGNU_EH_FRAME = 0x6474e550,
+  kSUNW_EH_FRAME = 0x6474e550,
+  kSUNW_UNWIND = 0x6464e550,
+
+  kGNU_STACK = 0x6474e551,     // Indicates stack executability.
+  kGNU_RELRO = 0x6474e552,     // Read-only after relocation.
+  kGNU_PROPERTY = 0x6474e553,  // .note.gnu.property notes sections.
+
+  kOPENBSD_RANDOMIZE = 0x65a3dbe6,  // Fill with random data.
+  kOPENBSD_WXNEEDED = 0x65a3dbe7,   // Program does W^X violations.
+  kOPENBSD_BOOTDATA = 0x65a41be6,   // Section for boot arguments.
+
+  // ARM program header types.
+  kARM_ARCHEXT = 0x70000000,  // Platform architecture compatibility info
+  // These all contain stack unwind tables.
+  kARM_EXIDX = 0x70000001,
+  kARM_UNWIND = 0x70000001,
+
+  // MIPS program header types.
+  kMIPS_REGINFO = 0x70000000,   // Register usage information.
+  kMIPS_RTPROC = 0x70000001,    // Runtime procedure table.
+  kMIPS_OPTIONS = 0x70000002,   // Options segment.
+  kMIPS_ABIFLAGS = 0x70000003,  // Abiflags segment.
+};
+
+// Segment flag bits.
+enum : unsigned {
+  PF_X = 1,                 // Execute
+  PF_W = 2,                 // Write
+  PF_R = 4,                 // Read
+  PF_MASKOS = 0x0ff00000,   // Bits for operating system-specific semantics.
+  PF_MASKPROC = 0xf0000000  // Bits for processor-specific semantics.
+};
+
+struct Elf32ProgramHeader {
+  ElfProgramType type;  // Type of segment
+  u32 offset;           // File offset where segment is located, in bytes
+  u32 virtual_address;  // Virtual address of beginning of segment
+  u32 paddr;            // Physical address of beginning of segment (OS-specific)
+  u32 disk_size;        // Num. of bytes in file image of segment (may be zero)
+  u32 memory_size;      // Num. of bytes in mem image of segment (may be zero)
+  u32 flags;            // Segment flags
+  u32 align;            // Segment alignment constraint
+};
+
+struct Elf64ProgramHeader {
+  ElfProgramType type;  // Type of segment
+  u32 flags;            // Segment flags
+  u64 offset;           // File offset where segment is located, in bytes
+  u64 virtual_address;  // Virtual address of beginning of segment
+  u64 paddr;            // Physical addr of beginning of segment (OS-specific)
+  u64 disk_size;        // Num. of bytes in file image of segment (may be zero)
+  u64 memory_size;      // Num. of bytes in mem image of segment (may be zero)
+  u64 align;            // Segment alignment constraint
 };
 }  // namespace program_loader
