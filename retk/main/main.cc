@@ -68,7 +68,7 @@ int main() {
   base::SetAssertHandler(AssertHandler);
 #endif
 
-#if 0
+#if 1
   ui::NativeWindowWin32 win(u8"RETK");
   win.Init(nullptr, {0,0, 1920, 1080});
   win.Show();
@@ -81,8 +81,8 @@ int main() {
 
   //DOLoadFile(R"(S:\Work\Tilted\TiltedEvolution\build\windows\x64\debug\SkyrimTogether.exe)");
   //DOLoadFile(R"(S:\Work\Research\fuchsia\third_party\go\src\debug\dwarf\testdata\line-gcc.elf)");
-  DOLoadFile(
-      R"(C:\Users\vince\AppData\Roaming\PS4Tools\dd\depots\406202\7841814\Rise of the Tomb Raider.app\Contents\MacOS\Rise of the Tomb Raider)");
+  //DOLoadFile(
+  //    R"(C:\Users\vince\AppData\Roaming\PS4Tools\dd\depots\406202\7841814\Rise of the Tomb Raider.app\Contents\MacOS\Rise of the Tomb Raider)");
   
   // Application app;
   // return app.Exec();

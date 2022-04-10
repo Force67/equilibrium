@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Force67 <github.com/Force67>.
+// Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 // Our imgui configuration options, for more info consult imconfig.h
 // within your imgui distribution (/external/imgui)
