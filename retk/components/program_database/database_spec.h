@@ -1,9 +1,10 @@
-// Copyright (C) 2021 Force67 <github.com/Force67>.
+// Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
 #include <base/arch.h>
 
+// database_disk_format
 namespace program_database::v1 {
 static constexpr u32 kMainHeaderMagic = 'VMH\n';
 
@@ -15,13 +16,22 @@ struct Header {
   u64 create_date_time_stamp;    //< when the idb was created
   u64 last_modified_time_stamp;  //< when the idb was last modified
   u32 progarm_seg_offset;        //< offset to the SourceProgramHeader
-  u32 tree_offset;               //< where the binary tree begins
+  u32 section_header_offset;     //< where the binary tree begins
 };
 
-enum class CompressionType : u32 { kNone, kLZ4, kZip };
+// these are database sections, not program sections
+struct SectionHeader {
+  u16 num_sections;
+  u16 section_alignment;
+  u16 reserved1;
+  u16 reserved2;
+};
 
 static constexpr u32 kProgramHeaderMagic = 'PROG';
 
+enum class CompressionType : u32 { kNone, kLZ4, kZip };
+
+// the program header exists within the source prog section.
 struct SourceProgramHeader {
   u32 magic;
   CompressionType compression_type;

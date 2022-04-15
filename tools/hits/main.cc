@@ -3,7 +3,7 @@
 // Utility for matching 'hits' of patterns.
 
 #include <base/arch.h>
-#include <base/xstring.h>
+#include <base/strings/xstring.h>
 using namespace arch_types;
 
 #include "nt_executable_scanner.h"

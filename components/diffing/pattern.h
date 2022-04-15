@@ -4,7 +4,7 @@
 
 #include <base/arch.h>
 #include <base/check.h>
-#include <base/xstring.h>
+#include <base/strings/xstring.h>
 
 namespace diffing {
 

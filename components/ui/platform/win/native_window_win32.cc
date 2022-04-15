@@ -254,7 +254,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
 bool NativeWindowWin32::SetTitle(const base::StringRefU8 title_name) {
   auto wide_name = base::UTF8ToWide(title_name);
   if (::SetWindowTextW(hwnd_, wide_name.c_str())) {
-    title_ = title_name;
+    title_ = title_name.data();
     return true;
   }
   return false;

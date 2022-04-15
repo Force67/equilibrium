@@ -1,8 +1,14 @@
-// Copyright (C) 2021 Force67 <github.com/Force67>.
+// Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/containers/span.h>
+
+namespace base {
+class Path;
+}
+
 namespace program_database {
 
-void CreateDatabase();
+void CreateDatabase(const base::Span<byte> program, const base::Path& out_path);
 }

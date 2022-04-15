@@ -10,14 +10,23 @@
 // Note(Vince): This is a switch so you can avoid using the heavy std header
 // While this isnt of much use for now as fbstring pulls in all the std headers
 // anyway, its a future optimization/portability point
-#define BASE_USE_STDSTRING
+#if 1
+
+//#define BASE_USE_STDSTRING
 #ifndef BASE_USE_STDSTRING
 #define FOLLY_HAS_STRING_VIEW 1
 #include <base/external/folly/fbstring.h>
-#define BASE_STRING(x) folly::fbstring_core<x>
+#define BASE_STRING(x) folly::basic_fbstring<x>
 #else
 #include <string>
 #define BASE_STRING(x) std::basic_string<x>
+#endif
+#endif
+
+#if 0
+#include <string>
+#include <base/strings/eqi_string.h>
+#define BASE_STRING(x) base::basic_eqi_string<x>
 #endif
 
 namespace base {

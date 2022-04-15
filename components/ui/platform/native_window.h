@@ -3,7 +3,7 @@
 // Platform window.
 #pragma once
 
-#include <base/xstring.h>
+#include <base/strings/xstring.h>
 
 namespace ui {
 class NativeWindow {
@@ -12,7 +12,7 @@ class NativeWindow {
   // on other platforms we store a metadata struct block in the handle.
   using handle = void*;
 
-  inline NativeWindow(const base::StringRefU8 title) : title_(title) {}
+  inline NativeWindow(const base::StringRefU8 title) : title_(title.data()) {}
 
   // create the window, if a parent handle is passed the style and other
   // properties get inherited.

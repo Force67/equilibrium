@@ -86,6 +86,10 @@
 #define ATTR_UNLIKELY
 #endif
 
+#if defined(__SANITIZE_ADDRESS__)
+#define SANITIZE_ADDRESS
+#endif
+
 
 // requires a rename later on.
 #if defined(__GNUC__) || defined(__clang__)
@@ -145,3 +149,6 @@ constexpr auto kIsLittleEndian = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
 #endif
 constexpr auto kIsBigEndian = !kIsLittleEndian;
 }  // namespace base
+
+// TODO(Vince)
+//REG_DWORD_LITTLE_ENDIAN

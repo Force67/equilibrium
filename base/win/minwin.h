@@ -351,3 +351,7 @@ inline MSG* ChromeToWindowsType(CHROME_MSG* p) {
 #define SendMessage SendMessageW
 #define SendMessageCallback SendMessageCallbackW
 #define SetCurrentDirectory SetCurrentDirectoryW
+
+#define EXCEPTION_EXECUTE_HANDLER 1
+#define EXCEPTION_CONTINUE_SEARCH 0
+#define EXCEPTION_CONTINUE_EXECUTION (-1)

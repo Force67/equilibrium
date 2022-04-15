@@ -10,6 +10,7 @@ namespace program_database {
 
 class SymbolTable {
  public:
+ private:
 
 };
 }  // namespace program_database

@@ -10,7 +10,7 @@
 // https://gist.github.com/ad8e/dd150b775ae6aa4d5cf1a092e4713add
 
 #include <base/check.h>
-#include <base/thread.h>
+#include <base/threading/thread.h>
 #include <base/text/code_convert.h>
 
 static void TKLogHandler(base::LogLevel level, const char* msg) {

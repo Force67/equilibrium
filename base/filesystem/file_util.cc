@@ -8,6 +8,7 @@
 namespace base {
 
 // quick and dirty way of loading a file, needs to be revised later.
+// TODO: yeeeeeeeet
 std::unique_ptr<u8[]> LoadFile(const Path& path, i64* opt_size) {
   base::File file(path, base::File::FLAG_OPEN | base::File::FLAG_READ);
   if (!file.IsValid()) {

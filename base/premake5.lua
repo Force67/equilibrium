@@ -7,6 +7,8 @@ project("base")
     files({
         "**.cc",
         "**.h",
+        "**.in",
+        "**.inl"
     })
     links({
         "fmtlib"

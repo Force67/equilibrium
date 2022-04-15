@@ -11,6 +11,8 @@ DynamicLibrary::DynamicLibrary(const base::Path& path) {
 
 bool DynamicLibrary::Load(const base::Path& path) {
   handle_ = LoadLibraryW(path.c_str());
+  // TODO(Vince): verify checksum
+
   return handle_;
 }
 
@@ -18,7 +20,7 @@ bool DynamicLibrary::Free() {
   return FreeLibrary(static_cast<HMODULE>(handle_));
 }
 
-void* DynamicLibrary::FindSymbolPointer(const char* name) {
+void* DynamicLibrary::FindSymbolPointer(const char* name) const {
   return reinterpret_cast<void*>(
       GetProcAddress(static_cast<HMODULE>(handle_), name));
 }

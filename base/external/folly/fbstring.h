@@ -143,107 +143,27 @@ inline void podMove(const Pod* b, const Pod* e, Pod* d) {
  */
 enum class AcquireMallocatedString {};
 
-/*
- * fbstring_core_model is a mock-up type that defines all required
- * signatures of a fbstring core. The fbstring class itself uses such
- * a core object to implement all of the numerous member functions
- * required by the standard.
- *
- * If you want to define a new core, copy the definition below and
- * implement the primitives. Then plug the core into basic_fbstring as
- * a template argument.
+FOLLY_NOINLINE inline void* smartRealloc(
+    void* p,
+    const size_t currentSize,
+    const size_t currentCapacity,
+    const size_t newCapacity) {
+  assert(p);
+  assert(currentSize <= currentCapacity && currentCapacity < newCapacity);
 
-template <class Char>
-class fbstring_core_model {
- public:
-  fbstring_core_model();
-  fbstring_core_model(const fbstring_core_model &);
-  fbstring_core_model& operator=(const fbstring_core_model &) = delete;
-  ~fbstring_core_model();
-  // Returns a pointer to string's buffer (currently only contiguous
-  // strings are supported). The pointer is guaranteed to be valid
-  // until the next call to a non-const member function.
-  const Char * data() const;
-  // Much like data(), except the string is prepared to support
-  // character-level changes. This call is a signal for
-  // e.g. reference-counted implementation to fork the data. The
-  // pointer is guaranteed to be valid until the next call to a
-  // non-const member function.
-  Char* mutableData();
-  // Returns a pointer to string's buffer and guarantees that a
-  // readable '\0' lies right after the buffer. The pointer is
-  // guaranteed to be valid until the next call to a non-const member
-  // function.
-  const Char * c_str() const;
-  // Shrinks the string by delta characters. Asserts that delta <=
-  // size().
-  void shrink(size_t delta);
-  // Expands the string by delta characters (i.e. after this call
-  // size() will report the old size() plus delta) but without
-  // initializing the expanded region. The expanded region is
-  // zero-terminated. Returns a pointer to the memory to be
-  // initialized (the beginning of the expanded portion). The caller
-  // is expected to fill the expanded area appropriately.
-  // If expGrowth is true, exponential growth is guaranteed.
-  // It is not guaranteed not to reallocate even if size() + delta <
-  // capacity(), so all references to the buffer are invalidated.
-  Char* expandNoinit(size_t delta, bool expGrowth);
-  // Expands the string by one character and sets the last character
-  // to c.
-  void push_back(Char c);
-  // Returns the string's size.
-  size_t size() const;
-  // Returns the string's capacity, i.e. maximum size that the string
-  // can grow to without reallocation. Note that for reference counted
-  // strings that's technically a lie - even assigning characters
-  // within the existing size would cause a reallocation.
-  size_t capacity() const;
-  // Returns true if the data underlying the string is actually shared
-  // across multiple strings (in a refcounted fashion).
-  bool isShared() const;
-  // Makes sure that at least minCapacity characters are available for
-  // the string without reallocation. For reference-counted strings,
-  // it should fork the data even if minCapacity < size().
-  void reserve(size_t minCapacity);
-};
-*/
+  auto const slack = currentCapacity - currentSize;
+  if (slack * 2 > currentSize) {
+    // Too much slack, malloc-copy-free cycle:
+    auto const result = malloc(newCapacity);
+    std::memcpy(result, p, currentSize);
+    free(p);
+    return result;
+  }
+  // If there's not too much slack, we realloc in hope of coalescing
+  return realloc(p, newCapacity);
+}
 
-/**
- * This is the core of the string. The code should work on 32- and
- * 64-bit and both big- and little-endianan architectures with any
- * Char size.
- *
- * The storage is selected as follows (assuming we store one-byte
- * characters on a 64-bit machine): (a) "small" strings between 0 and
- * 23 chars are stored in-situ without allocation (the rightmost byte
- * stores the size); (b) "medium" strings from 24 through 254 chars
- * are stored in malloc-allocated memory that is copied eagerly; (c)
- * "large" strings of 255 chars and above are stored in a similar
- * structure as medium arrays, except that the string is
- * reference-counted and copied lazily. the reference count is
- * allocated right before the character array.
- *
- * The discriminator between these three strategies sits in two
- * bits of the rightmost char of the storage:
- * - If neither is set, then the string is small. Its length is represented by
- *   the lower-order bits on little-endian or the high-order bits on big-endian
- *   of that rightmost character. The value of these six bits is
- *   `maxSmallSize - size`, so this quantity must be subtracted from
- *   `maxSmallSize` to compute the `size` of the string (see `smallSize()`).
- *   This scheme ensures that when `size == `maxSmallSize`, the last byte in the
- *   storage is \0. This way, storage will be a null-terminated sequence of
- *   bytes, even if all 23 bytes of data are used on a 64-bit architecture.
- *   This enables `c_str()` and `data()` to simply return a pointer to the
- *   storage.
- *
- * - If the MSb is set, the string is medium width.
- *
- * - If the second MSb is set, then the string is large. On little-endian,
- *   these 2 bits are the 2 MSbs of MediumLarge::capacity_, while on
- *   big-endian, these 2 bits are the 2 LSbs. This keeps both little-endian
- *   and big-endian fbstring_core equivalent with merely different ops used
- *   to extract capacity/category.
- */
+
 template <bool B>
 using bool_constant = std::integral_constant<bool, B>;
 
@@ -948,8 +868,9 @@ class basic_fbstring {
 
   template <typename Ex, typename... Args>
   FOLLY_ALWAYS_INLINE static void enforce(bool condition, Args&&... args) {
+      
     if (!condition) {
-      throw_exception<Ex>(static_cast<Args&&>(args)...);
+      //throw_exception<Ex>(static_cast<Args&&>(args)...);
     }
   }
 

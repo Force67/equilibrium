@@ -13,7 +13,9 @@ struct BASE_EXPORT Feature : InitChain<Feature> {
     kHidden = 1 << 1,  //< If this flag isn't set, assume public.
   };
 
-  constexpr STRONG_INLINE Feature(const char* name, Flags f = Flags::kNone, bool enabled = true)
+  constexpr STRONG_INLINE Feature(const char* name,
+                                  bool enabled = true,
+                                  Flags f = Flags::kNone)
       : InitChain(this), name(name), flags(f), enabled(enabled) {}
 
   inline operator bool() const { return enabled; }
@@ -24,8 +26,7 @@ struct BASE_EXPORT Feature : InitChain<Feature> {
 };
 
 // For concentration of flags
-inline constexpr Feature::Flags operator|(Feature::Flags lhs,
-                                          Feature::Flags rhs) {
+inline constexpr Feature::Flags operator|(Feature::Flags lhs, Feature::Flags rhs) {
   return static_cast<Feature::Flags>(static_cast<arch_types::u32>(lhs) |
                                      static_cast<arch_types::u32>(rhs));
 }

@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Licensing authority: Issue.
 #pragma once
-#include <base/xstring.h>
+#include <base/strings/xstring.h>
 #include <entitlement/license.h>
 
 namespace entitlement {

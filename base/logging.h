@@ -3,6 +3,7 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <base/compiler.h>
 
 // TODO: support concept of spaces
 // TODO: support channels
@@ -25,10 +26,7 @@ void WriteLogMessage(LogLevel, const char*);
 }  // namespace detail
 
 using LogHandler = void (*)(LogLevel, const char*);
-// Init the global log device
 void SetLogHandler(LogHandler);
-// Print the copyright message to the device
-void PrintLegals();
 
 template <typename... Args>
 void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
@@ -41,6 +39,7 @@ void PrintLogMessagePF(LogLevel level, const char* format...);
 }  // namespace base
 
 #if defined(CONFIG_DEBUG)
+// debug = trace
 #define LOG_DEBUG(...) ::base::PrintLogMessage(::base::LogLevel::kDebug, __VA_ARGS__)
 #else
 #define LOG_DEBUG(...)

@@ -4,14 +4,14 @@
 // Alternative name: memory_primitives.
 
 #include <malloc.h>
-#include <base/allocator/allocator_primitives.h>
+#include <base/allocator/memory_coordinator.h>
 
 namespace base {
 void* Allocate(size_t size) {
-  return malloc(size);
+  return memory_coordinator().Allocate(size);
 }
 
 void Free(void* block) {
-  free(block);
+  memory_coordinator().Free(block);
 }
 }  // namespace base

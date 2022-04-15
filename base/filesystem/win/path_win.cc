@@ -15,6 +15,6 @@ Path::Path(const base::StringRefU8 utf8) {
 }
 
 Path::Path(const base::StringRefW wide_text) {
-  path_buf_ = wide_text;
+  path_buf_ = wide_text.data();
 }
 }  // namespace base

@@ -3,14 +3,14 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/endian.h>
 #include <program_loader/file_classifier.h>
 
 namespace program_loader {
 // On 64bit versions of Windows the smallest 32bit executable is 268 bytes
 constexpr size_t kMinimumPEExecutableSize = 268;
 
-// TODO(Vince): constexpr endian swapped.
-constexpr i16 kDosMagic = 'ZM';
+constexpr i16 kDosMagic{base::BswapLE<i16>('MZ')};
 
 struct DOSHeader {
   i16 magic;

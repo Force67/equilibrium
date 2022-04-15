@@ -17,6 +17,7 @@ bool CreateTemporaryDirInDir(const Path& base_dir,
   Path path_to_create;
 
   for (int count = 0; count < 50; ++count) {
+#if 0
     const auto proc_id = std::to_wstring(::GetCurrentProcessId());
     const auto rand = std::to_wstring(RandomInt(INT_MIN, INT_MAX));
 
@@ -25,6 +26,8 @@ bool CreateTemporaryDirInDir(const Path& base_dir,
       *new_dir = path_to_create;
       return true;
     }
+    #endif
+    __debugbreak();
   }
 
   return false;

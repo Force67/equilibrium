@@ -20,7 +20,6 @@ class MemoryScope {
 
  private:
   MemoryCategory prev_context_;
-  MemoryCategory cur_context_;
   u32 thread_index_;
 };
 }  // namespace base
