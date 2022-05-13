@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #pragma once
+
 #include <base/check.h>
 
 namespace base {
@@ -76,9 +77,7 @@ class RingBuffer {
       return *this;
     }
 
-    operator bool() const {
-      return !out_of_range_ && buffer_.IsFilledIndex(index_);
-    }
+    operator bool() const { return !out_of_range_ && buffer_.IsFilledIndex(index_); }
 
    private:
     Iterator(const RingBuffer<T, kSize>& buffer, size_t index)
@@ -106,9 +105,7 @@ class RingBuffer {
   Iterator End() const { return Iterator(*this, kSize - 1); }
 
  private:
-  inline size_t BufferIndex(size_t n) const {
-    return (current_index_ + n) % kSize;
-  }
+  inline size_t BufferIndex(size_t n) const { return (current_index_ + n) % kSize; }
 
   // This specialization of |IsFilledIndex| is a micro-optimization that enables
   // us to do e.g. `DCHECK(IsFilledIndex(n))` without calling |BufferIndex|

@@ -20,14 +20,14 @@ inline void podCopy(const Pod* b, const Pod* e, Pod* d) {
 }
 }  // namespace fbstring_detail
 
-template <typename TTChar>
+template <typename TChar>
 struct ExternalStorage {
   constexpr static u8 categoryExtractMask = base::kIsLittleEndian ? 0xC0 : 0x3;
   constexpr static size_t kCategoryShift = (sizeof(size_t) - 1) * 8;
   constexpr static size_t capacityExtractMask =
       base::kIsLittleEndian ? ~(size_t(categoryExtractMask) << kCategoryShift)
                             : 0x0 /* unused */;
-  TTChar* data_;
+  TChar* data_;
   size_t size_;
   size_t capacity_;
 

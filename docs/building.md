@@ -16,7 +16,7 @@ Afterwards, execute pmake.cmd or pmake.sh depending on your operating system in 
 ## Building for windows
 Make sure that you have ASAN installed in the Visual Studio installer.
 ## Building for linux
-TODO
+On Linux gmake2 is used, so you will have to execute `make` in the `/out/gmake2` directory.
 
 # I managed to build, what's next?
 Read the [developer guide](developer_guide.md) on how to get started writing code.

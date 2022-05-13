@@ -6,6 +6,24 @@
 #include <base/export.h>
 #include <base/allocator/allocator_primitives.h>
 
+#if defined(CONFIG_DEBUG)
+BASE_EXPORT void* operator new(size_t size, const base::SourceLocation& source_loc) {
+  return base::AllocateTracked(size, source_loc);
+}
+
+BASE_EXPORT void operator delete(void* p, const base::SourceLocation& source_loc) noexcept {
+  base::FreeTracked(p, source_loc);
+}
+
+BASE_EXPORT void* operator new[](size_t size, const base::SourceLocation& source_loc) {
+  return base::AllocateTracked(size, source_loc);
+}
+
+BASE_EXPORT void operator delete[](void* p, const base::SourceLocation& source_loc) noexcept {
+  base::FreeTracked(p, source_loc);
+}
+#endif
+
 BASE_EXPORT void* operator new(size_t size) {
   return base::Allocate(size);
 }

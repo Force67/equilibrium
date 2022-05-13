@@ -14,15 +14,24 @@ class Thread {
 
   explicit Thread(const base::StringRef name, const Priority = Priority::kNormal);
 
+  virtual u32 Run();
+
   bool good() const { return handle_; }
 
-  inline void SetName(const base::StringRef name);
+  void SetName(const base::StringRef name);
+  void ApplyName();
+
   inline void SetPrio(const Thread::Priority prio);
   inline Priority GetPrio() const;
 
  private:
+  Handle Spawn();
+
+ private:
   // raw underlying implementation defined handle
   Handle handle_ = nullptr;
+  u32 parent_thread_index_;
+  base::String thread_name_;
 };
 
 // core threading primitives
@@ -33,9 +42,6 @@ bool SetThreadName(Thread::Handle, const char* name);
 inline bool SetCurrentThreadName(const char* name) {
   return SetThreadName(GetCurrentThreadHandle(), name);
 }
-
-// returns the raw platform thread handle
-void* SpawnThread(const base::StringRef name, void* user_instance);
 
 void SetThreadPriority(Thread::Handle, Thread::Priority new_priority);
 const Thread::Priority GetThreadPriority(Thread::Handle);

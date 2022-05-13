@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-namespace base::size_literals {
-// Please avoid using these for any memory specific calculations use the *bi methods
+namespace base::memory_literals {
+// Please avoid using these for any memory specific calculations use the *ib methods
 // instead
 constexpr size_t operator""_kb(size_t x) {
   return 1000ULL * x;
@@ -37,4 +37,4 @@ constexpr size_t operator""_tib(size_t x) {
 constexpr size_t operator""_pib(size_t x) {
   return 1024_tib * x;
 }
-}  // namespace base::size_literals
+}  // namespace base::memory_literals

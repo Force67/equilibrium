@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <cstdarg>
-#include "xstring.h"
-#include "logging.h"
+#include <base/logging.h>
+#include <base/strings/xstring.h>
 
 namespace base {
 

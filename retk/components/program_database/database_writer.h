@@ -2,6 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+// Header
+// SectionHeader
+
 #include <base/containers/span.h>
 
 namespace base {

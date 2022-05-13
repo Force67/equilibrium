@@ -19,6 +19,15 @@ using i64 = long long;
 
 // use this instead of u8
 using byte = u8;
+
+using mem_size = u64;
+
+template <typename T>
+struct MinMax {
+  T min, max;
+};
+constexpr MinMax<u8> ku8Bounds{0, 255};
+constexpr MinMax<u16> ku16Bounds{0, 65535};
 }  // namespace arch_types
 
 // In case of incompatibility with library custom types.

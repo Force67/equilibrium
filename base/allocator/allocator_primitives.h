@@ -1,24 +1,37 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 // Memory primitives.
-// Alternative name: memory_primitives.
 #pragma once
 
+#if defined(CONFIG_DEBUG)
+#include <base/source_location.h>
+#endif
+
+// drop in replacements for standard c malloc
 namespace base {
-// these free functions are intended as a dropin replacement
-// for malloc/free
 void* Allocate(size_t size);
 void Free(void* block);
 
-void MarkAllocLocation(const char* name) {}
+// use MAKE_SOURCE_LOC and you can track the origin
+void* AllocateTracked(size_t size, const base::SourceLocation&);
+void FreeTracked(void* block, const base::SourceLocation&);
 }  // namespace base
 
 #include <base/allocator/allocator_symbol_override.in>
 
-#define BPE_NEW ::new;
-#define BPE_DELETE ::delete;
+// use these instead of raw new/delete
+#if defined(BASE_HARDCORE_MEMORY_TRACKING)
+#endif
 
-#define BPE_MALLOC(x) base::Allocate(x)
-#define BPE_FREE(x) base::Free(x)
-#define BPE_REALLOC(x) __debugbreak()
-#define BPE_VALLOC(x) __debugbreak()
+#if defined(CONFIG_DEBUG)
+#define EQ_NEW ::new;
+#define EQ_DELETE ::delete;
+#else
+#define EQ_NEW ::new;
+#define EQ_DELETE ::delete;
+#endif
+
+#define EQ_MALLOC(x) base::Allocate(x)
+#define EQ_FREE(x) base::Free(x)
+#define EQ_REALLOC(x) __debugbreak()
+#define EQ_VALLOC(x) __debugbreak()

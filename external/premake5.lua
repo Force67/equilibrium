@@ -3,6 +3,7 @@
 
 require("premake-idaqt/qt")
 qt = premake.modules.qt
+require("premake-compile-commands/export-compile-commands")
 
 group("Dependencies")
 

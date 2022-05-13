@@ -6,20 +6,16 @@
 
 namespace base {
 
-enum class MemoryCategory : u32 {
-  kMain,
-};
-
 class MemoryScope {
  public:
-  MemoryScope(MemoryCategory type, bool force = false);
+  MemoryScope(u32 id, bool force = false);
   ~MemoryScope();
 
  private:
-  void Enter(MemoryCategory type);
+  void Enter(u32 id);
 
  private:
-  MemoryCategory prev_context_;
+  u32 prev_context_;
   u32 thread_index_;
 };
 }  // namespace base

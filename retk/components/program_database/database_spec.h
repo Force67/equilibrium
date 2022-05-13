@@ -20,7 +20,7 @@ struct Header {
 };
 
 // these are database sections, not program sections
-struct SectionHeader {
+struct SegmentHeader {
   u16 num_sections;
   u16 section_alignment;
   u16 reserved1;

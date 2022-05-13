@@ -35,8 +35,10 @@ void CreateDatabase(const base::Span<byte> program, const base::Path& out_path) 
                              .progarm_seg_offset = 0,
                              .section_header_offset = 0};
 
-  const v1::SectionHeader section_header{.num_sections = 1337};
+  const v1::SegmentHeader section_header{.num_sections = 1337};
   writer.Write(db_header);
   writer.Write(section_header);
+
+
 }
 }  // namespace program_database
