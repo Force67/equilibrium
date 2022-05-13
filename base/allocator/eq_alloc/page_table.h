@@ -4,15 +4,25 @@
 
 #include <base/arch.h>
 #include <base/containers/linked_list.h>
+#include <base/allocator/memory_literals.h>
 
 namespace base {
 
 // page table only manages pages, not blocks within these pages.
 class PageTable {
  public:
-  PageTable() = default;
+  PageTable();
 
-  static constexpr size_t kPageLimit = 12;
+  static constexpr size_t kPagePrereserveCount = 12;
+
+  constexpr static size_t ideal_page_size();
+
+  void* RequestPage();
+
+ private:
+  void PrereserveInitialPages();
+
+  void* Reserve(void* preferred, size_t block_size);
 
   // initialize_with should be an optional...
   void* Allocate(void* preferred_address,
@@ -35,13 +45,21 @@ class PageTable {
     float CalculateFullnessRatio() const { return 0.f; }
   };
 
-  PageEntry* TakeFreePageEntry();
+  byte* DecompressPointer(const PageEntry& e) {
+    return reinterpret_cast<byte*>(page_table_base_ + e.address_);
+  }
+
+  u32 CompressPointer(void* block) {
+    return u32(reinterpret_cast<pointer_size>(block) & 0xFFFFFFFF);
+  }
+
   PageEntry* FindBackingPage(void* address);
 
-  // very naive initial implementation
-
-  // indicides within this backing buffer also indicate where the entries are
-  // located?
-  PageEntry entries_[kPageLimit]{};
+  // In order to reduce memory usage as much as possible, we just store indices into
+  // the different pages starting from this address by default we pre-reserve
+  // kPagePrereserveCount starting from page_base_address_
+  bool zero_pages_ = true;
+  pointer_size page_table_base_{0};
+  PageEntry page_entries_[kPagePrereserveCount]{};
 };
 }  // namespace base

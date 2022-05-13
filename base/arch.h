@@ -21,6 +21,7 @@ using i64 = long long;
 using byte = u8;
 
 using mem_size = u64;
+using pointer_size = u64;
 
 template <typename T>
 struct MinMax {

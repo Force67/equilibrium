@@ -6,6 +6,13 @@
 #include <base/export.h>
 #include <base/allocator/allocator_primitives.h>
 
+#if 0
+// Placement new
+BASE_EXPORT void* operator new(std::size_t size, void* param) {
+  return param;
+}
+#endif
+
 #if defined(CONFIG_DEBUG)
 BASE_EXPORT void* operator new(size_t size, const base::SourceLocation& source_loc) {
   return base::AllocateTracked(size, source_loc);

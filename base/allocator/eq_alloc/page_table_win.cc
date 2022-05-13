@@ -5,33 +5,36 @@
 #include <base/allocator/eq_alloc/page_table.h>
 
 namespace base {
+namespace {
+using namespace memory_literals;
+}  // namespace
+
+constexpr size_t PageTable::ideal_page_size() {
+  return 64_kib;
+}
+
+void* PageTable::Reserve(void* preferred_address, size_t block_size) {
+  return ::VirtualAlloc(preferred_address, block_size, MEM_RESERVE,
+                        PAGE_EXECUTE_READWRITE);
+}
 
 void* PageTable::Allocate(void* preferred_address,
                           size_t block_size,
                           byte initalize_with,
                           bool use_initialize,
                           bool read_only) {
-  auto* entry = TakeFreePageEntry();
-  entry->address_ = 1111;  // in use
-  entry->size_ = block_size;
+  // TODO: think about MEM_LARGE_PAGES
+  // TODO: does a circualar queue make sense here? compressed linked list??
+  // TODO: LFU rolling page cache
 
-  // or we make the page contain its own size? :thonk:
   const DWORD protect = read_only ? PAGE_EXECUTE_READ : PAGE_EXECUTE_READWRITE;
-
-  // MEM_LARGE_PAGES
   void* block = ::VirtualAlloc(preferred_address, block_size, MEM_COMMIT, protect);
 
-  if (!block) {
-    entry->address_ = 0;  // free
+  if (!block)
     return nullptr;
-  }
 
   if (use_initialize)
     memset(block, initalize_with, block_size);
-
-  // TODO: does a circualar queue make sense here? compressed linked list??
-
-  // TODO: LFU rolling page cache
 
   return block;
 }
