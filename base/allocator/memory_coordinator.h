@@ -22,12 +22,12 @@ struct DefaultRouter {
 template <class TRouter>
 struct MCInstance {
   // goal is to have these folded in the ::new/alloc operators
-  void* Allocate(size_t size) {
+  STRONG_INLINE void* Allocate(size_t size) {
     tracker_.TrackAllocation(size);
     return router_.Allocate(size);
   }
 
-  void Free(void* address) {
+  STRONG_INLINE void Free(void* address) {
     // TODO: determine the size freed
     tracker_.TrackDeallocation(0);
     router_.Free(address);

@@ -14,7 +14,7 @@ struct EQMemoryRouter {
   // if < PageTreshhold -> Invoke page table
   // else: Directly reserve heap memory, which uses an intrusive list of free blocks
   // red black tree. like dmalloc.
-  void* Allocate(const size_t size) {
+  STRONG_INLINE void* Allocate(const size_t size) {
     auto& pages = *page_table();
     // branchless solution?
     if (size <= eq_allocation_constants::kBucketThreshold)
@@ -27,7 +27,16 @@ struct EQMemoryRouter {
     return allocators_[2]->Allocate(pages, 2 /*TODO: align to the power of two!*/);
   }
 
-  void Free(void* block) { DEBUG_TRAP; }
+  STRONG_INLINE void Free(void* block) {
+    auto& pages = *page_table();
+    for (auto* a : allocators_) {
+      if (!a)
+        continue;
+
+      // TODO: consult the page mapping
+      //a->
+    }
+  }
 
  private:
   void InitializeAllocators(PageTable*);

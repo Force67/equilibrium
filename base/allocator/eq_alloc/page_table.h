@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/check.h>
 #include <base/arch.h>
 #include <base/containers/linked_list.h>
 #include <base/allocator/memory_literals.h>
@@ -18,9 +19,11 @@ class PageTable {
   static u32 ideal_page_size();
 
   void* RequestPage();
+  void* RequestPage(size_t& size_out);
 
  private:
   void PrereserveInitialPages();
+  void ReservePagesOnebyOne();
 
   void* Reserve(void* preferred, size_t block_size);
 
@@ -41,16 +44,17 @@ class PageTable {
     bool Contains(u32 block) const {
       return address_ >= block && block <= (address_ + size_);
     }
-
-    float CalculateFullnessRatio() const { return 0.f; }
   };
 
   byte* DecompressPointer(const PageEntry& e) {
+    DCHECK(page_table_base_);
     return reinterpret_cast<byte*>(page_table_base_ + e.address_);
   }
 
   u32 CompressPointer(void* block) {
-    return u32(reinterpret_cast<pointer_size>(block) & 0xFFFFFFFF);
+    DCHECK(page_table_base_);
+    return u32(reinterpret_cast<pointer_size>(block) - page_table_base_);
+    //return u32(reinterpret_cast<pointer_size>(block) & 0xFFFFFFFF);
   }
 
   PageEntry* FindBackingPage(void* address);

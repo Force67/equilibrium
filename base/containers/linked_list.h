@@ -143,7 +143,7 @@ class LinkNode : public internal::LinkNodeBase {
   }
 
   T* value() {
-    return static_cast<T*>(this);
+    return reinterpret_cast<T*>(this);
   }
 };
 

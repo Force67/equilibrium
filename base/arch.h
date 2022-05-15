@@ -29,6 +29,7 @@ struct MinMax {
 };
 constexpr MinMax<u8> ku8Bounds{0, 255};
 constexpr MinMax<u16> ku16Bounds{0, 65535};
+constexpr MinMax<u32> ku32Bounds(0, 0xFFFFFFFF);
 }  // namespace arch_types
 
 // In case of incompatibility with library custom types.

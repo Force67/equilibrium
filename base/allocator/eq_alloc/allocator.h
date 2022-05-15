@@ -10,6 +10,10 @@ class PageTable;
 
 class Allocator {
  public:
+  Allocator() = default;
+
+  virtual ~Allocator() = default;
+
   // with the hopes that the compiler will devirutalize this.
   virtual void* Allocate(PageTable&, size_t size, size_t alignment = 1024) {
     IMPOSSIBLE;

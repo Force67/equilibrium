@@ -7,6 +7,8 @@
 #include <new>  // for placement new
 
 namespace base {
+
+// TODO: maybe refactor this in some complex obj init instantiate shit
 PageTable* EQMemoryRouter::page_table() {
   if (!page_table_data_[0]) {
     PageTable* table = new (page_table_data_) PageTable();

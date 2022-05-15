@@ -68,6 +68,8 @@ struct complexsmall {
 int main() {
   void* mem = new complexsmall();
 
+  void* mem2 = new complexsmall();
+
   delete mem;
 
   return 0;
