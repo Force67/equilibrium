@@ -24,18 +24,6 @@ MemoryCoordinator& memory_coordinator() {
   return MemoryRouter;
 }
 
-template <class TRouter>
-inline void* MCInstance<TRouter>::Allocate(size_t size) {
-  tracker_.TrackAllocation(size);
-  return router_.Allocate(size);
-}
-template <class TRouter>
-inline void MCInstance<TRouter>::Free(void* address) {
-  // TODO: determine the size freed
-  tracker_.TrackDeallocation(0);
-  router_.Free(address);
-}
-
 void SetOutOfMemoryHandler(OutOfMemoryHandler* new_handler, void* user_context) {
   OOMHandler = new_handler;
 }

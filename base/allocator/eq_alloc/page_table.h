@@ -13,9 +13,9 @@ class PageTable {
  public:
   PageTable();
 
-  static constexpr size_t kPagePrereserveCount = 12;
+  static constexpr size_t kPagePrereserveAttemptCount = 12;
 
-  constexpr static size_t ideal_page_size();
+  static u32 ideal_page_size();
 
   void* RequestPage();
 
@@ -60,6 +60,6 @@ class PageTable {
   // kPagePrereserveCount starting from page_base_address_
   bool zero_pages_ = true;
   pointer_size page_table_base_{0};
-  PageEntry page_entries_[kPagePrereserveCount]{};
+  PageEntry page_entries_[kPagePrereserveAttemptCount]{};
 };
 }  // namespace base

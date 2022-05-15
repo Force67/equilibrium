@@ -6,17 +6,32 @@
 #include <base/allocator/memory_literals.h>
 #include <base/allocator/memory_stat_tracker.h>
 
+#define BASE_USE_EQ_ALLOCATOR 1
+
+#if (BASE_USE_EQ_ALLOCATOR)
+#include <base/allocator/eq_alloc/eq_memory_router.h>
+#endif
+
 namespace base {
 struct DefaultRouter {
-  void* Allocate(size_t size) {}
-  void Free(void* block) {}
+  void* Allocate(size_t size) { return ::malloc(size); }
+  void Free(void* block) { ::free(block); }
 };
 
 // this struct musn't instantiate any complex objects
 template <class TRouter>
 struct MCInstance {
-  void* Allocate(size_t size);
-  void Free(void* address);
+  // goal is to have these folded in the ::new/alloc operators
+  void* Allocate(size_t size) {
+    tracker_.TrackAllocation(size);
+    return router_.Allocate(size);
+  }
+
+  void Free(void* address) {
+    // TODO: determine the size freed
+    tracker_.TrackDeallocation(0);
+    router_.Free(address);
+  }
 
   auto& tracker() { return tracker_; }
 
@@ -24,10 +39,16 @@ struct MCInstance {
   MemoryTracker tracker_;
   TRouter router_;
 };
+// this configures the use of different allocators
+#if (BASE_USE_EQ_ALLOCATOR)
+using MemoryCoordinator = MCInstance<EQMemoryRouter>;
+#else
 using MemoryCoordinator = MCInstance<DefaultRouter>;
+#endif
 
 // get the global instance
-STRONG_INLINE MemoryCoordinator& memory_coordinator();
+// TODO: current this isnt folded..
+MemoryCoordinator& memory_coordinator();
 
 using OutOfMemoryHandler = void(MemoryCoordinator&, void*);
 void SetOutOfMemoryHandler(OutOfMemoryHandler*, void* user_context = nullptr);

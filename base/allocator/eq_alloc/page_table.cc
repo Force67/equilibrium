@@ -13,10 +13,15 @@ PageTable::PageTable() {
 void PageTable::PrereserveInitialPages() {
   byte* preferred =
       page_table_base_ ? reinterpret_cast<byte*>(page_table_base_) : nullptr;
-  for (size_t i = 0; i < kPagePrereserveCount; i++) {
+  for (size_t i = 0; i < kPagePrereserveAttemptCount; i++) {
     void* block = Reserve(static_cast<void*>(preferred), ideal_page_size());
+    if (!block)
+      return;
+
     if (!page_table_base_)
       page_table_base_ = reinterpret_cast<pointer_size>(block);
+    if (!preferred)
+      preferred = static_cast<byte*>(block);
 
     if (static_cast<byte*>(block) != preferred) {
       DEBUG_TRAP;
@@ -37,14 +42,16 @@ void PageTable::PrereserveInitialPages() {
 
 void* PageTable::RequestPage() {
   // enter lock...
-  for (auto i = 0; i < kPagePrereserveCount; i++) {
+  for (auto i = 0; i < kPagePrereserveAttemptCount; i++) {
     auto& e = page_entries_[i];
+    if (e.size_ != 0)
+      continue;
 
-    if (e.size_ == 0) {
+    if (void* mem = Allocate(DecompressPointer(e), ideal_page_size(), 0, zero_pages_,
+                             false)) {
+      // this marks the block as 'in-use', so we only do it on success
       e.size_ = ideal_page_size();
-
-      return Allocate(DecompressPointer(e), ideal_page_size(), 0, zero_pages_,
-                      false);
+      return mem;
     }
   }
 
@@ -54,7 +61,7 @@ void* PageTable::RequestPage() {
 PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
   u32 compressed_ptr = CompressPointer(block);
 
-  for (auto i = 0; i < kPagePrereserveCount; i++) {
+  for (auto i = 0; i < kPagePrereserveAttemptCount; i++) {
     auto& e = page_entries_[i];
     if (e.Contains(compressed_ptr)) {
       return &e;

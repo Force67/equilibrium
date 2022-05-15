@@ -37,7 +37,7 @@ static void AssertHandler(const char*, const char*, const char*) {
 #include <program_loader/file_classifier.h>
 #include <program_loader/loader_factory.h>
 
-void DOLoadFile(const char *name) {
+void DOLoadFile(const char* name) {
   i64 size = 0;
   auto contents{base::LoadFile(name, &size)};
 
@@ -61,7 +61,17 @@ void DOLoadFile(const char *name) {
     loader->Parse(view, info, data);
 }
 
+struct complexsmall {
+  char buf[256]{};
+};
+
 int main() {
+  void* mem = new complexsmall();
+
+  delete mem;
+
+  return 0;
+
   base::SetCurrentThreadName("AppMain");
   base::SetLogHandler(TKLogHandler);
 #if !defined(CONFIG_DEBUG)
@@ -70,7 +80,7 @@ int main() {
 
 #if 1
   ui::NativeWindowWin32 win(u8"RETK");
-  win.Init(nullptr, {0,0, 1920, 1080});
+  win.Init(nullptr, {0, 0, 1920, 1080});
   win.Show();
 
   ui::MessagePumpWin loop;
@@ -79,14 +89,14 @@ int main() {
   }
 #endif
 
-  //DOLoadFile(R"(S:\Work\Tilted\TiltedEvolution\build\windows\x64\debug\SkyrimTogether.exe)");
-  //DOLoadFile(R"(S:\Work\Research\fuchsia\third_party\go\src\debug\dwarf\testdata\line-gcc.elf)");
-  //DOLoadFile(
-  //    R"(C:\Users\vince\AppData\Roaming\PS4Tools\dd\depots\406202\7841814\Rise of the Tomb Raider.app\Contents\MacOS\Rise of the Tomb Raider)");
-  
+  // DOLoadFile(R"(S:\Work\Tilted\TiltedEvolution\build\windows\x64\debug\SkyrimTogether.exe)");
+  // DOLoadFile(R"(S:\Work\Research\fuchsia\third_party\go\src\debug\dwarf\testdata\line-gcc.elf)");
+  // DOLoadFile(
+  //     R"(C:\Users\vince\AppData\Roaming\PS4Tools\dd\depots\406202\7841814\Rise of
+  //     the Tomb Raider.app\Contents\MacOS\Rise of the Tomb Raider)");
+
   // Application app;
   // return app.Exec();
-
 
   return 0;
 }

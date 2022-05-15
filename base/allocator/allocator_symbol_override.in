@@ -8,7 +8,7 @@
 
 #if 0
 // Placement new
-BASE_EXPORT void* operator new(std::size_t size, void* param) {
+BASE_EXPORT void* operator new(size_t size, void* param) {
   return param;
 }
 #endif

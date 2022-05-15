@@ -9,7 +9,8 @@ namespace base {
 // https://fossies.org/linux/serf/buckets/allocator.c
 
 // the bucketallocator operates on bits within pages,
-struct BucketAllocator final : Allocator {
+class BucketAllocator final : public Allocator {
+ public:
   virtual void* Allocate(PageTable& pageman,
                          size_t size,
                          size_t alignment = 1024) override;

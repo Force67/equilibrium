@@ -9,8 +9,8 @@ namespace {
 using namespace memory_literals;
 }  // namespace
 
-constexpr size_t PageTable::ideal_page_size() {
-  return 64_kib;
+u32 PageTable::ideal_page_size() {
+  return static_cast<u32>(64_kib);
 }
 
 void* PageTable::Reserve(void* preferred_address, size_t block_size) {
