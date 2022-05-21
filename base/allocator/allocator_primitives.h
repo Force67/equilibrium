@@ -3,13 +3,14 @@
 // Memory primitives.
 #pragma once
 
-#if defined(CONFIG_DEBUG)
 #include <base/source_location.h>
-#endif
 
-// drop in replacements for standard c malloc
 namespace base {
+// drop in replacements for standard c malloc
 void* Allocate(size_t size);
+// Changes the size of the memory block pointed to by ptr.
+void* ReAllocate(void* former, size_t new_size);
+
 void Free(void* block);
 
 // use MAKE_SOURCE_LOC and you can track the origin

@@ -20,11 +20,17 @@ function component(name)
         includedirs({
             ".",        --< current dir
             "../",      --< component dir
-            blu.rootdir,   --< main dir for direct base access
+            blu.rootdir,--< main dir for direct base access
         })
         -- each component links against google mock
         dependencies("googlemock")
         links("base")
+end
+
+-- i could put in the effort to get this working nicely, 
+-- but it gives us some development comfort to be able to edit those for test files
+function strip_testfiles()
+    removefiles("**_test.cc")
 end
 
 -- there may be several tests for one type of component

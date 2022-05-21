@@ -12,15 +12,21 @@ namespace base {
 
 // the bucketallocator operates on bits within pages,
 class BucketAllocator final : public Allocator {
- public:
+  friend class EQMemoryRouter;
+ protected:
   BucketAllocator();
 
-  virtual void* Allocate(PageTable& pageman,
-                         size_t size,
-                         size_t alignment = 1024) override;
-  virtual void Free(void* block) override;
+  void* Allocate(PageTable& pageman,
+                 mem_size size,
+                 mem_size alignment = 0) override;
 
-  private:
+  void* ReAllocate(PageTable&,
+                   void* former_block,
+                   mem_size new_size,
+                   mem_size user_alignment = 0) override;
+  void Free(void* block) override;
+
+ private:
   void* AcquireMemory(mem_size size);
 
  private:
@@ -36,9 +42,7 @@ class BucketAllocator final : public Allocator {
     size_t page_size;
     Bucket* bucket_table{};
 
-    byte* GetData() {
-      return reinterpret_cast<byte*>(this) + sizeof(PageHeader);
-    }
+    byte* GetData() { return reinterpret_cast<byte*>(this) + sizeof(PageHeader); }
   };
   class HeaderNode : public LinkNode<HeaderNode> {
    public:

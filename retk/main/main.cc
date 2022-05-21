@@ -63,16 +63,24 @@ void DOLoadFile(const char* name) {
 
 struct complexsmall {
   char buf[256]{};
-};
+};  
+#include <base/math/alignment.h>
 
 int main() {
-  void* mem = new complexsmall();
+    #if 1
+  auto x = base::NextPowerOf2(3u);
+  //auto y = base::next_pow2(48u);
 
+
+  void* mem = new complexsmall();
   void* mem2 = new complexsmall();
 
   delete mem;
 
   return 0;
+  #endif
+
+  //base::SetOutofmemoryHandler()
 
   base::SetCurrentThreadName("AppMain");
   base::SetLogHandler(TKLogHandler);

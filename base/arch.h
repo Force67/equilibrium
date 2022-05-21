@@ -26,10 +26,25 @@ using pointer_size = u64;
 template <typename T>
 struct MinMax {
   T min, max;
+
+  consteval bool test(T v) const { return v >= min && v <= max; }
 };
 constexpr MinMax<u8> ku8Bounds{0, 255};
 constexpr MinMax<u16> ku16Bounds{0, 65535};
 constexpr MinMax<u32> ku32Bounds(0, 0xFFFFFFFF);
+constexpr MinMax<u64> ku64Bounds(0, 0xffffffffffffffffu);
+
+template <typename T>
+consteval inline bool Is64Bit() {
+  // TODO: only on amd64
+  return sizeof(T) == 8;
+}
+
+template <typename T>
+consteval auto NBitCount() {
+  // TODO: only on amd64
+  return sizeof(T) * 8;
+}
 }  // namespace arch_types
 
 // In case of incompatibility with library custom types.

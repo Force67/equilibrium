@@ -12,6 +12,10 @@ void* Allocate(size_t size) {
   return memory_coordinator().Allocate(size);
 }
 
+void* ReAllocate(void* former, size_t new_size) {
+  return memory_coordinator().ReAllocate(former, new_size);
+}
+
 void Free(void* block) {
   memory_coordinator().Free(block);
 }

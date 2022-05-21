@@ -15,6 +15,9 @@
 namespace base {
 struct DefaultRouter {
   void* Allocate(size_t size) { return ::malloc(size); }
+  void* ReAllocate(void* former, size_t new_size) {
+    return ::realloc(former, new_size);
+  }
   void Free(void* block) { ::free(block); }
 };
 
@@ -25,6 +28,12 @@ struct MCInstance {
   STRONG_INLINE void* Allocate(size_t size) {
     tracker_.TrackAllocation(size);
     return router_.Allocate(size);
+  }
+
+  STRONG_INLINE void* ReAllocate(void* former, size_t new_size) {
+    // TODO: fix the tracker...
+    tracker_.TrackAllocation(new_size);
+    return router_.ReAllocate(former, new_size);
   }
 
   STRONG_INLINE void Free(void* address) {

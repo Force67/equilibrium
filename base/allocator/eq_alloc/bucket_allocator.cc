@@ -6,17 +6,30 @@
 #include <base/allocator/eq_alloc/page_table.h>
 #include <base/allocator/eq_alloc/bucket_allocator.h>
 #include <base/allocator/eq_alloc/eq_allocation_constants.h>
+#include <base/math/alignment.h>
 
 namespace base {
 BucketAllocator::BucketAllocator() {}
 
 // TODO: worry about thread safety
-// TODO:   // log2 based alignment
-void* BucketAllocator::Allocate(PageTable& pages, size_t size, size_t alignment) {
-  if (size > eq_allocation_constants::kBucketThreshold)
+void* BucketAllocator::Allocate(PageTable& pages,
+                                mem_size size,
+                                mem_size user_alignment) {
+  if (size > eq_allocation_constants::kBucketThreshold ||
+      user_alignment > eq_allocation_constants::kBucketThreshold)
     return nullptr;
 
+  // TODO: dont destroy perfect alignment with our bucket, instead put it in some
+  // free list then...
   size += sizeof(Bucket);
+  // po2, e.g 42 becomes 64
+  mem_size alignment = base::NextPowerOf2(size);
+  if (user_alignment > 0 && user_alignment <= alignment) {
+    alignment = user_alignment;
+  }
+  size = base::Align(
+      size,
+      alignment);  // TODO: is_this alignment really required in non user cases.
 
   if (void* block = AcquireMemory(size))
     return block;
@@ -33,12 +46,18 @@ void* BucketAllocator::Allocate(PageTable& pages, size_t size, size_t alignment)
   return nullptr;
 }
 
+void* BucketAllocator::ReAllocate(PageTable&,
+                                  void* former_block,
+                                  mem_size new_size,
+                                  mem_size user_alignment) {
+  return nullptr;
+}
+
 void* BucketAllocator::AcquireMemory(mem_size size) {
   byte* page_head = nullptr;
   if (Bucket* bucket = FindFreeBucket(size, page_head)) {
     // user memory begins after page tag
-    return reinterpret_cast<void*>(page_head + 
-        sizeof(PageHeader) + bucket->offset_);
+    return reinterpret_cast<void*>(page_head + sizeof(PageHeader) + bucket->offset_);
   }
   return nullptr;
 }

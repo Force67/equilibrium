@@ -27,6 +27,12 @@ struct EQMemoryRouter {
     return allocators_[2]->Allocate(pages, 2 /*TODO: align to the power of two!*/);
   }
 
+  STRONG_INLINE void* ReAllocate(void* former, size_t new_size) {
+    DEBUG_TRAP;
+
+    return nullptr;
+  }
+
   STRONG_INLINE void Free(void* block) {
     auto& pages = *page_table();
     for (auto* a : allocators_) {
@@ -34,7 +40,7 @@ struct EQMemoryRouter {
         continue;
 
       // TODO: consult the page mapping
-      //a->
+      // a->
     }
   }
 
