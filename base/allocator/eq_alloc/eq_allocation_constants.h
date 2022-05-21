@@ -1,6 +1,6 @@
 #pragma once
 
-#include <base/allocator/memory_literals.h>
+#include <base/memory/memory_literals.h>
 
 namespace base::eq_allocation_constants {
 using namespace base::memory_literals;

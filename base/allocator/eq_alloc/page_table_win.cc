@@ -13,9 +13,9 @@ u32 PageTable::ideal_page_size() {
   return static_cast<u32>(64_kib);
 }
 
-void* PageTable::Reserve(void* preferred_address, size_t block_size) {
-  return ::VirtualAlloc(preferred_address, block_size, MEM_RESERVE,
-                        PAGE_EXECUTE_READWRITE);
+byte* PageTable::Reserve(void* preferred_address, size_t block_size) {
+  return reinterpret_cast<byte*>(::VirtualAlloc(
+      preferred_address, block_size, MEM_RESERVE, PAGE_EXECUTE_READWRITE));
 }
 
 void* PageTable::Allocate(void* preferred_address,

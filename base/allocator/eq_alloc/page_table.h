@@ -5,7 +5,7 @@
 #include <base/check.h>
 #include <base/arch.h>
 #include <base/containers/linked_list.h>
-#include <base/allocator/memory_literals.h>
+#include <base/memory/memory_literals.h>
 
 namespace base {
 
@@ -14,18 +14,15 @@ class PageTable {
  public:
   PageTable();
 
-  static constexpr size_t kPagePrereserveAttemptCount = 12;
-
   static u32 ideal_page_size();
 
   void* RequestPage();
   void* RequestPage(size_t& size_out);
 
  private:
-  void PrereserveInitialPages();
-  void ReservePagesOnebyOne();
+  void ReservePages(const pointer_size page_base, const mem_size count);
 
-  void* Reserve(void* preferred, size_t block_size);
+  byte* Reserve(void* preferred, size_t block_size);
 
   // initialize_with should be an optional...
   void* Allocate(void* preferred_address,
@@ -54,7 +51,7 @@ class PageTable {
   u32 CompressPointer(void* block) {
     DCHECK(page_table_base_);
     return u32(reinterpret_cast<pointer_size>(block) - page_table_base_);
-    //return u32(reinterpret_cast<pointer_size>(block) & 0xFFFFFFFF);
+    // return u32(reinterpret_cast<pointer_size>(block) & 0xFFFFFFFF);
   }
 
   PageEntry* FindBackingPage(void* address);
@@ -64,6 +61,6 @@ class PageTable {
   // kPagePrereserveCount starting from page_base_address_
   bool zero_pages_ = true;
   pointer_size page_table_base_{0};
-  PageEntry page_entries_[kPagePrereserveAttemptCount]{};
+  PageEntry page_entries_[12]{};
 };
 }  // namespace base

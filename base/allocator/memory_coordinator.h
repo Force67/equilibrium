@@ -3,10 +3,9 @@
 #pragma once
 
 #include <base/compiler.h>
-#include <base/allocator/memory_literals.h>
 #include <base/allocator/memory_stat_tracker.h>
 
-#define BASE_USE_EQ_ALLOCATOR 1
+#define BASE_USE_EQ_ALLOCATOR 0
 
 #if (BASE_USE_EQ_ALLOCATOR)
 #include <base/allocator/eq_alloc/eq_memory_router.h>

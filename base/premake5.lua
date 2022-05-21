@@ -24,9 +24,16 @@ group("Base")
 project("base")
     kind("StaticLib")
     base_project()
+    removefiles("**_test.cc")
 
--- since default unittests from the component model link against base, 
--- we have to roll this stuff in our own way, for now...
+-- base is a special case where we cannot rely on the unittest model
+-- found in components, so we have to manually add the test project
 project("base_unittests")
     kind("ConsoleApp")
     base_project()
+    removefiles("allocator/**_test.cc")
+
+project("base_memory_unittests")
+    kind("ConsoleApp")
+    base_project()
+    

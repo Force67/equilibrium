@@ -36,10 +36,13 @@ end
 -- there may be several tests for one type of component
 -- the name follows the following scheme component_name:test_name
 function unittest(name)
+    local project_name = string.match(name, ":(.*)") or name
     -- convert seperator into path
-    group(scope_name .. "/" .. string.gsub(name, ":", "/"))
-    local pname = string.match(name, ":(.*)") or name
-    project(pname)
+    --group(scope_name .. "/" .. string.gsub(name, ":", "/"))
+    --group(scope_name .. "/" .. string.gsub(name, ":", "/") .. "/tests")
+    name = string.gsub(name, ":", "/")
+    group(scope_name .. "/" .. string.sub(name, 0, string.find(name, "/[^/]*$")) .. "tests")
+    project(project_name)
         kind("ConsoleApp")
         includedirs({
             ".",

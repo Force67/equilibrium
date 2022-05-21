@@ -67,7 +67,7 @@ struct complexsmall {
 #include <base/math/alignment.h>
 
 int main() {
-    #if 1
+    #if 0
   auto x = base::NextPowerOf2(3u);
   //auto y = base::next_pow2(48u);
 

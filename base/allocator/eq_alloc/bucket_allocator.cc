@@ -9,39 +9,44 @@
 #include <base/math/alignment.h>
 
 namespace base {
+namespace {
+// more than 3 would waste too many cycles
+constexpr i32 kPageAcquireAttempts = 3;
+
+bool IntersectsReasonable(mem_size given, mem_size exepected) {
+  return given <= base::NextPowerOf2(exepected);
+}
+}  // namespace
+
 BucketAllocator::BucketAllocator() {}
 
-// TODO: worry about thread safety
 void* BucketAllocator::Allocate(PageTable& pages,
                                 mem_size size,
                                 mem_size user_alignment) {
   if (size > eq_allocation_constants::kBucketThreshold ||
       user_alignment > eq_allocation_constants::kBucketThreshold)
     return nullptr;
-
-  // TODO: dont destroy perfect alignment with our bucket, instead put it in some
-  // free list then...
+  // TODO: if our alignment is perfect by the user, maybe try to not destroy that.
+  // dont destroy perfect alignment with our bucket, instead put it in some
+  // free list then... but then again, a problem would be fragmentation if we would
+  // be to maintain a seperate freelist :thonk:
   size += sizeof(Bucket);
-  // po2, e.g 42 becomes 64
   mem_size alignment = base::NextPowerOf2(size);
   if (user_alignment > 0 && user_alignment <= alignment) {
     alignment = user_alignment;
-  }
-  size = base::Align(
-      size,
-      alignment);  // TODO: is_this alignment really required in non user cases.
+    size = base::Align(size, alignment);
+  } else
+    size = alignment;
 
-  if (void* block = AcquireMemory(size))
-    return block;
-
-  // failed to find a bucket in all current pages, acquire a new one
-  if (!TryAcquireNewPage(pages))
-    return nullptr;
-
-  // try again (not in a loop, that could have unforseen consequences)
-  // TODO: maybe give a hint about the page to start using?
-  if (void* block = AcquireMemory(size))
-    return block;
+  // TODO: worry about thread safety
+  i32 attempts = 0;
+  byte* page_hint = nullptr;
+  do {
+    if (void* block = AcquireMemory(size, page_hint))
+      return block;
+    if (!TryAcquireNewPage(pages, page_hint))
+      attempts++;
+  } while (attempts <= kPageAcquireAttempts);
 
   return nullptr;
 }
@@ -53,34 +58,78 @@ void* BucketAllocator::ReAllocate(PageTable&,
   return nullptr;
 }
 
-void* BucketAllocator::AcquireMemory(mem_size size) {
+void* BucketAllocator::AcquireMemory(mem_size size, byte* hint) {
+  if (hint) {
+    // do something with the hint index
+  }
+
   byte* page_head = nullptr;
   if (Bucket* bucket = FindFreeBucket(size, page_head)) {
-    // user memory begins after page tag
-    return reinterpret_cast<void*>(page_head + sizeof(PageHeader) + bucket->offset_);
+    // return user memory
+    return reinterpret_cast<void*>(page_head + sizeof(PageTag) + bucket->offset_);
   }
   return nullptr;
 }
 
-bool BucketAllocator::TryAcquireNewPage(PageTable& table) {
+bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
+  // this needs to lock
   size_t page_size = 0;
-  byte* page = static_cast<byte*>(table.RequestPage(page_size));
-  if (!page || page_size == 0) {
+  page_base = static_cast<byte*>(table.RequestPage(page_size));
+  if (!page_base || page_size == 0) {
     DCHECK(false, "page or page size invalid");
     return false;
   }
   // store the entire node in the page itself
-  auto* entry = new (page) HeaderNode();
-  entry->value()->header.page_size = page_size;
-
-  // value is returning garbrage
-  byte* page_end = page + page_size;
-  // set the initial bucket
-  entry->value()->header.bucket_table =
-      reinterpret_cast<Bucket*>(page_end - sizeof(Bucket));
-  page_list_.Append(entry);
+  page_list_.Append(new (page_base) HeaderNode(page_size));
   return true;
 }
+
+i32 BucketAllocator::FindFreeBucketHead(mem_size requested_size) {
+  for (auto* node = page_list_.head(); node != page_list_.end();
+       node = node->next()) {
+    // manage the page refcount (to prevent the page from being deallocated)
+    ScopedPageAccess _(node->value()->tag);
+
+    PageTag& tag = node->value()->tag;
+
+    if (tag.bucket_count == 0) {
+      // atomic store, set the bucket as used
+      *reinterpret_cast<AtomicBucket*>(tag.end() - sizeof(Bucket)) = Bucket();
+      return 0;
+    }
+
+    for (auto i = 1; i < tag.bucket_count; i++) {
+      auto bucket =
+          (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(Bucket) * i)))
+              .load();
+      if (bucket.flags_ & Bucket::kReleased &&
+          IntersectsReasonable(bucket.size_, requested_size)) {
+        *reinterpret_cast<AtomicBucket*>(tag.end() - sizeof(Bucket)) =
+            Bucket();  // claim (in ctor)
+        return tag.bucket_count++;
+      }
+    }
+
+    // need to find if any buckets intersect at n
+  }
+}
+
+bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
+  const byte* page_base = reinterpret_cast<const byte*>(&tag);
+
+#if 0
+  for (auto i = 0; i < tag.bucket_count; i++) {
+    auto bucket =
+        (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(Bucket) * i))).load();
+    if (bucket.IsinUse()) {
+      byte* memory = DecompressPagePointer(page_base, bucket.offset_);
+    }
+  }
+#endif
+  return false;
+}
+
+// https://source.chromium.org/chromium/chromium/src/+/main:base/atomic_sequence_num.h;bpv=1;bpt=1
 
 void BucketAllocator::TakeMemoryChunk(Bucket& bucket,
                                       uint8_t* start_hint,
@@ -92,48 +141,55 @@ void BucketAllocator::TakeMemoryChunk(Bucket& bucket,
 
 BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size,
                                                          byte*& page_start) {
+#if 0
   for (auto* node = page_list_.head(); node != page_list_.end();
        node = node->next()) {
-    PageHeader& header = node->value()->header;
-    page_start = reinterpret_cast<byte*>(node);
+    PageTag& tag = node->value()->tag;
+    page_start = tag.begin();
 
     // looks like a fresh page
-    if (header.bucket_count == 0 && header.bucket_table) {
-      TakeMemoryChunk(*header.bucket_table, page_start, requested_size);
-      header.bucket_count++;
+    if (tag.bucket_count == 0) {
+      TakeMemoryChunk(*tag.bucket_table, page_start, requested_size);
+      tag.bucket_count++;
       return header.bucket_table;
     }
 
-    byte* page_end = reinterpret_cast<byte*>(node) + header.page_size;
+    byte* page_end = tag.end();
 
     // attempt reclaiming unused buckets (and their memory, which is orphaned)
-    for (auto i = 0; i < header.bucket_count; i++) {
+    for (auto i = 0; i < tag.bucket_count; i++) {
       Bucket* buck = reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * i));
       // reclaim previously used bucket
       //
       // TODO: should make a resonable choice, based on alignment, if we can reclaim
       // the block rather than relying on the same size...
       if (buck->flags_ == 1 && buck->size_ >= requested_size) {
-        TakeMemoryChunk(*buck, page_start + sizeof(PageHeader) + buck->offset_,
+        TakeMemoryChunk(*buck, page_start + sizeof(PageTag) + buck->offset_,
                         requested_size);
-        header.bucket_count++;
+        tag.bucket_count++;
         return buck;
       }
     }
     // new bucket
     // todo: validate if buckets are owned by any other memory high prio!!!
     Bucket* free_bucket = reinterpret_cast<Bucket*>(
-        page_end - (sizeof(Bucket) * (header.bucket_count + 1)));
+        page_end - (sizeof(Bucket) * (tag.bucket_count + 1)));
     free_bucket->flags_ = 0;
     free_bucket->size_ = static_cast<u16>(requested_size);
     // free_bucket->offset_ =
 
     return free_bucket;
   }
+#endif
+  return nullptr;
+}
+
+BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
   return nullptr;
 }
 
 void BucketAllocator::Free(void* pointer) {
+#if 0
   byte* block = reinterpret_cast<byte*>(pointer);
   for (auto* node = page_list_.head(); node != page_list_.end();
        node = node->next()) {
@@ -157,5 +213,6 @@ void BucketAllocator::Free(void* pointer) {
   }
 
   DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
+#endif
 }
 }  // namespace base

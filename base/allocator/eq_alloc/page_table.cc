@@ -6,28 +6,25 @@
 
 namespace base {
 
-PageTable::PageTable() {
-  PrereserveInitialPages();
+namespace {
+constexpr mem_size kPagePrereserveAttemptCount = 12;
 }
 
-void PageTable::PrereserveInitialPages() {
-  byte* preferred =
-      page_table_base_ ? reinterpret_cast<byte*>(page_table_base_) : nullptr;
+PageTable::PageTable() {
+  ReservePages(0, kPagePrereserveAttemptCount);
+}
 
-  // reserve the initial chunk in one go.
-  byte* block = static_cast<byte*>(
-      Reserve(preferred, ideal_page_size() * kPagePrereserveAttemptCount));
+void PageTable::ReservePages(const pointer_size page_base, const mem_size count) {
+  byte* preferred = page_base ? reinterpret_cast<byte*>(page_base) : nullptr;
+
+  byte* block = Reserve(preferred, ideal_page_size() * count);
   if (!block)
     return;
+  // first block sets this
   if (!page_table_base_)
     page_table_base_ = reinterpret_cast<pointer_size>(block);
-
-  if (!page_table_base_)
-    page_table_base_ = reinterpret_cast<pointer_size>(block);
-
-  for (auto i = 0; i < kPagePrereserveAttemptCount; i++) {
+  for (auto i = 0; i < count; i++) {
     auto& e = page_entries_[i];
-
     if constexpr (sizeof(u32) != sizeof(pointer_size)) {
       // 64 bit
       e.address_ = CompressPointer(block);
@@ -44,39 +41,9 @@ void PageTable::PrereserveInitialPages() {
   }
 }
 
-void PageTable::ReservePagesOnebyOne() {
-  byte* preferred =
-      page_table_base_ ? reinterpret_cast<byte*>(page_table_base_) : nullptr;
-  for (size_t i = 0; i < kPagePrereserveAttemptCount; i++) {
-    void* block = Reserve(static_cast<void*>(preferred), ideal_page_size());
-    if (!block)
-      return;
-
-    if (!page_table_base_)
-      page_table_base_ = reinterpret_cast<pointer_size>(block);
-    if (!preferred)
-      preferred = static_cast<byte*>(block);
-
-    if (static_cast<byte*>(block) != preferred) {
-      DEBUG_TRAP;
-    }
-
-    if constexpr (sizeof(u32) != sizeof(pointer_size)) {
-      // 64 bit
-      page_entries_[i].address_ = CompressPointer(block);
-    } else {
-      page_entries_[i].address_ = u32(reinterpret_cast<pointer_size>(block));
-    }
-    // we dont let the system know about the suggested sizes however
-    page_entries_[i].size_ = 0;
-
-    preferred += ideal_page_size();
-  }
-}
-
 void* PageTable::RequestPage() {
   // enter lock...
-  for (auto i = 0; i < kPagePrereserveAttemptCount; i++) {
+  for (auto i = 0; i < 12; i++) {
     auto& e = page_entries_[i];
     if (e.size_ != 0)
       continue;
@@ -94,7 +61,7 @@ void* PageTable::RequestPage() {
 
 void* PageTable::RequestPage(size_t& size) {
   // enter lock...
-  for (auto i = 0; i < kPagePrereserveAttemptCount; i++) {
+  for (auto i = 0; i < 12; i++) {
     auto& e = page_entries_[i];
     if (e.size_ != 0)
       continue;
@@ -116,7 +83,7 @@ void* PageTable::RequestPage(size_t& size) {
 PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
   u32 compressed_ptr = CompressPointer(block);
 
-  for (auto i = 0; i < kPagePrereserveAttemptCount; i++) {
+  for (auto i = 0; i < 12; i++) {
     auto& e = page_entries_[i];
     if (e.Contains(compressed_ptr)) {
       return &e;
