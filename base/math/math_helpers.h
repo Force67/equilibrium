@@ -2,14 +2,13 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/arch.h>
+#include <base/numeric_limits.h>
 
 namespace base {
 
 unsigned CountLeadingZeros(auto val) {
   if (val == 0)
     return 32;
-
 #if __has_builtin(__builtin_clz) || defined(__GNUC__)
   return __builtin_clz(val);
 #elif defined(_MSC_VER)
@@ -19,8 +18,10 @@ unsigned CountLeadingZeros(auto val) {
 #endif
 }
 
+//_BitScanReverse();
+
 inline unsigned Log2(auto value) {
-  if constexpr (ku32Bounds.test(value)) {
+  if constexpr (base::TestMinMaxCT<u32>(value)) {
     return 31 - CountLeadingZeros(value);
   }
   return 63 - CountLeadingZeros(value);

@@ -5,15 +5,18 @@
 #include <base/dynamic_library.h>
 
 namespace base {
-DynamicLibrary::DynamicLibrary(const base::Path& path) {
-  Load(path);
-}
+bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
+  should_free_ = should_free;
 
-bool DynamicLibrary::Load(const base::Path& path) {
+  DCHECK(!handle_);
   handle_ = LoadLibraryW(path.c_str());
   // TODO(Vince): verify checksum
-
   return handle_;
+}
+
+bool DynamicLibrary::LoadExisting(const base::Path& path) {
+  DCHECK(!handle_);
+  return handle_ = GetModuleHandleW(path.c_str());
 }
 
 bool DynamicLibrary::Free() {

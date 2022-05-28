@@ -112,6 +112,8 @@ i32 BucketAllocator::FindFreeBucketHead(mem_size requested_size) {
 
     // need to find if any buckets intersect at n
   }
+
+  return 0;
 }
 
 bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {

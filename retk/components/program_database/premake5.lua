@@ -14,3 +14,18 @@ component("program_database")
     includedirs({
         blu.extdir .. "/rapidjson/include",
     })
+
+unittest("program_database:test")
+    add_generic_test_main()
+    files({
+        "**.cc",
+        "**.h",
+        "**.in"
+    })
+    dependencies(
+        "program_loader",
+        "fmtlib")
+    -- header only:
+    includedirs({
+        blu.extdir .. "/rapidjson/include",
+    })

@@ -83,6 +83,7 @@ const u32 GetNativeThreadPriority(Thread::Handle handle) {
 
 // Sets the debugger-visible name of the current thread.
 bool SetThreadName(Thread::Handle handle, const char* name) {
+  // TODO: optimize for existing library case
   const base::DynamicLibrary kernel_base("kernelbase.dll");
   auto set_thread_desc =
       kernel_base.FindSymbol<HRESULT(WINAPI*)(void*, const wchar_t*)>(

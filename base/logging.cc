@@ -14,12 +14,14 @@ static_assert(sizeof(kLevelToNames) / sizeof(const char*) ==
                   static_cast<size_t>(LogLevel::kAll),
               "Mapping mismatch");
 
-void DefaultLogHandler(LogLevel ll, const char* msg) {
+void DefaultLogHandler(void* user_pointer, LogLevel ll, const char* msg) {
   // TODO: log to debug out.
 }
 
-// Optimization to generate better code on log message invoking
-constinit LogHandler s_callback{DefaultLogHandler};
+constinit struct {
+  void* user_pointer;
+  LogHandler callback;
+} log_data{nullptr, DefaultLogHandler};
 }  // namespace
 
 const char* LevelToName(LogLevel level) noexcept {
@@ -35,26 +37,25 @@ void PrintLogMessagePF(LogLevel ll, const char* format...) {
   vsprintf(buf, format, ap);
   va_end(ap);
 
-  if (s_callback)
-    s_callback(ll, buf);
+  log_data.callback(log_data.user_pointer, ll, buf);
 }
 
-
 // Note: This is the only function that may not assert.
-void SetLogHandler(LogHandler callback) {
-  s_callback = callback;
+void SetLogHandler(LogHandler callback, void* user_pointer) {
+  log_data = {user_pointer, callback};
 }
 
 namespace detail {
 void WriteLogMessage(LogLevel ll, const char* text, const fmt::format_args& args) {
   // optimization to get rid of the std::string construction
-  auto buffer = fmt::memory_buffer();
+  fmt::basic_memory_buffer<char> buffer;
   fmt::detail::vformat_to(buffer, fmt::v8::string_view(text), args);
-  s_callback(ll, buffer.data());
+  buffer.push_back(0);  // will not allocate
+  log_data.callback(log_data.user_pointer, ll, buffer.data());
 }
 
 void WriteLogMessage(LogLevel ll, const char* text) {
-  s_callback(ll, text);
+  log_data.callback(log_data.user_pointer, ll, text);
 }
 }  // namespace detail
 }  // namespace base

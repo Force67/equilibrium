@@ -31,9 +31,11 @@ project("base")
 project("base_unittests")
     kind("ConsoleApp")
     base_project()
+    add_generic_test_main()
     removefiles("allocator/**_test.cc")
 
 project("base_memory_unittests")
     kind("ConsoleApp")
+    add_generic_test_main()
     base_project()
     

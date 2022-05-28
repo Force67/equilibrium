@@ -3,7 +3,7 @@
 #pragma once
 
 #include <atomic>
-#include <base/arch.h>
+#include <base/numeric_limits.h>
 
 namespace base {
 
@@ -14,14 +14,14 @@ using MemoryCategory = u16;
 
 constexpr MemoryCategory kTrackingLimit = 256;
 
-constexpr MemoryCategory kInvalidCategory{ku16Bounds.max};
+constexpr MemoryCategory kInvalidCategory{base::MinMax<MemoryCategory>::max()};
 constexpr MemoryCategory kGeneralMemory = 0;
 
 struct MemoryTracker {
   // 0xfff... means that the entry is unused,
   // 0 means that we fall under the general category,
   // e.g noname
-  MemoryCategory token_bucket[kTrackingLimit]{ku16Bounds.max};
+  MemoryCategory token_bucket[kTrackingLimit]{base::MinMax<MemoryCategory>::max()};
   // token indicies show us the name index we need
   const char* name_bucket[kTrackingLimit]{nullptr};
   std::atomic<size_t> memory_sizes[kTrackingLimit]{0};
