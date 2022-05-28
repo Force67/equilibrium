@@ -27,5 +27,6 @@ unittest("program_database:test")
         "fmtlib")
     -- header only:
     includedirs({
+        "../",
         blu.extdir .. "/rapidjson/include",
     })

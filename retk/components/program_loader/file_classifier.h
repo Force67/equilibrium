@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/enum_traits.h>
 #include <base/containers/span.h>
 #include <base/filesystem/file.h>
 
@@ -23,6 +24,7 @@ enum class Arch : u32 {
   kPPC = 1 << 3,
   kARMV732 = 1 << 4,
 };
+BASE_IMPL_ENUM_BIT_TRAITS(Arch, u32)
 
 inline bool Is64BitArchitecture(Arch arch) {
   switch (arch) {
@@ -32,19 +34,14 @@ inline bool Is64BitArchitecture(Arch arch) {
 
   return false;
 }
-
-// For concentration of flags
-inline consteval Arch operator|(Arch lhs, Arch rhs) {
-  return static_cast<Arch>(static_cast<arch_types::u32>(lhs) |
-                           static_cast<arch_types::u32>(rhs));
-}
-
-// Protoype for private data.
+// Prototype for private data.
 struct PrivateData {};
 
 // Findings about given file.
 struct FileClassificationInfo {
   Format format_type;
+  bool is_complex_data;  // is the union below pointing to any private data.
+  bool pad4;
   Arch architecture{Arch::kNone};
 
   union {

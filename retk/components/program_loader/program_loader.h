@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <base/arch.h>
+#include <base/enum_traits.h>
 #include <base/filesystem/file.h>
 #include <program_loader/file_classifier.h>
 
@@ -19,25 +20,11 @@ struct ProgramData {
     u64 disk_size;
     u64 mem_size;
     base::String name;
-    enum class Flags { kNone = 0, kX = 1, kW = 2, kR = 4 } flags;
+    enum class Flags : u32 { kNone = 0, kX = 1, kW = 2, kR = 4 } flags;
   };
   std::vector<Segment> segments;
 };
-
-inline consteval ProgramData::Segment::Flags operator|(
-    ProgramData::Segment::Flags lhs,
-    ProgramData::Segment::Flags rhs) {
-  return static_cast<ProgramData::Segment::Flags>(static_cast<arch_types::u32>(lhs) |
-                                                  static_cast<arch_types::u32>(rhs));
-}
-
-// This sucks, and in the future we should use a bitset class.
-inline ProgramData::Segment::Flags operator|=(ProgramData::Segment::Flags& lhs,
-                                              ProgramData::Segment::Flags rhs) {
-  auto new_val = reinterpret_cast<arch_types::u32*>(&lhs);
-  *new_val |= static_cast<arch_types::u32>(rhs);
-  return static_cast<ProgramData::Segment::Flags>(*new_val);
-}
+BASE_IMPL_ENUM_BIT_TRAITS(ProgramData::Segment::Flags, u32)
 
 // 'Loader' represents a unit that can be asked to provide specific data about
 // given program
@@ -76,12 +63,5 @@ struct ProgramLoadDescriptor {
   ProgramLoader* (*CreateLoader)();
   void (*DestroyLoader)(ProgramLoader*);
 };
-
-// beautiful, isn't it
-inline constexpr bool operator&(ProgramLoadDescriptor::Flags lhs,
-                                ProgramLoadDescriptor::Flags rhs) {
-  return static_cast<bool>(static_cast<arch_types::u32>(lhs) &
-                           static_cast<arch_types::u32>(rhs));
-}
-
+BASE_IMPL_ENUM_BIT_TRAITS(ProgramLoadDescriptor::Flags, u32)
 }  // namespace program_loader

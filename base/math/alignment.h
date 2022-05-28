@@ -24,8 +24,6 @@ consteval auto ShiftLog2(auto shift) {
   return mem_size(1) << shift;
 }
 
-constexpr auto z = ShiftLog2(33);
-
 // Align 'n' to a multiple of 'to', e.g Align(69, 1024) -> 1024
 template <typename T>
 constexpr inline T Align(const T n, const T to) {

@@ -19,13 +19,13 @@ class Span {
   constexpr Span(T (&a)[N]) noexcept  // NOLINT(runtime/explicit)
       : Span(a, N) {}
 
-  T* data() { return ptr_; }
+  T* data() const { return ptr_; }
   size_t size() const { return len_; }
   size_t length() const { return len_; }
   bool empty() const { return ptr_; }
 
-  constexpr T& operator[](size_t index) {
-    //DCHECK(i < len_);
+  constexpr T& operator[](size_t index) const {
+    // DCHECK(i < len_);
     return ptr_[index];
   }
 
@@ -44,5 +44,5 @@ class Span {
   size_t len_;
 };
 
-//static_assert(sizeof(Span<void>) == 16);
+// static_assert(sizeof(Span<void>) == 16);
 }  // namespace base
