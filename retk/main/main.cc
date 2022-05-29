@@ -13,7 +13,7 @@
 #include <base/threading/thread.h>
 #include <base/text/code_convert.h>
 
-static void TKLogHandler(base::LogLevel level, const char* msg) {
+static void TKLogHandler(void*, base::LogLevel level, const char* msg) {
 #if defined(OS_WIN) || defined(CONFIG_DEBUG)
   {
     // const char* src, size_t src_len, base::StringW* output
@@ -61,11 +61,17 @@ void DOLoadFile(const char* name) {
     loader->Parse(view, info, data);
 }
 
+#include <base/version.h>
+
 int main() {
-  //base::SetOutofmemoryHandler()
+  // base::SetOutofmemoryHandler()
+
+  u16 a = 0, b = 0, c = 0;;
+  base::ExtractFromVersionKey(100, 10203, a, b, c);
+  return 0;
 
   base::SetCurrentThreadName("AppMain");
-  base::SetLogHandler(TKLogHandler);
+  base::SetLogHandler(TKLogHandler, nullptr);
 #if !defined(CONFIG_DEBUG)
   base::SetAssertHandler(AssertHandler);
 #endif

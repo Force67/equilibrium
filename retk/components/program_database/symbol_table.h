@@ -5,12 +5,41 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/numeric_limits.h>
+#include <program_database/string_pool.h>
+#include <program_database/database_spec.h>
+
+#include <vector>
 
 namespace program_database {
+
+class StringTable {
+ public:
+  v1::NameRecord AddName(base::StringRef ansii_string) {
+    v1::NameRecord new_record{};
+
+    // fetching a namerecord is more expensive, so for tiny data we store it in place
+    if (ansii_string.length() <= 8) {
+      std::strncpy(new_record.name, ansii_string.data(), 8);
+      return new_record;
+    }
+
+    new_record = {.whole = base::MinMax<u64>::max()};
+    // TODO: somehow keep track...
+
+    return new_record;
+  }
+
+ private:
+  std::vector<v1::NameRecord> queued_records_;
+  StringPool<char> ansii_strings_;
+  StringPool<wchar_t> wide_strings_;
+};
 
 class SymbolTable {
  public:
  private:
-
+  StringPool<char> ansii_strings_;
+  StringPool<wchar_t> wide_strings_;
 };
 }  // namespace program_database

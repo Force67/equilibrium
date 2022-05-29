@@ -14,21 +14,27 @@ static constexpr u32 kExternalFileHeaderMagic{base::BSwap<u32>('EXTF')};
 // names longer than 8 characters are pointing into the string table
 struct NameRecord {
   union {
-    const char name[8];
+    char name[8];
     u32 offset;
     u32 length;
+    u64 whole;
   };
 };
 static_assert(sizeof(NameRecord) == sizeof(char[8]));
 
+static u16 kCurrentTkDbVersion = 1;
+
 struct Header {
-  u32 magic;                     //< unique identifier
-  u32 db_version;                //< database version
-  u32 user_id;                   //< user id
-  u32 retk_version;              //< version of the program that created the db
-  u64 create_date_time_stamp;    //< when the idb was created
-  u64 last_modified_time_stamp;  //< when the idb was last modified
-  u32 program_seg_offset;        //< offset to the SourceProgramHeader
+  u32 magic;            //< unique identifier
+  u16 create_version;   // < version that the db was originally written as, here for
+                        // future migration strategies
+  u16 current_version;  // < current db, determines if the current tk version is able
+                        // to load this
+  u32 user_id;          //< user id
+  u32 retk_version;     //< version of the program that created the db
+  i64 create_date_time_stamp;    //< when the tkb was created
+  i64 last_modified_time_stamp;  //< when the tkb was last modified
+  u32 seg_0_offset;              //< offset to the first segment
   u32 section_header_offset;     //< where the binary tree begins
 };
 static_assert(sizeof(Header) == 40, "Header misaligned");

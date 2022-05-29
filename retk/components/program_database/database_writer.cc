@@ -3,22 +3,31 @@
 
 #include <base/filesystem/file.h>
 
+#include <base/time/time.h>
 #include <base/math/alignment.h>
 #include <base/math/math_helpers.h>
 #include <base/memory/memory_literals.h>
-
-#include <program_database/database_spec.h>
 #include <program_database/database_writer.h>
 
 namespace program_database {
+namespace {
 using namespace base::memory_literals;
 
-constexpr u32 kDbFormatVersion = 1;
 constexpr u32 kDbPageSize = 64_kib;
+constexpr u16 kSectionAlignment = 16;
 
-class FileWriter {
+u16 EstimateInitialPageCount(base::Span<byte> program) {
+  // TODO: we should keep stats on this.. this is not a very precise measurement
+  // estimate pagecount by going off the program size
+  return program.size() < kDbPageSize
+             ? 2
+             : static_cast<u16>(ceil(program.size() / kDbPageSize));
+}
+}  // namespace
+
+class DiskFileWriter {
  public:
-  FileWriter(base::File& f) : file_(f) {}
+  DiskFileWriter(base::File& f) : file_(f) {}
 
   template <typename T>
   i32 Write(const T& data) {
@@ -32,6 +41,7 @@ class FileWriter {
     // this is the shittiest way of doing this
     // but i am tired today
     auto x{std::make_unique<byte[]>(n)};
+    std::memset(x.get(), 0, n);
 
     return file_.WriteAtCurrentPos(reinterpret_cast<const char*>(x.get()), n);
   }
@@ -47,30 +57,36 @@ class FileWriter {
   base::File& file_;
 };
 
-void WriteInitialDiskFile(const base::Span<byte> program,
+bool WriteInitialDiskFile(const base::Span<byte> program,
                           const base::Path& out_path,
                           const u32 retk_version,
                           const u32 user_id) {
   base::File f(out_path, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
-  DCHECK(f.IsValid());
 
-  FileWriter writer(f);
+  DCHECK(f.IsValid());
+  if (!f.IsValid())
+    return false;
+
+  i64 now_timestamp = base::GetUnixTimeStamp();
+
+  constexpr u32 past_headers = sizeof(v1::Header) + sizeof(v1::SegmentHeader);
+  constexpr u32 seg_0_offset =
+      past_headers + base::NextPowerOf2_Compile(past_headers) - past_headers;
+
+  DiskFileWriter writer(f);
   const v1::Header db_header{.magic = v1::kMainHeaderMagic,
-                             .db_version = kDbFormatVersion,
+                             .create_version = v1::kCurrentTkDbVersion,
+                             .current_version = v1::kCurrentTkDbVersion,
                              .user_id = user_id,
                              .retk_version = retk_version,
-                             .create_date_time_stamp = 0,
-                             .last_modified_time_stamp = 0,
-                             .program_seg_offset = 0,
-                             .section_header_offset = 0};
-  // TODO: we should keep stats on this.. this is not a very precise measurement
-  // estimate pagecount by going off the program size
-  const u16 initial_pc = program.size() < kDbPageSize
-                             ? 2
-                             : static_cast<u16>(ceil(program.size() / kDbPageSize));
+                             .create_date_time_stamp = now_timestamp,
+                             .last_modified_time_stamp = now_timestamp,
+                             .seg_0_offset = seg_0_offset,
+                             .section_header_offset = sizeof(v1::Header)};
+  const u16 page_count_initial = EstimateInitialPageCount(program);
   const v1::SegmentHeader section_header{
-      .num_sections = initial_pc,
-      .section_alignment = 64,
+      .num_sections = page_count_initial,
+      .section_alignment = kSectionAlignment,
       .page_size = kDbPageSize,
   };
   u32 pos = 0;
@@ -78,22 +94,26 @@ void WriteInitialDiskFile(const base::Span<byte> program,
   pos += writer.Write(section_header);  // +8
   pos += writer.WritePad(base::NextPowerOf2(pos) - pos);
 
+  BUGCHECK(pos == seg_0_offset, "Headers have been written improperly");
+
+  // TODO: after this we must memory store...
+
   // write out page 1
   const v1::SourceProgramHeader program_desc{
       .magic = v1::kProgramHeaderMagic,
       .compression = v1::CompressionType::kNone,
       .name = {"none"},
       .program_size = program.size()};
+
   pos += writer.Write(program_desc);
-  // TODO: pad inbetween
-  pos +=
-      writer.WriteSZ(*program.data(), program.size());
-  pos += writer.WritePad(kDbPageSize - pos);  // writen doesnt write multiple n
-
+  pos += writer.WritePad(base::NextPowerOf2(pos) - pos);
+  pos += writer.WriteSZ(*program.data(), program.size());
+  pos += writer.WritePad(kDbPageSize - pos);
   // lay out initial page set
-
-  for (i32 i = 0; i < initial_pc - 1; i++) {
+  for (i32 i = 1; i < page_count_initial; i++) {
     writer.WritePad(kDbPageSize);
   }
+
+  return true;
 }
 }  // namespace program_database
