@@ -4,6 +4,8 @@
 
 #include <base/arch.h>
 #include <base/endian.h>
+#include <base/version.h>
+#include <base/math/math_helpers.h>
 
 // database_disk_format
 namespace program_database::v1 {
@@ -22,16 +24,14 @@ struct NameRecord {
 };
 static_assert(sizeof(NameRecord) == sizeof(char[8]));
 
-static u16 kCurrentTkDbVersion = 1;
-
 struct Header {
-  u32 magic;            //< unique identifier
-  u16 create_version;   // < version that the db was originally written as, here for
-                        // future migration strategies
-  u16 current_version;  // < current db, determines if the current tk version is able
-                        // to load this
-  u32 user_id;          //< user id
-  u32 retk_version;     //< version of the program that created the db
+  u32 magic;                //< unique identifier
+  u16 current_version_key;  // < current db, determines if the current tk version is
+                            // able to load this
+  u16 create_version_key;   // < version that the db was originally written as, here
+                            // for future migration strategies
+  u32 retk_version;         //< version of the program that created the db
+  u32 headers_size;         //< unused field
   i64 create_date_time_stamp;    //< when the tkb was created
   i64 last_modified_time_stamp;  //< when the tkb was last modified
   u32 seg_0_offset;              //< offset to the first segment
@@ -46,6 +46,11 @@ struct SegmentHeader {
   u32 page_size;
 };
 static_assert(sizeof(SegmentHeader) == 8, "SegmentHeader misaligned");
+
+// kSizeOfHeaders points directly into the first segment
+constexpr u32 kPastHeaders = sizeof(v1::Header) + sizeof(v1::SegmentHeader);
+constexpr u32 kSizeOfHeaders =
+    kPastHeaders + base::NextPowerOf2_Compile(kPastHeaders) - kPastHeaders;
 
 enum class CompressionType : u32 { kNone, kLZ4, kZip };
 

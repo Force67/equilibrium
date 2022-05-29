@@ -13,12 +13,12 @@ class StringPool {
  public:
   using Atom = const TChar*;
 
-  template <typename..Args>
+  template <typename...Args>
   Atom Add(Args&&... args) {
     return interned_.emplace(args...).first->c_str();
   }
 
  private:
-  std::set<base::String<TChar>> interned_;
+  std::set<base::BasicString<TChar>> interned_;
 };
 }  // namespace program_database

@@ -4,7 +4,9 @@
 // function names, type info etc.
 #pragma once
 
+#include <memory>
 #include <base/arch.h>
+#include <base/containers/span.h>
 #include <base/numeric_limits.h>
 #include <program_database/string_pool.h>
 #include <program_database/database_spec.h>
@@ -38,8 +40,14 @@ class StringTable {
 
 class SymbolTable {
  public:
+  void LoadHeaders(std::unique_ptr<byte> header_data);
+
  private:
   StringPool<char> ansii_strings_;
   StringPool<wchar_t> wide_strings_;
+
+  v1::Header* db_header_{nullptr};
+  v1::SegmentHeader* seg_header_{nullptr};
+  std::unique_ptr<byte> header_data_;
 };
 }  // namespace program_database

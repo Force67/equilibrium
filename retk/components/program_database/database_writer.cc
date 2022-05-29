@@ -6,16 +6,12 @@
 #include <base/time/time.h>
 #include <base/math/alignment.h>
 #include <base/math/math_helpers.h>
-#include <base/memory/memory_literals.h>
+
 #include <program_database/database_writer.h>
+#include <program_database/database_constants.h>
 
 namespace program_database {
 namespace {
-using namespace base::memory_literals;
-
-constexpr u32 kDbPageSize = 64_kib;
-constexpr u16 kSectionAlignment = 16;
-
 u16 EstimateInitialPageCount(base::Span<byte> program) {
   // TODO: we should keep stats on this.. this is not a very precise measurement
   // estimate pagecount by going off the program size
@@ -68,20 +64,15 @@ bool WriteInitialDiskFile(const base::Span<byte> program,
     return false;
 
   i64 now_timestamp = base::GetUnixTimeStamp();
-
-  constexpr u32 past_headers = sizeof(v1::Header) + sizeof(v1::SegmentHeader);
-  constexpr u32 seg_0_offset =
-      past_headers + base::NextPowerOf2_Compile(past_headers) - past_headers;
-
   DiskFileWriter writer(f);
   const v1::Header db_header{.magic = v1::kMainHeaderMagic,
-                             .create_version = v1::kCurrentTkDbVersion,
-                             .current_version = v1::kCurrentTkDbVersion,
-                             .user_id = user_id,
+                             .current_version_key = kCurrentTkDbVersion,
+                             .create_version_key = kCurrentTkDbVersion,
                              .retk_version = retk_version,
+                             .headers_size = v1::kPastHeaders,
                              .create_date_time_stamp = now_timestamp,
                              .last_modified_time_stamp = now_timestamp,
-                             .seg_0_offset = seg_0_offset,
+                             .seg_0_offset = v1::kSizeOfHeaders,
                              .section_header_offset = sizeof(v1::Header)};
   const u16 page_count_initial = EstimateInitialPageCount(program);
   const v1::SegmentHeader section_header{
@@ -94,7 +85,7 @@ bool WriteInitialDiskFile(const base::Span<byte> program,
   pos += writer.Write(section_header);  // +8
   pos += writer.WritePad(base::NextPowerOf2(pos) - pos);
 
-  BUGCHECK(pos == seg_0_offset, "Headers have been written improperly");
+  BUGCHECK(pos == v1::kSizeOfHeaders, "Headers have been written improperly");
 
   // TODO: after this we must memory store...
 

@@ -2,6 +2,11 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 component("program_database")
+    -- header only:
+    includedirs({
+        "../",
+        blu.extdir
+    })
     files({
         "**.cc",
         "**.h",
@@ -10,12 +15,13 @@ component("program_database")
     dependencies(
         "program_loader",
         "fmtlib")
-    -- header only:
-    includedirs({
-        blu.extdir .. "/rapidjson/include",
-    })
 
-unittest("program_database:test")
+unittest("program_database:database_test")
+includedirs({
+    "../",
+    blu.extdir,
+    blu.extdir .. "/fmt/include",
+})
     add_generic_test_main()
     files({
         "**.cc",
@@ -25,8 +31,3 @@ unittest("program_database:test")
     dependencies(
         "program_loader",
         "fmtlib")
-    -- header only:
-    includedirs({
-        "../",
-        blu.extdir .. "/rapidjson/include",
-    })
