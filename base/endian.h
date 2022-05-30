@@ -8,10 +8,10 @@
 namespace base {
 
 // TODO: NON AMD64
-constexpr size_t kCharBit = 8;
+constexpr mem_size kCharBit = 8;
 
 template <typename T>
-consteval T BSwap(T i, T j = 0u, size_t n = 0u) {
+consteval T BSwap(T i, T j = 0u, mem_size n = 0u) {
   return n == sizeof(T)
              ? j
              : BSwap<T>(i >> kCharBit, (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
@@ -19,7 +19,7 @@ consteval T BSwap(T i, T j = 0u, size_t n = 0u) {
 
 // TODO: Swap only when LE
 template <typename T>
-consteval T BswapLE(T i, T j = 0u, size_t n = 0u) {
+consteval T BswapLE(T i, T j = 0u, mem_size n = 0u) {
   return n == sizeof(T)
              ? j
              : BswapLE<T>(i >> kCharBit, (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);

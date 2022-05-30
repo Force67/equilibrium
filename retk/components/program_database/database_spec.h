@@ -74,5 +74,18 @@ struct ExternalFile {
 };
 static_assert(sizeof(ExternalFile) == 24, "ExternalFile Record misaligned");
 
+struct Functions {
+  u32 count;
+
+};
+
+struct Names {
+  u32 count;
+};
+
+struct Exports {};
+
+struct Imports {};
+
 // TODO(Vince): migration folder
 }  // namespace program_database::v1

@@ -13,8 +13,7 @@
 namespace base {
 
 // Make sure our Whence mappings match the system headers.
-static_assert(File::FROM_BEGIN == FILE_BEGIN &&
-                  File::FROM_CURRENT == FILE_CURRENT &&
+static_assert(File::FROM_BEGIN == FILE_BEGIN && File::FROM_CURRENT == FILE_CURRENT &&
                   File::FROM_END == FILE_END,
               "whence mapping must match the system headers");
 
@@ -162,9 +161,9 @@ bool File::SetLength(int64_t length) {
   // TODO(rvargas): Emulating ftruncate details seem suspicious and it is not
   // promised by the interface (nor was promised by PlatformFile). See if this
   // implementation detail can be removed.
-  return ((::SetEndOfFile(file_.Get()) != FALSE) &&
-          (::SetFilePointerEx(file_.Get(), file_pointer, NULL, FILE_BEGIN) !=
-           FALSE));
+  return (
+      (::SetEndOfFile(file_.Get()) != FALSE) &&
+      (::SetFilePointerEx(file_.Get(), file_pointer, NULL, FILE_BEGIN) != FALSE));
 }
 
 bool File::GetInfo(Info* info) {
@@ -175,11 +174,10 @@ bool File::GetInfo(Info* info) {
     return false;
 
   LARGE_INTEGER size;
-  size.HighPart = file_info.nFileSizeHigh;
+  size.HighPart = static_cast<LONG>(file_info.nFileSizeHigh);
   size.LowPart = file_info.nFileSizeLow;
   info->size = size.QuadPart;
-  info->is_directory =
-      (file_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+  info->is_directory = (file_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
   info->is_symbolic_link = false;  // Windows doesn't have symbolic links.
   return true;
 }
@@ -197,7 +195,7 @@ DWORD LockFileFlagsForMode(File::LockMode mode) {
   IMPOSSIBLE;
 
   // Dummy value to shut up the compiler
-  return -1;
+  return 0;
 }
 
 }  // namespace
@@ -206,10 +204,9 @@ File::Error File::Lock(File::LockMode mode) {
   BUGCHECK(IsValid());
 
   OVERLAPPED overlapped = {};
-  BOOL result =
-      LockFileEx(file_.Get(), LockFileFlagsForMode(mode), /*dwReserved=*/0,
-                 /*nNumberOfBytesToLockLow=*/MAXDWORD,
-                 /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
+  BOOL result = LockFileEx(file_.Get(), LockFileFlagsForMode(mode), /*dwReserved=*/0,
+                           /*nNumberOfBytesToLockLow=*/MAXDWORD,
+                           /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
   if (!result)
     return GetLastFileError();
   return FILE_OK;
@@ -219,10 +216,9 @@ File::Error File::Unlock() {
   BUGCHECK(IsValid());
 
   OVERLAPPED overlapped = {};
-  BOOL result =
-      UnlockFileEx(file_.Get(), /*dwReserved=*/0,
-                   /*nNumberOfBytesToLockLow=*/MAXDWORD,
-                   /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
+  BOOL result = UnlockFileEx(file_.Get(), /*dwReserved=*/0,
+                             /*nNumberOfBytesToLockLow=*/MAXDWORD,
+                             /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
   if (!result)
     return GetLastFileError();
   return FILE_OK;
@@ -284,7 +280,7 @@ File::Error File::OSErrorToFileError(uint32_t last_error) {
     case ERROR_NOT_READY:         // The device is not ready.
     case ERROR_SECTOR_NOT_FOUND:  // The drive cannot find the sector requested.
     case ERROR_GEN_FAILURE:       // A device ... is not functioning.
-    case ERROR_DEV_NOT_EXIST:  // Net resource or device is no longer available.
+    case ERROR_DEV_NOT_EXIST:     // Net resource or device is no longer available.
     case ERROR_IO_DEVICE:
     case ERROR_DISK_OPERATION_FAILED:
     case ERROR_FILE_CORRUPT:  // File or directory is corrupted and unreadable.

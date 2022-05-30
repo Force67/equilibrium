@@ -23,7 +23,7 @@ void PageTable::ReservePages(const pointer_size page_base, const mem_size count)
   // first block sets this
   if (!page_table_base_)
     page_table_base_ = reinterpret_cast<pointer_size>(block);
-  for (auto i = 0; i < count; i++) {
+  for (mem_size i = 0; i < count; i++) {
     auto& e = page_entries_[i];
     if constexpr (sizeof(u32) != sizeof(pointer_size)) {
       // 64 bit

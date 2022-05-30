@@ -272,6 +272,7 @@ class fbstring_core {
         return mutableDataLarge();
     }
     IMPOSSIBLE;
+    return nullptr;
   }
 
   const Char* c_str() const {

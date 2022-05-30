@@ -3,6 +3,8 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <fmt/printf.h>
+
 #include <base/compiler.h>
 
 // TODO: support concept of spaces
@@ -22,6 +24,9 @@ const char* LevelToName(LogLevel level) noexcept;
 
 namespace detail {
 void WriteLogMessage(LogLevel, const char*, const fmt::format_args&);
+void WriteLogMessagef(LogLevel,
+                      const char*,
+                      const fmt::basic_format_args<fmt::printf_context>&);
 void WriteLogMessage(LogLevel, const char*);
 }  // namespace detail
 
@@ -35,7 +40,11 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
 
 // adadpter function for legacy printf style systems
 // please use the LOG_X macros
-void PrintLogMessagePF(LogLevel level, const char* format...);
+template <typename... Args>
+void PrintfLogMessage(LogLevel level, const char* format, const Args&... args) {
+  using context = fmt::basic_printf_context_t<char>;
+  detail::WriteLogMessagef(level, format, fmt::make_format_args<context>(args...));
+}
 }  // namespace base
 
 #if defined(CONFIG_DEBUG)

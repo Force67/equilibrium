@@ -77,7 +77,7 @@ const Thread::Priority GetThreadPriority(Thread::Handle handle) {
   }
 }
 
-const u32 GetNativeThreadPriority(Thread::Handle handle) {
+const i32 GetNativeThreadPriority(Thread::Handle handle) {
   return ::GetThreadPriority(handle);
 }
 

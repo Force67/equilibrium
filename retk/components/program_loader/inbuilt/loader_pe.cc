@@ -85,8 +85,11 @@ bool LoaderPE::Parse(const base::Span<byte> data,
   reader.Advance(intel.numeric);
 
   // this should be valid at all times, since the classifier already validated this
-  NtHeaders* nt_header;
+  NtHeaders* nt_header = nullptr;
   BUGCHECK(nt_header = reader.Fetch<NtHeaders>());
+
+  if (!nt_header)
+    return false;
 
   bool is64Bit = Is64BitArchitecture(intel.architecture);
   if (is64Bit) {

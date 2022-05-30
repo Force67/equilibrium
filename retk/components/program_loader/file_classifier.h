@@ -23,16 +23,21 @@ enum class Arch : u32 {
   kMips = 1 << 2,
   kPPC = 1 << 3,
   kARMV732 = 1 << 4,
+  kARMV764 = 1 << 5,
+  kARMV832 = 1 << 6,
+  kARMV864 = 1 << 7,
 };
 BASE_IMPL_ENUM_BIT_TRAITS(Arch, u32)
 
 inline bool Is64BitArchitecture(Arch arch) {
   switch (arch) {
+    case Arch::kARMV764:
+    case Arch::kARMV864:
     case Arch::kX64:
       return true;
+    default:
+      return false;
   }
-
-  return false;
 }
 // Prototype for private data.
 struct PrivateData {};

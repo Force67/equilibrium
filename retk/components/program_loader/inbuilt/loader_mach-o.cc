@@ -135,6 +135,8 @@ bool LoaderMachO::Parse(const base::Span<byte> data,
         out.info.entry_ea = entry->entry_offset;
         break;
       }
+      default:
+        break;
     }
     reader.Advance(command->size);
   }

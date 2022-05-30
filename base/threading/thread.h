@@ -9,6 +9,8 @@ namespace base {
 
 class Thread {
  public:
+  virtual ~Thread() = default;
+
   enum class Priority { kLow, kNormal, kHigh, kVeryHigh };
   using Handle = void*;
 
@@ -16,7 +18,7 @@ class Thread {
 
   virtual u32 Run();
 
-  bool good() const { return handle_; }
+  bool good() const { return handle_ == nullptr; }
 
   void SetName(const base::StringRef name);
   void ApplyName();
@@ -45,5 +47,5 @@ inline bool SetCurrentThreadName(const char* name) {
 
 void SetThreadPriority(Thread::Handle, Thread::Priority new_priority);
 const Thread::Priority GetThreadPriority(Thread::Handle);
-const u32 GetNativeThreadPriority(Thread::Handle);
+const i32 GetNativeThreadPriority(Thread::Handle);
 }  // namespace base

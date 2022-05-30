@@ -3,6 +3,8 @@
 
 #include <cstdarg>
 #include <base/logging.h>
+
+#include <fmt/printf.h>
 #include <base/strings/xstring.h>
 
 namespace base {
@@ -28,18 +30,6 @@ const char* LevelToName(LogLevel level) noexcept {
   return kLevelToNames[static_cast<size_t>(level)];
 }
 
-void PrintLogMessagePF(LogLevel ll, const char* format...) {
-  va_list ap;
-  va_start(ap, format);
-
-  // todo: safe stuff
-  char buf[1024]{};
-  vsprintf(buf, format, ap);
-  va_end(ap);
-
-  log_data.callback(log_data.user_pointer, ll, buf);
-}
-
 // Note: This is the only function that may not assert.
 void SetLogHandler(LogHandler callback, void* user_pointer) {
   log_data = {user_pointer, callback};
@@ -51,6 +41,16 @@ void WriteLogMessage(LogLevel ll, const char* text, const fmt::format_args& args
   fmt::basic_memory_buffer<char> buffer;
   fmt::detail::vformat_to(buffer, fmt::v8::string_view(text), args);
   buffer.push_back(0);  // will not allocate
+  log_data.callback(log_data.user_pointer, ll, buffer.data());
+}
+
+void WriteLogMessagef(LogLevel ll,
+                      const char* text,
+                      const fmt::basic_format_args<fmt::printf_context>& args) {
+  fmt::basic_memory_buffer<char> buffer;
+  fmt::detail::vprintf(buffer, fmt::v8::string_view(text), args);
+  buffer.push_back(0);  // will not allocate
+
   log_data.callback(log_data.user_pointer, ll, buffer.data());
 }
 

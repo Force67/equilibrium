@@ -77,10 +77,12 @@ bool LoadIntoSymbolTable(SymbolTable* symbol_table,
 
   reader.SetPos(0);
 
-  auto header_data{std::make_unique<byte>()};
-  reader.Read(header_data.get(), v1::kSizeOfHeaders);
-  // this steals the header data, dont use from now
-  symbol_table->LoadHeaders(std::move(header_data));
+  {
+    auto header_data{std::make_unique<byte>()};
+    reader.Read(header_data.get(), v1::kSizeOfHeaders);
+    // this steals the header data, dont use from now
+    symbol_table->LoadHeaders(std::move(header_data));
+  }
 
   // we should now be at segment 0 offset..
 

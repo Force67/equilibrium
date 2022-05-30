@@ -12,6 +12,8 @@ namespace program_loader {
 
 class LoaderSink {
  public:
+  virtual ~LoaderSink() = default;
+
   virtual void AddSegment() = 0;
 };
 

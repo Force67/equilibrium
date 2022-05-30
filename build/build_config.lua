@@ -17,11 +17,16 @@ filter("system:macosx")
   defines("OS_MACOS")
 
 filter("language:C or C++")
+  -- disable exceptions
   exceptionhandling("Off")
+  -- all warnings (/wall)
+  -- warnings("Everything")
+  -- all errors are warnings
+  -- includes very pedantic warnings
+  --flags("FatalWarnings")
+  -- no rtti type info
   rtti("Off")
 
--- We support:
--- Debug,DebugAsan,Release,Shipping
 filter("configurations:Debug")
   defines("CONFIG_DEBUG")
 

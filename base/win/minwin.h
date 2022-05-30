@@ -322,36 +322,3 @@ inline MSG* ChromeToWindowsType(CHROME_MSG* p) {
 }
 
 #endif
-
-// These macros are all defined by windows.h and are also used as the names of
-// functions in the Chromium code base. Having these macros consistently defined
-// or undefined can be critical to avoid mismatches between the functions
-// defined and functions called. Macros need to be added to this list in those
-// cases where it is easier to have the macro defined everywhere rather than
-// undefined everywhere. As windows.h is removed from more source files we may
-// be able to shorten this list.
-
-#define CopyFile CopyFileW
-#define CreateDirectory CreateDirectoryW
-#define CreateFile CreateFileW
-#define CreateService CreateServiceW
-#define DeleteFile DeleteFileW
-#define DispatchMessage DispatchMessageW
-#define DrawText DrawTextW
-#define FindFirstFile FindFirstFileW
-#define FindNextFile FindNextFileW
-#define GetClassName GetClassNameW
-#define GetCurrentDirectory GetCurrentDirectoryW
-#define GetCurrentTime() GetTickCount()
-#define GetFileAttributes GetFileAttributesW
-#define GetMessage GetMessageW
-#define LoadIcon LoadIconW
-#define PostMessage PostMessageW
-#define ReplaceFile ReplaceFileW
-#define SendMessage SendMessageW
-#define SendMessageCallback SendMessageCallbackW
-#define SetCurrentDirectory SetCurrentDirectoryW
-
-#define EXCEPTION_EXECUTE_HANDLER 1
-#define EXCEPTION_CONTINUE_SEARCH 0
-#define EXCEPTION_CONTINUE_EXECUTION (-1)

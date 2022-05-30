@@ -15,13 +15,14 @@ std::unique_ptr<u8[]> LoadFile(const Path& path, i64* opt_size) {
     return nullptr;
   }
 
-  auto length = file.Seek(base::File::Whence::FROM_END, 0);
+  i64 length = file.Seek(base::File::Whence::FROM_END, 0);
   if (opt_size)
     *opt_size = length;
 
   auto content = std::make_unique<u8[]>(length);
   file.Seek(base::File::Whence::FROM_BEGIN, 0);
-  size_t read = file.Read(0, reinterpret_cast<char*>(content.get()), length);
+  size_t read =
+      file.Read(0, reinterpret_cast<char*>(content.get()), static_cast<i32>(length));
   if (read == length) {
     return content;
   }
