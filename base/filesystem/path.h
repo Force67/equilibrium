@@ -3,7 +3,7 @@
 #pragma once
 
 #include <base/export.h>
-#include <base/strings/xstring.h>
+#include <base/strings/string_ref.h>
 
 namespace base {
 

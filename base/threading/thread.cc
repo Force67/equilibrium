@@ -6,7 +6,7 @@
 namespace base {
 
 Thread::Thread(const base::StringRef ref, const Thread::Priority prio)
-    : thread_name_(ref.data()) {
+    : thread_name_(ref.c_str()) {
   parent_thread_index_ = base::GetCurrentThreadIndex();
 
   handle_ = Thread::Spawn();

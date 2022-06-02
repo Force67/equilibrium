@@ -32,10 +32,6 @@
 namespace base {
 template <typename T>
 using BasicString = BASE_STRING(T);
-template <typename T>
-// TODO(Force): Eliminate this string_view.
-using BasicStringRef = std::basic_string_view<T>;
-
 // define our core string types.
 using String = BasicString<char>;
 using StringW = BasicString<wchar_t>;
@@ -43,10 +39,4 @@ using StringW = BasicString<wchar_t>;
 using StringU8 = BasicString<char8_t>;
 using StringU16 = BasicString<char16_t>;
 using StringU32 = BasicString<char32_t>;
-
-using StringRef = BasicStringRef<char>;
-using StringRefW = BasicStringRef<wchar_t>;
-using StringRefU8 = BasicStringRef<char8_t>;
-using StringRefU16 = BasicStringRef<char16_t>;
-using StringRefU32 = BasicStringRef<char32_t>;
 }  // namespace base
