@@ -7,6 +7,8 @@
 #include <base/allocator/memory_coordinator.h>
 #include "allocator_primitives.h"
 
+#include <base/allocator/allocator_symbol_override.in>
+
 namespace base {
 void* Allocate(size_t size) {
   return memory_coordinator().Allocate(size);

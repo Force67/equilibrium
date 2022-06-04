@@ -53,21 +53,21 @@ void SetAssertHandler(AssertHandler*);
 #ifndef CONFIG_SHIPPING
 #define DCHECK(expression, ...)                          \
   do {                                                   \
-    if (!(expression)) {                                 \
+    if (!(expression)) [[unlikely]] {                    \
       MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
       ::base::detail::DCheck(kSourceLoc __VA_OPT__);     \
       CHECK_BREAK;                                       \
     }                                                    \
   } while (0);
 #else
-#define DCHECK(x)
+#define DCHECK(x, ...)
 #endif
 
 // BugChecks indicate a hard programmer error and are compiled into shipping builds
 // aswell, as these need to be immedeatly fixed
 #define BUGCHECK(expression, ...)                        \
   do {                                                   \
-    if (!(expression)) {                                 \
+    if (!(expression)) [[unlikely]] {                    \
       MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
       ::base::detail::BugCheck(kSourceLoc __VA_OPT__);   \
       CHECK_BREAK;                                       \

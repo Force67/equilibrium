@@ -35,6 +35,9 @@ class BasicStringRef {
     DCHECK(str.size() <= max_size_bytes());
   }
 
+  BasicStringRef(const BasicStringRef<TChar>& other)
+      : data_(other.data_), length_(other.length_), tags_(other.tags_) {}
+
   BasicStringRef(const TChar* data, mem_size length)
       : data_(data), length_(static_cast<u32>(length)) {
     tags_ = base::FindNullTerminator(data, length) ? StringRefFlags::kIsNullTerm
@@ -71,7 +74,7 @@ class BasicStringRef {
   // Prefer using this over .data()
   inline const TChar* c_str() const {
     DCHECK(tags_ & StringRefFlags::kIsNullTerm,
-           "Owned string is not null terminated. c_str() therefore illegal");
+           "String piece is not null terminated. c_str() is therefore illegal");
 
     // TODO: review the impact of this..
     // tags_ |= StringRefFlags::kInvalidateDeadRef;

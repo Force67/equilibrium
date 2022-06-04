@@ -18,8 +18,6 @@ void* AllocateTracked(size_t size, const base::SourceLocation&);
 void FreeTracked(void* block, const base::SourceLocation&);
 }  // namespace base
 
-#include <base/allocator/allocator_symbol_override.in>
-
 // use these instead of raw new/delete
 #if defined(BASE_HARDCORE_MEMORY_TRACKING)
 #endif
