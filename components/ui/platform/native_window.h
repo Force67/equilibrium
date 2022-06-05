@@ -3,7 +3,7 @@
 // Platform window.
 #pragma once
 
-#include <base/strings/xstring.h>
+#include <base/strings/string_ref.h>
 
 namespace ui {
 class NativeWindow {

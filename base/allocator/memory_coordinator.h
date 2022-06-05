@@ -58,7 +58,7 @@ using MemoryCoordinator = MCInstance<DefaultRouter>;
 // TODO: current this isnt folded..
 MemoryCoordinator& memory_coordinator();
 
-using OutOfMemoryHandler = void(MemoryCoordinator&, void*);
+using OutOfMemoryHandler = void(void*, MemoryCoordinator&);
 void SetOutOfMemoryHandler(OutOfMemoryHandler*, void* user_context = nullptr);
 void InvokeOutOfMemoryHandler();
 

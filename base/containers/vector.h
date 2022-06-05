@@ -19,19 +19,56 @@ inline void destruct_range(T first, T last) {
   }
 }
 
-template <typename T, class TAllocatorTraits>
+// TODO: shrink_to_fit, resize
+
+template <typename T, class TAllocator>
 class Vector {
  public:
-  // use capacity_multiplicator to indicate how much to overallocate
-  Vector(mem_size reserve_count, mem_size capacity_multiplicator = 2)
-      : capacity_mult_(capacity_multiplicator) {
+  // indicates how much to overallocate
+  constexpr static mem_size kDefaultMult = 2;
+
+  Vector() : data_(nullptr), end_(nullptr), capacity_(nullptr) {}
+
+  Vector(mem_size reserve_count) {
     data_ = end_ = Vector::Allocate(reserve_count);
     capacity_ = &data_[reserve_count];
   }
 
   ~Vector() {
+    // clear all without resetting pointers
     destruct_range(data_, end_);
     Vector::Free(data_, capacity());
+  }
+
+  // TBD
+  void resize(mem_size new_capacity, const T& value) {
+    IMPOSSIBLE;
+#if 0
+    if (new_capacity > size()) [[likely]]
+      IMPOSSIBLE;
+      //InsertAtEnd(new_capacity - size(), value);
+    else
+      IMPOSSIBLE;
+#endif
+  }
+
+  // increases internal capacity
+  void reserve(mem_size new_reserved_capacity) {
+    if (new_reserved_capacity > capacity()) [[likely]]
+      GrowCapacity(new_reserved_capacity);
+  }
+
+  // reduces .capacity to .size
+  mem_size shrink_to_fit() {
+    if (end_ != capacity_) [[likely]] {
+      if (data_ == end_) {
+        // nothing to do, just clear everything out.
+        ReleaseAll();
+      } else {
+        // TODO: re allocate in place...
+        IMPOSSIBLE;
+      }
+    }
   }
 
   void push_back(const T& value) {
@@ -53,9 +90,7 @@ class Vector {
 
   T* at(mem_size pos) {
     T* dest = &data_[pos];
-    if (dest > end_)
-      return nullptr;
-    return dest;
+    return dest > end_ ? nullptr : dest;
   }
 
   bool erase(mem_size pos) {
@@ -96,17 +131,23 @@ class Vector {
 
  private:
   mem_size CalculateNewCapacity(mem_size cap) {
-    return cap > 0 ? cap * capacity_mult_ : 1;
+    return cap > 0 ? cap * /*capacity_mult_*/ kDefaultMult : 1;
   }
 
   template <typename... TArgs>
   void InsertAtEnd(TArgs&&... args) {
     mem_size current_cap = size();
     mem_size new_cap = CalculateNewCapacity(current_cap);
-    // remember: param is cap not size.
-    T* new_block = Vector::Allocate(new_cap);
 
-    // move existing data
+    GrowCapacity(current_cap, new_cap);
+    // insert at end
+    ::new (static_cast<void*>(end_++)) T(args...);
+  }
+
+  void GrowCapacity(mem_size current_cap, mem_size new_cap) {
+    // remember: param is cap not size.
+    const T* new_block = Vector::Allocate(new_cap);
+
     std::memcpy(new_block, data_, current_cap * sizeof(T));
     destruct_range(data_, end_);
     Vector::Free(data_, current_cap);
@@ -114,23 +155,31 @@ class Vector {
     data_ = new_block;
     end_ = &new_block[current_cap];
     capacity_ = &new_block[new_cap];
-
-    ::new (static_cast<void*>(end_++)) T(args...);
   }
+
+  void ReleaseAll() {
+    if (data_ && end_ && capacity_) {
+      destruct_range(data_, end_);
+      Vector::Free(data_, capacity());
+      data_ = end_ = capacity_ = nullptr;
+    }
+  }
+
+  template <typename... TArgs>
+  void InsertAtEnd(const T& value, TArgs&&... args) {}
 
   // memory primitives for cap sizes
   T* Allocate(mem_size capacity) {
-    return static_cast<T*>(allocator_.Allocate(capacity * sizeof(T)));
+    return static_cast<T*>(TAllocator::Allocate(capacity * sizeof(T)));
   }
   void Free(T* block, mem_size n) {
-    allocator_.Free(static_cast<void*>(block), n * sizeof(T));
+    TAllocator::Free(static_cast<void*>(block), n * sizeof(T));
   }
 
  private:
-  T* data_{nullptr};
-  T* end_{nullptr};
-  T* capacity_{nullptr};
-  mem_size capacity_mult_{2};
-  TAllocatorTraits allocator_;
+  T* data_;
+  T* end_;
+  T* capacity_;
+  // mem_size capacity_mult_;
 };
 }  // namespace base

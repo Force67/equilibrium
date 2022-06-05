@@ -18,7 +18,7 @@ enum class StringRefFlags {
   kIsNullTerm = 1 << 1,
   kInvalidateDeadRef = 1 << 2,
 };
-BASE_IMPL_ENUM_BIT_TRAITS(StringRefFlags, u32);
+BASE_IMPL_ENUM_BIT_TRAITS(StringRefFlags, u32)
 
 // plain simple string view like class
 template <typename TChar>
@@ -28,7 +28,7 @@ class BasicStringRef {
 
   BasicStringRef() = delete;
 
-  explicit BasicStringRef(const base::BasicString<TChar>& str)
+  BasicStringRef(const BASE_STRING(TChar) & str)
       : data_(str.c_str()),
         length_(static_cast<u32>(str.length())),
         tags_(StringRefFlags::kIsNullTerm) {

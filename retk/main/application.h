@@ -2,10 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include "glfw_window.h"
-
 #include <ui/imgui/imgui_context.h>
 #include <ui/skia/layer/imgui_layer.h>
+#include <ui/platform/native_window.h>
 
 class Application {
  public:
@@ -18,6 +17,5 @@ class Application {
   // Order here matters
   ui::DearImGuiContext im_ctx_;
   ui::ImguiSkiaLayer layer_;
-  GlfwContextHolder context_;
-  //WindowGlfw main_window_;
+  std::unique_ptr<ui::NativeWindow> window_;
 };

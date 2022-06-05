@@ -64,19 +64,19 @@ void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
   out[(*size)++] = code_point;
 }
 
-bool IsStringASCII(base::StringRefW str) {
+bool IsStringASCII(const base::StringRefW str) {
   return DoIsStringASCII(str.data(), str.length());
 }
 
-bool IsStringASCII(base::StringRef str) {
+bool IsStringASCII(const base::StringRef str) {
   return DoIsStringASCII(str.data(), str.length());
 }
 
-bool IsStringASCII(base::StringRefU8 str) {
+bool IsStringASCII(const base::StringRefU8 str) {
   return DoIsStringASCII(str.data(), str.length());
 }
 
-bool IsStringASCII(base::StringRefU16 str) {
+bool IsStringASCII(const base::StringRefU16 str) {
   return DoIsStringASCII(str.data(), str.length());
 }
 
@@ -325,27 +325,27 @@ bool WideToUTF8(const wchar_t* src, size_t src_len, base::String* output) {
   return UTF16ToUTF8(as_u16cstr(src), src_len, output);
 }
 
-base::String WideToUTF8(base::StringRefW wide) {
+base::String WideToUTF8(const base::StringRefW wide) {
   return UTF16ToUTF8(base::StringRefU16(as_u16cstr(wide), wide.size()));
 }
 
-base::StringU16 ASCIIToUTF16(base::StringRef ascii) {
+base::StringU16 ASCIIToUTF16(const base::StringRef ascii) {
   BUGCHECK(IsStringASCII(ascii));
   return base::StringU16(ascii.begin(), ascii.end());
 }
 
-base::String UTF16ToASCII(base::StringRefU16 utf16) {
+base::String UTF16ToASCII(const base::StringRefU16 utf16) {
   BUGCHECK(IsStringASCII(utf16));
   return base::String(utf16.begin(), utf16.end());
 }
 
 #if defined(WCHAR_T_IS_UTF16)
-base::StringW ASCIIToWide(base::StringRef ascii) {
+base::StringW ASCIIToWide(const base::StringRef ascii) {
   BUGCHECK(IsStringASCII(ascii));
   return base::StringW(ascii.begin(), ascii.end());
 }
 
-base::String WideToASCII(base::StringRefW wide) {
+base::String WideToASCII(const base::StringRefW wide) {
   BUGCHECK(IsStringASCII(wide));
   return base::String(wide.begin(), wide.end());
 }

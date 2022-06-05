@@ -9,6 +9,10 @@
 #include <backends/imgui_impl_opengl3.h>
 
 #include <ui/skia/layer/imgui_layer.h>
+#include <ui/platform/win/native_window_win32.h>
+
+#include <Windows.h>
+#include <ui/platform/win/message_pump_win.h>
 
 #if 0
   {
@@ -24,15 +28,28 @@ constexpr int kDefaultSuggestedWindowWidth = 1280;
 constexpr int kDefaultSuggestedWindowHeight = 720;
 
 Application::Application()
-    : //main_window_(kDefaultSuggestedWindowWidth, kDefaultSuggestedWindowHeight),
-      layer_(im_ctx_) {}
-
-Application::~Application() {
+    :  // main_window_(kDefaultSuggestedWindowWidth, kDefaultSuggestedWindowHeight),
+      layer_(im_ctx_) {
+  window_ = std::make_unique<ui::NativeWindowWin32>(u8"RETK");
 }
 
-int Application::Exec() {
+Application::~Application() {}
 
-  #if 0
+int Application::Exec() {
+  window_->Init(nullptr,
+                {0, 0, kDefaultSuggestedWindowWidth, kDefaultSuggestedWindowHeight});
+
+  // further init stuff...
+  // bind ui...
+
+  window_->Show();
+
+  ui::MessagePumpWin loop;
+  while (loop.Update()) {
+    loop.Pump();
+  }
+
+#if 0
   SkCanvas* canvas = main_window_.canvas();
 
   SkScalar dpi = main_window_.context()->dpi_scale().x();
@@ -52,7 +69,7 @@ int Application::Exec() {
     // we should have some pre-paint event
     ImGui::NewFrame();
 
-    #if 1
+#if 1
     // draw background canvas..
     SkPaint paint;
     paint.setColor(SK_ColorGREEN);
@@ -77,7 +94,7 @@ int Application::Exec() {
     DrawMenubar(canvas, font);
     DrawStatusBar(canvas, font);
     DrawPlainTextBox(canvas, font);
-    #endif
+#endif
 
     // finalize context
     RenderImGuiThisFrame(canvas);
@@ -92,7 +109,7 @@ int Application::Exec() {
     // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(main_window_.HACK_GETGlfwWindow());
   }
-  #endif
+#endif
 
   return 0;
 }

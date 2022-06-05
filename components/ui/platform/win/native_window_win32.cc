@@ -20,8 +20,8 @@ constexpr DWORD kWindowDefaultChildStyle =
 constexpr DWORD kWindowDefaultStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
 
 void* SetWindowUserData(HWND hwnd, void* user_data) {
-  return reinterpret_cast<void*>(SetWindowLongPtrW(
-      hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(user_data)));
+  return reinterpret_cast<void*>(
+      SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(user_data)));
 }
 
 void* GetWindowUserData(HWND hwnd) {
@@ -66,10 +66,10 @@ bool IsWindowsCreatorsOrGreater() {
 // This function scales the window up from its desired viewport_size
 void ScaleWindowSize(DWORD style,
                      DWORD exStyle,
-                     int contentWidth,
-                     int contentHeight,
-                     int& fullWidth,
-                     int& fullHeight,
+                     i32 contentWidth,
+                     i32 contentHeight,
+                     i32& fullWidth,
+                     i32& fullHeight,
                      UINT dpi) {
   RECT rect{0, 0, contentWidth, contentHeight};
 
@@ -147,12 +147,12 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
       HandleWindowMove();
       break;
     case WM_SIZE: {
-        #if 0
+#if 0
       if (!request_resize_) {
         HandleWindowResize({LOWORD(l_param), HIWORD(l_param)});
       } else
         request_resize_ = false;
-      #endif
+#endif
       break;
     }
     default:
@@ -161,8 +161,8 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
 
   // Handle the message if it's in our message map; otherwise, let the system
   // handle it.
-  if (!delegate_ || !delegate_->ProcessWindowMessage(a_hwnd, message, w_param,
-                                                     l_param, result))
+  if (!delegate_ ||
+      !delegate_->ProcessWindowMessage(a_hwnd, message, w_param, l_param, result))
     result = DefWindowProcW(a_hwnd, message, w_param, l_param);
 
   return result;
@@ -186,14 +186,13 @@ void NativeWindowWin32::HandleWindowMove() {
 }
 
 void NativeWindowWin32::HandleWindowResize(const SkIPoint new_size) {
-    // TODO: does this even make much sense, no!
+  // TODO: does this even make much sense, no!
   if (new_size != user_size_) {
     user_size_ = new_size;
   }
 }
 
-bool NativeWindowWin32::Init(handle parent_handle,
-                             const SkIRect suggested_bounds) {
+bool NativeWindowWin32::Init(handle parent_handle, const SkIRect suggested_bounds) {
   HWND parent = TranslateHandle(parent_handle);
 
   if (window_style_ == 0)
@@ -227,17 +226,17 @@ bool NativeWindowWin32::Init(handle parent_handle,
 
   // ATOM atom = GetWindowClassAtom();
   auto wide_name = base::UTF8ToWide(title_);
-  hwnd_ = CreateWindowExW(window_ex_style_, kWindowClassName, wide_name.c_str(),
-                          window_style_, bounds.x(), bounds.y(), bounds.width(),
-                          bounds.height(), parent, nullptr, nullptr, this);
+  hwnd_ = ::CreateWindowExW(window_ex_style_, kWindowClassName, wide_name.c_str(),
+                            window_style_, bounds.x(), bounds.y(), bounds.width(),
+                            bounds.height(), parent, nullptr, nullptr, this);
   if (!hwnd_)
     return false;
 
   const DWORD create_window_error = ::GetLastError();
   if (hwnd_ && (window_style_ & WS_CAPTION)) {
-    SetWindowPos(hwnd_, nullptr, 0, 0, 0, 0,
-                 SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-                     SWP_NOACTIVATE | SWP_NOREDRAW);
+    ::SetWindowPos(hwnd_, nullptr, 0, 0, 0, 0,
+                   SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                       SWP_NOACTIVATE | SWP_NOREDRAW);
   }
 
   // store the monitor we were spawned from
@@ -323,20 +322,20 @@ bool NativeWindowWin32::ResizeBounds(const SkIPoint window_pos,
   // Manually do what EnableNonClientDpiScaling() would do, so we are compatible
   // with all versions of windows.
   SkScalar dpi_factor = GetDPIFactor(dpi_);
-  const SkIPoint scaled_bounds = {in_dimension.x() * dpi_factor,
-                                  in_dimension.y() * dpi_factor};
+  const SkIPoint scaled_bounds = {static_cast<i32>(in_dimension.x() * dpi_factor),
+                                  static_cast<i32>(in_dimension.y() * dpi_factor)};
 
-  // what we get out is the new desired size, but what if we update that only after the
-  int new_width = 0, new_height = 0;
+  // what we get out is the new desired size, but what if we update that only after
+  // the
+  i32 new_width = 0, new_height = 0;
   ScaleWindowSize(window_style_, window_ex_style_, scaled_bounds.x(),
-                  scaled_bounds.y(), new_width, new_height,
-                  static_cast<UINT>(dpi_));
+                  scaled_bounds.y(), new_width, new_height, static_cast<UINT>(dpi_));
 
   const auto bounds =
       SkIRect::MakeXYWH(window_pos.x(), window_pos.y(), new_width, new_height);
 
   request_resize_ = true;
-  return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(),
-                      bounds.height(), TRUE);
+  return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(), bounds.height(),
+                      TRUE);
 }
 }  // namespace ui

@@ -40,6 +40,10 @@ void SetAssertHandler(AssertHandler*);
 #define CHECK_BREAK /*noop*/
 #endif
 
+// NOTE(Vince): do not apply the [[likely]] or [[unlikely]] attributes here, as these
+// actively harm optimization. See
+// https://blog.aaronballman.com/2020/08/dont-use-the-likely-or-unlikely-attributes/
+
 // All checks follow the format:
 // check: project!file.cc!function!line >conidition< (Reason)
 
@@ -53,7 +57,7 @@ void SetAssertHandler(AssertHandler*);
 #ifndef CONFIG_SHIPPING
 #define DCHECK(expression, ...)                          \
   do {                                                   \
-    if (!(expression)) [[unlikely]] {                    \
+    if (!(expression)) {                                 \
       MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
       ::base::detail::DCheck(kSourceLoc __VA_OPT__);     \
       CHECK_BREAK;                                       \
@@ -67,7 +71,7 @@ void SetAssertHandler(AssertHandler*);
 // aswell, as these need to be immedeatly fixed
 #define BUGCHECK(expression, ...)                        \
   do {                                                   \
-    if (!(expression)) [[unlikely]] {                    \
+    if (!(expression)) {                                 \
       MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
       ::base::detail::BugCheck(kSourceLoc __VA_OPT__);   \
       CHECK_BREAK;                                       \

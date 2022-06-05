@@ -43,14 +43,9 @@
 #include <cstdarg>
 
 // Redirect skia log to our core log handler
-inline void SkDebugf(const char format[], ...) {
-  va_list ap;
-  va_start(ap, format);
-
-  char buf[1024]{};
-  vsprintf(buf, format, ap);
-  ::base::detail::WriteLogMessage(::base::LogLevel::kDebug, buf);
-  va_end(ap);
+template <typename... TArgs>
+inline void SkDebugf(const char* format, const TArgs... args) {
+  ::base::PrintfLogMessage(::base::LogLevel::kDebug, format, args...);
 }
 
 //#define SkDebugf(...) \
