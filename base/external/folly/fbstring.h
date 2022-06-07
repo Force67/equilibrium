@@ -322,13 +322,14 @@ class fbstring_core {
 
   size_t size() const {
     size_t ret = ml_.size_;
-    if /* constexpr */ (base::kIsLittleEndian) {
+    if constexpr(base::kIsLittleEndian) {
       // We can save a couple instructions, because the category is
       // small iff the last char, as unsigned, is <= maxSmallSize.
       typedef typename std::make_unsigned<Char>::type UChar;
-      auto maybeSmallSize = size_t(maxSmallSize) -
+      size_t maybeSmallSize = size_t(maxSmallSize) -
                             size_t(static_cast<UChar>(small_[maxSmallSize]));
       // With this syntax, GCC and Clang generate a CMOV instead of a branch.
+
       ret = (static_cast<size_t>(maybeSmallSize) >= 0) ? maybeSmallSize : ret;
     } else {
       ret = (category() == Category::isSmall) ? smallSize() : ret;
@@ -789,6 +790,7 @@ inline Char* fbstring_core<Char>::expandNoinit(
   assert(category() == Category::isMedium || category() == Category::isLarge);
   ml_.size_ = newSz;
   ml_.data_[newSz] = '\0';
+  auto size_t = size();
   assert(size() == newSz);
   return ml_.data_ + sz;
 }

@@ -3,33 +3,27 @@
 #pragma once
 
 #include <base/export.h>
-#include <base/filesystem/path.h>
 
 namespace base {
+
+class Path;
 
 class BASE_EXPORT DynamicLibrary {
  public:
   DynamicLibrary() = default;
-
-  template <bool TExpectLoaded = false>
-  DynamicLibrary(const base::Path& path) {
-    if constexpr (TExpectLoaded) {
-      LoadExisting(path);
-    } else
-      Load(path);
-  }
-
   DynamicLibrary(DynamicLibrary&&) noexcept;
 
+  DynamicLibrary(const base::Path& path) { Load(path); }
   ~DynamicLibrary();
 
+  // This will check if the module is loaded already, and if so, just fetch the
+  // loaded handle
   bool Load(const base::Path&, bool should_free = false);
 
   // On windows, this issues a getmodulehandle call
-  // however, be careful to have a refcount >1, or we might free the library on
-  // destruction
   bool LoadExisting(const base::Path&);
 
+  // unloads the library, if should_free_ is true
   bool Free();
 
   void* FindSymbolPointer(const char* symbol_name) const;

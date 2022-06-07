@@ -84,12 +84,7 @@ class BasicStringRef {
   inline const TChar* data() const { return data_; }
 
   inline const TChar* begin() const { return data_; }
-  inline const TChar* end() const { return data_ + length_; }
-
-  // returns the size in bytes
-  constexpr mem_size size_bytes() const {
-    return static_cast<mem_size>(length_) * sizeof(TChar);
-  }
+  inline const TChar* end() const { return &data_[length_]; }
 
   constexpr static mem_size max_size_bytes() {
     return mem_size(base::MinMax<u32>::max());

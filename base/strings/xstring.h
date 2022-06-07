@@ -10,6 +10,8 @@
 // Note(Vince): This is a switch so you can avoid using the heavy std header
 // While this isnt of much use for now as fbstring pulls in all the std headers
 // anyway, its a future optimization/portability point
+#define BASE_USE_STDSTRING
+
 #if 1
 
 //#define BASE_USE_STDSTRING
