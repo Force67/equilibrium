@@ -7,15 +7,9 @@
 [submodule "external/googletest"]
 	path = external/googletest
 	url = https://github.com/google/googletest
-[submodule "external/sockpp"]
-	path = external/sockpp
-	url = https://github.com/DevForce-dev/sockpp
 [submodule "external/rapidjson"]
 	path = external/rapidjson
 	url = https://github.com/Tencent/rapidjson
-[submodule "external/rocksdb"]
-	path = external/rocksdb
-	url = https://github.com/facebook/rocksdb
 [submodule "external/lz4"]
 	path = external/lz4
 	url = https://github.com/lz4/lz4
@@ -25,9 +19,6 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui
-[submodule "external/glfw"]
-	path = external/glfw
-	url = https://github.com/glfw/glfw
 [submodule "external/mem"]
 	path = external/mem
 	url = https://github.com/0x1F9F1/mem
@@ -38,6 +29,3 @@
 [submodule "external/zydis"]
 	path = external/zydis
 	url = https://github.com/zyantific/zydis
-[submodule "external/premake-compile-commands"]
-	path = external/premake-compile-commands
-	url = https://github.com/tarruda/premake-export-compile-commands
