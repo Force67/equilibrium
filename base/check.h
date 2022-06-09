@@ -55,7 +55,7 @@ void SetAssertHandler(AssertHandler*);
 //    logical choice to use in cases which can be triggered and fixed during
 //    development.
 
-#ifndef CONFIG_SHIPPING
+#if 0
 #define DCHECK(expression, ...)                          \
   do {                                                   \
     if (!(expression)) {                                 \
@@ -70,6 +70,7 @@ void SetAssertHandler(AssertHandler*);
 
 // BugChecks indicate a hard programmer error and are compiled into shipping builds
 // aswell, as these need to be immedeatly fixed
+#if 0
 #define BUGCHECK(expression, ...)                          \
   do {                                                     \
     if (!(expression)) {                                   \
@@ -78,7 +79,11 @@ void SetAssertHandler(AssertHandler*);
       CHECK_BREAK;                                         \
     }                                                      \
   } while (0);
+#else
+#define BUGCHECK(x, ...)
+#endif
 
+#if 0
 // Another form of bugcheck.
 #define IMPOSSIBLE                                     \
   {                                                    \
@@ -86,3 +91,6 @@ void SetAssertHandler(AssertHandler*);
     ::base::detail::BugCheck(kSourceLoc);              \
     CHECK_BREAK;                                       \
   }
+#else
+#define IMPOSSIBLE
+#endif

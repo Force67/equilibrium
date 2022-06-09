@@ -3,6 +3,8 @@
 // Utils for creating source_locations.
 #pragma once
 
+#include <base/arch.h>
+
 namespace base {
 // A source location contains format text and the file name, that is truncated at
 // compile time.
@@ -15,7 +17,7 @@ struct SourceLocation {
 
 namespace base::detail {
 
-size_t consteval CountStrlen(const char* str) {
+mem_size consteval CountStrlen(const char* str) {
   return *str ? 1 + CountStrlen(str + 1) : 0;
 }
 

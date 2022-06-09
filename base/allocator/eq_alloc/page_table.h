@@ -17,16 +17,16 @@ class PageTable {
   static u32 ideal_page_size();
 
   void* RequestPage();
-  void* RequestPage(size_t& size_out);
+  void* RequestPage(mem_size& size_out);
 
  private:
   void ReservePages(const pointer_size page_base, const mem_size count);
 
-  byte* Reserve(void* preferred, size_t block_size);
+  byte* Reserve(void* preferred, mem_size block_size);
 
   // initialize_with should be an optional...
   void* Allocate(void* preferred_address,
-                 size_t block_size,
+                 mem_size block_size,
                  byte initalize_with,
                  bool use_initialize,
                  bool read_only = false);
