@@ -8,7 +8,7 @@ component("ir_lifter")
         "**.h",
         "**.inl"
     })
-    include_llvm()
+    --include_llvm()
     dependencies({
         "fmtlib",
         "capstone",
