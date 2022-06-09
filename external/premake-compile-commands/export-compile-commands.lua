@@ -73,6 +73,7 @@ function m.getProjectCommands(prj, cfg)
   return cmds
 end
 
+-- we follow the https://clang.llvm.org/docs/JSONCompilationDatabase.html specification
 function m.onWorkspace(wks)
   local cfgCmds = {}
   for prj in workspace.eachproject(wks) do
@@ -91,9 +92,14 @@ function m.onWorkspace(wks)
       for i = 1, #cmds do
         local item = cmds[i]
         p.push('{')
-        p.x('"directory": "%s"', item.directory)
-        p.x('"file": "%s"', item.file)
-        p.w('"command": "%s"', item.command)
+        local command = string.format(
+        [["directory": "%s",
+        "file": "%s",
+        "command": "%s"]],
+        item.directory,
+        item.file,
+        item.command:gsub('\\', '\\\\'):gsub('"', '\\"'))
+        p.w(command)
         if i ~= #cmds then
           p.pop('},')
         else
