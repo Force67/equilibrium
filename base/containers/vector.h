@@ -146,7 +146,7 @@ class Vector {
 
   void GrowCapacity(mem_size current_cap, mem_size new_cap) {
     // remember: param is cap not size.
-    const T* new_block = Vector::Allocate(new_cap);
+    T* new_block = Vector::Allocate(new_cap);
 
     std::memcpy(new_block, data_, current_cap * sizeof(T));
     destruct_range(data_, end_);
@@ -164,9 +164,6 @@ class Vector {
       data_ = end_ = capacity_ = nullptr;
     }
   }
-
-  template <typename... TArgs>
-  void InsertAtEnd(const T& value, TArgs&&... args) {}
 
   // memory primitives for cap sizes
   T* Allocate(mem_size capacity) {

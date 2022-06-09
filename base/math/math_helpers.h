@@ -20,10 +20,11 @@ unsigned CountLeadingZeros(auto val) {
 
 //_BitScanReverse();
 
-inline unsigned Log2(auto value) {
-  if constexpr (base::TestMinMaxCT<u32>(value)) {
-    return 31 - CountLeadingZeros(value);
-  }
+inline u32 Log2(u32 value) {
+  return 31 - CountLeadingZeros(value);
+}
+
+inline u64 Log2(u64 value) {
   return 63 - CountLeadingZeros(value);
 }
 

@@ -8,6 +8,7 @@
 #include <base/text/code_convert.h>
 #include <base/win/minwin.h>
 #include <base/dynamic_library.h>
+#include <base/filesystem/path.h>
 #include <base/allocator/memory_coordinator.h>
 
 namespace base {

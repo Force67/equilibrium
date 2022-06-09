@@ -15,7 +15,7 @@ inline mem_size Log2Align(const mem_size n) {
   DCHECK(n > 0);
   DCHECK(base::IsPowerOf2(n));
 
-  u8 shift = base::Log2<mem_size>(n);
+  u8 shift = base::Log2(n);
   DCHECK(shift < 64);  // Broken invariant
   return mem_size(1) << shift;
 }
