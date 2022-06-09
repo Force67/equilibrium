@@ -54,12 +54,13 @@ void SetAssertHandler(AssertHandler*);
 // A: As asserts usually get stripped in shipping builds, a dcheck is the
 //    logical choice to use in cases which can be triggered and fixed during
 //    development.
+
 #ifndef CONFIG_SHIPPING
 #define DCHECK(expression, ...)                          \
   do {                                                   \
     if (!(expression)) {                                 \
       MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
-      ::base::detail::DCheck(kSourceLoc __VA_OPT__);     \
+      ::base::detail::DCheck(kSourceLoc, ##__VA_ARGS__); \
       CHECK_BREAK;                                       \
     }                                                    \
   } while (0);
@@ -69,13 +70,13 @@ void SetAssertHandler(AssertHandler*);
 
 // BugChecks indicate a hard programmer error and are compiled into shipping builds
 // aswell, as these need to be immedeatly fixed
-#define BUGCHECK(expression, ...)                        \
-  do {                                                   \
-    if (!(expression)) {                                 \
-      MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
-      ::base::detail::BugCheck(kSourceLoc __VA_OPT__);   \
-      CHECK_BREAK;                                       \
-    }                                                    \
+#define BUGCHECK(expression, ...)                          \
+  do {                                                     \
+    if (!(expression)) {                                   \
+      MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__);   \
+      ::base::detail::BugCheck(kSourceLoc, ##__VA_ARGS__); \
+      CHECK_BREAK;                                         \
+    }                                                      \
   } while (0);
 
 // Another form of bugcheck.
