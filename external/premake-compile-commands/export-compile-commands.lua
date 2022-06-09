@@ -47,19 +47,6 @@ function m.getFileFlags(prj, cfg, node)
   })
 end
 
-function dump(o)
-  if type(o) == 'table' then
-     local s = '{ '
-     for k,v in pairs(o) do
-        if type(k) ~= 'number' then k = '"'..k..'"' end
-        s = s .. '['..k..'] = ' .. dump(v) .. ','
-     end
-     return s .. '} '
-  else
-     return tostring(o)
-  end
-end
-
 function m.generateCompileCommand(prj, cfg, node)
   -- sanitize flags
   local flags = m.getFileFlags(prj, cfg, node)

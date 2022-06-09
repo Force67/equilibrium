@@ -7,6 +7,7 @@ out/
 
 # clangd
 .cache
+compile_commands.json
 
 # User-specific files
 *.suo
