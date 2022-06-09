@@ -47,11 +47,30 @@ function m.getFileFlags(prj, cfg, node)
   })
 end
 
+function dump(o)
+  if type(o) == 'table' then
+     local s = '{ '
+     for k,v in pairs(o) do
+        if type(k) ~= 'number' then k = '"'..k..'"' end
+        s = s .. '['..k..'] = ' .. dump(v) .. ','
+     end
+     return s .. '} '
+  else
+     return tostring(o)
+  end
+end
+
 function m.generateCompileCommand(prj, cfg, node)
+  -- sanitize flags
+  local flags = m.getFileFlags(prj, cfg, node)
+  local out = ""
+  for i = 1, #flags do
+    out = out .. (flags[i]:gsub('\\', '\\\\'):gsub('"', '\\"') .. (i ~= #flags and '", "' or ""))
+  end
   return {
     directory = prj.location,
     file = node.abspath,
-    command = (path.iscfile(node.abspath) and 'cc ' or 'cxx ') .. table.concat(m.getFileFlags(prj, cfg, node), ' ')
+    command = (path.iscfile(node.abspath) and 'cc' or 'cxx') .. '", "' .. out
   }
 end
 
@@ -94,11 +113,11 @@ function m.onWorkspace(wks)
         p.push('{')
         local command = string.format(
         [["directory": "%s",
-        "file": "%s",
-        "command": "%s"]],
+        "arguments": ["%s"],
+        "file": "%s"]],
         item.directory,
-        item.file,
-        item.command:gsub('\\', '\\\\'):gsub('"', '\\"'))
+        item.command,
+        item.file)
         p.w(command)
         if i ~= #cmds then
           p.pop('},')
