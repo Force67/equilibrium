@@ -7,6 +7,7 @@ out/
 
 # clangd
 .cache
+compile_commands.json
 
 # User-specific files
 *.suo
@@ -16,18 +17,6 @@ out/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -285,9 +274,6 @@ _Pvt_Extensions
 .paket/paket.exe
 paket-files/
 
-# FAKE - F# Make
-.fake/
-
 # JetBrains Rider
 .idea/
 *.sln.iml
@@ -321,8 +307,3 @@ Thumbs.db
 
 # But do include the artifacts needed for building :)
 !/build/bin/
-
-# VStudio 
-*.sln
-*.vcxproj
-*.vcxproj.filters

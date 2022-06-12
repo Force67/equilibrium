@@ -85,8 +85,16 @@ function m.onWorkspace(wks)
       cfgCmds[cfgKey] = table.join(cfgCmds[cfgKey], m.getProjectCommands(prj, cfg))
     end
   end
+
+  local requested_config = _OPTIONS["export-compile-config"]
   for cfgKey,cmds in pairs(cfgCmds) do
-    local outfile = string.format('%s/compile_commands.json', cfgKey)
+    local not_all = requested_config ~= "all"
+    -- if requested config mode is not set to all, we only export the target config
+    if requested_config ~= cfgKey and not_all then
+      goto skip_to_next
+    end 
+
+    local outfile = string.format('%s/compile_commands.json', not_all and blu.rootdir or cfgKey)
     p.generate(wks, outfile, function(wks)
       p.push('[')
       for i = 1, #cmds do
@@ -108,13 +116,22 @@ function m.onWorkspace(wks)
       end
       p.pop(']')
     end)
+
+    ::skip_to_next::
   end
 end
 
-newaction {
+newaction({
   trigger = 'export-compile-commands',
   description = 'Export compiler commands in JSON Compilation Database Format',
   onWorkspace = m.onWorkspace
-}
+})
+
+newoption({
+  trigger     = "export-compile-config",
+  value       = "configuration",
+  description = "Choose a particular clang compile commands file for use",
+  default     = "all",
+})
 
 return m

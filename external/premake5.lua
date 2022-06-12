@@ -1,8 +1,11 @@
 -- Copyright (C) 2021 Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
+-- ida flavored qt for the integrastion plugin
 require("premake-idaqt/qt")
 qt = premake.modules.qt
+
+-- compile_commands.json support for clangd
 require("premake-compile-commands/export-compile-commands")
 
 group("Dependencies")
