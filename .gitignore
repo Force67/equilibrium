@@ -6,8 +6,9 @@ out/
 .modules
 
 # clangd
-.cache
+.cache/
 compile_commands.json
+*.idx
 
 # User-specific files
 *.suo

@@ -12,7 +12,9 @@ filter("architecture:x86")
 filter("system:windows")
   defines("OS_WIN")
 filter("system:linux")
-  defines("OS_LINUX")
+  defines({
+    "OS_LINUX",
+    "OS_POSIX"}) -- we also define the POSIX alias here
 filter("system:macosx")
   defines("OS_MACOS")
 
