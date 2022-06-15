@@ -14,7 +14,6 @@ workspace("Equilibrium")
   flags({
     "MultiProcessorCompile"
   })
-  defines("NOMINMAX")
   -- external must always come first
   -- so 'dependencies' can link against them
   include("./external")
