@@ -6,6 +6,9 @@ blu = {}
 
 require('vstudio')
 
+-- compile_commands.json support for clangd
+require("compile_commands/export-compile-commands")
+
 -- pull in root dependencies
 -- by order of importance.
 include('sanitizer.lua')

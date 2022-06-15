@@ -67,7 +67,11 @@ function m.getProjectCommands(prj, cfg)
       if not m.includeFile(prj, node, depth) then
         return
       end
-      table.insert(cmds, m.generateCompileCommand(prj, cfg, node))
+
+      local fcfg = p.fileconfig.getconfig(node, cfg)
+      if fcfg and not fcfg.flags.ExcludeFromBuild then
+        table.insert(cmds, m.generateCompileCommand(prj, cfg, node))
+      end
     end
   })
   return cmds

@@ -5,9 +5,6 @@
 require("premake-idaqt/qt")
 qt = premake.modules.qt
 
--- compile_commands.json support for clangd
-require("premake-compile-commands/export-compile-commands")
-
 group("Dependencies")
 
 function include_skia()
