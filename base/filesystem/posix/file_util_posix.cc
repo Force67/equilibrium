@@ -122,8 +122,8 @@ static bool CreateTemporaryDirInDirImpl(const Path& base_dir,
                                         Path* new_dir) {
   ScopedBlockingCall scoped_blocking_call(
       FROM_HERE, BlockingType::MAY_BLOCK);  // For call to mkdtemp().
-  DCHECK(EndsWith(name_tmpl.value(), "XXXXXX"),
-         "Directory name template must end with \"XXXXXX\".");
+  //DCHECK(EndsWith(name_tmpl.path(), "XXXXXX"),
+  //       "Directory name template must end with \"XXXXXX\".");
 
   Path sub_dir = base_dir / name_tmpl;
   base::String sub_dir_string = sub_dir.path();

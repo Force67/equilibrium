@@ -28,7 +28,7 @@ void BugCheck(const SourceLocation&, const char* message = nullptr);
 // Asserts are user facing exceptional cases, after which the program state is
 // expected to be broken. A key philosphy of our system is to ensure the user
 // gets to see the assert.
-using AssertHandler = void(const char*, const char*, const char*);
+using AssertHandler = void(const char*, const char*, const char*, const char*);
 
 // Those are check handlers.
 void SetAssertHandler(AssertHandler*);
@@ -55,14 +55,14 @@ void SetAssertHandler(AssertHandler*);
 //    logical choice to use in cases which can be triggered and fixed during
 //    development.
 
-#if 0
-#define DCHECK(expression, ...)                          \
-  do {                                                   \
-    if (!(expression)) {                                 \
-      MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
-      ::base::detail::DCheck(kSourceLoc, ##__VA_ARGS__); \
-      CHECK_BREAK;                                       \
-    }                                                    \
+#ifndef BASE_STRIP_DCHECK
+#define DCHECK(expression, ...)                            \
+  do {                                                     \
+    if (!(expression)) {                                   \
+      MAKE_SOURCE_LOC(BASE_FUNC_NAME, __FILE__, __LINE__); \
+      ::base::detail::DCheck(kSourceLoc, ##__VA_ARGS__);   \
+      CHECK_BREAK;                                         \
+    }                                                      \
   } while (0);
 #else
 #define DCHECK(x, ...)
@@ -70,11 +70,11 @@ void SetAssertHandler(AssertHandler*);
 
 // BugChecks indicate a hard programmer error and are compiled into shipping builds
 // aswell, as these need to be immedeatly fixed
-#if 0
+#ifndef BASE_STRIP_BUGCHECK
 #define BUGCHECK(expression, ...)                          \
   do {                                                     \
     if (!(expression)) {                                   \
-      MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__);   \
+      MAKE_SOURCE_LOC(BASE_FUNC_NAME, __FILE__, __LINE__); \
       ::base::detail::BugCheck(kSourceLoc, ##__VA_ARGS__); \
       CHECK_BREAK;                                         \
     }                                                      \
@@ -83,14 +83,11 @@ void SetAssertHandler(AssertHandler*);
 #define BUGCHECK(x, ...)
 #endif
 
-#if 0
 // Another form of bugcheck.
-#define IMPOSSIBLE                                     \
-  {                                                    \
-    MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__); \
-    ::base::detail::BugCheck(kSourceLoc);              \
-    CHECK_BREAK;                                       \
+#define IMPOSSIBLE                                       \
+  {                                                      \
+    MAKE_SOURCE_LOC(BASE_FUNC_NAME, __FILE__, __LINE__); \
+    ::base::detail::BugCheck(kSourceLoc);                \
+    CHECK_BREAK;                                         \
   }
-#else
-#define IMPOSSIBLE
-#endif
+// newline

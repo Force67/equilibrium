@@ -70,6 +70,8 @@ class Vector {
         IMPOSSIBLE;
       }
     }
+
+    return 0;
   }
 
   void push_back(const T& value) {

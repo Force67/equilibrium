@@ -12,6 +12,7 @@
 #include "build/build_config.h"
 
 #include "base/check.h"
+#include "strings/string_ref.h"
 
 namespace base {
 namespace {
@@ -63,19 +64,8 @@ void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
   out[(*size)++] = code_point;
 }
 
-bool IsStringASCII(const base::StringRefW str) {
-  return DoIsStringASCII(str.data(), str.length());
-}
-
-bool IsStringASCII(const base::StringRef str) {
-  return DoIsStringASCII(str.data(), str.length());
-}
-
-bool IsStringASCII(const base::StringRefU8 str) {
-  return DoIsStringASCII(str.data(), str.length());
-}
-
-bool IsStringASCII(const base::StringRefU16 str) {
+template<typename Char>
+bool IsStringASCII(const base::BasicStringRef<Char> str) {
   return DoIsStringASCII(str.data(), str.length());
 }
 

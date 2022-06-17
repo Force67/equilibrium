@@ -6,7 +6,7 @@
 
 namespace base {
 Path::Path(const char* ascii_only) {
-  DCHECK(base::IsASCII(ascii_only));
+  ///DCHECK(base::IsASCII(ascii_only));
   path_buf_ = ascii_only;
 }
 

@@ -31,7 +31,7 @@ Thread::Handle Thread::Spawn() {
     return reinterpret_cast<Thread::Handle>(handle);
   }
 
-  BUGCHECK(last_error, "pthread_create() error");
+  BUGCHECK(ec, "pthread_create() error");
   return nullptr;
 }
 

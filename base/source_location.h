@@ -4,6 +4,7 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/compiler.h>
 
 namespace base {
 // A source location contains format text and the file name, that is truncated at
@@ -11,6 +12,7 @@ namespace base {
 struct SourceLocation {
   const char* format;
   const char* file;
+  const char* func;
 };
 
 }  // namespace base
@@ -106,10 +108,8 @@ struct LiteralToVariadicChars {
     return ::base::detail::LiteralToVariadicChars<Wrapper, Seq>::type::value;   \
   }()
 
-#define MAKE_SOURCE_LOC(function, file, line)                
-#if 0
-  static constinit const ::base::SourceLocation kSourceLoc { \
-    PROJECT_NAME "!{}!" function "!" EVAL_MACRO__(line),     \
-        COMPILE_TIME_PAST_LAST_SLASH(file)                   \
+#define MAKE_SOURCE_LOC(function, file, line)                                      \
+  STATIC_MSVC_ONLY CONSTINIT_MSVC_ONLY const ::base::SourceLocation kSourceLoc {   \
+    PROJECT_NAME "!{}!{}!" EVAL_MACRO__(line), COMPILE_TIME_PAST_LAST_SLASH(file), \
+        function                                                                   \
   }
-#endif

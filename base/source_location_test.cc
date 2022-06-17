@@ -6,8 +6,7 @@
 
 namespace {
 TEST(SourceLocation, Crop) {
-  MAKE_SOURCE_LOC(__FUNCTION__, __FILE__, __LINE__);
-
-  //ASSERT_STRCASEEQ(kSourceLoc.file, "source_location_test.cc");
+  MAKE_SOURCE_LOC("Mylongpath\\blah\\source_location_test.cc", __FILE__, __LINE__);
+  ASSERT_STRCASEEQ(kSourceLoc.file, "source_location_test.cc");
 }
 }  // namespace

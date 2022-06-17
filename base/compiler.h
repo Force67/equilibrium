@@ -90,6 +90,26 @@
 #define SANITIZE_ADDRESS
 #endif
 
+#if defined(__GNUC__)
+// be warned:
+// In C++, __FUNCTION__ and __PRETTY_FUNCTION__ have always been variables. 
+#define BASE_FUNC_NAME __func__
+#elif defined(_MSC_VER)
+#define BASE_FUNC_NAME __FUNCTION__
+#endif
+
+// for relaxed constexpr static requirements
+#if defined(__GNUC__)
+#define STATIC_MSVC_ONLY
+#elif defined(_MSC_VER)
+#define STATIC_MSVC_ONLY static
+#endif
+
+#if defined(__GNUC__)
+#define CONSTINIT_MSVC_ONLY
+#elif defined(_MSC_VER)
+#define CONSTINIT_MSVC_ONLY constinit
+#endif
 
 // requires a rename later on.
 #if defined(__GNUC__) || defined(__clang__)
