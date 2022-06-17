@@ -3,6 +3,7 @@
 #pragma once
 
 #include <atomic>
+#include <base/compiler.h>
 #include <base/numeric_limits.h>
 
 namespace base {

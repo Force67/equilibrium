@@ -1,11 +1,10 @@
-#pragma once
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
+#pragma once
 
 #include <base/arch.h>
 
 namespace base {
-
 // from
 // https://stackoverflow.com/questions/69468895/reverse-order-of-varidic-template-arguments-while-constructing-a-map-key
 template <typename TRet, typename... Args>

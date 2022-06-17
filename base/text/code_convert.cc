@@ -14,7 +14,6 @@
 #include "base/check.h"
 
 namespace base {
-
 namespace {
 
 constexpr int32_t kErrorCodePoint = 0xFFFD;
@@ -271,14 +270,16 @@ bool UTF16ToWide(const char16_t* src, size_t src_len, base::StringW* output) {
 #elif defined(WCHAR_T_IS_UTF32)
 
 bool WideToUTF16(const wchar_t* src, size_t src_len, base::StringU16* output) {
-  return UTFConversion(base::StringRefW(src, src_len), output);
+  //return UTFConversion(base::StringRefW(src, src_len), output);
+  return false;
 }
 
 base::StringU16 WideToUTF16(base::StringRefW wide) {
   base::StringU16 ret;
+  DEBUG_TRAP;
   // Ignore the success flag of this call, it will do the best it can for
   // invalid input, which is what we want here.
-  WideToUTF16(wide.data(), wide.length(), &ret);
+  //WideToUTF16(wide.data(), wide.length(), &ret);
   return ret;
 }
 

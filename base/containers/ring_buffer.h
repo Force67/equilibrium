@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #pragma once
 
+#include <base/arch.h>
 #include <base/check.h>
 
 namespace base {
@@ -16,19 +17,19 @@ namespace base {
 //
 // If the above is sufficient for your use case, base::RingBuffer should be more
 // efficient than base::circular_deque.
-template <typename T, size_t kSize>
+template <typename T, mem_size kSize>
 class RingBuffer {
  public:
   RingBuffer() : current_index_(0) {}
   RingBuffer(const RingBuffer&) = delete;
   RingBuffer& operator=(const RingBuffer&) = delete;
 
-  size_t BufferSize() const { return kSize; }
+  mem_size BufferSize() const { return kSize; }
 
-  size_t CurrentIndex() const { return current_index_; }
+  mem_size CurrentIndex() const { return current_index_; }
 
   // Returns true if a value was saved to index |n|.
-  bool IsFilledIndex(size_t n) const {
+  bool IsFilledIndex(mem_size n) const {
     return IsFilledIndexByBufferIndex(BufferIndex(n));
   }
 
@@ -36,14 +37,14 @@ class RingBuffer {
   //
   // n = 0 returns the oldest value and
   // n = bufferSize() - 1 returns the most recent value.
-  const T& ReadBuffer(size_t n) const {
-    const size_t buffer_index = BufferIndex(n);
+  const T& ReadBuffer(mem_size n) const {
+    const mem_size buffer_index = BufferIndex(n);
     DCHECK(IsFilledIndexByBufferIndex(buffer_index));
     return buffer_[buffer_index];
   }
 
-  T* MutableReadBuffer(size_t n) {
-    const size_t buffer_index = BufferIndex(n);
+  T* MutableReadBuffer(mem_size n) {
+    const mem_size buffer_index = BufferIndex(n);
     DCHECK(IsFilledIndexByBufferIndex(buffer_index));
     return &buffer_[buffer_index];
   }
@@ -58,7 +59,7 @@ class RingBuffer {
   // Iterator has const access to the RingBuffer it got retrieved from.
   class Iterator {
    public:
-    size_t index() const { return index_; }
+    mem_size index() const { return index_; }
 
     const T* operator->() const { return &buffer_.ReadBuffer(index_); }
     const T* operator*() const { return &buffer_.ReadBuffer(index_); }
@@ -80,11 +81,11 @@ class RingBuffer {
     operator bool() const { return !out_of_range_ && buffer_.IsFilledIndex(index_); }
 
    private:
-    Iterator(const RingBuffer<T, kSize>& buffer, size_t index)
+    Iterator(const RingBuffer<T, kSize>& buffer, mem_size index)
         : buffer_(buffer), index_(index), out_of_range_(false) {}
 
     const RingBuffer<T, kSize>& buffer_;
-    size_t index_;
+    mem_size index_;
     bool out_of_range_;
 
     friend class RingBuffer<T, kSize>;
@@ -105,18 +106,18 @@ class RingBuffer {
   Iterator End() const { return Iterator(*this, kSize - 1); }
 
  private:
-  inline size_t BufferIndex(size_t n) const { return (current_index_ + n) % kSize; }
+  inline mem_size BufferIndex(mem_size n) const { return (current_index_ + n) % kSize; }
 
   // This specialization of |IsFilledIndex| is a micro-optimization that enables
   // us to do e.g. `DCHECK(IsFilledIndex(n))` without calling |BufferIndex|
   // twice. Since |BufferIndex| involves a % operation, it's not quite free at a
   // micro-scale.
-  inline bool IsFilledIndexByBufferIndex(size_t buffer_index) const {
+  inline bool IsFilledIndexByBufferIndex(mem_size buffer_index) const {
     return buffer_index < current_index_;
   }
 
   T buffer_[kSize];
-  size_t current_index_;
+  mem_size current_index_;
 };
 
 }  // namespace base

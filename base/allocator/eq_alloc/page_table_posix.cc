@@ -1,8 +1,10 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <Windows.h>
+
 #include <base/allocator/eq_alloc/page_table.h>
+#include "arch.h"
+#include "check.h"
 
 namespace base {
 namespace {
@@ -14,8 +16,7 @@ u32 PageTable::ideal_page_size() {
 }
 
 byte* PageTable::Reserve(void* preferred_address, mem_size block_size) {
-  return reinterpret_cast<byte*>(::VirtualAlloc(
-      preferred_address, block_size, MEM_RESERVE, PAGE_EXECUTE_READWRITE));
+  return nullptr;
 }
 
 void* PageTable::Allocate(void* preferred_address,
@@ -27,15 +28,7 @@ void* PageTable::Allocate(void* preferred_address,
   // TODO: does a circualar queue make sense here? compressed linked list??
   // TODO: LFU rolling page cache
 
-  const DWORD protect = read_only ? PAGE_EXECUTE_READ : PAGE_EXECUTE_READWRITE;
-  void* block = ::VirtualAlloc(preferred_address, block_size, MEM_COMMIT, protect);
-
-  if (!block)
-    return nullptr;
-
-  if (use_initialize)
-    memset(block, initalize_with, block_size);
-
-  return block;
+    IMPOSSIBLE;
+  return nullptr;
 }
 }  // namespace base

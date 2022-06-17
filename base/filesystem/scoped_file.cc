@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "base/posix/eintr_wrapper.h"
+#include <base/filesystem/posix/eintr_wrapper.h>
 #endif
 
 namespace base {
@@ -40,7 +40,7 @@ void ScopedFDCloseTraits::Free(int fd) {
     ret = 0;
 #endif
 
-  PCHECK(0 == ret);
+  BUGCHECK(0 == ret);
 }
 
 #endif  // OS_POSIX || OS_FUCHSIA

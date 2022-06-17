@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <base/arch.h>
 #include <base/check.h>
 
 namespace base {
@@ -13,18 +14,18 @@ namespace base {
 template <typename T>
 class Span {
  public:
-  explicit Span(T* ptr, size_t len) : ptr_(ptr), len_(len) {}
+  explicit Span(T* ptr, mem_size len) : ptr_(ptr), len_(len) {}
 
-  template <size_t N>
+  template <mem_size N>
   constexpr Span(T (&a)[N]) noexcept  // NOLINT(runtime/explicit)
       : Span(a, N) {}
 
   T* data() const { return ptr_; }
-  size_t size() const { return len_; }
-  size_t length() const { return len_; }
+  mem_size size() const { return len_; }
+  mem_size length() const { return len_; }
   bool empty() const { return ptr_; }
 
-  constexpr T& operator[](size_t index) const {
+  constexpr T& operator[](mem_size index) const {
     // DCHECK(i < len_);
     return ptr_[index];
   }
@@ -41,7 +42,7 @@ class Span {
 
  private:
   T* ptr_;
-  size_t len_;
+  mem_size len_;
 };
 
 // static_assert(sizeof(Span<void>) == 16);

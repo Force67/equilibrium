@@ -3,6 +3,8 @@
 
 #include <base/check.h>
 #include <base/allocator/eq_alloc/page_table.h>
+#include "arch.h"
+#include "compiler.h"
 
 namespace base {
 
@@ -33,7 +35,7 @@ void PageTable::ReservePages(const pointer_size page_base, const mem_size count)
     }
 
     if (DecompressPointer(e) != block) {
-      __debugbreak();
+      DEBUG_TRAP;
     }
 
     block += ideal_page_size();
@@ -59,7 +61,7 @@ void* PageTable::RequestPage() {
   return nullptr;
 }
 
-void* PageTable::RequestPage(size_t& size) {
+void* PageTable::RequestPage(mem_size& size) {
   // enter lock...
   for (auto i = 0; i < 12; i++) {
     auto& e = page_entries_[i];

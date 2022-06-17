@@ -34,14 +34,14 @@ File::File(PlatformFile platform_file) : File(platform_file, false) {}
 File::File(ScopedPlatformFile platform_file, bool async)
     : file_(std::move(platform_file)), error_details_(FILE_OK), async_(async) {
 #if defined(OS_POSIX) || defined(OS_FUCHSIA)
-  DCHECK_GE(file_.get(), -1);
+  DCHECK(file_.get() >= -1);
 #endif
 }
 
 File::File(PlatformFile platform_file, bool async)
     : file_(platform_file), error_details_(FILE_OK), async_(async) {
 #if defined(OS_POSIX) || defined(OS_FUCHSIA)
-  DCHECK_GE(platform_file, -1);
+  DCHECK(platform_file >= -1);
 #endif
 }
 

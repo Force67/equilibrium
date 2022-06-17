@@ -106,8 +106,10 @@ struct LiteralToVariadicChars {
     return ::base::detail::LiteralToVariadicChars<Wrapper, Seq>::type::value;   \
   }()
 
-#define MAKE_SOURCE_LOC(function, file, line)                \
+#define MAKE_SOURCE_LOC(function, file, line)                
+#if 0
   static constinit const ::base::SourceLocation kSourceLoc { \
     PROJECT_NAME "!{}!" function "!" EVAL_MACRO__(line),     \
         COMPILE_TIME_PAST_LAST_SLASH(file)                   \
   }
+#endif

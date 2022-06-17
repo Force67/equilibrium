@@ -4,8 +4,8 @@
 // Guarantees good assembly quality.
 #pragma once
 
-#include <export.h>
-#include "base/compiler.h"
+#include <base/arch.h>
+#include <base/compiler.h>
 
 namespace base {
 template <typename TItem>
@@ -14,8 +14,9 @@ class InitChain {
   constexpr InitChain() noexcept = default;
 
   // Construct from data
-  STRONG_INLINE constexpr InitChain(const TItem *owner) noexcept : InitChain(root(), owner) {}
-  STRONG_INLINE constexpr InitChain(InitChain*& parent, const TItem *data) noexcept
+  STRONG_INLINE constexpr InitChain(const TItem* owner) noexcept
+      : InitChain(root(), owner) {}
+  STRONG_INLINE constexpr InitChain(InitChain*& parent, const TItem* data) noexcept
       : owner_(data), next_(parent) {
     parent = this;
   }
@@ -29,9 +30,11 @@ class InitChain {
     return root;
   }
 
-  template<typename TFunctor>
-  STRONG_INLINE static size_t VisitAll(const TFunctor functor, InitChain*& start = root(), bool clear = false) {
-    size_t total = 0;
+  template <typename TFunctor>
+  STRONG_INLINE static mem_size VisitAll(const TFunctor functor,
+                                         InitChain*& start = root(),
+                                         bool clear = false) {
+    mem_size total = 0;
 
     InitChain* i = start;
 

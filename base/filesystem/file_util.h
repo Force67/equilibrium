@@ -25,8 +25,8 @@
 #elif defined(OS_POSIX) || defined(OS_FUCHSIA)
 #include <sys/stat.h>
 #include <unistd.h>
-#include "base/file_descriptor_posix.h"
-#include "base/posix/eintr_wrapper.h"
+#include <base/filesystem/posix/file_descriptor_posix.h>
+#include <base/filesystem/posix/eintr_wrapper.h>
 #endif
 
 #include <base/arch.h>

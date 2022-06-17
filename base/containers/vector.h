@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <cstring>
 #include <type_traits>
 
 #include <base/arch.h>

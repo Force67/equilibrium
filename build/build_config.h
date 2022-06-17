@@ -65,6 +65,7 @@
 // Do not define OS_LINUX on Chrome OS build.
 // The OS_CHROMEOS macro is defined in GN.
 #define OS_LINUX 1
+#define IS_LINUX 1
 #endif  // !defined(OS_CHROMEOS)
 // Include a system header to pull in features.h for glibc/uclibc macros.
 #include <unistd.h>

@@ -7,19 +7,21 @@
 
 namespace base {
 
+#if defined(OS_WIN)
+#define PATH_SEP_MACRO L'\\'
+  static constexpr wchar_t kSeperator = L'\\';
+#else
+#define PATH_SEP_MACRO '/'
+  static constexpr char kSeperator = '/';
+#endif
+
 class BASE_EXPORT Path {
  public:
 #if defined(OS_WIN)
-  static constexpr wchar_t kSeperator = L'\\';
-  static constexpr char kSeperatorO = '\\';
-#define PATH_SEP_MACRO L'\\'
   using CharType = wchar_t;
-#else
-  static constexpr char kSeperator = '/';
+#elif(OS_POSIX)
   using CharType = char;
-#define PATH_SEP_MACRO '/'
 #endif
-
   using BufferType = base::BasicString<CharType>;
 
   Path() = default;

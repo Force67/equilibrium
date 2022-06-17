@@ -4,5 +4,4 @@
 #pragma once
 
 namespace base {
-#define INTEGRAL_ENUM_TRAITS()
 }  // namespace base

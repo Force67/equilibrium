@@ -6,21 +6,24 @@
 #include "base/filesystem/scoped_temp_dir.h"
 #include "base/filesystem/file_util.h"
 #include "base/logging.h"
+#include "compiler.h"
 
 namespace base {
 
 namespace {
 
-constexpr Path::CharType kScopedDirPrefix[] = L"scoped_dir";
-
+constexpr Path::CharType kScopedDirPrefix[] =
+#if defined(OS_WIN)
+    L"scoped_dir";
+#else
+    "scoped_dir";
+#endif
 }  // namespace
 
 ScopedTempDir::ScopedTempDir() = default;
 
 ScopedTempDir::~ScopedTempDir() {
-  if (!path_.empty() && !Delete()) {
-    __debugbreak();
-  }
+  BUGCHECK(path_.empty() && !Delete());
 }
 
 bool ScopedTempDir::CreateUniqueTempDir() {
@@ -65,7 +68,7 @@ bool ScopedTempDir::Delete() {
   if (path_.empty())
     return false;
 
-  __debugbreak();
+  DEBUG_TRAP;
 
   return false;
 }

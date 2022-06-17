@@ -1,6 +1,6 @@
 -- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
-local system_ext_map = {windows = "win", linux = "linux", macosx = "mac"}
+local system_ext_map = {windows = "win", linux = "linux", linux = "posix", macosx = "mac"}
 
 local first = true
 local rval = "files:"
