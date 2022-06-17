@@ -55,7 +55,7 @@ void SetAssertHandler(AssertHandler*);
 //    logical choice to use in cases which can be triggered and fixed during
 //    development.
 
-#ifndef BASE_STRIP_DCHECK
+#ifndef CONFIG_SHIPPING
 #define DCHECK(expression, ...)                            \
   do {                                                     \
     if (!(expression)) {                                   \
