@@ -5,6 +5,7 @@
 #pragma once
 
 #include <base/export.h>
+#include <base/filesystem/file.h>
 #include <base/filesystem/scoped_file.h>
 
 namespace base {
@@ -48,24 +49,24 @@ struct BASE_EXPORT FileDescriptor {
   bool auto_close = false;
 };
 
-FileDescriptor::FileDescriptor(int ifd, bool iauto_close)
+inline FileDescriptor::FileDescriptor(int ifd, bool iauto_close)
     : fd(ifd), auto_close(iauto_close) {}
 
-FileDescriptor::FileDescriptor(File file)
+inline FileDescriptor::FileDescriptor(File file)
     : fd(file.TakePlatformFile()), auto_close(true) {}
 
-FileDescriptor::FileDescriptor(ScopedFD fd)
+inline FileDescriptor::FileDescriptor(ScopedFD fd)
     : fd(fd.release()), auto_close(true) {}
 
-bool FileDescriptor::operator==(const FileDescriptor& other) const {
+inline bool FileDescriptor::operator==(const FileDescriptor& other) const {
   return fd == other.fd && auto_close == other.auto_close;
 }
 
-bool FileDescriptor::operator!=(const FileDescriptor& other) const {
+inline bool FileDescriptor::operator!=(const FileDescriptor& other) const {
   return !operator==(other);
 }
 
-bool FileDescriptor::operator<(const FileDescriptor& other) const {
+inline bool FileDescriptor::operator<(const FileDescriptor& other) const {
   return other.fd < fd;
 }
 

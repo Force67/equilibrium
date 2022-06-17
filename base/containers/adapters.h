@@ -4,41 +4,36 @@
 #pragma once
 
 namespace base {
-
-	#if 0
-namespace internal {
+namespace detail {
 
 // Internal adapter class for implementing base::Reversed.
 template <typename T>
 class ReversedAdapter {
  public:
-  using Iterator = decltype(std::rbegin(std::declval<T&>()));
-
   explicit ReversedAdapter(T& t) : t_(t) {}
   ReversedAdapter(const ReversedAdapter& ra) : t_(ra.t_) {}
   ReversedAdapter& operator=(const ReversedAdapter&) = delete;
 
-  Iterator begin() const { return std::rbegin(t_); }
-  Iterator end() const { return std::rend(t_); }
+  auto begin() const { return t_.begin(); }
+  auto end() const { return t_.end(); }
 
  private:
   T& t_;
 };
 
-}  // namespace internal
+}  // namespace detail
 
 // Reversed returns a container adapter usable in a range-based "for" statement
 // for iterating a reversible container in reverse order.
 //
 // Example:
 //
-//   std::vector<int> v = ...;
+//   vector<int> v = ...;
 //   for (int i : base::Reversed(v)) {
 //     // iterates through v from back to front
 //   }
 template <typename T>
-internal::ReversedAdapter<T> Reversed(T& t) {
-  return internal::ReversedAdapter<T>(t);
+detail::ReversedAdapter<T> Reversed(T& t) {
+  return detail::ReversedAdapter<T>(t);
 }
-#endif
 }  // namespace base

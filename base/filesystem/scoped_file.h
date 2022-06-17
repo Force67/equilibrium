@@ -1,9 +1,7 @@
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
-#ifndef BASE_FILES_SCOPED_FILE_H_
-#define BASE_FILES_SCOPED_FILE_H_
+#pragma once
 
 #include <stdio.h>
 
@@ -16,16 +14,6 @@
 namespace base {
 
 namespace internal {
-
-#if defined(OS_ANDROID)
-// Use fdsan on android.
-struct BASE_EXPORT ScopedFDCloseTraits : public ScopedGenericOwnershipTracking {
-  static int InvalidValue() { return -1; }
-  static void Free(int);
-  static void Acquire(const ScopedGeneric<int, ScopedFDCloseTraits>&, int);
-  static void Release(const ScopedGeneric<int, ScopedFDCloseTraits>&, int);
-};
-#elif defined(OS_POSIX) || defined(OS_FUCHSIA)
 #if defined(OS_CHROMEOS) || defined(OS_LINUX)
 // On ChromeOS and Linux we guard FD lifetime with a global table and hook into
 // libc close() to perform checks.
@@ -42,16 +30,6 @@ struct BASE_EXPORT ScopedFDCloseTraits {
   static void Release(const ScopedGeneric<int, ScopedFDCloseTraits>&, int);
 #endif
 };
-#endif
-
-// Functor for |ScopedFILE| (below).
-struct ScopedFILECloser {
-  inline void operator()(FILE* x) const {
-    if (x)
-      fclose(x);
-  }
-};
-
 }  // namespace internal
 
 #if defined(OS_CHROMEOS) || defined(OS_LINUX)
@@ -101,9 +79,6 @@ void BASE_EXPORT ResetFDOwnership();
 typedef ScopedGeneric<int, internal::ScopedFDCloseTraits> ScopedFD;
 #endif
 
-// Automatically closes |FILE*|s.
-typedef std::unique_ptr<FILE, internal::ScopedFILECloser> ScopedFILE;
-
 #if defined(OS_CHROMEOS) || defined(OS_LINUX)
 // Queries the ownership status of an FD, i.e. whether it is currently owned by
 // a ScopedFD in the calling process.
@@ -111,5 +86,3 @@ bool BASE_EXPORT IsFDOwned(int fd);
 #endif  // defined(OS_CHROMEOS) || defined(OS_LINUX)
 
 }  // namespace base
-
-#endif  // BASE_FILES_SCOPED_FILE_H_

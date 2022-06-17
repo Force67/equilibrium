@@ -9,17 +9,17 @@ namespace base {
 
 #if defined(OS_WIN)
 #define PATH_SEP_MACRO L'\\'
-  static constexpr wchar_t kSeperator = L'\\';
+static constexpr wchar_t kSeperator = L'\\';
 #else
 #define PATH_SEP_MACRO '/'
-  static constexpr char kSeperator = '/';
+static constexpr char kSeperator = '/';
 #endif
 
 class BASE_EXPORT Path {
  public:
 #if defined(OS_WIN)
   using CharType = wchar_t;
-#elif(OS_POSIX)
+#elif (OS_POSIX)
   using CharType = char;
 #endif
   using BufferType = base::BasicString<CharType>;
@@ -40,16 +40,34 @@ class BASE_EXPORT Path {
   // result may be ignored
   Path& operator/=(const Path& other);
 
+  bool operator!=(const Path& other) {
+    return path_buf_ != other.path_buf_;
+  }
+
+  bool operator==(const Path& other) {
+    return path_buf_ == other.path_buf_;
+  }
+
   // is the path valid
-  operator bool() { return !empty(); }
+  operator bool() {
+    return !empty();
+  }
 
   [[nodiscard]] Path DirName() const;
   [[nodiscard]] Path BaseName() const;
   [[nodiscard]] Path Extension() const;
 
   // cxx adapters
-  inline bool empty() const { return path_buf_.empty(); }
-  const CharType* c_str() const { return path_buf_.c_str(); }
+  inline bool empty() const {
+    return path_buf_.empty();
+  }
+  const CharType* c_str() const {
+    return path_buf_.c_str();
+  }
+
+  inline BufferType path() const {
+    return path_buf_;
+  }
 
  private:
   BufferType path_buf_;

@@ -11,9 +11,11 @@
 #include <unistd.h>
 
 #include <base/check.h>
+
+#include <base/filesystem/file.h>
 #include <base/filesystem/posix/eintr_wrapper.h>
 #include <base/text/code_convert.h>
-#include "base/threading/scoped_blocking_call.h"
+#include <base/threading/scoped_blocking_call.h>
 #include "build/build_config.h"
 
 namespace base {
@@ -49,22 +51,22 @@ int CallFutimes(PlatformFile file, const struct timeval times[2]) {
 #endif
 }
 
-#if !BUILDFLAG(IS_FUCHSIA)
-short FcntlFlockType(absl::optional<File::LockMode> mode) {
-  if (!mode.has_value())
+i16 FcntlFlockType(File::LockMode* mode) {
+  if (!mode)
     return F_UNLCK;
-  switch (mode.value()) {
+  switch (*mode) {
     case File::LockMode::kShared:
       return F_RDLCK;
     case File::LockMode::kExclusive:
       return F_WRLCK;
   }
-  NOTREACHED();
+  IMPOSSIBLE;
+  return 0;
 }
 
-File::Error CallFcntlFlock(PlatformFile file, absl::optional<File::LockMode> mode) {
+File::Error CallFcntlFlock(PlatformFile file, File::LockMode* mode) {
   struct flock lock;
-  lock.l_type = FcntlFlockType(std::move(mode));
+  lock.l_type = FcntlFlockType(mode);
   lock.l_whence = SEEK_SET;
   lock.l_start = 0;
   lock.l_len = 0;  // Lock entire file.
@@ -72,29 +74,6 @@ File::Error CallFcntlFlock(PlatformFile file, absl::optional<File::LockMode> mod
     return File::GetLastFileError();
   return File::FILE_OK;
 }
-
-bool IsOpenAppend(PlatformFile file) {
-  // NaCl doesn't implement fcntl. Since NaCl's write conforms to the POSIX
-  // standard and always appends if the file is opened with O_APPEND, just
-  // return false here.
-  return false;
-}
-
-int CallFtruncate(PlatformFile file, int64_t length) {
-  IMPOSSIBLE;  // NaCl doesn't implement ftruncate.
-  return 0;
-}
-
-int CallFutimes(PlatformFile file, const struct timeval times[2]) {
-  IMPOSSIBLE;  // NaCl doesn't implement futimes.
-  return 0;
-}
-
-File::Error CallFcntlFlock(PlatformFile file, absl::optional<File::LockMode> mode) {
-  IMPOSSIBLE;  // NaCl doesn't implement flock struct.
-  return File::FILE_ERROR_INVALID_OPERATION;
-}
-#endif  // BUILDFLAG(IS_NACL)
 
 }  // namespace
 
@@ -185,7 +164,7 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
   return HANDLE_EINTR(read(file_.get(), data, size));
 }
 
-int File::Write(int64_t offset, const char* data, int size) {
+int File::Write(int64_t offset, const char* data, size_t size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
 
   if (IsOpenAppend(file_.get()))
@@ -255,6 +234,7 @@ bool File::SetLength(int64_t length) {
   return !CallFtruncate(file_.get(), length);
 }
 
+#if 0
 bool File::SetTimes(Time last_access_time, Time last_modified_time) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   DCHECK(IsValid());
@@ -265,6 +245,7 @@ bool File::SetTimes(Time last_access_time, Time last_modified_time) {
 
   return !CallFutimes(file_.get(), times);
 }
+#endif
 
 bool File::GetInfo(Info* info) {
   DCHECK(IsValid());
@@ -278,11 +259,11 @@ bool File::GetInfo(Info* info) {
 }
 
 File::Error File::Lock(File::LockMode mode) {
-  return CallFcntlFlock(file_.get(), mode);
+  return CallFcntlFlock(file_.get(), &mode);
 }
 
 File::Error File::Unlock() {
-  return CallFcntlFlock(file_.get(), absl::optional<File::LockMode>());
+  return CallFcntlFlock(file_.get(), nullptr);
 }
 
 File File::Duplicate() const {
@@ -305,9 +286,7 @@ File::Error File::OSErrorToFileError(int saved_errno) {
     case EPERM:
       return FILE_ERROR_ACCESS_DENIED;
     case EBUSY:
-#if !BUILDFLAG(IS_NACL)  // ETXTBSY not defined by NaCl.
     case ETXTBSY:
-#endif
       return FILE_ERROR_IN_USE;
     case EEXIST:
       return FILE_ERROR_EXISTS;
@@ -326,13 +305,13 @@ File::Error File::OSErrorToFileError(int saved_errno) {
       return FILE_ERROR_NOT_A_DIRECTORY;
     default:
       // This function should only be called for errors.
-      DCHECK_NE(0, saved_errno);
+      DCHECK(0 != saved_errno);
       return FILE_ERROR_FAILED;
   }
 }
 
 // TODO(erikkay): does it make sense to support FLAG_EXCLUSIVE_* here?
-void File::DoInitialize(const FilePath& path, uint32_t flags) {
+void File::DoInitialize(const Path& path, uint32_t flags) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   DCHECK(!IsValid());
 
@@ -355,7 +334,7 @@ void File::DoInitialize(const FilePath& path, uint32_t flags) {
   }
 
   if (!open_flags && !(flags & FLAG_OPEN) && !(flags & FLAG_OPEN_ALWAYS)) {
-    NOTREACHED();
+    IMPOSSIBLE;
     errno = EOPNOTSUPP;
     error_details_ = FILE_ERROR_FAILED;
     return;
@@ -370,7 +349,7 @@ void File::DoInitialize(const FilePath& path, uint32_t flags) {
     // Note: For FLAG_WRITE_ATTRIBUTES and no other read/write flags, we'll
     // open the file in O_RDONLY mode (== 0, see static_assert below), so that
     // we get a fd that can be used for SetTimes().
-    NOTREACHED();
+    IMPOSSIBLE;
   }
 
   if (flags & FLAG_TERMINAL_DEVICE)
@@ -384,16 +363,13 @@ void File::DoInitialize(const FilePath& path, uint32_t flags) {
   static_assert(O_RDONLY == 0, "O_RDONLY must equal zero");
 
   int mode = S_IRUSR | S_IWUSR;
-#if BUILDFLAG(IS_CHROMEOS)
-  mode |= S_IRGRP | S_IROTH;
-#endif
 
-  int descriptor = HANDLE_EINTR(open(path.value().c_str(), open_flags, mode));
+  int descriptor = HANDLE_EINTR(open(path.c_str(), open_flags, mode));
 
   if (flags & FLAG_OPEN_ALWAYS) {
     if (descriptor < 0) {
       open_flags |= O_CREAT;
-      descriptor = HANDLE_EINTR(open(path.value().c_str(), open_flags, mode));
+      descriptor = HANDLE_EINTR(open(path.c_str(), open_flags, mode));
       if (descriptor >= 0)
         created_ = true;
     }
@@ -408,7 +384,7 @@ void File::DoInitialize(const FilePath& path, uint32_t flags) {
     created_ = true;
 
   if (flags & FLAG_DELETE_ON_CLOSE)
-    unlink(path.value().c_str());
+    unlink(path.c_str());
 
   async_ = ((flags & FLAG_ASYNC) == FLAG_ASYNC);
   error_details_ = FILE_OK;

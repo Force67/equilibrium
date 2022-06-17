@@ -26,6 +26,8 @@ class BasicStringRef {
  public:
   using value_type = TChar;
 
+  static constexpr mem_size npos = mem_size(-1);
+
   BasicStringRef() = delete;
 
   BasicStringRef(const BASE_STRING(TChar) & str)
