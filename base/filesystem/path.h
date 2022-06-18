@@ -40,11 +40,11 @@ class BASE_EXPORT Path {
   // result may be ignored
   Path& operator/=(const Path& other);
 
-  bool operator!=(const Path& other) {
+  bool operator!=(const Path& other) const {
     return path_buf_ != other.path_buf_;
   }
 
-  bool operator==(const Path& other) {
+  bool operator==(const Path& other) const {
     return path_buf_ == other.path_buf_;
   }
 

@@ -11,16 +11,23 @@ class Thread {
  public:
   virtual ~Thread() = default;
 
+  union Handle {
+    void* handle_;
+    pointer_size pthread_;
+  };
+
   enum class Priority { kLow, kNormal, kHigh, kVeryHigh };
-  using Handle = void*;
 
   explicit Thread(const base::StringRef name, const Priority = Priority::kNormal);
 
   virtual u32 Run();
 
-  bool good() const { return handle_ == nullptr; }
+  // since both are same size anyway, we can use the same type
+  bool good() const { return handle_data_.handle_ == nullptr; }
 
   void SetName(const base::StringRef name);
+
+  // call this from the new thread index
   void ApplyName();
 
   inline void SetPrio(const Thread::Priority prio);
@@ -31,8 +38,10 @@ class Thread {
 
  private:
   // raw underlying implementation defined handle
-  Handle handle_ = nullptr;
+  Handle handle_data_;
+  // tid of the thread this thread was created on
   u32 parent_thread_index_;
+  // name of the thread
   base::String thread_name_;
 };
 

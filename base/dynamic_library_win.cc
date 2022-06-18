@@ -12,7 +12,7 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
 
   if (handle_ = ::GetModuleHandleW(path.c_str())) {
     should_free_ = false;
-    return false;
+    return true;
   }
 
   // user preference

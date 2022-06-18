@@ -6,6 +6,8 @@
 #include <base/enum_traits.h>
 #include <base/numeric_limits.h>
 #include <base/strings/xstring.h>
+
+#include <base/strings/string_search.h>
 #include <base/strings/char_algorithms.h>
 
 namespace base {
@@ -26,7 +28,7 @@ class BasicStringRef {
  public:
   using value_type = TChar;
 
-  static constexpr mem_size npos = mem_size(-1);
+  static constexpr mem_size npos = kNotFoundPos;
 
   BasicStringRef() = delete;
 
@@ -34,7 +36,7 @@ class BasicStringRef {
       : data_(str.c_str()),
         length_(static_cast<u32>(str.length())),
         tags_(StringRefFlags::kIsNullTerm) {
-    DCHECK(str.size() <= max_size_bytes());
+    DCHECK(str.size() <= max_size_characters());
   }
 
   BasicStringRef(const BasicStringRef<TChar>& other)
@@ -68,7 +70,9 @@ class BasicStringRef {
 #endif
   }
 
-  inline bool IsNullTerminated() { return tags_ & StringRefFlags::kIsNullTerm; }
+  inline bool IsNullTerminated() const {
+    return tags_ & StringRefFlags::kIsNullTerm;
+  }
 
   // NOTE(Vince): fixes one of my biggest pet peeves with the STL, which is the fact
   // that we cannot know if a referenced string is null terminated using
@@ -83,10 +87,16 @@ class BasicStringRef {
     return data_;
   }
 
-  inline const TChar* data() const { return data_; }
+  inline const TChar* data() const {
+    return data_;
+  }
 
-  inline const TChar* begin() const { return data_; }
-  inline const TChar* end() const { return &data_[length_]; }
+  inline const TChar* begin() const {
+    return data_;
+  }
+  inline const TChar* end() const {
+    return &data_[length_];
+  }
 
   constexpr static mem_size max_size_bytes() {
     return mem_size(base::MinMax<u32>::max());
@@ -96,9 +106,24 @@ class BasicStringRef {
     return mem_size(base::MinMax<u32>::max()) / sizeof(TChar);
   }
 
-  mem_size size() const { return static_cast<mem_size>(length_); }
+  mem_size size() const {
+    return static_cast<mem_size>(length_);
+  }
   // returns the length in characters
-  mem_size length() const { return static_cast<mem_size>(length_); }
+  mem_size length() const {
+    return static_cast<mem_size>(length_);
+  }
+
+  constexpr mem_size find(const TChar* s, mem_size pos, mem_size count) const {
+    return base::StringSearch(data_, length(), s, pos, count);
+  }
+
+#if 0
+  constexpr mem_size find_last_of(const TChar* s, mem_size pos = npos) const {
+    return base::FindLastOf(data_, length(), s, pos,
+                            base::CalculateStringLength(s, length_));
+  }
+#endif
 
  private:
   const TChar* data_;
@@ -106,7 +131,8 @@ class BasicStringRef {
   StringRefFlags tags_;
 };
 
-// most common types
+// most common types, the U denotes utf-ness in order to adhere somewhat to the stl
+// naming conventions
 using StringRef = BasicStringRef<char>;
 using StringRefW = BasicStringRef<wchar_t>;
 using StringRefU8 = BasicStringRef<char8_t>;

@@ -39,7 +39,7 @@ Thread::Handle Thread::Spawn() {
         break;
     }
   }
-  return thread_handle;
+  return {.handle_ = thread_handle};
 }
 
 void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
@@ -61,11 +61,11 @@ void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
       windows_priority = THREAD_PRIORITY_NORMAL;
       break;
   }
-  ::SetThreadPriority(handle, windows_priority);
+  ::SetThreadPriority(handle.handle_, windows_priority);
 }
 
 const Thread::Priority GetThreadPriority(Thread::Handle handle) {
-  switch (::GetThreadPriority(handle)) {
+  switch (::GetThreadPriority(handle.handle_)) {
     default:
     case THREAD_PRIORITY_BELOW_NORMAL:
       return Thread::Priority::kLow;
@@ -79,7 +79,7 @@ const Thread::Priority GetThreadPriority(Thread::Handle handle) {
 }
 
 const i32 GetNativeThreadPriority(Thread::Handle handle) {
-  return ::GetThreadPriority(handle);
+  return ::GetThreadPriority(handle.handle_);
 }
 
 // Sets the debugger-visible name of the current thread.
@@ -94,7 +94,7 @@ bool SetThreadName(Thread::Handle handle, const char* name) {
     return false;
 
   auto wide = base::ASCIIToWide(name);
-  return SUCCEEDED(set_thread_desc(handle, wide.c_str()));
+  return SUCCEEDED(set_thread_desc(handle.handle_, wide.c_str()));
 }
 
 u32 GetCurrentThreadIndex() {
@@ -102,6 +102,6 @@ u32 GetCurrentThreadIndex() {
 }
 
 Thread::Handle GetCurrentThreadHandle() {
-  return ::GetCurrentThread();
+  return {.handle_ = ::GetCurrentThread()};
 }
 }  // namespace base

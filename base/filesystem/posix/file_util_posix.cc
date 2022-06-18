@@ -5,33 +5,17 @@
 #include <base/filesystem/file_util.h>
 
 #include <dirent.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <libgen.h>
-#include <limits.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/param.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
+#include <fcntl.h>  // for O_NONBLOCK etc
 
 #include <base/export.h>
-#include "build/build_config.h"
-#include "strings/string_ref.h"
-
-#if IS_LINUX
-#include <sys/sendfile.h>
-#endif
+#include <build/build_config.h>
+#include <base/strings/string_ref.h>
 
 #include <base/logging.h>
+#include <base/compiler.h>
+#include <base/containers/vector.h>
 #include <base/containers/adapters.h>
 #include <base/filesystem/path.h>
-
 #include <base/threading/scoped_blocking_call.h>
 
 namespace base {
@@ -122,8 +106,8 @@ static bool CreateTemporaryDirInDirImpl(const Path& base_dir,
                                         Path* new_dir) {
   ScopedBlockingCall scoped_blocking_call(
       FROM_HERE, BlockingType::MAY_BLOCK);  // For call to mkdtemp().
-  //DCHECK(EndsWith(name_tmpl.path(), "XXXXXX"),
-  //       "Directory name template must end with \"XXXXXX\".");
+  // DCHECK(EndsWith(name_tmpl.path(), "XXXXXX"),
+  //        "Directory name template must end with \"XXXXXX\".");
 
   Path sub_dir = base_dir / name_tmpl;
   base::String sub_dir_string = sub_dir.path();
@@ -149,9 +133,7 @@ bool GetTempDir(Path* path) {
   return true;
 }
 
-
-bool CreateNewTempDirectory(const Path::BufferType& prefix,
-                            Path* new_temp_path) {
+bool CreateNewTempDirectory(const Path::BufferType& prefix, Path* new_temp_path) {
   Path tmpdir;
   if (!GetTempDir(&tmpdir))
     return false;
@@ -170,13 +152,12 @@ bool CreateTemporaryDirInDir(const Path& base_dir,
 bool CreateDirectoryAndGetError(const Path& full_path, File::Error* error) {
   ScopedBlockingCall scoped_blocking_call(
       FROM_HERE, BlockingType::MAY_BLOCK);  // For call to mkdir().
-  std::vector<Path> subpaths;
+  base::Vector<Path> subpaths;
 
   // Collect a list of all parent directories.
   Path last_path = full_path;
   subpaths.push_back(full_path);
-  for (Path path = full_path.DirName(); path != last_path;
-       path = path.DirName()) {
+  for (Path path = full_path.DirName(); path != last_path; path = path.DirName()) {
     subpaths.push_back(path);
     last_path = path;
   }

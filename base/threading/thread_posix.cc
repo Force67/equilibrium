@@ -12,7 +12,6 @@ namespace base {
 
 namespace {
 void* ThreadFunc(void* user_param) {
-    
   auto* thread = static_cast<base::Thread*>(user_param);
   thread->ApplyName();
   thread->Run();
@@ -25,18 +24,22 @@ Thread::Handle Thread::Spawn() {
   pthread_attr_t attributes;
   pthread_attr_init(&attributes);
 
-  pthread_t handle;
+  pthread_t handle{};
   auto ec = ::pthread_create(&handle, &attributes, ThreadFunc, this);
   if (ec == 0) {
-    return reinterpret_cast<Thread::Handle>(handle);
+    return {.pthread_ = handle};
   }
 
+  // handle may be garbrage when the thread creation fails, so we ensure that null is
+  // returned
   BUGCHECK(ec, "pthread_create() error");
-  return nullptr;
+  return {.pthread_ = 0};
 }
 
 void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
   DCHECK(false);
+  sched_param param{.sched_priority = static_cast<int>(new_priority)};
+  pthread_setschedparam(handle.pthread_, SCHED_OTHER, &param);
 }
 
 const i32 GetNativeThreadPriority(Thread::Handle handle) {
@@ -45,8 +48,7 @@ const i32 GetNativeThreadPriority(Thread::Handle handle) {
   i32 policy;
 
   /* scheduling parameters of target thread */
-  if (::pthread_getschedparam(reinterpret_cast<pthread_t>(handle), &policy,
-                              &param) != 0)
+  if (::pthread_getschedparam(handle.pthread_, &policy, &param) != 0)
     return UINT_MAX;
 
   return param.sched_priority;
@@ -60,7 +62,7 @@ const Thread::Priority GetThreadPriority(Thread::Handle handle) {
 
 // Sets the debugger-visible name of the current thread.
 bool SetThreadName(Thread::Handle handle, const char* name) {
-  return ::pthread_setname_np(reinterpret_cast<pthread_t>(handle), name) == 0;
+  return ::pthread_setname_np(handle.pthread_, name) == 0;
 }
 
 u32 GetCurrentThreadIndex() {
@@ -68,6 +70,6 @@ u32 GetCurrentThreadIndex() {
 }
 
 Thread::Handle GetCurrentThreadHandle() {
-  return reinterpret_cast<Thread::Handle>(::pthread_self());
+  return {.pthread_ = ::pthread_self()};
 }
 }  // namespace base

@@ -9,13 +9,8 @@
 namespace {
 using namespace base;
 
-struct VecAllocator {
-  static void* Allocate(mem_size sz) { return base::Allocate(sz); }
-  static void Free(void* former, mem_size former_size) { base::Free(former); }
-};
-
 TEST(VectorTest, AddTrivial) {
-  base::Vector<i32, VecAllocator> vec(10);
+  base::Vector<i32> vec(10);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);
@@ -25,7 +20,7 @@ TEST(VectorTest, AddTrivial) {
 }
 
 TEST(VectorTest, AddTrivialReAlloc) {
-  base::Vector<i32, VecAllocator> vec(10);
+  base::Vector<i32> vec(10);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);
@@ -51,7 +46,7 @@ TEST(VectorTest, AddComplex) {
   };
 
   {
-    base::Vector<Complex, VecAllocator> vec(10);
+    base::Vector<Complex> vec(10);
     for (i32 i = 0; i < 10; i++) {
       vec.push_back(Complex(i, destruct_count));
     }
@@ -62,7 +57,7 @@ TEST(VectorTest, AddComplex) {
 }
 
 TEST(VectorTest, EraseItem) {
-  base::Vector<i32, VecAllocator> vec(10);
+  base::Vector<i32> vec(10);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);
@@ -80,7 +75,7 @@ TEST(VectorTest, EraseItem) {
 }
 
 TEST(VectorTest, EraseLastItem) {
-  base::Vector<i32, VecAllocator> vec(10);
+  base::Vector<i32> vec(10);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);
@@ -99,7 +94,7 @@ TEST(VectorTest, EraseLastItem) {
 }
 
 TEST(VectorTest, VectorAddNoPrealloc) {
-  base::Vector<i32, VecAllocator> vec;
+  base::Vector<i32> vec;
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);

@@ -9,6 +9,7 @@
 
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/allocator/allocator_primitives.h>
 
 namespace base {
 
@@ -20,9 +21,13 @@ inline void destruct_range(T first, T last) {
   }
 }
 
-// TODO: shrink_to_fit, resize
+struct DefaultVectorAllocator {
+  static void* Allocate(mem_size sz) { return base::Allocate(sz); }
+  static void Free(void* former, mem_size former_size) { base::Free(former); }
+};
 
-template <typename T, class TAllocator>
+// TODO: shrink_to_fit, resize
+template <typename T, class TAllocator = DefaultVectorAllocator>
 class Vector {
  public:
   // indicates how much to overallocate
@@ -125,12 +130,22 @@ class Vector {
     return *(end_ - 1);
   }
 
-  T* begin() const { return data_; }
-  T* end() const { return end_; }
+  T* begin() const {
+    return data_;
+  }
+  T* end() const {
+    return end_;
+  }
 
-  bool empty() const { return data_ == nullptr || end_ <= data_; }
-  mem_size size() const { return end_ - data_; }
-  mem_size capacity() const { return capacity_ - data_; }
+  bool empty() const {
+    return data_ == nullptr || end_ <= data_;
+  }
+  mem_size size() const {
+    return end_ - data_;
+  }
+  mem_size capacity() const {
+    return capacity_ - data_;
+  }
 
  private:
   mem_size CalculateNewCapacity(mem_size cap) {
