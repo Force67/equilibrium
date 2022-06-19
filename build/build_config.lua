@@ -41,11 +41,12 @@ filter("configurations:DebugAsan")
 flags({
   "NoRuntimeChecks",
   "NoIncrementalLink"})
-  editAndContinue("Off")
-  filter({"kind:ConsoleApp OR WindowedApp"})
-    enableASAN "true"
-  filter{}
   defines("CONFIG_DEBUG")
+  editAndContinue("Off")
+
+filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugAsan"})
+  enableASAN("true")
+filter{}
 
 filter("configurations:Release")
   runtime("Release")

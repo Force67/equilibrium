@@ -12,7 +12,7 @@ namespace base {
 
 // the bucketallocator operates on bits within pages,
 class BucketAllocator final : public Allocator {
-  friend class EQMemoryRouter;
+  friend struct EQMemoryRouter;
 
  protected:
   BucketAllocator();

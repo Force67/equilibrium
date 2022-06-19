@@ -4,6 +4,7 @@
 #pragma once
 
 #include <arch.h>
+#include <base/export.h>
 #include <base/containers/init_chain.h>
 
 namespace base {
