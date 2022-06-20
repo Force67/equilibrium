@@ -36,8 +36,15 @@ constexpr auto kSeparatorsLength = sizeof(kSeparators) / sizeof(Path::CharType);
 
 template <typename T>
 bool IsSeparator(T character) {
+  for (size_t i = 0; i < kSeparatorsLength - 1; ++i) {
+    if (character == kSeparators[i]) {
+      return true;
+    }
+  }
   return false;
 }
+
+
 }  // namespace
 
 Path::Path(const Path& other) : path_buf_(other.path_buf_) {}
@@ -136,6 +143,14 @@ Path Path::BaseName() const {
 }
 
 Path Path::Extension() const {
+    #if 0
+  Path base(BaseName());
+  const auto dot = ExtensionSeparatorPosition(base.path_buf_);
+  if (dot == BufferType::npos)
+    return {};
+
+  return base.path_buf_.substr(dot, BufferType::npos);
+  #endif
   return {};
 }
 }  // namespace base

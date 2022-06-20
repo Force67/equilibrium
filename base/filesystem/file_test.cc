@@ -3,12 +3,15 @@
 
 #include <gtest/gtest.h>
 
+#if 0
 #include <base/filesystem/file.h>
 #include <base/filesystem/file_util.h>
 #include <base/filesystem/scoped_temp_dir.h>
+#endif
 
 namespace {
 
+#if 0
 TEST(FileTests, Create) {
   base::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
@@ -95,4 +98,5 @@ TEST(FileTests, Create) {
 
   EXPECT_FALSE(base::PathExists(file_path));
 }
+#endif
 }  // namespace

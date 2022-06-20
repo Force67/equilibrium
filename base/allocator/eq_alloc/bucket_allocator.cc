@@ -106,7 +106,7 @@ i32 BucketAllocator::FindFreeBucketHead(mem_size requested_size) {
           IntersectsReasonable(bucket.size_, requested_size)) {
         *reinterpret_cast<AtomicBucket*>(tag.end() - sizeof(Bucket)) =
             Bucket();  // claim (in ctor)
-        return tag.bucket_count++;
+        return static_cast<i32>(tag.bucket_count++);
       }
     }
 

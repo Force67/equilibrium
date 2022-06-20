@@ -56,16 +56,28 @@ class BASE_EXPORT Path {
   bool operator!=(const Path& other) const { return path_buf_ != other.path_buf_; }
   bool operator==(const Path& other) const { return path_buf_ == other.path_buf_; }
 
+  // append another path to this path, and insert a seperator in between of them
   void Append(const Path&);
 
+  // returns a Path corresponding to the directory containing the path
+  // named by this object, stripping away the file component.  If this object
+  // only contains one component, returns a FilePath identifying
+  // kCurrentDirectory.  If this object already refers to the root directory,
+  // returns a Path identifying the root directory. Please note that this
+  // doesn't resolve directory navigation, e.g. the result for "../a" is "..".
   [[nodiscard]] Path DirName() const;
+
+  // returns a Path corresponding to the last path component of this
+  // object, either a file or a directory.  If this object already refers to
+  // the root directory, returns a Path identifying the root directory;
+  // this is the only situation in which BaseName will return an absolute path.
   [[nodiscard]] Path BaseName() const;
   [[nodiscard]] Path Extension() const;
 
   // cxx adapters
   inline bool empty() const { return path_buf_.empty(); }
   const CharType* c_str() const { return path_buf_.c_str(); }
-  inline BufferType path() const { return path_buf_; }
+  inline const BufferType& path() const { return path_buf_; }
 
  private:
   void StripTrailingSeparators();
