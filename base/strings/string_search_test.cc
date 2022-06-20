@@ -12,10 +12,10 @@ TEST(StringSearch, StringSearch) {
   EXPECT_EQ(pos, 5);
 
   pos = base::StringSearch(kTestStr, sizeof(kTestStr), "World", 10, 5);
-  EXPECT_EQ(pos, base::kNotFoundPos);
+  EXPECT_EQ(pos, base::kStringNotFoundPos);
 
   pos = base::StringSearch(kTestStr, sizeof(kTestStr), "BonJoviGreatestHits", 0, 19);
-  EXPECT_EQ(pos, base::kNotFoundPos);
+  EXPECT_EQ(pos, base::kStringNotFoundPos);
 }
 
 TEST(StringSearch, StringSearchWide) {
@@ -27,7 +27,7 @@ TEST(StringSearch, StringSearchWide) {
 
   pos = base::StringSearch(kTestStr, sizeof(kTestStr) * sizeof(wchar_t),
                            L"BonJoviGreatestHits", 0, 19);
-  EXPECT_EQ(pos, base::kNotFoundPos);
+  EXPECT_EQ(pos, base::kStringNotFoundPos);
 }
 
 TEST(StringSearch, FindLastOf) {
@@ -37,7 +37,7 @@ TEST(StringSearch, FindLastOf) {
   EXPECT_EQ(pos, 12);
 
   pos = base::FindLastOf(kTestStr, sizeof(kTestStr), "DontRepeat", 0, 10);
-  EXPECT_EQ(pos, base::kNotFoundPos);
+  EXPECT_EQ(pos, base::kStringNotFoundPos);
 #endif
 }
 

@@ -2,9 +2,9 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 component("gpu")
-    files({
-        "**.cc",
-        "**.c",
-        "**.h",
-        "**.inl"
-    })
+  dependencies("fmtlib")
+  files({
+    "**.cc",
+    "**.c",
+    "**.h",
+    "**.inl"})

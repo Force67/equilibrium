@@ -28,7 +28,7 @@ class BasicStringRef {
  public:
   using value_type = TChar;
 
-  static constexpr mem_size npos = kNotFoundPos;
+  static constexpr mem_size npos = kStringNotFoundPos;
 
   BasicStringRef() = delete;
 
@@ -124,6 +124,10 @@ class BasicStringRef {
                             base::CalculateStringLength(s, length_));
   }
 #endif
+
+  TChar operator[](mem_size size) const {
+     return data_[size];
+  }
 
  private:
   const TChar* data_;

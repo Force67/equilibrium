@@ -13,12 +13,24 @@ TEST(DynamicLibrary, EmptyLoad) {
 }
 
 TEST(DynamicLibrary, Load) {
-  const base::DynamicLibrary lib("/lib/x86_64-linux-gnu/libstdc++.so");
+  const base::DynamicLibrary lib(
+#if defined(OS_LINUX)
+	  "/lib/x86_64-linux-gnu/libstdc++.so"
+#elif defined(OS_WIN)
+	  "iphlpapi.dll"
+#endif
+  );
   ASSERT_TRUE(lib.loaded());
 }
 
 TEST(DynamicLibrary, LoadExisting) {
-  const base::Path kPath("libc.so");
+  const base::Path kPath(
+#if defined(OS_LINUX)
+	  "libc.so"
+#elif defined(OS_WIN)
+      "kernel32.dll"
+#endif
+  );
   const base::DynamicLibrary lib(kPath);
   ASSERT_TRUE(lib.loaded());
 }

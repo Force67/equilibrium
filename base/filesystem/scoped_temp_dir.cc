@@ -12,18 +12,14 @@ namespace base {
 
 namespace {
 
-constexpr Path::CharType kScopedDirPrefix[] =
-#if defined(OS_WIN)
-    L"scoped_dir";
-#else
-    "scoped_dir";
-#endif
+constexpr Path::CharType kScopedDirPrefix[] = BASE_PATH_LITERAL("scoped_dir");
 }  // namespace
 
 ScopedTempDir::ScopedTempDir() = default;
 
 ScopedTempDir::~ScopedTempDir() {
-  BUGCHECK(path_.empty() && !Delete());
+  BUGCHECK(!path_.empty(), "Attempted to delete an unset scoped_temp_dir");
+  BUGCHECK(Delete(), "Failed to delete scoped_temp_dir");
 }
 
 bool ScopedTempDir::CreateUniqueTempDir() {
@@ -68,7 +64,14 @@ bool ScopedTempDir::Delete() {
   if (path_.empty())
     return false;
 
-  DEBUG_TRAP;
+  DCHECK(false);
+  #if 0
+  bool ret = DeletePathRecursively(path_);
+  if (ret) {
+    // We only clear the path if deleted the directory.
+    path_.clear();
+  }
+  #endif
 
   return false;
 }

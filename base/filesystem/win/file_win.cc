@@ -170,7 +170,7 @@ bool File::GetInfo(Info* info) {
   BUGCHECK(IsValid());
 
   BY_HANDLE_FILE_INFORMATION file_info;
-  if (!GetFileInformationByHandle(file_.Get(), &file_info))
+  if (!::GetFileInformationByHandle(file_.Get(), &file_info))
     return false;
 
   LARGE_INTEGER size;
@@ -204,7 +204,7 @@ File::Error File::Lock(File::LockMode mode) {
   BUGCHECK(IsValid());
 
   OVERLAPPED overlapped = {};
-  BOOL result = LockFileEx(file_.Get(), LockFileFlagsForMode(mode), /*dwReserved=*/0,
+  BOOL result = ::LockFileEx(file_.Get(), LockFileFlagsForMode(mode), /*dwReserved=*/0,
                            /*nNumberOfBytesToLockLow=*/MAXDWORD,
                            /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
   if (!result)
@@ -216,7 +216,7 @@ File::Error File::Unlock() {
   BUGCHECK(IsValid());
 
   OVERLAPPED overlapped = {};
-  BOOL result = UnlockFileEx(file_.Get(), /*dwReserved=*/0,
+  BOOL result = ::UnlockFileEx(file_.Get(), /*dwReserved=*/0,
                              /*nNumberOfBytesToLockLow=*/MAXDWORD,
                              /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
   if (!result)

@@ -19,15 +19,15 @@ class BASE_EXPORT ScopedTempDir {
 
   // Creates a unique directory in TempPath, and takes ownership of it.
   // See file_util::CreateNewTemporaryDirectory.
-  bool CreateUniqueTempDir() WARN_UNUSED_RESULT;
+  [[nodiscard]] bool CreateUniqueTempDir();
 
   // Creates a unique directory under a given path, and takes ownership of it.
-  bool CreateUniqueTempDirUnderPath(const Path& path) WARN_UNUSED_RESULT;
+  [[nodiscard]] bool CreateUniqueTempDirUnderPath(const Path& path);
 
-  bool Set(const Path& path) WARN_UNUSED_RESULT;
+  [[nodiscard]] bool Set(const Path& path);
 
   // Deletes the temporary directory wrapped by this object.
-  bool Delete() WARN_UNUSED_RESULT;
+  [[nodiscard]] bool Delete();
 
   // Returns true if path_ is non-empty and exists.
   bool IsValid() const;

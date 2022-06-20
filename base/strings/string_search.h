@@ -6,7 +6,7 @@
 
 namespace base {
 // a special size value, for indicating when we failed to find something
-static constexpr mem_size kNotFoundPos = mem_size(-1);
+static constexpr mem_size kStringNotFoundPos = mem_size(-1);
 
 // keep in mind that these free functions do not check for the validity of the
 // in_buffer
@@ -24,7 +24,7 @@ mem_size StringSearch(const TChar* haystack,
   // nsize + pos can overflow (eg pos == npos), guard against that by checking
   // that nsize + pos does not wrap around.
   if (needle_size + start_pos > size || needle_size + start_pos < start_pos)
-    return kNotFoundPos;
+    return kStringNotFoundPos;
 
   if (needle_size == 0)
     return start_pos;
@@ -46,7 +46,7 @@ mem_size StringSearch(const TChar* haystack,
     while (i[needle_size_len] != last_needle) {
       if (++i == iEnd) {
         // not found
-        return kNotFoundPos;
+        return kStringNotFoundPos;
       }
     }
     // Here we know that the last char matches
@@ -73,7 +73,7 @@ mem_size StringSearch(const TChar* haystack,
       }
     }
   }
-  return kNotFoundPos;
+  return kStringNotFoundPos;
 }
 
 auto Min(auto a, auto b) {
@@ -89,7 +89,7 @@ mem_size FindLastOf(const TChar* haystack,
                     mem_size pos,
                     mem_size needle_length) {
   if (!needle || needle_length <= 0) {
-    return kNotFoundPos;
+    return kStringNotFoundPos;
   }
 
   pos = base::Min(pos, haystack_length - 1);
@@ -99,7 +99,7 @@ mem_size FindLastOf(const TChar* haystack,
     const mem_size offset = i - haystack;
 
     if (base::StringSearch(haystack, haystack_length, needle, offset,
-                           needle_length) != base::kNotFoundPos) {
+                           needle_length) != base::kStringNotFoundPos) {
       return offset;
     }
 
@@ -107,7 +107,7 @@ mem_size FindLastOf(const TChar* haystack,
       break;
   }
 
-  return kNotFoundPos;
+  return kStringNotFoundPos;
 }
 #endif
 

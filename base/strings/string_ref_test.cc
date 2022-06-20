@@ -27,4 +27,11 @@ TEST(StringRef, AssignSubstring) {
   EXPECT_EQ(ref.length(), 4);
   EXPECT_FALSE(ref.IsNullTerminated());
 }
+
+TEST(StringRef, At) {
+  constexpr char kTestStr[] = "HelloWorld";
+
+  base::StringRef ref(kTestStr);
+  EXPECT_EQ(ref[2], 'l');
+}
 }  // namespace

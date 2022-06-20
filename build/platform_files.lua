@@ -6,7 +6,6 @@ local first = true
 local rval = "files:"
 for key, value_map in pairs(system_ext_map) do
   for i, value in pairs(value_map) do
-    print(i .. ' ' .. value)
     if key ~= _TARGET_OS then
       -- ignore duplicate entries
       if string.find(rval, value) == nil then
