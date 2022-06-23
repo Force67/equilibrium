@@ -3,7 +3,7 @@
 #include <base/arch.h>
 #include <vulkan/loader/glad/include/glad/vulkan.h>
 
-namespace gpu {
+namespace gpu::vulkan {
 class VulkanInstanceFactory {
  public:
   VulkanInstanceFactory() = default;
