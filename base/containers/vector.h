@@ -3,23 +3,12 @@
 // std::vector replacement.
 #pragma once
 
-#include <memory>
-#include <cstring>
-#include <type_traits>
-
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/memory/cxx_lifetime.h>
 #include <base/allocator/allocator_primitives.h>
 
 namespace base {
-
-template <typename T>
-inline void destruct_range(T first, T last) {
-  if constexpr (!std::is_trivial<T>()) {
-    for (; first != last; ++first)
-      (*first).~T();
-  }
-}
 
 struct DefaultVectorAllocator {
   static void* Allocate(mem_size sz) { return base::Allocate(sz); }
@@ -42,7 +31,7 @@ class Vector {
 
   ~Vector() {
     // clear all without resetting pointers
-    destruct_range(data_, end_);
+    base::DestructRange(data_, end_);
     Vector::Free(data_, capacity());
   }
 
@@ -167,7 +156,7 @@ class Vector {
     T* new_block = Vector::Allocate(new_cap);
 
     std::memcpy(new_block, data_, current_cap * sizeof(T));
-    destruct_range(data_, end_);
+    base::DestructRange(data_, end_);
     Vector::Free(data_, current_cap);
 
     data_ = new_block;

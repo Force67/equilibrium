@@ -4,8 +4,7 @@
 #include <vulkan/loader/glad/include/glad/vulkan.h>
 
 namespace gpu::vulkan {
-class VulkanInstanceFactory {
- public:
+struct VulkanInstanceFactory {
   VulkanInstanceFactory() = default;
 
   struct AppInfo {
@@ -14,5 +13,7 @@ class VulkanInstanceFactory {
   };
 
   void LoadVK(bool verbose_info, bool debug_mode, const AppInfo& info);
+
+  VkInstance instance_;
 };
-}  // namespace gpu
+}  // namespace gpu::vulkan

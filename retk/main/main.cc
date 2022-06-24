@@ -10,6 +10,7 @@
 // https://gist.github.com/ad8e/dd150b775ae6aa4d5cf1a092e4713add
 
 #include <base/check.h>
+#include <base/memory/distinct_pointer_experimental.h>
 #include <base/allocator/memory_coordinator.h>
 #include <base/threading/thread.h>
 #include <base/text/code_convert.h>
@@ -51,6 +52,6 @@ int main() {
   }
 
   // keep the stack free
-  auto app{std::make_unique<Application>()};
+  base::DistinctPointer<Application> app;
   return app->Exec();
 }

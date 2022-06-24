@@ -3,38 +3,35 @@
 #pragma once
 
 #include <base/check.h>
+#include <base/memory/move.h>
 #include <base/memory/deleter.h>
 
 namespace base {
+enum class MakeLater {};
 
 // this class by design does *not* expose any of the following:
 // - .get() as this can lead to use after free
 // - .free() as this can lead to dangeling references
-template <typename T, class TDeleter = DefaultDeleter<T>>
+template <typename T, class TDeleter = base::DefaultDeleter<T>>
 class DistinctPointer {
  public:
   // default ctor, pointer is uninitialized
-  DistinctPointer() : pointer_(nullptr){};
+  template <typename TT>
+  constexpr DistinctPointer(MakeLater) requires(std::is_same_v<TT, MakeLater>)
+      : pointer_(nullptr){};
 
-  // TODO: must forward args.
   template <typename... TArgs>
-  // disallow type confusion for classes that have an
-  // parameterless default constructor
-  // e.g   base::DistinctPointer<ComplexObjectNoCtor> var();
-  // EXPECT_TRUE(var.empty());
-  // would never work
-  DistinctPointer(TArgs&&... args) requires(sizeof...(TArgs) > 0)
-      : pointer_(new T(args...)) {}
+  constexpr DistinctPointer(TArgs&&... args) requires(
+      !std::is_same_v<std::common_type<TArgs...>, MakeLater>)
+      : pointer_(new T(base::forward<TArgs>(args)...)) {}
 
-  ~DistinctPointer() { TDeleter::Delete(pointer_); }
+  constexpr ~DistinctPointer() { TDeleter::Delete(pointer_); }
 
   // for delayed initialization
-
-  // TODO: must forward
   template <typename... TArgs>
   void Make(TArgs&&... args) {
     DCHECK(!pointer_);
-    pointer_ = new T(args...);
+    pointer_ = new T(base::forward<TArgs>(args)...);
   }
 
   T* operator->() const {
@@ -47,7 +44,7 @@ class DistinctPointer {
     return *pointer_;
   }
 
-  bool empty() const { return pointer_ == nullptr; }
+  constexpr bool empty() const { return pointer_ == nullptr; }
 
  private:
   T* pointer_{nullptr};

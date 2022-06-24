@@ -95,6 +95,6 @@ void VulkanInstanceFactory::LoadVK(bool verbose_mode,
 #endif
   }
 
-  return vk_instance;
+  instance_ = vk_instance;
 }
 }  // namespace gpu::vulkan
