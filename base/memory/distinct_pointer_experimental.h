@@ -17,7 +17,7 @@ class DistinctPointer {
  public:
   // default ctor, pointer is uninitialized
   template <typename TT>
-  constexpr DistinctPointer(MakeLater) requires(std::is_same_v<TT, MakeLater>)
+  constexpr DistinctPointer(TT) requires(std::is_same_v<TT, MakeLater>)
       : pointer_(nullptr){};
 
   template <typename... TArgs>
