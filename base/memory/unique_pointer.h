@@ -1,43 +1,99 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
+// UniquePtr implementation that aims to be more safe than its std counterpart, see
+// https://www.reddit.com/r/cpp/comments/pkru4h/safer_usage_of_c_in_chrome/ for
+// more info
 #pragma once
 
+#include <base/check.h>
 #include <base/memory/move.h>
 #include <base/memory/deleter.h>
+#include <base/memory/cxx_lifetime.h>
 
 namespace base {
-// we dont allow creation from a raw pointer
-// OwnedPointer would be a better name tbh..
-// not a fan of allowing construction from another object, because it can lead to UAF
-
+// unique_ptr replacement class, but you are:
+// - forced to use MakeUnique, so you cannot use it with a foreign pointer
+// - no get, so you cannot leak the object.
 template <typename T, class TDeleter = DefaultDeleter<T>>
-class UniquePointer {
- public
-  explicit constexpr UniquePointer(T* pointer) noexcept : pointer_(pointer) {}
-  ~UniquePointer() { Free(); }
+// disable using void, required to allow array specialization
+requires(!base::ISSame<T, void>) class UniquePointer {
+ public:
+  using TType = base::remove_extent_t<T>;
+
+ private:
+  // we forbid direct useage of this in order to force the user to use the MakeUnique
+  // function which prevents dangleing references
+  constexpr UniquePointer(TType* pointer) noexcept : pointer_(pointer) {}
+
+ public:
+  // create empty pointer
+  constexpr UniquePointer() noexcept : pointer_(nullptr) {}
+  // move constructor
+  constexpr UniquePointer(UniquePointer&& rhs) noexcept : pointer_(rhs.pointer_) {
+    rhs.pointer_ = nullptr;
+  }
+
+  ~UniquePointer() {
+    if (pointer_)
+      Free();
+  }
+  // must be used for construction
+  template <typename T, typename... TArgs>
+  friend UniquePointer<T> MakeUnique(TArgs&&... args) requires(!base::IsArray<T>);
+  template <typename T>
+  friend UniquePointer<T> MakeUnique(mem_size count) requires(base::IsArray<T>);
+
+  // you have to request move
+  BASE_NOCOPY(UniquePointer);
+
+  inline UniquePointer& operator=(UniquePointer&& rhs) noexcept
+  /*TODO(Vince): requires(is_move_assignable_v<T>)*/ {
+    if (this != base::AddressOf(rhs)) {
+      // steal & invalidate right side.
+      pointer_ = rhs.pointer_;
+      rhs.pointer_ = nullptr;
+    }
+    return *this;
+  }
 
   // release all memory owned by this pointer
   void Free() {
     DCHECK(pointer_);
-    TDeleter::Delete(pointer_);
+    // restore former type info for array types so it decays to delete[] instead of
+    // delete
+    TDeleter::Delete(reinterpret_cast<T*>(pointer_));
   }
 
-  // this will ensure dangleing references// not preffered to use...
-  // https://www.reddit.com/r/cpp/comments/pkru4h/safer_usage_of_c_in_chrome/
-  // T* get() const noexcept { return pointer_; }
-  T* operator->() const noexcept { return pointer_; }
-  T& operator*() const  // Not noexcept, because the pointer may be NULL.
-  {
-    return *pointer_;
+  TType* operator->() const noexcept {
+    DCHECK(pointer_);
+    return pointer_;
   }
+
+  // array access
+  TType& operator[](mem_size index) requires(base::IsArray<T>) {
+    //DCHECK(index < (sizeof(T) / sizeof(pointer_[0])));
+    return pointer_[index];
+  }
+
+  bool empty() const noexcept { return pointer_ == nullptr; }
+  operator bool() const noexcept { return pointer_ != nullptr; }
 
  private:
-  T* pointer_;
+  TType* pointer_;
 };
 
+static_assert(sizeof(UniquePointer<u8>) == sizeof(void*), "UniquePtr is misaligned");
+
 template <typename T, typename... TArgs>
-UniquePointer<T> MakeUnique(TArgs&&... args) {
-  T* object = new T(static_cast<TArgs&&>(args)...);
-  return UniquePointer<T>(object);
+[[nodiscard]] UniquePointer<T> MakeUnique(TArgs&&... args) requires(
+    !base::IsArray<T>) {
+  return UniquePointer<T>(new T(base::forward<TArgs>(args)...));
+}
+
+template <typename T>
+[[nodiscard]] UniquePointer<T> MakeUnique(mem_size count) requires(
+    base::IsArray<T>) {
+  using TElem = base::remove_extent_t<T>;
+  return UniquePointer<T>(new TElem[count]);
 }
 }  // namespace base

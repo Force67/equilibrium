@@ -14,9 +14,9 @@ struct ComplexObjectNoCtor {
   int a_ = 0;
 };
 
-#if 0
+#if 1
 TEST(DistinctPointer, SimpleNoAssign) {
-  base::DistinctPointer<char> var(base::MakeLater);
+  base::DistinctPointer<char, base::MakeLater> var;
   EXPECT_TRUE(var.empty());
 }
 
@@ -25,8 +25,13 @@ TEST(DistinctPointer, AssignSimple) {
   EXPECT_FALSE(var.empty());
 }
 
+TEST(DistinctPointer, AssignSimpleComplex) {
+  base::DistinctPointer<ComplexObjectNoCtor> var;
+  EXPECT_FALSE(var.empty());
+}
+
 TEST(DistinctPointer, AssignLaterSimple) {
-  base::DistinctPointer<char> var;
+  base::DistinctPointer<char, base::MakeLater> var;
   EXPECT_TRUE(var.empty());
   var.Make('a');
   EXPECT_FALSE(var.empty());
@@ -38,14 +43,14 @@ TEST(DistinctPointer, AssignComplex) {
 }
 
 TEST(DistinctPointer, AssignLaterComplex) {
-  base::DistinctPointer<ComplexObject> var;
+  base::DistinctPointer<ComplexObject, base::MakeLater> var;
   EXPECT_TRUE(var.empty());
   var.Make(1);
   EXPECT_FALSE(var.empty());
 }
 
 TEST(DistinctPointer, AssignComplexNoConstruct) {
-  base::DistinctPointer<ComplexObjectNoCtor> var;
+  base::DistinctPointer<ComplexObjectNoCtor, base::MakeLater> var;
   EXPECT_TRUE(var.empty());
 }
 #endif

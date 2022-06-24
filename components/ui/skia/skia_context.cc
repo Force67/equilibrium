@@ -10,8 +10,6 @@
 #include <gpu/GrContextOptions.h>
 #include <gpu/GrDirectContext.h>
 #include <gpu/GrBackendSurface.h>
-#include <glfw/glfw3.h>
-#include <glfw/glfw3native.h>
 #include <base/check.h>
 
 #include "display/dpi.h"
@@ -41,7 +39,7 @@ void SkiaContext::Resize(SkPoint screen_size) {
   // and BGRA configs in OpenGL.
   //(replace line below with this one to enable correct color spaces)
   // framebufferInfo.fFormat = GL_SRGB8_ALPHA8;
-  framebufferInfo.fFormat = GL_RGBA8;
+  //framebufferInfo.fFormat = GL_RGBA8;
 #if 0
   SkColorType colorType;
   if (kRGBA_8888_GrPixelConfig == kSkia8888_GrPixelConfig) {

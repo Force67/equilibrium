@@ -8,44 +8,38 @@
 #include <base/memory/distinct_pointer_experimental.h>
 
 namespace {
+
 class ReTKApplication {
  public:
   ReTKApplication() {}
   ~ReTKApplication() {}
 
-  static void OnOutOfMemory(void* user_pointer, base::MemoryCoordinator& mc) {}
+  int Exec() { return 0; }
 
-  static void HandleAssertion(const char*, const char*, const char*, const char*) {
-    // messagebox?
-  }
-
-  static void OnLogMessage(void* user_pointer,
-                           base::LogLevel level,
-                           const char* msg) {}
-
-  int Exec() { return 0;
-  }
+  friend void HandleOOM(void*, base::MemoryCoordinator&);
+  friend void HandleAssertion(const char*, const char*, const char*, const char*);
+  friend void HandleLogMessage(void*, base::LogLevel, const char*);
 
  private:
 };
-using AppPointer = base::DistinctPointer<ReTKApplication>;
 
-struct AppFacade {
-  
-};
+void HandleOOM(void* user_pointer, base::MemoryCoordinator&) {}
+
+void HandleAssertion(const char*, const char*, const char*, const char*) {}
+
+void HandleLogMessage(void*, base::LogLevel, const char*) {}
 }  // namespace
 
 int ReTKMain() {
   // create the core context to respond to events before the app exists
-  AppFacade facade;
   {
-    base::SetOutOfMemoryHandler(ReTKApplication::OnOutOfMemory, &facade);
-    base::SetLogHandler(ReTKApplication::OnLogMessage, &facade);
-    base::SetAssertHandler(ReTKApplication::HandleAssertion);
+    base::SetOutOfMemoryHandler(HandleOOM, nullptr);
+    base::SetLogHandler(HandleLogMessage, nullptr);
+    base::SetAssertHandler(HandleAssertion);
     // NOTE(Vince): this could assert depending on the platform, so set the name last
     base::SetCurrentThreadName("Main");
   }
 
-  AppPointer app;
+  base::DistinctPointer<ReTKApplication> app;
   return app->Exec();
 }

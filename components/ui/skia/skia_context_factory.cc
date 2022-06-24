@@ -9,8 +9,6 @@
 #include <gpu/GrContextOptions.h>
 #include <gpu/GrDirectContext.h>
 #include <gpu/GrBackendSurface.h>
-#include <glfw/glfw3.h>
-#include <glfw/glfw3native.h>
 #include <base/logging.h>
 
 #include "skia_context_factory.h"
