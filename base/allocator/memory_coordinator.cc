@@ -11,27 +11,9 @@ namespace base {
 namespace {
 // no constructor desired
 constinit MemoryCoordinator MemoryRouter{};
-
-void DefaultOOMHandler(void*, MemoryCoordinator&) {
-  DEBUG_TRAP;
-}
-
-constinit struct {
-  OutOfMemoryHandler* handler{DefaultOOMHandler};
-  void* user_context{};
-} oom_data;
 }  // namespace
 
 MemoryCoordinator& memory_coordinator() {
   return MemoryRouter;
-}
-
-void SetOutOfMemoryHandler(OutOfMemoryHandler* new_handler, void* user_context) {
-  oom_data = {new_handler, user_context};
-}
-
-void InvokeOutOfMemoryHandler() {
-  // give redzone memory (a prereserved tiny segment for throwing the error.)
-  oom_data.handler(oom_data.user_context, MemoryRouter);
 }
 }  // namespace base

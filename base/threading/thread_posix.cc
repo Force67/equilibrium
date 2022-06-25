@@ -49,7 +49,7 @@ const i32 GetNativeThreadPriority(Thread::Handle handle) {
 
   /* scheduling parameters of target thread */
   if (::pthread_getschedparam(handle.pthread_, &policy, &param) != 0)
-    return UINT_MAX;
+    return UINT_MAX; // invalid cast to i32
 
   return param.sched_priority;
 }

@@ -9,6 +9,7 @@
 #include <base/win/minwin.h>
 #include <base/dynamic_library.h>
 #include <base/filesystem/path.h>
+#include <base/allocator/memory_errror.h>
 #include <base/allocator/memory_coordinator.h>
 
 namespace base {
@@ -31,9 +32,10 @@ Thread::Handle Thread::Spawn() {
     switch (last_error) {
       case ERROR_NOT_ENOUGH_MEMORY:
       case ERROR_OUTOFMEMORY:
-      case ERROR_COMMITMENT_LIMIT:
-        base::InvokeOutOfMemoryHandler();
+      case ERROR_COMMITMENT_LIMIT: {
+        BASE_INVOKE_OOM("Couldn't commit memory for a new thread");
         break;
+      }
       default:
         BUGCHECK(last_error, "CreateThread() error");
         break;

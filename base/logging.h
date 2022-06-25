@@ -20,7 +20,7 @@ enum class LogLevel : uint32_t {
   kFatal,
   kAll
 };
-const char* LevelToName(LogLevel level) noexcept;
+const char* LogLevelToName(LogLevel level) noexcept;
 
 namespace detail {
 void WriteLogMessage(LogLevel, const char*, const fmt::format_args&);
@@ -31,7 +31,8 @@ void WriteLogMessage(LogLevel, const char*);
 }  // namespace detail
 
 using LogHandler = void (*)(void*, LogLevel, const char*);
-void SetLogHandler(LogHandler, void* user_pointer);
+void SetLogHandler(LogHandler, void* user_pointer) noexcept;
+void SetLogInstance(void* user_pointer);
 
 template <typename... Args>
 void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {

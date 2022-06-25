@@ -16,7 +16,7 @@ requires(!base::IsTrivial<T>) class LazyInstance {
   constexpr LazyInstance() = default;
   constexpr ~LazyInstance() { as_obj().~T(); }
 
-  BASE_NOCOPYMOVE(LazyInstance);
+  BASE_NOCOPYMOVE(LazyInstance)
 
   void Make() {
     DCHECK(!exists_);

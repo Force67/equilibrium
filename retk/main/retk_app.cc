@@ -7,39 +7,34 @@
 #include <base/allocator/memory_coordinator.h>
 #include <base/memory/distinct_pointer_experimental.h>
 
-namespace {
+#include <main/error_handler.h>
+#include <main/log_handler.h>
+
+namespace main {
 
 class ReTKApplication {
  public:
   ReTKApplication() {}
   ~ReTKApplication() {}
 
-  int Exec() { return 0; }
-
-  friend void HandleOOM(void*, base::MemoryCoordinator&);
-  friend void HandleAssertion(const char*, const char*, const char*, const char*);
-  friend void HandleLogMessage(void*, base::LogLevel, const char*);
+  int Exec() {
+    LOG_INFO("Starting ReTK");
+    return 0;
+  }
 
  private:
+  // this _must_ come first.
+  main::LogHandler log_handler_;
 };
-
-void HandleOOM(void* user_pointer, base::MemoryCoordinator&) {}
-
-void HandleAssertion(const char*, const char*, const char*, const char*) {}
-
-void HandleLogMessage(void*, base::LogLevel, const char*) {}
-}  // namespace
+}  // namespace main
 
 int ReTKMain() {
-  // create the core context to respond to events before the app exists
   {
-    base::SetOutOfMemoryHandler(HandleOOM, nullptr);
-    base::SetLogHandler(HandleLogMessage, nullptr);
-    base::SetAssertHandler(HandleAssertion);
+    main::InstallErrorHandlers();
     // NOTE(Vince): this could assert depending on the platform, so set the name last
     base::SetCurrentThreadName("Main");
   }
 
-  base::DistinctPointer<ReTKApplication> app;
+  base::DistinctPointer<main::ReTKApplication> app;
   return app->Exec();
 }

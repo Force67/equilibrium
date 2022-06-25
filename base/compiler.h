@@ -68,6 +68,12 @@
 #define DEBUG_TRAP
 #endif
 
+#if defined(CONFIG_DEBUG)
+#define CHECK_BREAK DEBUG_TRAP
+#else
+#define CHECK_BREAK /*noop*/
+#endif
+
 #if defined(__cplusplus) && defined(__has_cpp_attribute)
 #define HAS_ATTRIBUTE(attrib, value) (__has_cpp_attribute(attrib) >= value)
 #else

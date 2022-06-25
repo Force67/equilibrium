@@ -28,17 +28,11 @@ void BugCheck(const SourceLocation&, const char* message = nullptr);
 // Asserts are user facing exceptional cases, after which the program state is
 // expected to be broken. A key philosphy of our system is to ensure the user
 // gets to see the assert.
-using AssertHandler = void(const char*, const char*, const char*, const char*);
+using CheckHandler = void(const char*, const char*, const char*, const char*);
 
 // Those are check handlers.
-void SetAssertHandler(AssertHandler*);
+void SetCheckHandler(CheckHandler*);
 }  // namespace base
-
-#if defined(CONFIG_DEBUG)
-#define CHECK_BREAK DEBUG_TRAP
-#else
-#define CHECK_BREAK /*noop*/
-#endif
 
 // NOTE(Vince): do not apply the [[likely]] or [[unlikely]] attributes here, as these
 // actively harm optimization. See

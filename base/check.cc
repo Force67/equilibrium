@@ -9,7 +9,7 @@ namespace base {
 
 namespace {
 // by default we forward those cases to the global log handler
-static void DefaultAssertHandler(const char* message,
+static void DefaultCheckHandler(const char* message,
                                  const char* file_name,
                                  const char* function,
                                  const char* msg) {
@@ -18,7 +18,7 @@ static void DefaultAssertHandler(const char* message,
     ::base::PrintLogMessage(::base::LogLevel::kFatal, msg);
 }
 
-BASE_EXPORT base::AssertHandler* assert_handler{DefaultAssertHandler};
+BASE_EXPORT constinit base::CheckHandler* assert_handler{DefaultCheckHandler};
 }  // namespace
 
 namespace detail {
@@ -33,7 +33,7 @@ void BugCheck(const SourceLocation& source_location, const char* msg) {
 }
 }  // namespace detail
 
-void SetAssertHandler(AssertHandler handler) {
+void SetCheckHandler(CheckHandler handler) {
   assert_handler = handler;
 }
 }  // namespace base

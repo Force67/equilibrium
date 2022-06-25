@@ -12,8 +12,6 @@ project("App_Main")
     })
     dependencies({
         "fmtlib",
-        "glew",
-        "glfw",
         "imgui",
         -- system
         "ui",

@@ -57,11 +57,4 @@ using MemoryCoordinator = MCInstance<DefaultRouter>;
 // get the global instance
 // TODO: current this isnt folded..
 MemoryCoordinator& memory_coordinator();
-
-using OutOfMemoryHandler = void(void*, MemoryCoordinator&);
-void SetOutOfMemoryHandler(OutOfMemoryHandler*, void* user_context = nullptr);
-void InvokeOutOfMemoryHandler();
-
-// TBD: capture line, file, etc
-#define BASE_INVOKE_OOM
 }  // namespace base

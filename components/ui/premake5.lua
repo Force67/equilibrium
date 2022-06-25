@@ -4,8 +4,6 @@
 local function include_ui()
     dependencies({
         "fmtlib",
-        "glew",
-        "glfw",
         "imgui",
     })
     include_skia()

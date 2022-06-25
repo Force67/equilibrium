@@ -44,7 +44,7 @@ requires(!base::ISSame<T, void>) class UniquePointer {
   friend UniquePointer<T> MakeUnique(mem_size count) requires(base::IsArray<T>);
 
   // you have to request move
-  BASE_NOCOPY(UniquePointer);
+  BASE_NOCOPY(UniquePointer)
 
   inline UniquePointer& operator=(UniquePointer&& rhs) noexcept
   /*TODO(Vince): requires(is_move_assignable_v<T>)*/ {

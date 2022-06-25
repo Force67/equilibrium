@@ -1,10 +1,8 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <cstdarg>
-#include <base/logging.h>
-
 #include <fmt/printf.h>
+#include <base/logging.h>
 #include <base/strings/xstring.h>
 
 namespace base {
@@ -26,13 +24,21 @@ constinit struct {
 } log_data{nullptr, DefaultLogHandler};
 }  // namespace
 
-const char* LevelToName(LogLevel level) noexcept {
+const char* LogLevelToName(LogLevel level) noexcept {
   return kLevelToNames[static_cast<size_t>(level)];
 }
 
 // Note: This is the only function that may not assert.
-void SetLogHandler(LogHandler callback, void* user_pointer) {
+void SetLogHandler(LogHandler callback, void* user_pointer) noexcept {
+  // reset by the user.
+  if (!callback)
+    callback = DefaultLogHandler;
+
   log_data = {user_pointer, callback};
+}
+
+void SetLogInstance(void* user_pointer) {
+  log_data.user_pointer = user_pointer;
 }
 
 namespace detail {
