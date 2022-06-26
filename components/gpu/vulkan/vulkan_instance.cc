@@ -9,51 +9,63 @@
 namespace gpu::vulkan {
 
 namespace {
-VKAPI_ATTR VkBool32 VKAPI_CALL
-VulkanErrorCallback(VkDebugReportFlagsEXT flags,
-                    VkDebugReportObjectTypeEXT object_type,
-                    uint64_t object,
-                    size_t location,
-                    int32_t message_code,
-                    const char* layer_prefix,
-                    const char* message,
-                    void* user_data) {
-  // todo, better reporting..
-  LOG_ERROR("VK_ERROR: {}\n", message);
-  return VK_FALSE;
-}
 
 // see
 // https://github.com/glfw/glfw/blob/a465c1c32e0754d3de56e01c59a0fef33202f04c/src/win32_window.c#L2379
-const char* kRequiredExtensions[] {
+constexpr const char* kRequiredExtensions[] {
   "VK_KHR_surface",
 #if defined(OS_WIN)
-      "VK_KHR_win32_surface"
+      "VK_KHR_win32_surface",
 #endif
 #if defined(CONFIG_DEBUG)
-      VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+      "VK_EXT_debug_utils",
 #endif
 };
 
-const char* kValidationLayers[]{"VK_LAYER_KHRONOS_validation"};
+bool CheckExtensions() {
+  u32 count;
+  vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
+
+  base::Vector<VkExtensionProperties> available_extensions(
+      static_cast<mem_size>(count), base::VectorReservePolicy::kForData);
+  vkEnumerateInstanceExtensionProperties(nullptr, &count,
+                                         available_extensions.data());
+
+  for (const char* ext_name : kRequiredExtensions) {
+    bool ext_found = false;
+    for (const auto& ext : available_extensions) {
+      if (strcmp(ext_name, ext.extensionName) == 0) {
+        ext_found = true;
+        break;
+      }
+    }
+    if (!ext_found) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+constexpr const char* kValidationLayers[]{"VK_LAYER_KHRONOS_validation"};
+
 bool CheckValidationLayers() {
   u32 count;
   vkEnumerateInstanceLayerProperties(&count, nullptr);
 
-  // vector is broken!
   base::Vector<VkLayerProperties> available_layers(
       static_cast<mem_size>(count), base::VectorReservePolicy::kForData);
   vkEnumerateInstanceLayerProperties(&count, available_layers.data());
 
-  for (const char* layerName : kValidationLayers) {
-    bool layerFound = false;
-    for (const auto& layerProperties : available_layers) {
-      if (strcmp(layerName, layerProperties.layerName) == 0) {
-        layerFound = true;
+  for (const char* layer_name : kValidationLayers) {
+    bool layer_found = false;
+    for (const auto& layer : available_layers) {
+      if (strcmp(layer_name, layer.layerName) == 0) {
+        layer_found = true;
         break;
       }
     }
-    if (!layerFound) {
+    if (!layer_found) {
       return false;
     }
   }
@@ -119,6 +131,11 @@ bool VulkanInstance::Create() {
     DCHECK(result);
     if (!result)
       return false;
+
+    result = CheckExtensions();
+    DCHECK(result);
+    if (!result)
+      return false;
   }
 #endif
 
@@ -145,13 +162,18 @@ bool VulkanInstance::Create() {
   };
 
   VkResult result = vkCreateInstance(&instance_create_info, nullptr, &vk_instance_);
-  if (VK_SUCCESS != result) {
+  if (result != VK_SUCCESS) {
     LOG_ERROR("vkCreateInstance() failed: {}", result);
     return false;
   }
 
   // bind again with the instance
   BindFunctionPointers();
+
+#if defined(CONFIG_DEBUG)
+  // attach the debug log
+  messenger_.Make(*this);
+#endif
 
   return true;
 }

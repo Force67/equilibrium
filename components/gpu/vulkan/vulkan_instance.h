@@ -3,8 +3,12 @@
 #pragma once
 
 #include <base/dynamic_library.h>
+#include <base/memory/lazy_instance.h>
+
 #include <base/containers/vector.h>
+
 #include <gpu/vulkan/vulkan_helpers.h>
+#include <gpu/vulkan/vulkan_debug_utils.h>
 
 namespace gpu::vulkan {
 
@@ -16,12 +20,15 @@ class VulkanInstance {
   bool Create();
   void Teardown();
 
+  VkInstance& instance() { return vk_instance_; }
+
  private:
   void BindFunctionPointers();
   static GLADapiproc LoadSymbol(void* user_pointer, const char* symbol_name);
 
  private:
   base::DynamicLibrary vk_dll_;
+  base::LazyInstance<DebugMessenger> messenger_;
   VkInstance vk_instance_{VK_NULL_HANDLE};
   VkPhysicalDevice physical_device_{VK_NULL_HANDLE};
   VkDevice device_{VK_NULL_HANDLE};

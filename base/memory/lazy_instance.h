@@ -14,7 +14,11 @@ template <typename T>
 requires(!base::IsTrivial<T>) class LazyInstance {
  public:
   constexpr LazyInstance() = default;
-  constexpr ~LazyInstance() { as_obj().~T(); }
+
+  constexpr ~LazyInstance() {
+    if (exists_)
+      as_obj().~T();
+  }
 
   BASE_NOCOPYMOVE(LazyInstance)
 
@@ -28,7 +32,7 @@ requires(!base::IsTrivial<T>) class LazyInstance {
   void Make(TArgs&&... args) {
     DCHECK(!exists_);
     exists_ = true;
-    new (&storage_[0]) T(base::forward(args...));
+    new (&storage_[0]) T(base::forward<TArgs>(args)...);
   }
 
   // if the instance has been made yet
@@ -54,6 +58,6 @@ requires(!base::IsTrivial<T>) class LazyInstance {
 
   // we dont declare this as the master alignment in hopes of getting a better total
   // alignment with the boolean
-  u8 /* alignas(T)*/ storage_[sizeof(T)]{0};
+  u8 alignas(T) storage_[sizeof(T)]{0};
 };
 }  // namespace base
