@@ -3,19 +3,30 @@
 #pragma once
 
 #include <base/dynamic_library.h>
-#include <vulkan/vulkan_helpers.h>
+#include <base/containers/vector.h>
+#include <gpu/vulkan/vulkan_helpers.h>
 
 namespace gpu::vulkan {
 
 class VulkanInstance {
- protected:
-  explicit VulkanInstance(base::DynamicLibrary& library, VkInstance instance);
-
  public:
+  explicit VulkanInstance();
   ~VulkanInstance();
+
+  bool Create();
+  void Teardown();
+
+ private:
+  void BindFunctionPointers();
+  static GLADapiproc LoadSymbol(void* user_pointer, const char* symbol_name);
 
  private:
   base::DynamicLibrary vk_dll_;
-  VkInstance vk_instance_;
+  VkInstance vk_instance_{VK_NULL_HANDLE};
+  VkPhysicalDevice physical_device_{VK_NULL_HANDLE};
+  VkDevice device_{VK_NULL_HANDLE};
+
+  PFN_vkGetInstanceProcAddr get_instance_proc_{nullptr};
+  PFN_vkGetDeviceProcAddr get_device_proc_{nullptr};
 };
 }  // namespace gpu::vulkan

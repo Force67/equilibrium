@@ -10,7 +10,7 @@ namespace {
 using namespace base;
 
 TEST(VectorTest, AddTrivial) {
-  base::Vector<i32> vec(10);
+  base::Vector<i32> vec(10, base::VectorReservePolicy::kForPushback);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);
@@ -20,7 +20,7 @@ TEST(VectorTest, AddTrivial) {
 }
 
 TEST(VectorTest, AddTrivialReAlloc) {
-  base::Vector<i32> vec(10);
+  base::Vector<i32> vec(10, base::VectorReservePolicy::kForPushback);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);
@@ -46,7 +46,7 @@ TEST(VectorTest, AddComplex) {
   };
 
   {
-    base::Vector<Complex> vec(10);
+    base::Vector<Complex> vec(10, base::VectorReservePolicy::kForPushback);
     for (i32 i = 0; i < 10; i++) {
       vec.push_back(Complex(i, destruct_count));
     }
@@ -57,7 +57,7 @@ TEST(VectorTest, AddComplex) {
 }
 
 TEST(VectorTest, EraseItem) {
-  base::Vector<i32> vec(10);
+  base::Vector<i32> vec(10, base::VectorReservePolicy::kForPushback);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);
@@ -75,7 +75,7 @@ TEST(VectorTest, EraseItem) {
 }
 
 TEST(VectorTest, EraseLastItem) {
-  base::Vector<i32> vec(10);
+  base::Vector<i32> vec(10, base::VectorReservePolicy::kForPushback);
 
   for (i32 i = 0; i < 10; i++) {
     vec.push_back(i);

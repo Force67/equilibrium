@@ -69,6 +69,8 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
 }
 
 bool DynamicLibrary::Free() {
+  if (!handle_)
+    return false;
   return ::dlclose(handle_);
 }
 

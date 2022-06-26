@@ -15,6 +15,15 @@ struct DefaultVectorAllocator {
   static void Free(void* former, mem_size former_size) { base::Free(former); }
 };
 
+enum class VectorReservePolicy {
+  kForPushback,  // this is an optimization so you can push_back without upping the
+                 // capacity until needed
+  kForData,      // this is the reserve you are used to with std::vector, which will
+                 // pretend a bunch of "empty" emlements have been inserted with the
+  // reserve, if you plan to copy data in for instance with .data() use
+  // this.
+};
+
 // TODO: shrink_to_fit, resize
 template <typename T, class TAllocator = DefaultVectorAllocator>
 class Vector {
@@ -24,9 +33,13 @@ class Vector {
 
   Vector() : data_(nullptr), end_(nullptr), capacity_(nullptr) {}
 
-  Vector(mem_size reserve_count) {
-    data_ = end_ = Vector::Allocate(reserve_count);
+  Vector(mem_size reserve_count,
+         // we default to nothing for the policy since we want the user to think
+         // about what they are doing.
+         const VectorReservePolicy policy) {
+    data_ = Vector::Allocate(reserve_count);
     capacity_ = &data_[reserve_count];
+    end_ = policy == VectorReservePolicy::kForPushback ? data_ : capacity_;
   }
 
   ~Vector() {
@@ -119,22 +132,13 @@ class Vector {
     return *(end_ - 1);
   }
 
-  T* begin() const {
-    return data_;
-  }
-  T* end() const {
-    return end_;
-  }
+  T* begin() const { return data_; }
+  T* end() const { return end_; }
+  T* data() const { return data_; }
 
-  bool empty() const {
-    return data_ == nullptr || end_ <= data_;
-  }
-  mem_size size() const {
-    return end_ - data_;
-  }
-  mem_size capacity() const {
-    return capacity_ - data_;
-  }
+  bool empty() const { return data_ == nullptr || end_ <= data_; }
+  mem_size size() const { return end_ - data_; }
+  mem_size capacity() const { return capacity_ - data_; }
 
  private:
   mem_size CalculateNewCapacity(mem_size cap) {

@@ -43,17 +43,21 @@ const char* VulkanResultToString(VkResult result) {
       return "Too many objects of the type have already been created";
     case VK_ERROR_FORMAT_NOT_SUPPORTED:
       return "A requested format is not supported on this device";
+      #if 0
     case VK_ERROR_SURFACE_LOST_KHR:
       return "A surface is no longer available";
+      #endif
     case VK_SUBOPTIMAL_KHR:
       return "A swapchain no longer matches the surface properties exactly, but can "
              "still be used";
     case VK_ERROR_OUT_OF_DATE_KHR:
       return "A surface has changed in such a way that it is no longer compatible "
              "with the swapchain";
+      #if 0
     case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
       return "The requested window is already connected to a VkSurfaceKHR, or to "
              "some other non-Vulkan API";
+      #endif
     default:
       return "ERROR: UNKNOWN VULKAN ERROR";
   }

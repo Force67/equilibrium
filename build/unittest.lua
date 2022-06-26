@@ -20,10 +20,11 @@ function unittest(name)
     group(scope_name .. "/" .. string.sub(name, 0, string.find(name, "/[^/]*$")) .. "tests")
     project(project_name)
         kind("ConsoleApp")
+        add_generic_test_main()
         includedirs({
-            ".",
-            "../../",
-            blu.rootdir
+            ".",        --< current dir
+            "../",      --< component dir
+            blu.rootdir,--< main dir for direct base access
         })
         dependencies("googlemock")
         links("base")
