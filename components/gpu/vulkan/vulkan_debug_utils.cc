@@ -63,7 +63,6 @@ DebugMessenger::DebugMessenger(VulkanInstance& instance)
 }
 
 DebugMessenger::~DebugMessenger() {
-    // crash here???
   if (debug_messenger_ext_ != VK_NULL_HANDLE)
     vkDestroyDebugUtilsMessengerEXT(vulkan_instance_.instance(),
                                     debug_messenger_ext_, nullptr);

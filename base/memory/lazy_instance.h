@@ -37,8 +37,9 @@ requires(!base::IsTrivial<T>) class LazyInstance {
 
   // if the instance has been made yet
   bool constructed() const noexcept { return exists_; }
+  operator bool() const noexcept { return exists_; }
 
-  T* operator->() const noexcept {
+  T* operator->() noexcept {
     DCHECK(exists_);
     return &as_obj();
   }

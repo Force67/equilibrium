@@ -7,6 +7,7 @@
 
 #include <base/containers/vector.h>
 
+#include <gpu/vulkan/vulkan_raii.h>
 #include <gpu/vulkan/vulkan_helpers.h>
 #include <gpu/vulkan/vulkan_debug_utils.h>
 
@@ -18,18 +19,17 @@ class VulkanInstance {
   ~VulkanInstance();
 
   bool Create();
-  void Teardown();
 
-  VkInstance& instance() { return vk_instance_; }
+  VkInstance& instance() { return vk_instance_.instance; }
 
  private:
   void BindFunctionPointers();
   static GLADapiproc LoadSymbol(void* user_pointer, const char* symbol_name);
 
  private:
-  base::DynamicLibrary vk_dll_;
+  base::DynamicLibrary vk_dll_;  // must be first, so it gets unloaded LAST!
+  VkInstance_Cxx vk_instance_;   // must be second, order of destruction
   base::LazyInstance<DebugMessenger> messenger_;
-  VkInstance vk_instance_{VK_NULL_HANDLE};
   VkPhysicalDevice physical_device_{VK_NULL_HANDLE};
   VkDevice device_{VK_NULL_HANDLE};
 

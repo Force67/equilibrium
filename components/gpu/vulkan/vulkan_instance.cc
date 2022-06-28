@@ -75,7 +75,6 @@ bool CheckValidationLayers() {
 
 VulkanInstance::VulkanInstance() {}
 VulkanInstance::~VulkanInstance() {
-  Teardown();
 }
 
 extern "C" int glad_vulkan_is_device_function(const char* name);
@@ -89,8 +88,9 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer, const char* symbol_na
       glad_vulkan_is_device_function(symbol_name))
     result = instance->get_device_proc_(instance->device_, symbol_name);
 
-  if (result == nullptr && instance->vk_instance_ != VK_NULL_HANDLE)
-    result = instance->get_instance_proc_(instance->vk_instance_, symbol_name);
+  if (result == nullptr && instance->vk_instance_.instance != VK_NULL_HANDLE)
+    result =
+        instance->get_instance_proc_(instance->vk_instance_.instance, symbol_name);
 
   if (result == nullptr)
     result = instance->vk_dll_.FindSymbol<PFN_vkVoidFunction>(symbol_name);
@@ -161,12 +161,9 @@ bool VulkanInstance::Create() {
     .ppEnabledExtensionNames = kRequiredExtensions,
   };
 
-  VkResult result = vkCreateInstance(&instance_create_info, nullptr, &vk_instance_);
-  if (result != VK_SUCCESS) {
-    LOG_ERROR("vkCreateInstance() failed: {}", result);
+  vk_instance_.Make(instance_create_info);
+  if (!vk_instance_)
     return false;
-  }
-
   // bind again with the instance
   BindFunctionPointers();
 
@@ -176,10 +173,5 @@ bool VulkanInstance::Create() {
 #endif
 
   return true;
-}
-
-void VulkanInstance::Teardown() {
-  if (vk_instance_ != VK_NULL_HANDLE)
-    vkDestroyInstance(vk_instance_, nullptr);
 }
 }  // namespace gpu::vulkan
