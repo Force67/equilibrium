@@ -62,7 +62,8 @@ filter("configurations:Shipping")
   defines("CONFIG_SHIPPING")
 
 filter("language:C or C++")
-  vectorextensions("SSE4.2")
+  --vectorextensions("SSE4.2")
+  vectorextensions("AVX2")
   staticruntime("on")
 
 filter("language:C++")

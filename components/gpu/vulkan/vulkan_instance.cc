@@ -74,8 +74,7 @@ bool CheckValidationLayers() {
 }  // namespace
 
 VulkanInstance::VulkanInstance() {}
-VulkanInstance::~VulkanInstance() {
-}
+VulkanInstance::~VulkanInstance() {}
 
 extern "C" int glad_vulkan_is_device_function(const char* name);
 
@@ -100,6 +99,8 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer, const char* symbol_na
 
 // needs to be called if a device is constructed too..
 void VulkanInstance::BindFunctionPointers() {
+  DCHECK(vk_instance_, "VkInstance no longer valid");
+
   if (!get_instance_proc_)
     get_instance_proc_ =
         vk_dll_.FindSymbol<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
@@ -161,10 +162,12 @@ bool VulkanInstance::Create() {
     .ppEnabledExtensionNames = kRequiredExtensions,
   };
 
+  // vkCreateInstance
   vk_instance_.Make(instance_create_info);
   if (!vk_instance_)
     return false;
-  // bind again with the instance
+
+  // bind again with the instance set
   BindFunctionPointers();
 
 #if defined(CONFIG_DEBUG)

@@ -2,6 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <gtest/gtest.h>
+#include <base/logging.h>
+
 #include <base/memory/lazy_instance.h>
 
 namespace {
