@@ -19,6 +19,8 @@ class ReTKApplication {
 
   int Exec() {
     LOG_INFO("Starting ReTK");
+
+
     return 0;
   }
 

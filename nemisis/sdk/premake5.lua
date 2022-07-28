@@ -3,7 +3,7 @@
 
 project("NemisisSDK")
   kind("StaticLib")
-  defindes("BUILDING_NEMISIS_SDK")
+  defines("BUILDING_NEMISIS_SDK")
   files({
     "**.cc",
     "**.h",

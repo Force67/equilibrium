@@ -21,4 +21,10 @@ workspace("Equilibrium")
   include("./components")
   include("./retk")
   include("./nemisis")
+
+  -- if v lang was installed, include it
+  if os.isdir("./velocity") then
+    include("./velocity")
+  end
+
   include("./tools")

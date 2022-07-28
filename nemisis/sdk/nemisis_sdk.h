@@ -7,61 +7,55 @@
 #ifndef BUILDING_NEMISIS_SDK
 #define NEMISIS_SDK_VISBILITY extern
 #else
-#define NEMISIS_SDK_VISIBILITY NEMISIS_SDK_EXTENAL __declspec(dllexport, noinline)
+#define NEMISIS_SDK_VISIBILITY extern __declspec(dllexport, noinline)
 #endif
 
 namespace nemisis::sdk {
-#ifndef NEMISIS_SDK_DISABLE
+#ifdef NEMISIS_SDK_DISABLE
+#define NEMISIS_ANTITAMPER_TRIGGER(performance_type, trigger_execution, log_mode, \
+                                   trigger_action)
+#define NEMISIS_ANTITAMPER_SPOTCHECK(performance_type, log_mode)
+#else
 
-NEMISIS_SDK_VISBILITY u32 NemisisTriggerMarker();
-NEMISIS_SDK_VISBILITY u32 NemisisSpotcheckmarker();
+// dummy symbols, defined in nemisis_sdk.cc
+
+// those must be placed at function start and end
+NEMISIS_SDK_VISIBILITY u32 MarkTrigger();
+NEMISIS_SDK_VISIBILITY u32 MarkSpotcheck();
 
 // evaluation hack
 #define NEMISIS_STR_OF(var) #var
 
-#define NEMISIS_TRIGGER_XML(id, performance_type, trigger_execution, log_mode, \
-                            trigger_action)                                    \
-  "<trigger>" \
-    "<id>" NEMISIS_STR_OF(id) "</id>" \
-    "<perf_type>" #performance_type "</perf_type>" \
-    "<execution>" #trigger_execution "</execution>" \
-    "<action>" #trigger_action "</action>" \
-    "<log_mode>" #log_mode "</log_mode>" \
-"</trigger>"
+#define NEMISIS_DEFINE_TRIGGER(id, performance_type, trigger_execution, log_mode, \
+                               trigger_action)                                    \
+  "@trigger\\id:" NEMISIS_STR_OF(id) "\\perf_type:" #performance_type             \
+                                     "\\execution:" #trigger_execution            \
+                                     "\\action:" #trigger_action                  \
+                                     "\\log_mode" #log_mode
 
-#define NEMISIS_SPOTCHECK_XML(id, performance_type, log_mode) \
-  "<spotcheck>" \
-    "<id>" NEMISIS_STR_OF(id) "</id>" \
-    "<perf_type>" #performance_type "</perf_type>" \
-    "<log_mode>" #log_mode "</log_mode>" \
-"</spotcheck>"
+#define NEMISIS_DEFINE_SPOTCHECK(id, performance_type, log_mode)      \
+  "@trigger\\id:" NEMISIS_STR_OF(id) "\\perf_type:" #performance_type \
+                                     "\\log_mode" #log_mode
 
 #undef NEMISIS_STR_OF
 
-#define PLACE_NEMISIS_TRIGGER(performance_type, trigger_execution, log_mode,      \
-                              trigger_action)                                     \
-  cw_trigger_marker();                                                            \
-  (void)strstr("CWrangler",                                                       \
-               NEMISIS_TRIGGER_XML(__COUNTER__, performance_type,                 \
-                                   trigger_execution, log_mode, trigger_action)); \
-  if (1) {                                                                        \
-    trigger_action;                                                               \
-  } else {                                                                        \
-  };                                                                              \
-  cw_trigger_marker();
+#define PLACE_NEMISIS_TRIGGER(performance_type, trigger_execution, log_mode,    \
+                              trigger_action)                                   \
+  nemisis::sdk::MarkTrigger();                                                  \
+  (void)strstr("NEMISIS", NEMISIS_DEFINE_TRIGGER(__COUNTER__, performance_type, \
+                                                 trigger_execution, log_mode,   \
+                                                 trigger_action));              \
+  if (1) {                                                                      \
+    trigger_action;                                                             \
+  } else {                                                                      \
+  };                                                                            \
+  nemisis::sdk::MarkTrigger()();
 
-#define PLACE_NEMISIS_SPOTCHECK(performance_type, log_mode)                \
-                                                                           \
-  cw_spotcheck_marker();                                                   \
-  (void)strstr("CWrangler",                                                \
-               NEMISIS_SPOTCHECK_XML(__COUNTER__, performance_type, log_mode)); \
-  cw_spotcheck_marker();
-
-#else
-
-#define ANTITAMPER_TRIGGER(performance_type, trigger_execution, log_mode, \
-                           trigger_action)
-#define ANTITAMPER_SPOTCHECK(performance_type, log_mode)
-
+#define PLACE_NEMISIS_SPOTCHECK(performance_type, log_mode)                        \
+                                                                                   \
+  nemisis::sdk::MarkSpotcheck();                                                   \
+  (void)strstr("NEMISIS",                                                          \
+               NEMISIS_DEFINE_SPOTCHECK(__COUNTER__, performance_type, log_mode)); \
+  nemisis::sdk::MarkSpotcheck();
 #endif
 }  // namespace nemisis::sdk
