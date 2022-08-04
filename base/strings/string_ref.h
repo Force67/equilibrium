@@ -51,7 +51,7 @@ class BasicStringRef {
   BasicStringRef(const TChar* data)
       : data_(data),
         length_(
-            static_cast<u32>(base::CalculateStringLength(data, max_size_bytes()))) {
+            static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
     // if our length is greater than 0, it means we have hit the null barrier..., so
     // we assume for now that we may advance by one to catch the actual null
     // terminator, that would have been cut off otherwise, since the specification

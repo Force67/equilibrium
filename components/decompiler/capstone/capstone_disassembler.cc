@@ -3,6 +3,8 @@
 // Simple cxx wrapper around a capstone instance.
 
 #include <base/check.h>
+#include <base/logging.h>
+
 #include <capstone/capstone.h>
 #include "decompiler/capstone/capstone_disassembler.h"
 
@@ -66,14 +68,14 @@ cs_arch TranslateMachineType(MachineType mt) {
 }  // namespace
 
 CapstoneDissasembler::CapstoneDissasembler(MachineType mt) {
-  Create(mt);
+  SetUp(mt);
 }
 
 CapstoneDissasembler::~CapstoneDissasembler() {
-  Destroy();
+  Teardown();
 }
 
-bool CapstoneDissasembler::Create(MachineType type) {
+bool CapstoneDissasembler::SetUp(MachineType type) {
   const cs_arch arch = TranslateMachineType(type);
   const cs_err err = cs_open(arch, CS_MODE_64, &handle_);
   if (err != CS_ERR_OK) {
@@ -86,18 +88,19 @@ bool CapstoneDissasembler::Create(MachineType type) {
   return false;
 }
 
-void CapstoneDissasembler::Destroy() {
+void CapstoneDissasembler::Teardown() {
   if (handle_) {
     cs_free(insn_, di_count_);
     cs_close(&handle_);
   }
 }
 
-bool CapstoneDissasembler::Process(const u8* data,
-    size_t len,
-    u64 vaddress_base,
-    size_t subset) {
-  di_count_ = cs_disasm(handle_, data, len, vaddress_base, subset, &insn_);
+bool CapstoneDissasembler::Process(const base::Span<byte> data,
+                                   u64 vaddress_base,
+                                   size_t subset) {
+  di_count_ =
+      cs_disasm(handle_, data.data(), data.length(), vaddress_base, subset, &insn_);
+
   if (di_count_ > 0)
     return true;
 

@@ -1,8 +1,8 @@
-// Copyright (C) Force67 <github.com/Force67>.
+// Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <string>
+#include <base/strings/string_ref.h>
 
 // forward declared, since we don't want to poison
 // our global namespace with our particular sqlite
@@ -18,18 +18,15 @@ class SqliteDb {
   explicit SqliteDb(const char* fileNameUtf8);
   // construct in unopened state
   SqliteDb();
-
   ~SqliteDb();
 
-  // TODO: replace this string view with
-  // c_str view.
-  bool open(std::string_view fileName);
-  void close();
+  bool Open(base::StringRef fileName);
+  void Close();
 
   bool Execute(const char* sql);
 
   // attach/detach a child database to main db table
-  bool Attach(const std::string& utf8path, const char* alias);
+  bool Attach(const base::String& utf8path, const char* alias);
   bool Deatch(const char* alias);
 
   // current row

@@ -9,17 +9,11 @@
 
 #if (BASE_USE_EQ_ALLOCATOR)
 #include <base/allocator/eq_alloc/eq_memory_router.h>
+#else
+#include <base/allocator/default_crt_alloc.h>
 #endif
 
 namespace base {
-struct DefaultRouter {
-  void* Allocate(size_t size) { return ::malloc(size); }
-  void* ReAllocate(void* former, size_t new_size) {
-    return ::realloc(former, new_size);
-  }
-  void Free(void* block) { ::free(block); }
-};
-
 // this struct musn't instantiate any complex objects
 template <class TRouter>
 struct MCInstance {
@@ -30,15 +24,18 @@ struct MCInstance {
   }
 
   STRONG_INLINE void* ReAllocate(void* former, size_t new_size) {
-    // TODO: fix the tracker...
-    tracker_.TrackAllocation(new_size);
-    return router_.ReAllocate(former, new_size);
+    // this stuff sucks..
+    mem_size diff_out = 0;
+    void* block = router_.ReAllocate(former, new_size, diff_out);
+    // TODO: fix the tracker... those track allocations could be all one function
+    // as we can simply negate the sign.
+    tracker_.TrackAllocation(diff_out);
+    return block;
   }
 
   STRONG_INLINE void Free(void* address) {
-    // TODO: determine the size freed
-    tracker_.TrackDeallocation(0);
-    router_.Free(address);
+    const mem_size amount_freed = router_.Free(address);
+    tracker_.TrackDeallocation(amount_freed);
   }
 
   auto& tracker() { return tracker_; }

@@ -1,5 +1,6 @@
--- Copyright (C) Force67 <github.com/Force67>.
+-- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
+
 local function base_project()
   dependencies("googlemock")
   links({"fmtlib"})
@@ -8,23 +9,29 @@ local function base_project()
 end
 
 group("Base")
-project("base")
-kind("StaticLib")
-base_project()
-files({"**.cc", "**.h", "**.in", "**.inl"})
-removefiles("**_test.cc")
+  project("base")
+  kind("StaticLib")
+  base_project()
+  files({"**.cc", "**.h", "**.in", "**.inl"})
+  removefiles({"**_test.cc", "allocator/memory_unittests_main.cc"})
+
+project("base_unittests")
+  kind("ConsoleApp")
+  base_project()
+  add_generic_test_main()
+  files({"**.cc", "**.h", "**.in", "**.inl"})
+  removefiles("allocator/**_test.cc", "allocator/memory_unittests_main.cc")
 
 -- base is a special case where we cannot rely on the unittest model
 -- found in components, so we have to manually add the test project
-project("base_unittests")
-kind("ConsoleApp")
-base_project()
-add_generic_test_main()
-files({"**.cc", "**.h", "**.in", "**.inl"})
-removefiles("allocator/**_test.cc")
-
 project("base_memory_unittests")
-kind("ConsoleApp")
-add_generic_test_main()
-files({"allocator/**.cc", "allocator/**.h", "allocator/**.in", "allocator/**.inl"})
-base_project()
+  kind("ConsoleApp")
+  files({
+    "allocator/**.cc",
+    "allocator/**.h",
+    "allocator/**.in",
+    "allocator/**.inl",
+    "containers/linked_list.cc",
+    "containers/linked_list.h",
+  })
+  base_project()

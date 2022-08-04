@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <vector>
+#include <base/containers/vector.h>
 #include <program_loader/program_loader.h>
 #include <program_loader/file_classifier.h>
 
@@ -22,7 +22,7 @@ class LoaderFactory {
   LoaderFactory();
 
   void FindApplicableCanidates(const FileClassificationInfo&,
-                               std::vector<const ProgramLoadDescriptor*>& out);
+                               base::Vector<const ProgramLoadDescriptor*>& out);
 
   // in an ideal world this returns multiple close matches
   std::unique_ptr<ProgramLoader> CreateLoader(const ProgramLoadDescriptor&,
@@ -32,6 +32,6 @@ class LoaderFactory {
   void CollectCustomLoaders();
 
  private:
-  std::vector<ProgramLoadDescriptor*> known_loaders_;
+  base::Vector<ProgramLoadDescriptor*> known_loaders_;
 };
 }  // namespace program_loader

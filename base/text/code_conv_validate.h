@@ -3,8 +3,34 @@
 #pragma once
 
 #include <cstdint>
+#include <base/external/icu/icu_utf.h>
 
 namespace base {
+
+inline bool IsValidUTF8Character(base_icu::UChar32 code_point) {
+  // Excludes non-characters (U+FDD0..U+FDEF, and all code points
+  // ending in 0xFFFE or 0xFFFF) from the set of valid code points.
+  // https://unicode.org/faq/private_use.html#nonchar1
+  return (code_point >= 0 && code_point < 0xD800) ||
+         (code_point >= 0xE000 && code_point < 0xFDD0) ||
+         (code_point > 0xFDEF && code_point <= 0x10FFFF &&
+          (code_point & 0xFFFE) != 0xFFFE);
+}
+
+template <typename Char>
+inline bool DoIsStringUTF8(const Char* str, mem_size length) {
+  const u8* src = reinterpret_cast<const u8*>(str);
+  size_t char_index = 0;
+
+  while (char_index < length) {
+    base_icu::UChar32 code_point;
+    CBU8_NEXT(src, char_index, length, code_point);
+    if (!IsValidUTF8Character(code_point))
+      return false;
+  }
+
+  return true;
+}
 
 inline bool IsValidCodepoint(uint32_t code_point) {
   // Excludes code points that are not Unicode scalar values, i.e.

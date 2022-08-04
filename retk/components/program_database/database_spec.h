@@ -3,26 +3,24 @@
 #pragma once
 
 #include <base/arch.h>
-#include <base/endian.h>
+#include <base/endianess.h>
 #include <base/version.h>
 #include <base/math/math_helpers.h>
 
+// The database format is the following (in order):
+// - Header
+// - SegmentHeader -
+// --------------
+// - (First segment)
+// - <SourceProgramheader>
+// - n other segments containing records such as 'Functions'
+
 // database_disk_format
 namespace program_database::v1 {
-static constexpr u32 kMainHeaderMagic{base::BSwap<u32>('VMH\n')};
-static constexpr u32 kProgramHeaderMagic{base::BSwap<u32>('PROG')};
-static constexpr u32 kExternalFileHeaderMagic{base::BSwap<u32>('EXTF')};
-
-// names longer than 8 characters are pointing into the string table
-struct NameRecord {
-  union {
-    char name[8];
-    u32 offset;
-    u32 length;
-    u64 whole;
-  };
-};
-static_assert(sizeof(NameRecord) == sizeof(char[8]));
+static constexpr u32 kMainHeaderMagic{base::ByteSwapToLittleEndian<u32>('VMH\n')};
+static constexpr u32 kProgramHeaderMagic{base::ByteSwapToLittleEndian<u32>('PROG')};
+static constexpr u32 kExternalFileHeaderMagic{
+    base::ByteSwapToLittleEndian<u32>('EXTF')};
 
 struct Header {
   u32 magic;                //< unique identifier
@@ -32,10 +30,13 @@ struct Header {
                             // for future migration strategies
   u32 retk_version;         //< version of the program that created the db
   u32 headers_size;         //< unused field
+  u32 section_header_offset;  //< points to the SegmentHeader, due to possible
+                              // alignment padding limitations the segmentheader
+                              // could not immedeatly follow the header.
+  u32 seg_0_offset;  //< offset to the first segment (where the BTree begins), this
+                     // exists cause due to alignment of the segment header itself.
   i64 create_date_time_stamp;    //< when the tkb was created
   i64 last_modified_time_stamp;  //< when the tkb was last modified
-  u32 seg_0_offset;              //< offset to the first segment
-  u32 section_header_offset;     //< where the binary tree begins
 };
 static_assert(sizeof(Header) == 40, "Header misaligned");
 
@@ -52,6 +53,17 @@ constexpr u32 kPastHeaders = sizeof(v1::Header) + sizeof(v1::SegmentHeader);
 constexpr u32 kSizeOfHeaders =
     kPastHeaders + base::NextPowerOf2_Compile(kPastHeaders) - kPastHeaders;
 
+// names longer than 8 characters are pointing into the string table
+struct NameRecord {
+  union {
+    char name[sizeof(pointer_size)];
+    pointer_size whole;
+  };
+  u32 offset;
+  u32 length;
+};
+static_assert(sizeof(NameRecord) == 16, "NameRecord misaligned.");
+
 enum class CompressionType : u32 { kNone, kLZ4, kZip };
 
 // the program header always exists at the start of the first segment.
@@ -59,9 +71,9 @@ struct SourceProgramHeader {
   u32 magic;
   CompressionType compression;
   NameRecord name;
-  u64 program_size;
+  mem_size program_size;
 };
-static_assert(sizeof(SourceProgramHeader) == 24, "SourceProgramHeader misaligned");
+static_assert(sizeof(SourceProgramHeader) == 32, "SourceProgramHeader misaligned");
 
 // a file that is packed within one of our segments and has to be extracted and
 // mounted to be used externally. this happens upon load of the database.
@@ -72,11 +84,10 @@ struct ExternalFile {
   CompressionType compression;
   NameRecord name;
 };
-static_assert(sizeof(ExternalFile) == 24, "ExternalFile Record misaligned");
+static_assert(sizeof(ExternalFile) == 32, "ExternalFile Record misaligned");
 
 struct Functions {
   u32 count;
-
 };
 
 struct Names {

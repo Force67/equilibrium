@@ -3,23 +3,20 @@
 // Simple cxx wrapper around a zydis instance.
 #pragma once
 
-#include <base/arch.h>
 #include <zydis/Decoder.h>
+#include <decompiler/disassembler.h>
 
 namespace decompiler {
 
-// Make sure to never change the order of this.
-enum class MachineType { kx86, kx86_64, kArm, kArm64 };
-
-class ZydisDisassembler {
+class ZydisDisassembler final : public Disassembler {
  public:
   ZydisDisassembler(MachineType);
 
-  void SetUp(MachineType);
-  void Teardown();
+  bool SetUp(MachineType) override;
+  void Teardown() override;
 
   // Ask the engine to process given data.
-  bool Process(const u8* data, size_t len, u64 vaddress_base, size_t subset);
+  bool Process(const base::Span<byte> data, u64 vaddress_base, size_t subset) override;
 
   // TODO: Accessors for the specific instances.
  private:

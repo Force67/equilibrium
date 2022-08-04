@@ -20,7 +20,7 @@ LoaderFactory::LoaderFactory() {
 
 void LoaderFactory::FindApplicableCanidates(
     const FileClassificationInfo& intel,
-    std::vector<const ProgramLoadDescriptor*>& out) {
+    base::Vector<const ProgramLoadDescriptor*>& out) {
   for (const ProgramLoadDescriptor* it : known_loaders_) {
     // TODO: We allow the user to choose architecture, but recommend one.
     if (it->format == intel.format_type)

@@ -65,15 +65,18 @@ bool WriteInitialDiskFile(const base::Span<byte> program,
 
   i64 now_timestamp = base::GetUnixTimeStamp();
   DiskFileWriter writer(f);
+
   const v1::Header db_header{.magic = v1::kMainHeaderMagic,
                              .current_version_key = kCurrentTkDbVersion,
                              .create_version_key = kCurrentTkDbVersion,
                              .retk_version = retk_version,
                              .headers_size = v1::kPastHeaders,
-                             .create_date_time_stamp = now_timestamp,
-                             .last_modified_time_stamp = now_timestamp,
+                             .section_header_offset =
+                                 sizeof(v1::Header),
                              .seg_0_offset = v1::kSizeOfHeaders,
-                             .section_header_offset = sizeof(v1::Header)};
+                             .create_date_time_stamp = now_timestamp,
+                             .last_modified_time_stamp = now_timestamp};
+
   const u16 page_count_initial = EstimateInitialPageCount(program);
   const v1::SegmentHeader section_header{
       .num_sections = page_count_initial,

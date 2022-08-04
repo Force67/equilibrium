@@ -7,9 +7,8 @@
 namespace base {
 
 // this is one of the most complex classes
+
+// for now.
 template <typename T>
-class Atomic {
- public:
-  Atomic();
-};
+using Atomic = std::atomic<T>;
 }  // namespace base

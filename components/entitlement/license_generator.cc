@@ -2,14 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Licensing authority: Issue.
 
-#include <mbedtls/entropy.h>
-#include <mbedtls/rsa.h>
-#include <mbedtls/pk.h>
-#include <mbedtls/base64.h>
-#include <mbedtls/ctr_drbg.h>
-
 #include <base/logging.h>
 #include <base/random.h>
+
+#include <base/containers/span.h>
 
 #include "entitlement/license_generator.h"
 
@@ -18,43 +14,8 @@ namespace entitlement {
 // safe_crypto_wrappers.cc
 
 namespace {
-class EntropyWrap {
- public:
-  EntropyWrap() { mbedtls_entropy_init(&context_); }
-  ~EntropyWrap() { mbedtls_entropy_free(&context_); }
 
-  auto* get() { return &context_; }
 
- private:
-  mbedtls_entropy_context context_;
-};
-
-class CrtDrbgWrap {
- public:
-  CrtDrbgWrap() { mbedtls_ctr_drbg_init(&context_); }
-  ~CrtDrbgWrap() { mbedtls_ctr_drbg_free(&context_); }
-
-  auto* get() { return &context_; }
-
-  void Seed(EntropyWrap& entropy, const u8* data, size_t len) {
-    mbedtls_ctr_drbg_seed(&context_, mbedtls_entropy_func,
-                          reinterpret_cast<void*>(entropy.get()), data, len);
-  }
-
- private:
-  mbedtls_ctr_drbg_context context_;
-};
-
-class PkWrap {
- public:
-  PkWrap() { mbedtls_pk_init(&context_); }
-  ~PkWrap() { mbedtls_pk_free(&context_); }
-
-  auto* get() { return &context_; }
-
- private:
-  mbedtls_pk_context context_;
-};
 
 static base::String MBedError() {  // mbedtls_strerror()
   return {};
@@ -71,22 +32,6 @@ static base::String MBedError() {  // mbedtls_strerror()
     return;                     \
   }  // namespace entitlement
 
-template <typename T>
-class FixedPointer {
- public:
-  FixedPointer(const T* ptr, size_t length) : ptr_(ptr), length_(length) {}
-
-  const T* get() const { return ptr_; }
-  size_t length() const { return length_; }
-
- private:
-  T* ptr_;
-  size_t length_;
-};
-
-char EncodeProductCode() {
-  return ' ';
-}
 // So anyway, what features should a license have?
 // Probably a version, so we start with that
 // i8 version
@@ -95,28 +40,10 @@ char EncodeProductCode() {
 // entitlement_block.cc
 // key_file_writer.cc
 
-struct License {
-  // Base64 begin:
-  i8 version;
-  i8 type;
-  u16 reserved;
-  u64 start_date;
-  u64 end_date;
-  // These are all rounded. up
-  base::String issuing_authority; // VH-Tech by default
-  base::String licensee_name;
-  base::String payload;
-  // Base64 end
 
-  // Base64 begin:
-  // Signature to prevent alteration
-  u8 signature[32];
-  // Base64 end
-};
-
-void SignData(const FixedPointer<u8> data,
+void SignData(const base::Span<u8> data,
               // Private key buffer
-              const FixedPointer<u8> private_key,
+              const base::Span<u8> private_key,
               // PEM
               const base::String& priv_key_pem) {
   EntropyWrap entropy{};
@@ -157,6 +84,8 @@ void SignData(const FixedPointer<u8> data,
 base::String IssueLicense(const LicenseInfo& license_info,
                           const base::StringRef master_key,
                           base::String& secret) {
+  
+
   base::String license_text =
       fmt::format("{}:{},{},{},{},{}", license_info.start_date,
                   license_info.expiry_date, license_info.licensee_name, license_info.payload);

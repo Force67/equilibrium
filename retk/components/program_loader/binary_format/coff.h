@@ -10,7 +10,7 @@ namespace program_loader {
 // On 64bit versions of Windows the smallest 32bit executable is 268 bytes
 constexpr size_t kMinimumPEExecutableSize = 268;
 
-constexpr i16 kDosMagic{base::BswapLE<i16>('MZ')};
+constexpr i16 kDosMagic{base::ByteSwapToLittleEndian<i16>('MZ')};
 
 struct DOSHeader {
   i16 magic;

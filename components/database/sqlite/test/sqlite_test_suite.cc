@@ -13,11 +13,11 @@ void SqliteTestSuite::SetUp() {
   //const std::string path = db_path().c_str();
   __debugbreak();
   std::string path = "";
-  ASSERT_TRUE(db_.open(path));
+  ASSERT_TRUE(db_.Open(path));
 }
 
 void SqliteTestSuite::TearDown() {
-  db_.close();
+  db_.Close();
 }
 
 base::Path SqliteTestSuite::db_path() {

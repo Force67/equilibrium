@@ -23,9 +23,14 @@ BucketAllocator::BucketAllocator() {}
 void* BucketAllocator::Allocate(PageTable& pages,
                                 mem_size size,
                                 mem_size user_alignment) {
+   // this case should be validated by the memory router.
+#if defined(BASE_MEM_CORE_DEBUG)
+  // cant handle this...
   if (size > eq_allocation_constants::kBucketThreshold ||
       user_alignment > eq_allocation_constants::kBucketThreshold)
     return nullptr;
+#endif
+
   // TODO: if our alignment is perfect by the user, maybe try to not destroy that.
   // dont destroy perfect alignment with our bucket, instead put it in some
   // free list then... but then again, a problem would be fragmentation if we would
@@ -76,7 +81,7 @@ bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
   mem_size page_size = 0;
   page_base = static_cast<byte*>(table.RequestPage(page_size));
   if (!page_base || page_size == 0) {
-    DCHECK(false, "page or page size invalid");
+    DEBUG_TRAP; // page or page size invalid
     return false;
   }
   // store the entire node in the page itself

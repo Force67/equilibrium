@@ -50,16 +50,16 @@ class BASE_EXPORT File {
     FLAG_WIN_TEMPORARY = 1 << 11,  // Windows only.
     FLAG_WIN_HIDDEN = 1 << 12,     // Windows only.
     FLAG_DELETE_ON_CLOSE = 1 << 13,
-    FLAG_WRITE_ATTRIBUTES = 1 << 14,  // File opened in a mode allowing writing
-                                      // attributes, such as with SetTimes().
-    FLAG_WIN_SHARE_DELETE = 1 << 15,  // Windows only.
-    FLAG_TERMINAL_DEVICE = 1 << 16,   // Serial port flags.
+    FLAG_WRITE_ATTRIBUTES = 1 << 14,      // File opened in a mode allowing writing
+                                          // attributes, such as with SetTimes().
+    FLAG_WIN_SHARE_DELETE = 1 << 15,      // Windows only.
+    FLAG_TERMINAL_DEVICE = 1 << 16,       // Serial port flags.
     FLAG_WIN_BACKUP_SEMANTICS = 1 << 17,  // Windows only.
     FLAG_WIN_EXECUTE = 1 << 18,           // Windows only.
     FLAG_WIN_SEQUENTIAL_SCAN = 1 << 19,   // Windows only.
-    FLAG_CAN_DELETE_ON_CLOSE = 1 << 20,  // Requests permission to delete a file
-                                         // via DeleteOnClose() (Windows only).
-                                         // See DeleteOnClose() for details.
+    FLAG_CAN_DELETE_ON_CLOSE = 1 << 20,   // Requests permission to delete a file
+                                          // via DeleteOnClose() (Windows only).
+                                          // See DeleteOnClose() for details.
 
     // Deprecated names for Windows flags. Use WIN_-prefixed flags instead.
     // TODO(crbug.com/1244149): Migrate all call sites.
@@ -353,6 +353,8 @@ class BASE_EXPORT File {
   static int Fstat(int fd, stat_wrapper_t* sb);
   static int Lstat(const char* path, stat_wrapper_t* sb);
 #endif
+
+  auto& underlying_platform_file() const { return file_; }
 
  private:
   // Creates or opens the given file. Only called if |path| has no

@@ -4,25 +4,30 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/compiler.h>
 
 namespace base {
 
 // TODO: NON AMD64
 constexpr mem_size kCharBit = 8;
 
+// this will always byteswap
 template <typename T>
-consteval T BSwap(T i, T j = 0u, mem_size n = 0u) {
-  return n == sizeof(T)
-             ? j
-             : BSwap<T>(i >> kCharBit, (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
+consteval T ByteSwap_Always(T i, T j = 0u, mem_size n = 0u) {
+  return n == sizeof(T) ? j
+             : ByteSwap_Always<T>(i >> kCharBit,
+                                      (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
 }
 
-// TODO: Swap only when LE
+// Swap only to LE
 template <typename T>
-consteval T BswapLE(T i, T j = 0u, mem_size n = 0u) {
-  return n == sizeof(T)
-             ? j
-             : BswapLE<T>(i >> kCharBit, (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
+consteval T ByteSwapToLittleEndian(T i, T j = 0u, mem_size n = 0u) {
+  if constexpr (base::kIsBigEndian)
+    return i;
+
+  return n == sizeof(T) ? j
+             : ByteSwapToLittleEndian<T>(i >> kCharBit,
+                                        (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
 }
 
 }  // namespace base

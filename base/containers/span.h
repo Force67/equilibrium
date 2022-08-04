@@ -14,7 +14,7 @@ namespace base {
 template <typename T>
 class Span {
  public:
-  explicit Span(T* ptr, mem_size len) : ptr_(ptr), len_(len) {}
+  explicit constexpr Span(T* ptr, mem_size len) : ptr_(ptr), len_(len) {}
 
   template <mem_size N>
   constexpr Span(T (&a)[N]) noexcept  // NOLINT(runtime/explicit)
@@ -23,10 +23,11 @@ class Span {
   T* data() const { return ptr_; }
   mem_size size() const { return len_; }
   mem_size length() const { return len_; }
-  bool empty() const { return ptr_; }
+  bool empty() const { return ptr_ == nullptr; }
 
-  constexpr T& operator[](mem_size index) const {
-    // DCHECK(i < len_);
+  // FIXME(Vince): we sacrifice const for dcheck here atm
+  inline T& operator[](mem_size index) {
+    DCHECK(index < len_);
     return ptr_[index];
   }
 

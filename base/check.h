@@ -50,6 +50,8 @@ void SetCheckHandler(CheckHandler*);
 //    development.
 
 #ifndef CONFIG_SHIPPING
+
+#if defined(BASE_RECORD_CHECKS)
 #define DCHECK(expression, ...)                            \
   do {                                                     \
     if (!(expression)) {                                   \
@@ -59,12 +61,23 @@ void SetCheckHandler(CheckHandler*);
     }                                                      \
   } while (0);
 #else
+#define DCHECK(expression, ...) \
+  do {                          \
+    if (!(expression)) {        \
+      CHECK_BREAK;              \
+    }                           \
+  } while (0);
+#endif
+
+#else
 #define DCHECK(x, ...)
 #endif
 
 // BugChecks indicate a hard programmer error and are compiled into shipping builds
 // aswell, as these need to be immedeatly fixed
 #ifndef BASE_STRIP_BUGCHECK
+
+#if defined(BASE_RECORD_CHECKS)
 #define BUGCHECK(expression, ...)                          \
   do {                                                     \
     if (!(expression)) {                                   \
@@ -74,9 +87,19 @@ void SetCheckHandler(CheckHandler*);
     }                                                      \
   } while (0);
 #else
+#define BUGCHECK(expression, ...) \
+  do {                            \
+    if (!(expression)) {          \
+      CHECK_BREAK;                \
+    }                             \
+  } while (0);
+#endif
+#else
+
 #define BUGCHECK(x, ...)
 #endif
 
+#if defined(BASE_RECORD_CHECKS)
 // Another form of bugcheck.
 #define IMPOSSIBLE                                       \
   {                                                      \
@@ -85,3 +108,7 @@ void SetCheckHandler(CheckHandler*);
     CHECK_BREAK;                                         \
   }
 // newline
+#else
+#define IMPOSSIBLE \
+  { CHECK_BREAK; }
+#endif

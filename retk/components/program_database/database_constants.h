@@ -7,6 +7,7 @@
 
 namespace program_database {
 using namespace base::memory_literals;
+
 constexpr u32 kDbPageSize = 64_kib;
 constexpr u16 kSectionAlignment = 16;
 // v 1.0.0

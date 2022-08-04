@@ -2,12 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <sqlite3.h>
-#include <cassert>
-
-#include "sqlite_db.h"
-#include "sqlite_statement.h"
-
 #include <base/logging.h>
+
+#include <database/sqlite/sqlite_db.h>
+#include <database/sqlite/sqlite_statement.h>
 
 namespace database {
 
@@ -27,22 +25,24 @@ bool SqliteDb::SetGlobalConfig() {
 }
 
 SqliteDb::SqliteDb(const char* fileNameUtf8) {
-  open(fileNameUtf8);
+  Open(fileNameUtf8);
 }
 
 SqliteDb::SqliteDb() : handle_(nullptr), good_(false) {}
 
 SqliteDb::~SqliteDb() {
-  close();
+  Close();
 }
 
-bool SqliteDb::open(std::string_view view) {
-  int rc = sqlite3_open_v2(view.data(), &handle_,
-                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
+bool SqliteDb::Open(base::StringRef path) {
+  // .c_str() will assert when the nterm is missing!
+
+  int rc = sqlite3_open_v2(path.c_str(), &handle_,
+                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
 
   if (rc != SQLITE_OK) {
-      // cannot expand until handle is assigned.
-    rc = sqlite3_extended_errcode(handle_); 
+    // cannot expand until handle is assigned.
+    rc = sqlite3_extended_errcode(handle_);
     LOG_ERROR("Failed to open db: {}", rc);
 
     // TODO: detail
@@ -51,7 +51,7 @@ bool SqliteDb::open(std::string_view view) {
   return (good_ = rc == SQLITE_OK);
 }
 
-void SqliteDb::close() {
+void SqliteDb::Close() {
   if (handle_)
     sqlite3_close(handle_);
 }
@@ -79,8 +79,8 @@ bool SqliteDb::Execute(const char* sql) {
       continue;
 
     // skip over any rows
-    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
-      ;
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+    };
 
     rc = sqlite3_finalize(stmt);
     while (IsASCIIWhiteSpace(*sql)) {
@@ -91,14 +91,14 @@ bool SqliteDb::Execute(const char* sql) {
   return rc == SQLITE_OK;
 }
 
-bool SqliteDb::Attach(const std::string& path, const char* alias) {
+bool SqliteDb::Attach(const base::String& path, const char* alias) {
   SqliteStatement command(*this, "attach database ? as ?");
   if (!command.Good())
     return false;
 
   // warning: *ensure* that the main DB was opened with the 'SQLITE_OPEN_CREATE'
   // flag, else everything will crash and burn
-  // assert(handle_->flags & SQLITE_OPEN_CREATE);
+  // BUGCHECK(handle_->flags & SQLITE_OPEN_CREATE);
 
   bool rs;
   rs = command.Bind(path);

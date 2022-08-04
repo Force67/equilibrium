@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <string>
+#include <base/strings/string_ref.h>
 
 struct sqlite3_stmt;
 
@@ -16,14 +16,14 @@ class SqliteStatement {
   ~SqliteStatement();
 
   // must be utf8
-  bool Bind(const std::string&);
+  bool Bind(base::StringRef);
   bool Bind(int val);
   bool Bind(const void* blob, size_t len);
 
-  std::string ColumnStr(int col);
-  const void* ColumnBlob(int col) const;
-  int ColumnInt(int col) const;
-  int64_t ColumnBigInt(int col) const;
+  base::String ColumnStr(i32 col);
+  const void* ColumnBlob(i32 col) const;
+  int ColumnInt(i32 col) const;
+  int64_t ColumnBigInt(i32 col) const;
 
   [[nodiscard]] bool Run();
   [[nodiscard]] inline bool Good() const { return good_; }
@@ -46,7 +46,7 @@ class SqliteStatement {
  private:
   sqlite3_stmt* st_;
   bool good_;
-  int idx_ = 1;
+  i32 idx_ = 1;
 };
 
 }  // namespace database

@@ -99,7 +99,7 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer, const char* symbol_na
 
 // needs to be called if a device is constructed too..
 void VulkanInstance::BindFunctionPointers() {
-  DCHECK(vk_instance_, "VkInstance no longer valid");
+  //DCHECK(vk_instance_, "VkInstance no longer valid");
 
   if (!get_instance_proc_)
     get_instance_proc_ =

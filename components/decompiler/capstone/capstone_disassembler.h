@@ -3,7 +3,7 @@
 // Simple cxx wrapper around a capstone instance.
 #pragma once
 
-#include <base/arch.h>
+#include <decompiler/disassembler.h>
 
 struct cs_insn;
 
@@ -12,16 +12,16 @@ using namespace arch_types;
 
 enum class MachineType { kx86, kx86_64, kArm, kArm64 };
 
-class CapstoneDissasembler {
+class CapstoneDissasembler final : public Disassembler {
  public:
   CapstoneDissasembler() = default;
   CapstoneDissasembler(MachineType);
   ~CapstoneDissasembler();
 
-  bool Create(MachineType);
-  void Destroy();
+  bool SetUp(MachineType) override;
+  void Teardown() override;
 
-  bool Process(const u8* data, size_t len, u64 vaddress_base, size_t subset);
+  bool Process(const base::Span<byte> data, u64 vaddress_base, size_t subset);
 
  private:
   size_t handle_ = 0;
