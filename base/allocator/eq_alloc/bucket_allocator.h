@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <atomic>
 #include <base/arch.h>
+#include <base/atomic.h>
 #include <base/containers/linked_list.h>
 #include <base/allocator/eq_alloc/allocator.h>
 
@@ -46,8 +46,8 @@ class BucketAllocator final : public Allocator {
     Bucket bucket;
     pointer_size as_pointer;
   };
-  using BucketPointer = std::atomic<BucketStore>;
-  using AtomicBucket = std::atomic<Bucket>;
+  using BucketPointer = base::Atomic<BucketStore>;
+  using AtomicBucket = base::Atomic<Bucket>;
 
   static_assert(sizeof(Bucket) == sizeof(pointer_size),
                 "Bucket must fit into atomic/register space");
@@ -56,8 +56,8 @@ class BucketAllocator final : public Allocator {
   i32 FindFreeBucketHead(mem_size requested_size);
 
   struct PageTag {
-    std::atomic<mem_size> ref_count;
-    std::atomic<mem_size> bucket_count;
+    base::Atomic<mem_size> ref_count;
+    base::Atomic<mem_size> bucket_count;
     mem_size page_size;  // not really needed atm, but if we wanna go for a hybrid
                          // model, it might be worth it
     // TODO: some refcount?

@@ -2,65 +2,81 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/check.h>
 #include <base/arch.h>
+#include <base/atomic.h>
+#include <base/check.h>
 #include <base/containers/linked_list.h>
 #include <base/memory/memory_literals.h>
 
+#include <base/allocator/page_protection.h>
+
 namespace base {
+using namespace memory_literals;
 
 // page table only manages pages, not blocks within these pages.
 class PageTable {
  public:
   PageTable();
 
+  struct Options {
+    bool zero_pages{true};
+  };
+
+  static u32 current_page_size();
   static u32 ideal_page_size();
 
-  void* RequestPage();
-  void* RequestPage(mem_size& size_out);
+  void* RequestPage(PageProtectionFlags page_flags,
+                    mem_size* size_optional_out = nullptr);
 
  private:
-  void ReservePages(const pointer_size page_base, const mem_size count);
+  mem_size ReservePages(const pointer_size page_base, const mem_size count);
 
   byte* Reserve(void* preferred, mem_size block_size);
 
   // initialize_with should be an optional...
   void* Allocate(void* preferred_address,
                  mem_size block_size,
+                 base::PageProtectionFlags,
                  byte initalize_with,
-                 bool use_initialize,
-                 bool read_only = false);
+                 bool use_initialize);
+
   bool Free(void* address);
 
  private:
+  // a single page can only ever be owned by one allocator.
+  // we cant store the page entries in the pages themselves because this could get
+  // quite wasteful with 64kib, so we need to maintain the records in a list of small
+  // pages
   struct PageEntry {
-    u32 address_;
-    u32 size_;
-    // TODO: when allocating within here, store a ref count?
+    pointer_size address;
+    mem_size size;  // refcount
 
-    bool Contains(u32 block) const {
-      return address_ >= block && block <= (address_ + size_);
+    inline bool Contains(pointer_size block) const {
+      return address >= block && block <= (address + size);
     }
+
+    inline bool Contains(const void* pointer) const {
+      return Contains(reinterpret_cast<pointer_size>(pointer));
+    }
+
+    void* pointer() const { return reinterpret_cast<void*>(address); }
   };
+  static_assert(sizeof(PageEntry) == 2 * sizeof(pointer_size),
+                "PageEntry alignment is invalid");
 
-  byte* DecompressPointer(const PageEntry& e) {
-    DCHECK(page_table_base_);
-    return reinterpret_cast<byte*>(page_table_base_ + e.address_);
-  }
+  // do we even need a size parameter if every page is 64k?
+  // do we even need an address if they are a continuous array? (e.g aligned to a 1mib boundary?)
 
-  u32 CompressPointer(void* block) {
-    DCHECK(page_table_base_);
-    return u32(reinterpret_cast<pointer_size>(block) - page_table_base_);
-    // return u32(reinterpret_cast<pointer_size>(block) & 0xFFFFFFFF);
-  }
-
+  // TODO: set class for these schenanigans?
   PageEntry* FindBackingPage(void* address);
 
-  // In order to reduce memory usage as much as possible, we just store indices into
-  // the different pages starting from this address by default we pre-reserve
-  // kPagePrereserveCount starting from page_base_address_
-  bool zero_pages_ = true;
-  pointer_size page_table_base_{0};
-  PageEntry page_entries_[12]{};
+  Options options_{};
+
+  //https://github.com/SerenityOS/serenity/blob/master/Kernel/Memory/PageDirectory.cpp
+  // pageDictionary
+
+  pointer_size first_page_;
+  base::Atomic<mem_size> metadata_page_count_;
+  base::Atomic<mem_size> current_page_count_;
 };
 }  // namespace base

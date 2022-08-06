@@ -41,14 +41,12 @@ void RemoveMemoryCategory(MemoryCategory id) {
   }
 }
 
-void MemoryTracker::TrackAllocation(size_t size) {
-  DCHECK(current_token != kInvalidCategory);
-  memory_sizes[current_token] += size;
-}
+void MemoryTracker::TrackOperation(pointer_diff size) {
+  DCHECK(current_token != kInvalidCategory, "Category not set");
+  //DCHECK(pointer_diff((memory_sizes[current_token] + size) /*atomic op*/) < 0,
+  //       "Underflow into tracking storage");
 
-void MemoryTracker::TrackDeallocation(size_t size) {
-  DCHECK(current_token != kInvalidCategory);
-  memory_sizes[current_token] -= size;
+  memory_sizes[current_token] += size;
 }
 
 MemoryCategoryScope::MemoryCategoryScope(MemoryCategory token)

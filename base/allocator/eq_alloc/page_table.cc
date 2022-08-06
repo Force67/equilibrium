@@ -9,73 +9,58 @@
 namespace base {
 
 namespace {
-constexpr mem_size kPagePrereserveAttemptCount = 12;
+constexpr mem_size kPageGrowByRatio = 2;
 }
 
 PageTable::PageTable() {
-  ReservePages(0, kPagePrereserveAttemptCount);
+  ReservePages(0, kPageGrowByRatio);
 }
 
-void PageTable::ReservePages(const pointer_size page_base, const mem_size count) {
-  byte* preferred = page_base ? reinterpret_cast<byte*>(page_base) : nullptr;
+// Take n pages
+mem_size PageTable::ReservePages(const pointer_size page_base, const mem_size page_count) {
+  const mem_size total_page_memory = ideal_page_size() * page_count;
+  byte* preferred_address = page_base ? reinterpret_cast<byte*>(page_base) : nullptr;
 
-  byte* block = Reserve(preferred, ideal_page_size() * count);
+  byte* block = Reserve(preferred_address, ideal_page_size() * total_page_memory);
+  // no pages were allocated
   if (!block)
-    return;
-  // first block sets this
-  if (!page_table_base_)
-    page_table_base_ = reinterpret_cast<pointer_size>(block);
-  for (mem_size i = 0; i < count; i++) {
-    auto& e = page_entries_[i];
-    if constexpr (sizeof(u32) != sizeof(pointer_size)) {
-      // 64 bit
-      e.address_ = CompressPointer(block);
-    } else {
-      e.address_ = u32(reinterpret_cast<pointer_size>(block));
-    }
+    return 0;
 
-    if (DecompressPointer(e) != block) {
-      DEBUG_TRAP;
-    }
+  // first block sets this
+  if (!first_page_)
+    first_page_ = reinterpret_cast<pointer_size>(block);
+
+  for (mem_size i = 0; i < page_count; i++) {
+    auto& e = page_entries_[i];
+    e.address = reinterpret_cast<pointer_size>(block);
 
     block += ideal_page_size();
     // no point in setting the size, it indicates the free'ness
   }
+
+  return page_count;
 }
 
-void* PageTable::RequestPage() {
+void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
   // enter lock...
   for (auto i = 0; i < 12; i++) {
     auto& e = page_entries_[i];
-    if (e.size_ != 0)
-      continue;
 
-    if (void* mem = Allocate(DecompressPointer(e), ideal_page_size(), 0, zero_pages_,
-                             false)) {
-      // this marks the block as 'in-use', so we only do it on success
-      e.size_ = ideal_page_size();
-      return mem;
-    }
-  }
-
-  return nullptr;
-}
-
-void* PageTable::RequestPage(mem_size& size) {
-  // enter lock...
-  for (auto i = 0; i < 12; i++) {
-    auto& e = page_entries_[i];
-    if (e.size_ != 0)
+    // in use.
+    if (e.size != 0)
       continue;
 
     // for debugging reasons we fill each new page with 0xFF to detect unitialized
     // memory more easily
-    if (void* mem =
-            Allocate(DecompressPointer(e), ideal_page_size(), 0xFF, true, false)) {
+    if (void* block =
+            Allocate(e.pointer(), ideal_page_size(), page_flags, 0xFF, true)) {
       // this marks the block as 'in-use', so we only do it on success
-      e.size_ = ideal_page_size();
-      size = ideal_page_size();
-      return mem;
+      e.size = ideal_page_size();
+
+      if (size_out)
+        *size_out = e.size;
+
+      return block;
     }
   }
 
@@ -83,15 +68,12 @@ void* PageTable::RequestPage(mem_size& size) {
 }
 
 PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
-  u32 compressed_ptr = CompressPointer(block);
-
   for (auto i = 0; i < 12; i++) {
     auto& e = page_entries_[i];
-    if (e.Contains(compressed_ptr)) {
+    if (e.Contains(block)) {
       return &e;
     }
   }
-
   return nullptr;
 }
 
@@ -101,7 +83,7 @@ bool PageTable::Free(void* block) {
   if (!entry)
     return false;
 
-  entry->size_ = 0;
+  entry->size = 0;
   return true;
 }
 }  // namespace base

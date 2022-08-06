@@ -9,14 +9,14 @@
 
 namespace base {
 
-class DefaultRouter {
+class DefaultCRTRouter {
  public:
   void* Allocate(mem_size size) { return ::malloc(size); }
 
-  void* ReAllocate(void* former, mem_size new_size, mem_size& diff_out) {
-    // TODO: is that a logic error?
+  void* ReAllocate(void* former,
+                   mem_size new_size,
+                   pointer_diff& diff_out /*could be negative*/) {
     diff_out = new_size - block_size(former);
-
     return ::realloc(former, new_size);
   }
 
@@ -24,7 +24,6 @@ class DefaultRouter {
   mem_size Free(void* block) {
     const mem_size former_block_size{block_size(block)};
     ::free(block);
-
     return former_block_size;
   }
 

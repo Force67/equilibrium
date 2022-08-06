@@ -5,7 +5,7 @@
 #include <base/compiler.h>
 #include <base/allocator/memory_stat_tracker.h>
 
-#define BASE_USE_EQ_ALLOCATOR 0
+#define BASE_USE_EQ_ALLOCATOR 1
 
 #if (BASE_USE_EQ_ALLOCATOR)
 #include <base/allocator/eq_alloc/eq_memory_router.h>
@@ -14,28 +14,27 @@
 #endif
 
 namespace base {
-// this struct musn't instantiate any complex objects
+
+// do not instantiate any complex routers.
 template <class TRouter>
 struct MCInstance {
   // goal is to have these folded in the ::new/alloc operators
+
   STRONG_INLINE void* Allocate(size_t size) {
-    tracker_.TrackAllocation(size);
+    tracker_.TrackOperation(pointer_diff(size));
     return router_.Allocate(size);
   }
 
   STRONG_INLINE void* ReAllocate(void* former, size_t new_size) {
-    // this stuff sucks..
-    mem_size diff_out = 0;
+    pointer_diff diff_out = 0; /*already signed*/
     void* block = router_.ReAllocate(former, new_size, diff_out);
-    // TODO: fix the tracker... those track allocations could be all one function
-    // as we can simply negate the sign.
-    tracker_.TrackAllocation(diff_out);
+    tracker_.TrackOperation(diff_out);
     return block;
   }
 
   STRONG_INLINE void Free(void* address) {
     const mem_size amount_freed = router_.Free(address);
-    tracker_.TrackDeallocation(amount_freed);
+    tracker_.TrackOperation(-pointer_diff(amount_freed) /*negate amount*/);
   }
 
   auto& tracker() { return tracker_; }
@@ -44,14 +43,27 @@ struct MCInstance {
   MemoryTracker tracker_;
   TRouter router_;
 };
+
 // this configures the use of different allocators
+// add your own here:
 #if (BASE_USE_EQ_ALLOCATOR)
 using MemoryCoordinator = MCInstance<EQMemoryRouter>;
 #else
-using MemoryCoordinator = MCInstance<DefaultRouter>;
+using MemoryCoordinator = MCInstance<DefaultCRTRouter>;
 #endif
 
+namespace detail {
+// no constructor desired
+constinit static MemoryCoordinator MemoryRouter{};
+}  // namespace
+
+
 // get the global instance
-// TODO: current this isnt folded..
-MemoryCoordinator& memory_coordinator();
+STRONG_INLINE MemoryCoordinator& memory_coordinator() {
+  return detail::MemoryRouter;
+}
+
+STRONG_INLINE MemoryTracker& memory_tracker() {
+  return detail::MemoryRouter.tracker();
+}
 }  // namespace base

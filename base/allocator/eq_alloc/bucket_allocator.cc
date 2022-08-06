@@ -79,7 +79,7 @@ void* BucketAllocator::AcquireMemory(mem_size size, byte* hint) {
 bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
   // this needs to lock
   mem_size page_size = 0;
-  page_base = static_cast<byte*>(table.RequestPage(page_size));
+  page_base = static_cast<byte*>(table.RequestPage(&page_size));
   if (!page_base || page_size == 0) {
     DEBUG_TRAP; // page or page size invalid
     return false;

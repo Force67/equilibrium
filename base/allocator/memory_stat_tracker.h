@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <atomic>
+#include <base/atomic.h>
 #include <base/compiler.h>
 #include <base/numeric_limits.h>
 
@@ -25,10 +25,10 @@ struct MemoryTracker {
   MemoryCategory token_bucket[kTrackingLimit]{base::MinMax<MemoryCategory>::max()};
   // token indicies show us the name index we need
   const char* name_bucket[kTrackingLimit]{nullptr};
-  std::atomic<size_t> memory_sizes[kTrackingLimit]{0};
+  base::Atomic<mem_size> memory_sizes[kTrackingLimit]{0};
 
-  void TrackAllocation(size_t size);
-  void TrackDeallocation(size_t size);
+  // since a negative complement gets added with a + anyway, we simply only ever add
+  void TrackOperation(pointer_diff size /*signed number*/);
 };
 
 STRONG_INLINE void SetMemoryTrackerInstance(MemoryTracker*);
