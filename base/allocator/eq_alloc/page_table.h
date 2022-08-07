@@ -22,11 +22,18 @@ class PageTable {
     bool zero_pages{true};
   };
 
+  // os page size
   static u32 current_page_size();
+  // the ideal page size, we will use
   static u32 ideal_page_size();
+  // where we will align the pages to, for instance if this returns 1mib, each 64kib
+  // page would be allocated at 1mib steps
+  static u32 page_boundary_alignment();
 
   void* RequestPage(PageProtectionFlags page_flags,
                     mem_size* size_optional_out = nullptr);
+
+  bool ReleasePage(void* address);
 
  private:
   mem_size ReservePages(const pointer_size page_base, const mem_size count);
@@ -65,17 +72,21 @@ class PageTable {
                 "PageEntry alignment is invalid");
 
   // do we even need a size parameter if every page is 64k?
-  // do we even need an address if they are a continuous array? (e.g aligned to a 1mib boundary?)
+  // do we even need an address if they are a continuous array? (e.g aligned to a
+  // 1mib boundary?)
 
   // TODO: set class for these schenanigans?
   PageEntry* FindBackingPage(void* address);
 
   Options options_{};
 
-  //https://github.com/SerenityOS/serenity/blob/master/Kernel/Memory/PageDirectory.cpp
-  // pageDictionary
+  // https://github.com/SerenityOS/serenity/blob/master/Kernel/Memory/PageDirectory.cpp
+  //  pageDictionary
 
-  pointer_size first_page_;
+  base::Atomic<pointer_size> first_page_;
+  base::Atomic<pointer_size> last_page_;
+  base::Atomic<pointer_size> current_page_;
+
   base::Atomic<mem_size> metadata_page_count_;
   base::Atomic<mem_size> current_page_count_;
 };

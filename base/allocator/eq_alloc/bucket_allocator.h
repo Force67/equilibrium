@@ -15,20 +15,21 @@ class BucketAllocator final : public Allocator {
   friend struct EQMemoryRouter;
 
  protected:
-  BucketAllocator();
+  explicit BucketAllocator(PageTable&);
 
-  void* Allocate(PageTable& pageman, mem_size size, mem_size alignment = 0) override;
+  void* Allocate(mem_size size, mem_size alignment = 0) override;
 
-  void* ReAllocate(PageTable&,
-                   void* former_block,
+  void* ReAllocate(void* former_block,
                    mem_size new_size,
                    mem_size user_alignment = 0) override;
-  void Free(void* block) override;
+  bool Free(void* block) override;
 
  private:
   void* AcquireMemory(mem_size size, byte* hint = nullptr);
 
  private:
+  PageTable& page_table_;
+
   struct Bucket {
     u32 offset_{0};  // offset starting from page_base
     u16 size_{0};

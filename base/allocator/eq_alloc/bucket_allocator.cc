@@ -18,12 +18,10 @@ bool IntersectsReasonable(mem_size given, mem_size exepected) {
 }
 }  // namespace
 
-BucketAllocator::BucketAllocator() {}
+BucketAllocator::BucketAllocator(PageTable& t) : page_table_(t) {}
 
-void* BucketAllocator::Allocate(PageTable& pages,
-                                mem_size size,
-                                mem_size user_alignment) {
-   // this case should be validated by the memory router.
+void* BucketAllocator::Allocate(mem_size size, mem_size user_alignment) {
+  // this case should be validated by the memory router.
 #if defined(BASE_MEM_CORE_DEBUG)
   // cant handle this...
   if (size > eq_allocation_constants::kBucketThreshold ||
@@ -49,15 +47,14 @@ void* BucketAllocator::Allocate(PageTable& pages,
   do {
     if (void* block = AcquireMemory(size, page_hint))
       return block;
-    if (!TryAcquireNewPage(pages, page_hint))
+    if (!TryAcquireNewPage(page_table_, page_hint))
       attempts++;
   } while (attempts <= kPageAcquireAttempts);
 
   return nullptr;
 }
 
-void* BucketAllocator::ReAllocate(PageTable&,
-                                  void* former_block,
+void* BucketAllocator::ReAllocate(void* former_block,
                                   mem_size new_size,
                                   mem_size user_alignment) {
   return nullptr;
@@ -79,9 +76,10 @@ void* BucketAllocator::AcquireMemory(mem_size size, byte* hint) {
 bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
   // this needs to lock
   mem_size page_size = 0;
-  page_base = static_cast<byte*>(table.RequestPage(&page_size));
+  page_base = static_cast<byte*>(
+      table.RequestPage(base::PageProtectionFlags::RW, &page_size));
   if (!page_base || page_size == 0) {
-    DEBUG_TRAP; // page or page size invalid
+    DEBUG_TRAP;  // page or page size invalid
     return false;
   }
   // store the entire node in the page itself
@@ -195,7 +193,7 @@ BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
   return nullptr;
 }
 
-void BucketAllocator::Free(void* pointer) {
+bool BucketAllocator::Free(void* pointer) {
 #if 0
   byte* block = reinterpret_cast<byte*>(pointer);
   for (auto* node = page_list_.head(); node != page_list_.end();
@@ -221,5 +219,6 @@ void BucketAllocator::Free(void* pointer) {
 
   DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
 #endif
+  return false;
 }
 }  // namespace base

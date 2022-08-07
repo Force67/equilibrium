@@ -13,7 +13,7 @@ namespace base {
 // 'TextureMemory'
 using MemoryCategory = u16;
 
-constexpr MemoryCategory kTrackingLimit = 256;
+constexpr MemoryCategory kTrackingLimit = 255;
 
 constexpr MemoryCategory kInvalidCategory{base::MinMax<MemoryCategory>::max()};
 constexpr MemoryCategory kGeneralMemory = 0;

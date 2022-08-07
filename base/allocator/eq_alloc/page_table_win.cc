@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <base/allocator/eq_alloc/page_table.h>
+#include <base/allocator/eq_alloc/eq_allocation_constants.h>
 
 namespace base {
 namespace {
@@ -16,7 +17,11 @@ u32 PageTable::current_page_size() {
 }
 
 u32 PageTable::ideal_page_size() {
-  return static_cast<u32>(64_kib);
+  return static_cast<u32>(eq_allocation_constants::kPageThreshold);
+}
+
+u32 PageTable::page_boundary_alignment() {
+  return static_cast<u32>(1_mib);
 }
 
 byte* PageTable::Reserve(void* preferred_address, mem_size block_size) {

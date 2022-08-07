@@ -1,43 +1,24 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#if defined(OS_WIN)
-#include <Windows.h>
-#endif
-
 #include <base/allocator/memory_coordinator.h>
 #include <base/allocator/eq_alloc/memory_context.h>
 
 namespace base {
 namespace {
-#if defined(OS_WIN)
-
-// we are not using base::GetCurrentThreadIndex to avoid depending on it, since it's
-// source file uses higher level language constructs that allocate
-u32 Memory_GetCurrentThreadIndex() {
-  return ::GetCurrentThreadId();
-}
-#endif
-
-thread_local u32 current_memory_id{0};
+// we use -1 to signal: no current override set.
+thread_local i16 current_allocator_id{MemoryScope::NoOverride};
 }  // namespace
 
-MemoryScope::MemoryScope(u32 id, bool force) {
-  thread_index_ = Memory_GetCurrentThreadIndex();
-  // Enter the new allocator/pool instance.
-  if (current_memory_id != id) {
-    Enter(id);
-  }
+void MemoryScope::Enter(allocator_handle new_id) {
+  previous_allocator_ = current_allocator_id;
+  current_allocator_id = static_cast<allocator_id>(new_id);
+
+  // STILL We should check the thread id here, if the closure was somehow moved onto
+  // a different thread!!!!!!!!
 }
 
-MemoryScope::~MemoryScope() {
-  Enter(prev_context_);
-}
-
-void MemoryScope::Enter(u32 id) {
-  prev_context_ = current_memory_id;
-  current_memory_id = id;
-
-  // memory_coordinator().SwitchThreadAllocator();
+MemoryScope::allocator_handle MemoryScope::current_allocator() {
+  return current_allocator_id;
 }
 }  // namespace base

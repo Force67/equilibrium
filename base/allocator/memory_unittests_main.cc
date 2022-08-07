@@ -16,7 +16,7 @@ void EQPageTableTest1() {
   PageTable table;
   u32 size = PageTable::current_page_size();
 
-  void* page = table.RequestPage();
+  void* page = table.RequestPage(base::PageProtectionFlags::RW);
   BUGCHECK(page);
 
 }
