@@ -5,48 +5,73 @@
 #include <base/allocator/memory_coordinator.h>
 #include <base/allocator/memory_stat_tracker.h>
 
+#include <base/threading/lock_guard.h>
+#include <base/threading/spinning_mutex.h>
+
 namespace base {
 namespace {
 thread_local constinit MemoryCategory current_token{kGeneralMemory};
+
+MemoryCategory FindFreeTokenIndex(MemoryTracker& tracker) {
+  MemoryCategory index{kInvalidCategory};
+  for (auto i = 0; i < (kTrackingLimit - 1); i++) {
+    MemoryCategory& token_entry = tracker.token_bucket[i];
+    if (token_entry == kInvalidCategory) {
+      token_entry = index = i;
+      break;
+    }
+  }
+  return index;
+}
 }  // namespace
 
-// TODO: guard lock this.
 MemoryCategory AddMemoryCategory(const char* name) {
-  auto& tracker_instance = memory_coordinator().tracker();
+  // lock
+  base::ScopedLockGuard<base::SpinningMutex> _;
+  (void)_;
 
-  // find a free entry.
-  MemoryCategory index = kTrackingLimit + 1;
-  for (auto i = 0; i < kTrackingLimit; i++) {
-    auto& entry = tracker_instance.token_bucket[i];
-    if (entry == kInvalidCategory)
-      entry = index = i;
-  }
+  auto& tracker_instance = memory_tracker();
+  const MemoryCategory index = FindFreeTokenIndex(tracker_instance);
 
-  // TODO: handle tracking limit
-
-  if (index < kTrackingLimit)
+  if (index < kInvalidCategory)
     tracker_instance.name_bucket[index] = name;
+  else
+    BUGCHECK(false, "Invalid category");
 
   return index;
 }
 
-// TODO: guard lock this.
 void RemoveMemoryCategory(MemoryCategory id) {
-  auto& tracker_instance = memory_coordinator().tracker();
+  // lock
+  base::ScopedLockGuard<base::SpinningMutex> _;
+  (void)_;
 
+  auto& tracker_instance = memory_tracker();
   for (auto i = 0; i < kTrackingLimit; i++) {
-    auto& entry = tracker_instance.token_bucket[i];
-    if (entry == id)
-      entry = kInvalidCategory;
+    MemoryCategory& token_entry = tracker_instance.token_bucket[i];
+    if (token_entry == id) {
+      if (token_entry < kInvalidCategory) {
+        tracker_instance.name_bucket[token_entry] = nullptr;
+        tracker_instance.memory_sizes[token_entry] = 0u;
+      } else
+        BUGCHECK(false);
+
+      token_entry = kInvalidCategory;
+      break;
+    }
   }
 }
 
 void MemoryTracker::TrackOperation(pointer_diff size) {
-  DCHECK(current_token != kInvalidCategory, "Category not set");
-  //DCHECK(pointer_diff((memory_sizes[current_token] + size) /*atomic op*/) < 0,
-  //       "Underflow into tracking storage");
+  // DCHECK(current_token != kInvalidCategory, "Category not set");
+  //  DCHECK(pointer_diff((memory_sizes[current_token] + size) /*atomic op*/) < 0,
+  //         "Underflow into tracking storage");
 
   memory_sizes[current_token] += size;
+}
+
+MemoryCategory current_memory_category() {
+  return current_token;
 }
 
 MemoryCategoryScope::MemoryCategoryScope(MemoryCategory token)

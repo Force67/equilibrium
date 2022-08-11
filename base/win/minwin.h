@@ -268,6 +268,9 @@ struct CHROME_MSG {
 WINBASEAPI _Releases_exclusive_lock_(*SRWLock) VOID WINAPI
     ReleaseSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
 WINBASEAPI BOOLEAN WINAPI TryAcquireSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
+WINBASEAPI
+_Acquires_exclusive_lock_(*SRWLock) VOID WINAPI
+    AcquireSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
 
 // Needed to support protobuf's GetMessage macro magic.
 WINUSERAPI BOOL WINAPI GetMessageW(_Out_ LPMSG lpMsg,
@@ -282,13 +285,11 @@ WINBASEAPI BOOL WINAPI TlsSetValue(_In_ DWORD dwTlsIndex,
                                    _In_opt_ LPVOID lpTlsValue);
 
 // Needed for scoped_handle.h
-WINBASEAPI _Check_return_ _Post_equals_last_error_ DWORD WINAPI
-    GetLastError(VOID);
+WINBASEAPI _Check_return_ _Post_equals_last_error_ DWORD WINAPI GetLastError(VOID);
 
 WINBASEAPI VOID WINAPI SetLastError(_In_ DWORD dwErrCode);
 
-WINBASEAPI BOOL WINAPI TerminateProcess(_In_ HANDLE hProcess,
-                                        _In_ UINT uExitCode);
+WINBASEAPI BOOL WINAPI TerminateProcess(_In_ HANDLE hProcess, _In_ UINT uExitCode);
 
 // Support for a deleter for LocalAlloc memory.
 WINBASEAPI HLOCAL WINAPI LocalFree(_In_ HLOCAL hMem);
@@ -304,8 +305,7 @@ inline WIN32_FIND_DATA* ChromeToWindowsType(CHROME_WIN32_FIND_DATA* p) {
   return reinterpret_cast<WIN32_FIND_DATA*>(p);
 }
 
-inline const WIN32_FIND_DATA* ChromeToWindowsType(
-    const CHROME_WIN32_FIND_DATA* p) {
+inline const WIN32_FIND_DATA* ChromeToWindowsType(const CHROME_WIN32_FIND_DATA* p) {
   return reinterpret_cast<const WIN32_FIND_DATA*>(p);
 }
 

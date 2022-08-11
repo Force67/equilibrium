@@ -33,5 +33,7 @@ project("base_memory_unittests")
     "allocator/**.inl",
     "containers/linked_list.cc",
     "containers/linked_list.h",
+    "threading/spinning_mutex.h",
+    "threading/spinning_mutex.cc"
   })
   base_project()

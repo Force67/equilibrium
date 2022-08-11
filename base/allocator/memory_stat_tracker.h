@@ -11,25 +11,30 @@ namespace base {
 // memory categories are used to label specific allocations
 // e.g a LoadTexture function that tags all allocations within it as
 // 'TextureMemory'
-using MemoryCategory = u16;
+using MemoryCategory = u8;
 
 constexpr MemoryCategory kTrackingLimit = 255;
+constexpr MemoryCategory kGeneralMemory{base::MinMax<MemoryCategory>::max() - 1};
+constexpr MemoryCategory kInvalidCategory{0};
 
-constexpr MemoryCategory kInvalidCategory{base::MinMax<MemoryCategory>::max()};
-constexpr MemoryCategory kGeneralMemory = 0;
-
+// this is not a proper class since we want to allow constinit for the MC
 struct MemoryTracker {
+  // since a negative complement gets added with a + anyway, we simply only ever add
+  void TrackOperation(pointer_diff size /*signed number*/);
+
   // 0xfff... means that the entry is unused,
   // 0 means that we fall under the general category,
   // e.g noname
-  MemoryCategory token_bucket[kTrackingLimit]{base::MinMax<MemoryCategory>::max()};
-  // token indicies show us the name index we need
-  const char* name_bucket[kTrackingLimit]{nullptr};
-  base::Atomic<mem_size> memory_sizes[kTrackingLimit]{0};
 
-  // since a negative complement gets added with a + anyway, we simply only ever add
-  void TrackOperation(pointer_diff size /*signed number*/);
+  // is this even smart, or can we use a bitset?
+  MemoryCategory token_bucket[kTrackingLimit]{
+      kInvalidCategory};  // wouldnd a bitset suffice, as the index would indicate
+                          // the offset?
+  const char* name_bucket[kTrackingLimit]{"JESSICA"};
+  base::Atomic<mem_size> memory_sizes[kTrackingLimit]{1337};
 };
+
+MemoryCategory current_memory_category(); 
 
 STRONG_INLINE void SetMemoryTrackerInstance(MemoryTracker*);
 
