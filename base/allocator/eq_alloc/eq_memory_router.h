@@ -5,6 +5,8 @@
 
 #include <base/compiler.h>
 #include <base/numeric_limits.h>
+
+#include <base/allocator/memory_context.h>
 #include <base/allocator/eq_alloc/allocator.h>
 #include <base/allocator/eq_alloc/page_table.h>
 #include <base/allocator/eq_alloc/eq_allocation_constants.h>

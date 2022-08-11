@@ -32,6 +32,6 @@ using NativePageProtectionType = u32;
 using NativePageProtectionType = int;  // whatever they define as int.
 #endif
 
-NativePageProtectionType TranslateToNativePageProtection(PageProtectionFlags);
-PageProtectionFlags TranslateFromNativePageProtection(NativePageProtectionType);
+NativePageProtectionType TranslateToNativePageProtection(const PageProtectionFlags);
+PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtectionType);
 }  // namespace base

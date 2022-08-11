@@ -20,7 +20,7 @@ struct LicenseHeader {
 };
 static_assert(sizeof(LicenseHeader) == 24);
 
-base::String EncodeAndSignLicense(const LicenseHeader& header,
+base::String EncodeAndSignLicenseBlock(const LicenseHeader& header,
                                   const base::StringU8& licensee_name,
                                   const base::StringRefU8 optional_additional_data);
 }  // namespace entitlement

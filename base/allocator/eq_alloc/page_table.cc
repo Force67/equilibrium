@@ -81,12 +81,12 @@ mem_size PageTable::ReservePages(const pointer_size page_base,
 void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
   //ScopedSpinLock _;
 
-
+    #if 0
   if (void* block =
           Allocate(e.pointer(), ideal_page_size(), page_flags, 0xFF, true)) {
     return block;
   }
-
+  #endif
 
   // walk the freelist..
 

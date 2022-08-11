@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/check.h>
 
 namespace base {
 
@@ -27,7 +28,7 @@ class MemoryScope {
   explicit inline MemoryScope(allocator_id id) {
     DCHECK(id > 0 && id <= 255, "Invalid ID?");
     // Enter the new allocator/pool instance.
-    if (current_allocator_id != id) {
+    if (current_allocator() != id) {
       Enter(static_cast<allocator_handle>(id));
     }
   }

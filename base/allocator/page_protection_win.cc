@@ -6,7 +6,7 @@
 
 namespace base {
 // https://github.com/0x1F9F1/mem/blob/master/include/mem/PageProtectionFlags.h
-NativePageProtectionType TranslateToNativePageProtection(PageProtectionFlags flags) {
+NativePageProtectionType TranslateToNativePageProtection(const PageProtectionFlags flags) {
   NativePageProtectionType result = PAGE_NOACCESS;
 
   if (flags & PageProtectionFlags::X) {
@@ -38,7 +38,7 @@ NativePageProtectionType TranslateToNativePageProtection(PageProtectionFlags fla
 }
 
 PageProtectionFlags TranslateFromNativePageProtection(
-    NativePageProtectionType flags) {
+    const NativePageProtectionType flags) {
   PageProtectionFlags result = PageProtectionFlags::NONE;
 
   switch (flags & 0xFF) {

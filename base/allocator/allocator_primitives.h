@@ -32,5 +32,5 @@ void FreeTracked(void* block, const base::SourceLocation&);
 
 #define EQ_MALLOC(x) base::Allocate(x)
 #define EQ_FREE(x) base::Free(x)
-#define EQ_REALLOC(x) __debugbreak()
+#define EQ_REALLOC(former, new_size) base::ReAllocate(former, new_size)
 #define EQ_VALLOC(x) __debugbreak()

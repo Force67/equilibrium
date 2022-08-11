@@ -24,11 +24,10 @@ mem_size WritePaddedString(u8* head, const base::BasicStringRef<T> ref) {
 }
 }  // namespace
 
-base::String EncodeAndSignLicense(const LicenseHeader& header,
-                                  const base::StringU8& licensee_name,
-                                  const base::StringRefU8 optional_additional_data) {
-    // TODO: does this even make sense...
-
+base::String EncodeAndSignLicenseBlock(
+    const LicenseHeader& header,
+    const base::StringU8& licensee_name,
+    const base::StringRefU8 optional_additional_data) {
   // Should use some bufferdgrowbuffer class....
   base::Vector<u8> buffer(2048, base::VectorReservePolicy::kForData);
 

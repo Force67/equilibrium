@@ -6,20 +6,33 @@
 
 namespace base {
 
-unsigned CountLeadingZeros(auto val) {
+constexpr auto x = sizeof(unsigned long);
+
+u32 CountLeadingZeros(u32 val) {
   if (val == 0)
     return 32;
 
-#if __has_builtin(__builtin_clz) || defined(__GNUC__)
+#if __has_builtin(__builtin_clz)
   return __builtin_clz(val);
 #elif defined(_MSC_VER)
-  unsigned long Index;
-  _BitScanReverse(&Index, val);
-  return Index ^ 31;
+  unsigned long index;
+  _BitScanReverse(&index, static_cast<unsigned long>(val));
+  return index ^ 31;
 #endif
 }
 
-//_BitScanReverse();
+u64 CountLeadingZeros(u64 val) {
+  if (val == 0)
+    return 64;
+
+#if __has_builtin(__builtin_clzll)
+  return __builtin_clzll(val);
+#elif defined(_MSC_VER)
+  unsigned long index;
+  _BitScanReverse64(&index, static_cast<unsigned __int64>(val));
+  return index ^ 63;
+#endif
+}
 
 inline u32 Log2(u32 value) {
   return 31 - CountLeadingZeros(value);
@@ -29,7 +42,7 @@ inline u64 Log2(u64 value) {
   return 63 - CountLeadingZeros(value);
 }
 
-// not a template by desing
+// not a template by design
 constexpr inline bool IsPowerOf2(u32 Value) {
   return Value && !(Value & (Value - 1));
 }
