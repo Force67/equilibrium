@@ -159,9 +159,11 @@ class Vector {
     // remember: param is cap not size.
     T* new_block = Vector::Allocate(new_cap);
 
-    std::memcpy(new_block, data_, current_cap * sizeof(T));
-    base::DestructRange(data_, end_);
-    Vector::Free(data_, current_cap);
+    if (data_) {
+      std::memcpy(new_block, data_, current_cap * sizeof(T));
+      base::DestructRange(data_, end_);
+      Vector::Free(data_, current_cap);
+    }
 
     data_ = new_block;
     end_ = &new_block[current_cap];

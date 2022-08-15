@@ -20,16 +20,16 @@ using mem_size = u64;
 using pointer_size = u64;
 using pointer_diff = i64;
 
+constexpr mem_size kCharBit = 8;
+
 template <typename T>
 consteval inline bool Is64Bit() {
-  // TODO: only on amd64
-  return sizeof(T) == 8;
+  return sizeof(T) == kCharBit;
 }
 
 template <typename T>
 consteval auto NBitCount() {
-  // TODO: only on amd64
-  return sizeof(T) * 8;
+  return sizeof(T) * kCharBit;
 }
 }  // namespace arch_types
 

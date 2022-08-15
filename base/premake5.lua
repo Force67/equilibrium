@@ -13,14 +13,18 @@ group("Base")
   kind("StaticLib")
   base_project()
   files({"**.cc", "**.h", "**.in", "**.inl"})
-  removefiles({"**_test.cc", "allocator/memory_unittests_main.cc"})
+  removefiles({
+    "**_test.cc",
+    "allocator/memory_unittests_main.cc"})
 
 project("base_unittests")
   kind("ConsoleApp")
   base_project()
   add_generic_test_main()
   files({"**.cc", "**.h", "**.in", "**.inl"})
-  removefiles("allocator/**_test.cc", "allocator/memory_unittests_main.cc")
+  removefiles({
+    "allocator/**_test.cc", 
+    "allocator/memory_unittests_main.cc"})
 
 -- base is a special case where we cannot rely on the unittest model
 -- found in components, so we have to manually add the test project

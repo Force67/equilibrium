@@ -11,6 +11,7 @@ namespace base {
 
 class DefaultCRTRouter {
  public:
+     // TODO(V): Consider _aligned_malloc
   void* Allocate(mem_size size) { return ::malloc(size); }
 
   void* ReAllocate(void* former,
@@ -29,6 +30,11 @@ class DefaultCRTRouter {
 
  private:
   mem_size block_size(void* block) {
+    if (!block)
+      __debugbreak();
+
+    //DCHECK(block);
+
 #if defined(OS_WIN)
     const mem_size block_size{::_msize(block)};
 #elif defined(OS_POSIX)

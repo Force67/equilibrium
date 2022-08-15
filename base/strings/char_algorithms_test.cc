@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <base/strings/char_algorithms.h>
-
+#if 0
 namespace {
 TEST(CharAlgos, CalculateStringLengthAscii) {
   constexpr char kTestStr[] = "HelloWorld";
@@ -35,3 +35,4 @@ TEST(CharAlgos, FailToFindNullTerm) {
 }
 
 }  // namespace
+#endif

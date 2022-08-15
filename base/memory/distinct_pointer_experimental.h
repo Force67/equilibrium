@@ -30,7 +30,10 @@ class DistinctPointer {
       base::ISSame<TConstructionPolicy, MakeNow>)
       : pointer_(new T(base::forward<TArgs>(args)...)) {}
 
-  constexpr ~DistinctPointer() { TDeleter::Delete(pointer_); }
+  constexpr ~DistinctPointer() {
+    if (pointer_)
+      TDeleter::Delete(pointer_);
+  }
 
   BASE_NOCOPYMOVE(DistinctPointer);
 
