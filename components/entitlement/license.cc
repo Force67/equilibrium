@@ -7,31 +7,24 @@
 #include <base/containers/vector.h>
 #include <base/math/math_helpers.h>
 
+#include <base/math/alignment.h>
+
+constexpr auto x = base::Align(65, 4);
+
 namespace entitlement {
 namespace {
 constexpr const char8_t kIssuingAuthority[]{u8"VH-TECH"};
-
-template <typename T>
-mem_size WritePaddedString(u8* head, const base::BasicStringRef<T> ref) {
-  *reinterpret_cast<mem_size*>(head) = ref.length();
-  std::memcpy(head + sizeof(mem_size), ref.c_str(), ref.length());
-
-  // write 0 padding.
-  const mem_size data_size = sizeof(mem_size) + ref.length();
-  const mem_size pad = base::NextPowerOf2(data_size);
-  std::memset(head + data_size, 0, pad);
-  return data_size + pad;
-}
 }  // namespace
 
-base::String EncodeAndSignLicenseBlock(
+base::String EncodeLicenseBlock(
     const LicenseHeader& header,
     const base::StringU8& licensee_name,
     const base::StringRefU8 optional_additional_data) {
-  // Should use some bufferdgrowbuffer class....
-  base::Vector<u8> buffer(2048, base::VectorReservePolicy::kForData);
-
+  base::String storage;
+  // first comes the license header
   *reinterpret_cast<LicenseHeader*>(buffer.data()) = header;
+
+  // https://github.com/amrayn/licensepp/blob/master/src/issuing-authority.cc#L113
   auto offset = WritePaddedString<char8_t>(buffer.data() + sizeof(LicenseHeader),
                                            kIssuingAuthority);
   offset += WritePaddedString<char8_t>(buffer.data() + offset, licensee_name);

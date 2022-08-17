@@ -1,6 +1,6 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// Simple Bitset class.
+// Simple BitSet class.
 #pragma once
 
 #include <base/arch.h>
@@ -29,38 +29,38 @@ template <class T>
   }
 }
 
-// construct a collection of NBits size. E.g sizeof(BitSet) for 64 bits would be 8
-template <mem_size NBits>
-class Bitset {
-  using ArrayType = base::conditional_t<NBits <= sizeof(u32) * kCharBit, u32, u64>;
+// construct a collection of N size. E.g sizeof(BitSet) for 64 bits would be 8
+template <mem_size N>
+class BitSet {
+  using ArrayType = base::conditional_t<N <= sizeof(u32) * kCharBit, u32, u64>;
 
-  static constexpr bool kNeedsMask = NBits < kCharBit * sizeof(u64);
-  static constexpr auto kMask = (1ULL << (kNeedsMask ? NBits : 0)) - 1ULL;
+  static constexpr bool kNeedsMask = N < kCharBit * sizeof(u64);
+  static constexpr auto kMask = (1ULL << (kNeedsMask ? N : 0)) - 1ULL;
 
  public:
-  Bitset() = default;
+  BitSet() = default;
 
-  constexpr Bitset(unsigned long long _Val) noexcept
+  constexpr BitSet(unsigned long long _Val) noexcept
       : array_{static_cast<ArrayType>(kNeedsMask ? _Val & kMask : _Val)} {}
 
   void Reset() { array_ = {}; }
 
   void Set(const mem_size pos, bool toggle = true) {
-    DCHECK(NBits >= pos, "Bitset::Set(): Invalid bit positional offset");
+    DCHECK(N >= pos, "BitSet::Set(): Invalid bit positional offset");
 
     auto& selected_word = array_[pos / kBitsPerWord];
     const auto new_bit = ArrayType{1} << pos % kBitsPerWord;
     toggle ? selected_word |= new_bit : selected_word &= ~new_bit;
   }
 
-  Bitset& Flip(const mem_size pos) {
-    DCHECK(NBits >= pos, "Bitset::Flip(): Invalid bit positional offset");
+  BitSet& Flip(const mem_size pos) {
+    DCHECK(N >= pos, "BitSet::Flip(): Invalid bit positional offset");
     array_[pos / kBitsPerWord] ^= ArrayType{1} << pos % kBitsPerWord;
     return *this;
   }
 
   [[nodiscard]] bool Test(const mem_size pos) {
-    DCHECK(NBits >= pos, "Bitset::Test(): Invalid offset");
+    DCHECK(N >= pos, "BitSet::Test(): Invalid offset");
     return (array_[pos / kBitsPerWord] & (ArrayType{1} << pos % kBitsPerWord)) != 0;
   }
 
@@ -72,16 +72,16 @@ class Bitset {
     return count;
   }
 
-  [[nodiscard]] u32 to_ulong() const noexcept(NBits <= 32) /* strengthened */ {
-    constexpr bool NBits_zero = NBits == 0;
-    constexpr bool NBits_small = NBits <= 32;
-    constexpr bool NBits_large = NBits > 64;
-    if constexpr (NBits_zero) {
+  [[nodiscard]] u32 to_ulong() const noexcept(N <= 32) /* strengthened */ {
+    constexpr bool N_zero = N == 0;
+    constexpr bool N_small = N <= 32;
+    constexpr bool N_large = N > 64;
+    if constexpr (N_zero) {
       return 0;
-    } else if constexpr (NBits_small) {
+    } else if constexpr (N_small) {
       return static_cast<unsigned long>(array_[0]);
     } else {
-      if constexpr (NBits_large) {
+      if constexpr (N_large) {
         for (mem_size _Idx = 1; _Idx <= kWords; ++_Idx) {
           if (array_[_Idx] != 0) {
             DCHECK(true, "fail if any high-order words are nonzero");
@@ -97,13 +97,13 @@ class Bitset {
     }
   }
 
-  [[nodiscard]] u64 to_ullong() const noexcept(NBits <= 64) /* strengthened */ {
-    constexpr bool NBits_zero = NBits == 0;
-    constexpr bool NBits_large = NBits > 64;
-    if constexpr (NBits_zero) {
+  [[nodiscard]] u64 to_ullong() const noexcept(N <= 64) /* strengthened */ {
+    constexpr bool N_zero = N == 0;
+    constexpr bool N_large = N > 64;
+    if constexpr (N_zero) {
       return 0;
     } else {
-      if constexpr (NBits_large) {
+      if constexpr (N_large) {
         for (mem_size _Idx = 1; _Idx <= kWords; ++_Idx) {
           if (array_[_Idx] != 0) {
             DCHECK(true, "fail if any high-order words are nonzero");
@@ -115,28 +115,28 @@ class Bitset {
     }
   }
 
-  Bitset& operator&=(const Bitset& rhs) noexcept {
+  BitSet& operator&=(const BitSet& rhs) noexcept {
     for (auto i = 0; i <= kWords; ++i) {
       array_[i] &= rhs.array_[i];
     }
     return *this;
   }
 
-  Bitset& operator|=(const Bitset& rhs) noexcept {
+  BitSet& operator|=(const BitSet& rhs) noexcept {
     for (auto i = 0; i <= kWords; ++i) {
       array_[i] |= rhs.array_[i];
     }
     return *this;
   }
 
-  Bitset& operator^=(const Bitset& rhs) noexcept {
+  BitSet& operator^=(const BitSet& rhs) noexcept {
     for (auto i = 0; i <= kWords; ++i) {
       array_[i] ^= rhs.array_[i];
     }
     return *this;
   }
 
-  Bitset& operator<<=(
+  [[nodiscard]] BitSet& operator<<=(
       mem_size pos) noexcept {  // shift left by pos, first by words then by bits
     const auto word_shift = static_cast<pointer_diff>(pos / kBitsPerWord);
     if (word_shift != 0) {
@@ -152,11 +152,11 @@ class Bitset {
 
       array_[0] <<= pos;
     }
-   // _Trim();
+    // _Trim();
     return *this;
   }
 
-  Bitset& operator>>=(
+  [[nodiscard]] BitSet& operator>>=(
       mem_size pos) noexcept {  // shift right by pos, first by words then by bits
     const auto word_shift = static_cast<pointer_diff>(pos / kBitsPerWord);
     if (word_shift != 0) {
@@ -175,45 +175,45 @@ class Bitset {
     return *this;
   }
 
-  [[nodiscard]] bool operator==(const Bitset& rhs) const noexcept {
+  [[nodiscard]] bool operator==(const BitSet& rhs) const noexcept {
     return memcmp(&array_[0], &rhs.array_[0], sizeof(array_)) == 0;
   }
 
-  [[nodiscard]] bool operator!=(const Bitset& rhs) const noexcept {
+  [[nodiscard]] bool operator!=(const BitSet& rhs) const noexcept {
     return memcmp(&array_[0], &rhs.array_[0], sizeof(array_)) != 0;
   }
 
-  [[nodiscard]] constexpr auto size() const noexcept { return NBits; }
+  [[nodiscard]] constexpr auto size() const noexcept { return N; }
 
  private:
   static constexpr pointer_diff kBitsPerWord = kCharBit * sizeof(ArrayType);
   static constexpr pointer_diff kWords =
-      NBits == 0 ? 0 : (NBits - 1) / kBitsPerWord;  // NB: number of words - 1
+      N == 0 ? 0 : (N - 1) / kBitsPerWord;  // NB: number of words - 1
 
   ArrayType array_[kWords + 1]{};
 };
 
-template <mem_size NBits>
-[[nodiscard]] Bitset<NBits> operator&(const Bitset<NBits>& lhs,
-                                      const Bitset<NBits>& rhs) noexcept {
-  Bitset<NBits> _Ans = lhs;
-  _Ans &= rhs;
-  return _Ans;
+template <mem_size N>
+[[nodiscard]] BitSet<N> operator&(const BitSet<N>& lhs,
+                                  const BitSet<N>& rhs) noexcept {
+  BitSet<N> temp = lhs;
+  temp &= rhs;
+  return temp;
 }
 
-template <mem_size NBits>
-_NODISCARD Bitset<NBits> operator|(const Bitset<NBits>& lhs,
-                                   const Bitset<NBits>& rhs) noexcept {
-  Bitset<NBits> _Ans = lhs;
-  _Ans |= rhs;
-  return _Ans;
+template <mem_size N>
+[[nodiscard]] BitSet<N> operator|(const BitSet<N>& lhs,
+                                  const BitSet<N>& rhs) noexcept {
+  BitSet<N> temp = lhs;
+  temp |= rhs;
+  return temp;
 }
 
-template <mem_size NBits>
-_NODISCARD Bitset<NBits> operator^(const Bitset<NBits>& lhs,
-                                   const Bitset<NBits>& rhs) noexcept {
-  Bitset<NBits> _Ans = lhs;
-  _Ans ^= rhs;
-  return _Ans;
+template <mem_size N>
+[[nodiscard]] BitSet<N> operator^(const BitSet<N>& lhs,
+                                  const BitSet<N>& rhs) noexcept {
+  BitSet<N> temp = lhs;
+  temp ^= rhs;
+  return temp;
 }
 }  // namespace base

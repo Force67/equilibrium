@@ -8,6 +8,8 @@
 #include <base/allocator/eq_alloc/eq_allocation_constants.h>
 #include <base/math/alignment.h>
 
+#include <base/threading/lock_guard.h>
+
 namespace base {
 namespace {
 // more than 3 would waste too many cycles
@@ -20,7 +22,7 @@ bool IntersectsReasonable(mem_size given, mem_size exepected) {
 
 BucketAllocator::BucketAllocator(PageTable& t) : page_table_(t) {}
 
-void* BucketAllocator::Allocate(mem_size size, mem_size user_alignment) {
+void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
   // this case should be validated by the memory router.
 #if defined(BASE_MEM_CORE_DEBUG)
   // cant handle this...
@@ -29,28 +31,23 @@ void* BucketAllocator::Allocate(mem_size size, mem_size user_alignment) {
     return nullptr;
 #endif
 
-  // TODO: if our alignment is perfect by the user, maybe try to not destroy that.
-  // dont destroy perfect alignment with our bucket, instead put it in some
-  // free list then... but then again, a problem would be fragmentation if we would
-  // be to maintain a seperate freelist :thonk:
+  // align to a sensible boundary
   size += sizeof(Bucket);
-  mem_size alignment = base::NextPowerOf2(size);
-  if (user_alignment > 0 && user_alignment <= alignment) {
-    alignment = user_alignment;
-    size = base::Align(size, alignment);
-  } else
-    size = alignment;
+  size = base::Align(size, alignment);
 
-  // TODO: worry about thread safety
-  i32 attempts = 0;
-  byte* page_hint = nullptr;
-  do {
-    if (void* block = AcquireMemory(size, page_hint))
-      return block;
-    if (!TryAcquireNewPage(page_table_, page_hint))
-      attempts++;
-  } while (attempts <= kPageAcquireAttempts);
+  {
+    base::NonOwningScopedLockGuard _(lock_);
+    (void)_;
 
+    i32 attempts = 0;
+    byte* page_hint = nullptr;
+    do {
+      if (void* block = AcquireMemory(size, page_hint))
+        return block;
+      if (!TryAcquireNewPage(page_table_, page_hint))
+        attempts++;
+    } while (attempts <= kPageAcquireAttempts);
+  }
   return nullptr;
 }
 
@@ -61,6 +58,8 @@ void* BucketAllocator::ReAllocate(void* former_block,
 }
 
 void* BucketAllocator::AcquireMemory(mem_size size, byte* hint) {
+  //DCHECK(!lock_.held());
+
   if (hint) {
     // do something with the hint index
   }

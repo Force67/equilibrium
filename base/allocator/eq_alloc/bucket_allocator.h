@@ -6,6 +6,7 @@
 #include <base/atomic.h>
 #include <base/containers/linked_list.h>
 #include <base/allocator/eq_alloc/allocator.h>
+#include <base/threading/spinning_mutex.h>
 
 namespace base {
 // https://fossies.org/linux/serf/buckets/allocator.c
@@ -29,6 +30,7 @@ class BucketAllocator final : public Allocator {
 
  private:
   PageTable& page_table_;
+  base::SpinningMutex lock_;
 
   struct Bucket {
     u32 offset_{0};  // offset starting from page_base

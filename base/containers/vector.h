@@ -1,19 +1,15 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// std::vector replacement.
+// 
+// base::Vector is a sequence container that encapsulates dynamic size arrays
 #pragma once
 
 #include <base/arch.h>
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
-#include <base/allocator/allocator_primitives.h>
+#include <base/containers/container_traits.h>
 
 namespace base {
-
-struct DefaultVectorAllocator {
-  static void* Allocate(mem_size sz) { return base::Allocate(sz); }
-  static void Free(void* former, mem_size former_size) { base::Free(former); }
-};
 
 enum class VectorReservePolicy {
   kForPushback,  // this is an optimization so you can push_back without upping the
@@ -25,7 +21,7 @@ enum class VectorReservePolicy {
 };
 
 // TODO: shrink_to_fit, resize
-template <typename T, class TAllocator = DefaultVectorAllocator>
+template <typename T, class TAllocator = base::DefaultAllocator>
 class Vector {
  public:
   // indicates how much to overallocate

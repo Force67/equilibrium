@@ -7,17 +7,17 @@
 namespace {
 using namespace base;
 
-TEST(BitsetTest, Compare) {
-  base::Bitset<4> a(9); // 1001
-  base::Bitset<4> b(3); // 0011
+TEST(BitSetTest, Compare) {
+  base::BitSet<4> a(9); // 1001
+  base::BitSet<4> b(3); // 0011
   ASSERT_FALSE(a == b);
   ASSERT_TRUE(a != b);
 }
 
 // https://www.geeksforgeeks.org/c-bitset-and-its-application/
-TEST(BitsetTest, BitwiseAssignOP) {
-  base::Bitset<4> a(9);  // 1001
-  base::Bitset<4> b(3);  // 0011
+TEST(BitSetTest, BitwiseAssignOP) {
+  base::BitSet<4> a(9);  // 1001
+  base::BitSet<4> b(3);  // 0011
 
   a ^= b;
   EXPECT_EQ(a.to_ulong(), 10);
@@ -29,9 +29,9 @@ TEST(BitsetTest, BitwiseAssignOP) {
   EXPECT_EQ(a.to_ulong(), 3);
 }
 
-TEST(BitsetTest, BitwiseOP) {
-  base::Bitset<4> a(9);  // 1001
-  base::Bitset<4> b(3);  // 0011
+TEST(BitSetTest, BitwiseOP) {
+  base::BitSet<4> a(9);  // 1001
+  base::BitSet<4> b(3);  // 0011
 
   auto x = a & b;
   EXPECT_EQ(x.to_ulong(), 1);
@@ -43,8 +43,8 @@ TEST(BitsetTest, BitwiseOP) {
   EXPECT_EQ(x.to_ulong(), 10);
 }
 
-TEST(BitsetTest, Shift) {
-  base::Bitset<4> a(9);  // 1001
+TEST(BitSetTest, Shift) {
+  base::BitSet<4> a(9);  // 1001
 
   a <<= 2;
   EXPECT_EQ(a.to_ullong(), 36);
@@ -53,15 +53,15 @@ TEST(BitsetTest, Shift) {
   EXPECT_EQ(a.to_ullong(), 18);
 }
 
-TEST(BitsetTest, SetTest) {
-  base::Bitset<4> a(9);  // 1001
+TEST(BitSetTest, SetTest) {
+  base::BitSet<4> a(9);  // 1001
 
   a.Set(3, true);
   EXPECT_TRUE(a.Test(3));
 }
 
-TEST(BitsetTest, CountSetBits) {
-  base::Bitset<4> a(9);  // 1001
+TEST(BitSetTest, CountSetBits) {
+  base::BitSet<4> a(9);  // 1001
 
   EXPECT_EQ(a.CountSetBits(), 2);
 }

@@ -35,7 +35,7 @@ struct EQMemoryRouter {
     // we are unrolling these manually here for performance reasons.
     if (size <= eq_allocation_constants::kBucketThreshold)
       return allocators_[AllocatorID::kBucketAllocator]->Allocate(
-          size, eq_allocation_constants::kBucketThreshold);
+          size, 4);
     if (size <= eq_allocation_constants::kPageThreshold)
       return allocators_[AllocatorID::kPageAllocator]->Allocate(
           size, eq_allocation_constants::kPageThreshold);
