@@ -9,6 +9,13 @@ TEST(RedBlackTree, Insert) {
   base::RedBlackTree tree;
 
   tree.insert(1337);
-  EXPECT_TRUE(tree.searchTree(1337));
+  EXPECT_TRUE(tree.find(1337));
+
+  for (int i = 0; i < 10; i++)
+    tree.insert(i);
+
+  EXPECT_TRUE(tree.find(7));
+
+  tree.insert(8);
 }
 }  // namespace
