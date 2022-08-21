@@ -69,8 +69,12 @@ void SetCheckHandler(CheckHandler*);
   } while (0);
 #endif
 
+// constexpr if no dcheck
+#define CONSTEXPR_ND
+
 #else
 #define DCHECK(x, ...)
+#define CONSTEXPR_ND constexpr
 #endif
 
 // BugChecks indicate a hard programmer error and are compiled into shipping builds

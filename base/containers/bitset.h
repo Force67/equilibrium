@@ -4,31 +4,11 @@
 #pragma once
 
 #include <base/arch.h>
-#include <base/numeric_limits.h>
-#include <intrin.h>
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
+#include <base/containers/builtins_bit.h>
 
 namespace base {
-
-// TODO: amd64 check.
-template <class T>
-[[nodiscard]] mem_size PopCount(const T value) noexcept {
-  constexpr mem_size _Digits = base::MinMax<T>::digits();
-  if constexpr (_Digits <= 16) {
-    return static_cast<mem_size>(__popcnt16(value));
-  } else if constexpr (_Digits == 32) {
-    return static_cast<mem_size>(__popcnt(value));
-  } else {
-#ifdef _M_IX86
-    return static_cast<mem_size>(__popcnt(value >> 32) +
-                                 __popcnt(static_cast<unsigned int>(value)));
-#else   // ^^^ _M_IX86 / !_M_IX86 vvv
-    return static_cast<mem_size>(__popcnt64(value));
-#endif  // _M_IX86
-  }
-}
-
 // construct a collection of N size. E.g sizeof(BitSet) for 64 bits would be 8
 template <mem_size N>
 class BitSet {

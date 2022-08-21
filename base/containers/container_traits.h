@@ -11,7 +11,6 @@ concept HasContainerTraits = requires(T& t) {
   t.size();
 };
 
-
 // TODO: move
 struct DefaultAllocator {
   static void* Allocate(mem_size sz) { return base::Allocate(sz); }
