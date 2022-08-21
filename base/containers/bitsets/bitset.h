@@ -63,17 +63,12 @@ class BitSet {
     } else {
       if constexpr (N_large) {
         for (mem_size _Idx = 1; _Idx <= kWords; ++_Idx) {
-          if (array_[_Idx] != 0) {
-            DCHECK(true, "fail if any high-order words are nonzero");
-          }
+          DCHECK(array_[_Idx] == 0, "fail if any high - order words are nonzero");
         }
       }
 
-      if (array_[0] > ULONG_MAX) {
-        DCHECK(true, "Overflow");
-      }
-
-      return static_cast<unsigned long>(array_[0]);
+      DCHECK(array_[0] < ULONG_MAX, "Overflow");
+      return static_cast<u32>(array_[0]);
     }
   }
 

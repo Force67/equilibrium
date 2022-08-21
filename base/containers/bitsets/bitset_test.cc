@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <gtest/gtest.h>
-#include <base/containers/bitset.h>
+#include <base/containers/bitsets/bitset.h>
 
 namespace {
 using namespace base;

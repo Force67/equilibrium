@@ -10,10 +10,10 @@
 #include <base/check.h>
 #include <base/memory/move.h>
 
+//https://source.chromium.org/chromium/chromium/src/+/main:third_party/perl/c/include/postgresql/server/lib/rbtree.h
+
 namespace base {
 
-// template <typename T>
-//  do we really want to instantiate the whole tree?
 class RedBlackTree {
  public:
   RedBlackTree()

@@ -61,7 +61,7 @@ requires(N > 0) class BetterBitSet {
     return *this;
   }
 
-  [[nodiscard]] u32 to_ulong() const noexcept(N <= 32) /* strengthened */ {
+  [[nodiscard]] auto to_number() const noexcept(N <= 32) /* strengthened */ {
     if constexpr (N == 0) {
       return 0;
     } else if constexpr (N <= 8) {
@@ -73,20 +73,16 @@ requires(N > 0) class BetterBitSet {
     } else {
       if constexpr (N > 64) {
         for (mem_size _Idx = 1; _Idx <= kWords; ++_Idx) {
-          if (array_[_Idx] != 0) {
-            DCHECK(true, "fail if any high-order words are nonzero");
-          }
+          DCHECK(array_[_Idx] != 0, "fail if any high-order words are nonzero");
         }
       }
 
-      if (array_[0] > ULONG_MAX) {
-        DCHECK(true, "Overflow");
-      }
-
-      return static_cast<unsigned long>(array_[0]);
+      DCHECK(array_[0] < ULONG_MAX, "Overflow");
+      return static_cast<u32>(array_[0]);
     }
   }
 
+  // V
   BetterBitSet& flip() noexcept {
     for (mem_size i = 0; i < kWords - 1; ++i)
       array_[i] = ~array_[i];
@@ -95,6 +91,7 @@ requires(N > 0) class BetterBitSet {
     return *this;
   }
 
+  // V
   BetterBitSet& reset() noexcept {
     for (ArrayType& chunk : array_)
       chunk = 0;
@@ -102,7 +99,7 @@ requires(N > 0) class BetterBitSet {
   }
 
   BetterBitSet& reset(mem_size pos) noexcept {
-    DCHECK(pos < N);
+    DCHECK(pos < N, "BetterBitSet::Reset(): Access out of bounds");
     if constexpr (N > 64) {
       const mem_size chunk = pos / 64;
       const mem_size shift = pos % 64;
@@ -122,7 +119,7 @@ requires(N > 0) class BetterBitSet {
   }
 
   constexpr bool operator[](mem_size pos) const {
-    DCHECK(pos < N);
+    DCHECK(pos < N, "BetterBitSet::[]: Access out of bounds");
     if constexpr (N > 64) {
       const mem_size chunk = pos / 64;
       const mem_size shift = pos % 64;
@@ -131,27 +128,22 @@ requires(N > 0) class BetterBitSet {
     return static_cast<bool>((array_[0] >> pos) & 0x1);
   }
 
-  constexpr bool operator==(const BetterBitSet<N>& other) const noexcept {
-    return array_ == other.array_;
-  }
-  constexpr bool operator==(Storage storage) const noexcept requires(N > 64) {
-    return array_ == storage;
-  }
-  constexpr bool operator==(ArrayType storage) const noexcept requires(N <= 64) {
-    return array_[0] == storage;
+  constexpr bool operator==(const BetterBitSet<N>& rhs) const noexcept {
+    return memcmp(&array_[0], &rhs.array_[0], sizeof(array_)) == 0;
   }
 
-  BetterBitSet& operator&=(const BetterBitSet& rhs) noexcept {
+  BetterBitSet& operator&=(const BetterBitSet& rhs) noexcept requires(N <= 64) {
     for (auto i = 0; i <= kWords; ++i) {
-      array_[i] &= rhs.array_[i];
+      array_[i] &= rhs.array_[i] & kLastMask;
     }
     return *this;
   }
 
   BetterBitSet& operator|=(const BetterBitSet& rhs) noexcept {
     for (auto i = 0; i <= kWords; ++i) {
-      array_[i] |= rhs.array_[i];
+      Set(i, (*this)[i] | rhs[i]);  // we use array access operators (BitSet.[]).
     }
+
     return *this;
   }
 

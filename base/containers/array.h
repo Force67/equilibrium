@@ -1,7 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// Safe wrapper around a standard C array.
+// Safe wrapper around a standard C array. It is your own responsibility to track
+// sizes.
 #pragma once
 
 #include <base/arch.h>

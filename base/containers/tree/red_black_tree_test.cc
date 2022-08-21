@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <gtest/gtest.h>
-#include <base/containers/red_black_tree.h>
+#include <base/containers/tree/red_black_tree.h>
 
 namespace {
 #if 1
