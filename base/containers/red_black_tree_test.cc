@@ -5,7 +5,7 @@
 #include <base/containers/red_black_tree.h>
 
 namespace {
-#if 0
+#if 1
 TEST(RedBlackTree, Insert) {
   base::RedBlackTree tree;
 
