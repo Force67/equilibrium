@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <base/containers/bitsets/better_bitset.h>
 
-#if 0
+#if 1
 namespace {
 using namespace base;
 
@@ -64,7 +64,6 @@ TEST(BetterBitSet, SetTest) {
 
 TEST(BetterBitSet, CountSetBits) {
   base::BetterBitSet<4> a(9);  // 1001
-
   EXPECT_EQ(a.CountSetBits(), 2);
 }
 }  // namespace

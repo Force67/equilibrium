@@ -30,7 +30,7 @@ requires(N > 0) class BetterBitSet {
 
   [[nodiscard]] mem_size CountSetBits() {
     mem_size count = 0;
-    for (auto i = 0; i <= kWords; ++i) {
+    for (auto i = 0; i < kWords; ++i) {
       count += base::PopCount(array_[i]);
     }
     return count;
@@ -72,7 +72,7 @@ requires(N > 0) class BetterBitSet {
       return static_cast<u32>(array_[0]);
     } else {
       if constexpr (N > 64) {
-        for (mem_size _Idx = 1; _Idx <= kWords; ++_Idx) {
+        for (mem_size _Idx = 1; _Idx < kWords; ++_Idx) {
           DCHECK(array_[_Idx] != 0, "fail if any high-order words are nonzero");
         }
       }
@@ -113,6 +113,12 @@ requires(N > 0) class BetterBitSet {
     return *this;
   }
 
+  BetterBitSet& operator=(const ArrayType value) noexcept {
+    array_[0] = value;
+    return *this;
+  }
+
+  // requires guard!!!!!!
   BetterBitSet& operator=(const BetterBitSet& rhs) noexcept {
     memcpy(&array_[0], &rhs.array_[0], sizeof(Storage));
     return *this;
@@ -133,22 +139,23 @@ requires(N > 0) class BetterBitSet {
   }
 
   BetterBitSet& operator&=(const BetterBitSet& rhs) noexcept requires(N <= 64) {
-    for (auto i = 0; i <= kWords; ++i) {
+    for (auto i = 0; i < kWords; ++i) {
       array_[i] &= rhs.array_[i] & kLastMask;
     }
     return *this;
   }
 
   BetterBitSet& operator|=(const BetterBitSet& rhs) noexcept {
-    for (auto i = 0; i <= kWords; ++i) {
-      Set(i, (*this)[i] | rhs[i]);  // we use array access operators (BitSet.[]).
+    for (auto i = 0; i < kWords; ++i) {
+      Set(i, this->operator[](i) |
+                 rhs[i]);  // we use array access operators (BitSet.[]).
     }
 
     return *this;
   }
 
   BetterBitSet& operator^=(const BetterBitSet& rhs) noexcept {
-    for (auto i = 0; i <= kWords; ++i) {
+    for (auto i = 0; i < kWords; ++i) {
       array_[i] ^= rhs.array_[i];
     }
     return *this;

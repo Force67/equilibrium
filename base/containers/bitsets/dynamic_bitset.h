@@ -28,8 +28,8 @@ class DynamicBitSet {
     auto kMask = (1ULL << (kNeedsMask ? bit_count : 0)) - 1ULL;
 
     SetLastMask();
-
-    vector_.push_back(kNeedsMask ? val & kMask : val);
+    // cheaper than a pushback
+    vector_[0] = kNeedsMask ? val & kMask : val;
   }
 
   ~DynamicBitSet() = default;
@@ -48,7 +48,7 @@ class DynamicBitSet {
 
   [[nodiscard]] mem_size CountSetBits() {
     mem_size count = 0;
-    for (auto i = 0; i <= storage_size(); ++i) {
+    for (auto i = 0; i < storage_size(); ++i) {
       count += base::PopCount(vector_[i]);
     }
     return count;
@@ -78,7 +78,7 @@ class DynamicBitSet {
     if (bit_count_ == 0)
       return 0;
     if (bit_count_ > 64) {
-      for (mem_size i = 1; i <= word_count(); ++i) {
+      for (mem_size i = 1; i < word_count(); ++i) {
         if (vector_[i] != 0) {
           DCHECK(true, "fail if any high-order words are nonzero");
         }
@@ -119,7 +119,6 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& operator=(const ArrayType val) noexcept {
-    auto x = vector_.size();
     DCHECK(vector_.size() > 0, "Array is empty");
     vector_[0] = val;
     return *this;
@@ -144,8 +143,8 @@ class DynamicBitSet {
   DynamicBitSet& operator&=(const DynamicBitSet& rhs) noexcept {
     DCHECK(bit_count_ <= 64);
 
-    for (auto i = 0; i <= storage_size(); ++i) {
-      for (auto j = 0; j <= rhs.storage_size(); ++j) {
+    for (auto i = 0; i < storage_size(); ++i) {
+      for (auto j = 0; j < rhs.storage_size(); ++j) {
         if (i < j)
           break;
         vector_[i] &= rhs.vector_[j] & last_mask_;
@@ -155,8 +154,8 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& operator|=(const DynamicBitSet& rhs) noexcept {
-    for (auto i = 0; i <= storage_size(); ++i) {
-      for (auto j = 0; j <= rhs.storage_size(); ++j) {
+    for (auto i = 0; i < storage_size(); ++i) {
+      for (auto j = 0; j < rhs.storage_size(); ++j) {
         if (i < j)
           break;
         Set(i, (*this)[i] | rhs[j]);  // we use array access operators (BitSet.[]).
@@ -166,8 +165,8 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& operator^=(const DynamicBitSet& rhs) noexcept {
-    for (auto i = 0; i <= storage_size(); ++i) {
-      for (auto j = 0; j <= rhs.storage_size(); ++j) {
+    for (auto i = 0; i < storage_size(); ++i) {
+      for (auto j = 0; j < rhs.storage_size(); ++j) {
         if (i < j)
           break;
         vector_[i] ^= rhs.vector_[j];

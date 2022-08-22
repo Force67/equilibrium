@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <base/containers/bitsets/dynamic_bitset.h>
 
-#if 0
+#if 1
 namespace {
 using namespace base;
 
@@ -12,6 +12,9 @@ TEST(DynamicBitSet, Compare) {
 	// this is leaking memory..
   base::DynamicBitSet a(9, 4);  // 1001
   base::DynamicBitSet b(3, 4);  // 0011
+  EXPECT_EQ(a.to_ullong(), 0b1001);
+  EXPECT_EQ(b.to_ullong(), 0b0011);
+
   ASSERT_FALSE(a == b);
   ASSERT_TRUE(a != b);
 }
