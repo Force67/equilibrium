@@ -20,6 +20,15 @@ group("Base")
 project("base_unittests")
   kind("ConsoleApp")
   base_project()
+
+  filter("system:windows")
+    dependencies({
+      "gtest-memleak-detector",
+      "stackwalker"
+    })
+    defines("BASE_TESTING_GTEST_MEMLEAK_DETECTION")
+  filter{}
+  
   add_generic_test_main()
   files({"**.cc", "**.h", "**.in", "**.inl"})
   removefiles({

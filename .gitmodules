@@ -29,3 +29,9 @@
 [submodule "external/zydis"]
 	path = external/zydis
 	url = https://github.com/zyantific/zydis
+[submodule "external/gtest-memleak-detector"]
+	path = external/gtest-memleak-detector
+	url = https://github.com/ekcoh/gtest-memleak-detector
+[submodule "external/stackwalker"]
+	path = external/stackwalker
+	url = https://github.com/JochenKalmbach/StackWalker

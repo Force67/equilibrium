@@ -35,14 +35,23 @@ filter("language:C or C++")
 
   ---- Build configurations ----
 filter("configurations:Debug")
-  defines("CONFIG_DEBUG")
+  runtime("Debug")
+  defines({
+    "CONFIG_DEBUG",
+    "_DEBUG" -- enable MSVC debug features, such as debug heap
+  })
 
 filter("configurations:DebugAsan")
-flags({
-  "NoRuntimeChecks",
-  "NoIncrementalLink"})
+  runtime("Debug")
+  flags({
+    "NoRuntimeChecks",
+    "NoIncrementalLink"})
   defines("CONFIG_DEBUG")
   editAndContinue("Off")
+  defines({
+    "CONFIG_DEBUG",
+    "_DEBUG" -- enable MSVC debug features, such as debug heap
+  })
 
 filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugAsan"})
   enableASAN("true")

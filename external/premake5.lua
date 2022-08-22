@@ -106,6 +106,31 @@ project("googlemock")
     --"googletest/googletest/include/gtes/**.h",
   })
 
+project("stackwalker")
+  language("C++")
+  kind("StaticLib")
+  pubincludedirs({
+    "stackwalker/Main/StackWalker",
+  })
+  files({
+    "stackwalker/Main/StackWalker/StackWalker.cpp",
+    "stackwalker/Main/StackWalker/StackWalker.h",
+  })
+
+project("gtest-memleak-detector")
+  language("C++")
+  kind("StaticLib")
+  pubincludedirs({
+    "googletest/googletest/include",
+    "googletest/googletest",
+    "gtest-memleak-detector/include",
+    "stackwalker/Main",
+  })
+  files({
+    "gtest-memleak-detector/include/gtest_memleak_detector/gtest_memleak_detector.h",
+    "gtest-memleak-detector/src/*.cpp",
+  })
+
 project("imgui")
   language("C++")
   kind("StaticLib")

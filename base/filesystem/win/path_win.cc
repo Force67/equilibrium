@@ -24,13 +24,13 @@ Path::Path(const base::StringRefW wide_text) {
 void Path::NormalizePath(BufferType& buffer) {
   for (auto i = 0; i < buffer.size(); i++) {
     auto& c = buffer[i];
-    bool matches = c == L'//';
+    bool matches = c == L'/';
 
     // windows folk like to put two forward slashes in their path names, so we have
     // to check if the next character also contains a forward slash, and if so,
     // remove it
     if (matches && i + 1 <= buffer.size()) {
-      if (buffer[i + 1] == L'//') {
+      if (buffer[i + 1] == L'/') {
         buffer.erase(buffer.begin() + (i + 1));
       }
     }

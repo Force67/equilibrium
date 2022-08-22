@@ -7,6 +7,10 @@
 #include <base/logging.h>  // for the core logging api
 #endif
 
+#ifdef BASE_TESTING_GTEST_MEMLEAK_DETECTION
+#include <gtest_memleak_detector/gtest_memleak_detector.h>
+#endif
+
 #include <gtest/gtest.h>  // google test
 
 int main(int argc, char** argv) {
@@ -14,6 +18,11 @@ int main(int argc, char** argv) {
   base::SetLogHandler(
       [](void*, base::LogLevel log_level, const char* msg) { std::puts(msg); },
       nullptr);
+#endif
+
+#ifdef BASE_TESTING_GTEST_MEMLEAK_DETECTION
+  ::testing::UnitTest::GetInstance()->listeners().Append(
+      new gtest_memleak_detector::MemoryLeakDetectorListener(argc, argv));
 #endif
 
   ::testing::InitGoogleTest(&argc, argv);
