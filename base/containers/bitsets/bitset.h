@@ -111,7 +111,7 @@ class BitSet {
     return *this;
   }
 
-  [[nodiscard]] BitSet& operator<<=(
+  BitSet& operator<<=(
       mem_size pos) noexcept {  // shift left by pos, first by words then by bits
     const auto word_shift = static_cast<pointer_diff>(pos / kBitsPerWord);
     if (word_shift != 0) {
@@ -131,7 +131,7 @@ class BitSet {
     return *this;
   }
 
-  [[nodiscard]] BitSet& operator>>=(
+  BitSet& operator>>=(
       mem_size pos) noexcept {  // shift right by pos, first by words then by bits
     const auto word_shift = static_cast<pointer_diff>(pos / kBitsPerWord);
     if (word_shift != 0) {

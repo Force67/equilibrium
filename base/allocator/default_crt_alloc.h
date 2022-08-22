@@ -30,6 +30,9 @@ class DefaultCRTRouter {
 
  private:
   mem_size block_size(void* block) {
+    return 0;
+
+
     if (!block)
       __debugbreak();
 

@@ -4,10 +4,20 @@
 #include <gtest/gtest.h>
 
 #include <base/allocator/allocator_primitives.h>
+
+#include <vector>
 #include <base/containers/vector.h>
 
 namespace {
 using namespace base;
+
+struct Complex2 {
+  i32 a;
+  i32 b;
+
+  Complex2() : a(1337), b(1338) {}
+  Complex2(i32 a, i32 b) : a(a), b(b) {}
+};
 
 TEST(VectorTest, AddTrivial) {
   base::Vector<i32> vec(10, base::VectorReservePolicy::kForPushback);
@@ -103,6 +113,64 @@ TEST(VectorTest, VectorAddNoPrealloc) {
   EXPECT_EQ(vec.size(), 10);
   for (i32 i = 0; i < 10; i++) {
     EXPECT_EQ(*vec.at(i), i);
+  }
+}
+
+TEST(VectorTest, Resize) {
+  base::Vector<i32> vec;
+  std::vector<i32> std_vec;
+
+  for (i32 i = 0; i < 10; i++) {
+    vec.push_back(i);
+  }
+  for (i32 i = 0; i < 10; i++) {
+    std_vec.push_back(i);
+  }
+
+  EXPECT_EQ(vec.size(), std_vec.size());
+
+  vec.resize(vec.size() + 20);
+  std_vec.resize(std_vec.size() + 20);
+
+  EXPECT_EQ(vec.size(), std_vec.size());
+
+  for (i32 i = 10; i < 30; i++) {
+    EXPECT_EQ(vec[i], 0);
+  }
+
+  for (i32 i = 10; i < 30; i++) {
+    EXPECT_EQ(std_vec[i], 0);
+  }
+}
+
+TEST(VectorTest, ResizeComplex) {
+  base::Vector<Complex2> vec;
+  std::vector<Complex2> std_vec;
+
+  for (i32 i = 0; i < 10; i++) {
+    auto complex = Complex2(i, i * 2);
+    vec.push_back(complex);
+  }
+  for (i32 i = 0; i < 10; i++) {
+    auto complex = Complex2(i, i * 2);
+    std_vec.push_back(complex);
+  }
+
+  EXPECT_EQ(vec.size(), std_vec.size());
+
+  vec.resize(vec.size() + 20);
+  std_vec.resize(std_vec.size() + 20);
+
+  EXPECT_EQ(vec.size(), std_vec.size());
+
+  for (i32 i = 10; i < 30; i++) {
+    EXPECT_EQ(vec[i].a, 1337);
+    EXPECT_EQ(vec[i].b, 1338);
+  }
+
+  for (i32 i = 10; i < 30; i++) {
+    EXPECT_EQ(std_vec[i].a, 1337);
+    EXPECT_EQ(std_vec[i].b, 1338);
   }
 }
 }  // namespace

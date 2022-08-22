@@ -118,7 +118,7 @@ requires(N > 0) class BetterBitSet {
     return *this;
   }
 
-  constexpr bool operator[](mem_size pos) const {
+  [[nodiscard]] CONSTEXPR_ND bool operator[](mem_size pos) const {
     DCHECK(pos < N, "BetterBitSet::[]: Access out of bounds");
     if constexpr (N > 64) {
       const mem_size chunk = pos / 64;

@@ -1,6 +1,6 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// 
+//
 // base::Vector is a sequence container that encapsulates dynamic size arrays
 #pragma once
 
@@ -12,12 +12,12 @@
 namespace base {
 
 enum class VectorReservePolicy {
-  kForPushback,  // this is an optimization so you can push_back without upping the
-                 // capacity until needed
-  kForData,      // this is the reserve you are used to with std::vector, which will
-                 // pretend a bunch of "empty" emlements have been inserted with the
-  // reserve, if you plan to copy data in for instance with .data() use
-  // this.
+  kForPushback,  // < this is an optimization so you can push_back without upping the
+                 //   capacity until needed
+  kForData,  // < this is the reserve you are used to with std::vector, which will
+             //   pretend a bunch of "empty" emlements have been inserted with the
+             //   reserve, if you plan to copy data in for instance with .data() use
+             //   this.
 };
 
 // TODO: shrink_to_fit, resize
@@ -44,22 +44,32 @@ class Vector {
     Vector::Free(data_, capacity());
   }
 
-  // TBD
   void resize(mem_size new_capacity, const T& value) {
-    IMPOSSIBLE;
-#if 0
     if (new_capacity > size()) [[likely]]
-      IMPOSSIBLE;
-      //InsertAtEnd(new_capacity - size(), value);
-    else
-      IMPOSSIBLE;
-#endif
+      InsertValueAtEnd(new_capacity - size(), value);
+    else {
+      base::DestructRange(data_ + new_capacity, end_);
+      end_ = data_ + new_capacity;
+    }
   }
 
-  // increases internal capacity
+  void resize(mem_size new_capacity) {
+    if (new_capacity > size()) [[likely]]
+      InsertNValuesAtEnd(new_capacity - size());
+    else {
+      base::DestructRange(data_ + new_capacity, end_);
+      end_ = data_ + new_capacity;
+    }
+  }
+
+  // increase internal capacity
   void reserve(mem_size new_reserved_capacity) {
+    DCHECK(new_reserved_capacity != 0 && capacity() != 0,
+           "Vector::reserve: Use resize instead of resize for populating an empty "
+           "Vector");
+
     if (new_reserved_capacity > capacity()) [[likely]]
-      GrowCapacity(new_reserved_capacity);
+      GrowCapacity(capacity(), new_reserved_capacity);
   }
 
   // reduces .capacity to .size
@@ -94,7 +104,7 @@ class Vector {
     return back();
   }
 
-  T* at(mem_size pos) {
+  [[nodiscard]] T* at(mem_size pos) const {
     T* dest = &data_[pos];
     return dest > end_ ? nullptr : dest;
   }
@@ -112,29 +122,34 @@ class Vector {
       return false;
 
     // if we remove in the middle, we memmove the upper objects down by one place.
-    std::memmove(dest, source, end_ - source);
+    memmove(dest, source, end_ - source);
     --end_;
     end_->~T();
     return true;
   }
 
-  const T& back() const {
+  [[nodiscard]] const T& back() const {
     DCHECK(empty());
     return *(end_ - 1);
   }
 
-  T& back() {
+  [[nodiscard]] T& back() {
     DCHECK(empty());
     return *(end_ - 1);
   }
 
-  T* begin() const { return data_; }
-  T* end() const { return end_; }
-  T* data() const { return data_; }
+  [[nodiscard]] T* begin() const { return data_; }
+  [[nodiscard]] T* end() const { return end_; }
+  [[nodiscard]] T* data() const { return data_; }
 
-  bool empty() const { return data_ == nullptr || end_ <= data_; }
-  mem_size size() const { return end_ - data_; }
-  mem_size capacity() const { return capacity_ - data_; }
+  [[nodiscard]] bool empty() const { return data_ == nullptr || end_ <= data_; }
+  [[nodiscard]] mem_size size() const { return end_ - data_; }
+  [[nodiscard]] mem_size capacity() const { return capacity_ - data_; }
+
+  [[nodiscard]] CONSTEXPR_ND T& operator[](mem_size pos) const {
+    DCHECK(pos <= size(), "Vector::[]: Access out of bounds");
+    return *(Vector::at(pos));
+  }
 
  private:
   mem_size CalculateNewCapacity(mem_size cap) {
@@ -143,12 +158,50 @@ class Vector {
 
   template <typename... TArgs>
   void InsertAtEnd(TArgs&&... args) {
-    mem_size current_cap = size();
-    mem_size new_cap = CalculateNewCapacity(current_cap);
+    const auto current_cap = size();
+    const auto new_cap = CalculateNewCapacity(current_cap);
 
     GrowCapacity(current_cap, new_cap);
     // insert at end
     ::new (static_cast<void*>(end_++)) T(args...);
+  }
+
+  template <typename T>
+  void InsertValueAtEnd(mem_size n, const T& value) {
+    if (n > mem_size(capacity_ - end_)) {
+      const auto current_cap = size();
+      const auto grow_size = CalculateNewCapacity(current_cap);
+      const auto new_size = std::max(grow_size, current_cap + n);
+
+      GrowCapacity(current_cap, new_size);
+
+      T* formal_ptr = &data_[current_cap];
+
+      for (auto i = current_cap; i < new_size; i++) {
+        ::new (static_cast<void*>(formal_ptr++)) T(value);
+      }
+
+      // TODO: this should be done nicer.
+      end_ = &data_[new_size];
+    }
+  }
+
+  void InsertNValuesAtEnd(mem_size n) {
+    if (n > mem_size(capacity_ - end_)) {
+      const auto current_cap = size();
+      const auto grow_size = CalculateNewCapacity(current_cap);
+      const auto new_size = std::max(grow_size, current_cap + n);
+
+      GrowCapacity(current_cap, new_size);
+
+      T* formal_ptr = &data_[current_cap];
+      for (auto i = current_cap; i < new_size; i++) {
+        ::new (static_cast<void*>(formal_ptr++)) T();
+      }
+
+      // TODO: this should be done nicer.
+      end_ = &data_[new_size];
+    }
   }
 
   void GrowCapacity(mem_size current_cap, mem_size new_cap) {
