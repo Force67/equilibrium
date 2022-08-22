@@ -59,6 +59,10 @@ class BASE_EXPORT Path {
   // append another path to this path, and insert a seperator in between of them
   void Append(const Path&);
 
+  // modifies the buffer to the internal path notation e.g. backslashes on windows or
+  // forward slashes on *nix
+  static void NormalizePath(BufferType&);
+
   // returns a Path corresponding to the directory containing the path
   // named by this object, stripping away the file component.  If this object
   // only contains one component, returns a FilePath identifying

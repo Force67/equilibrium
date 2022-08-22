@@ -16,9 +16,6 @@ TEST(DynamicBitSet, Compare) {
   ASSERT_TRUE(a != b);
 }
 
-// https://www.geeksforgeeks.org/c-bitset-and-its-application/
-
-
 // LEAKING MEMORY!
 TEST(DynamicBitSet, BitwiseAssignOP) {
   base::DynamicBitSet a(9, 4);  // 1001
@@ -45,7 +42,6 @@ TEST(DynamicBitSet, BitwiseAssignOP) {
   EXPECT_EQ(a.to_ullong(), 3);  // 11
 }
 
-#if 0
 TEST(DynamicBitSet, SetTest) {
   base::DynamicBitSet a(9, 4);  // 1001
 
@@ -53,14 +49,12 @@ TEST(DynamicBitSet, SetTest) {
   EXPECT_TRUE(a.Test(3));
 }
 
-#if 0
+
 TEST(DynamicBitSet, CountSetBits) {
   base::DynamicBitSet a(9, 4);  // 1001
 
   EXPECT_EQ(a.CountSetBits(), 2);
 }
-#endif
 
-#endif
 }  // namespace
 #endif

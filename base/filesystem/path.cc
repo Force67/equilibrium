@@ -43,12 +43,14 @@ bool IsSeparator(T character) {
   }
   return false;
 }
-
-
 }  // namespace
 
-Path::Path(const Path& other) : path_buf_(other.path_buf_) {}
-Path::Path(const BufferType& path) : path_buf_(path) {}
+Path::Path(const Path& other) : path_buf_(other.path_buf_) {
+  NormalizePath(path_buf_);
+}
+Path::Path(const BufferType& path) : path_buf_(path) {
+  NormalizePath(path_buf_);
+}
 
 void Path::Append(const Path& other) {
   path_buf_.push_back(BASE_PATH_SEP_MACRO);

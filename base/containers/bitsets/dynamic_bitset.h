@@ -21,12 +21,14 @@ class DynamicBitSet {
 
   constexpr explicit DynamicBitSet(mem_size val, mem_size bit_count) noexcept
       : bit_count_(bit_count) {
+
     vector_.resize(reserve_count(bit_count));
     // move full word.
     bool kNeedsMask = bit_count < kCharBit * sizeof(u64);
     auto kMask = (1ULL << (kNeedsMask ? bit_count : 0)) - 1ULL;
 
     SetLastMask();
+
     vector_.push_back(kNeedsMask ? val & kMask : val);
   }
 

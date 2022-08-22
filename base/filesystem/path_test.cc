@@ -13,15 +13,17 @@ TEST(PathTests, ConstructEmpty) {
 }
 
 TEST(PathTests, Append) {
+#if defined(OS_WIN)
   base::Path p("C://l1");
   p.Append("l2");
-  EXPECT_STREQ(p.c_str(), BASE_PATH_LITERAL("C://l1//l2"));
+  EXPECT_STREQ(p.c_str(), BASE_PATH_LITERAL("C:\\l1\\l2"));
 
   p /= "l3";
-  EXPECT_STREQ(p.c_str(), BASE_PATH_LITERAL("C://l1//l2//l3"));
+  EXPECT_STREQ(p.c_str(), BASE_PATH_LITERAL("C:\\l1\\l2\\l3"));
 
   base::Path p2 = p / "l4";
-  EXPECT_STREQ(p2.c_str(), BASE_PATH_LITERAL("C://l1//l2//l3//l4"));
+  EXPECT_STREQ(p2.c_str(), BASE_PATH_LITERAL("C:\\l1\\l2\\l3\\l4"));
+#endif
 }
 
 TEST(PathTests, Compare) {
@@ -32,17 +34,19 @@ TEST(PathTests, Compare) {
 }
 
 TEST(PathTests, DirName) {
+#if defined(OS_WIN)
   {
     base::Path a("c://abc//defg");
     auto dir_name = a.DirName();
-    EXPECT_STREQ(dir_name.c_str(), BASE_PATH_LITERAL("c://abc"));
+    EXPECT_STREQ(dir_name.c_str(), BASE_PATH_LITERAL("c:\\abc"));
   }
 
   {
     base::Path a("c://abc//defg.txt");
     auto dir_name = a.DirName();
-    EXPECT_STREQ(dir_name.c_str(), BASE_PATH_LITERAL("c://abc"));
+    EXPECT_STREQ(dir_name.c_str(), BASE_PATH_LITERAL("c:\\abc"));
   }
+#endif
 }
 
 TEST(PathTests, BaseName) {
