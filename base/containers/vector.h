@@ -9,6 +9,8 @@
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/container_traits.h>
 
+#include <cstring>
+
 namespace base {
 
 enum class VectorReservePolicy {
@@ -171,7 +173,8 @@ class Vector {
     if (n > mem_size(capacity_ - end_)) {
       const auto current_cap = size();
       const auto grow_size = CalculateNewCapacity(current_cap);
-      const auto new_size = std::max(grow_size, current_cap + n);
+      const auto new_size =
+          grow_size < current_cap + n ? current_cap + n : grow_size;
 
       GrowCapacity(current_cap, new_size);
 
@@ -190,7 +193,8 @@ class Vector {
     if (n > mem_size(capacity_ - end_)) {
       const auto current_cap = size();
       const auto grow_size = CalculateNewCapacity(current_cap);
-      const auto new_size = std::max(grow_size, current_cap + n);
+      const auto new_size =
+          grow_size < current_cap + n ? current_cap + n : grow_size;
 
       GrowCapacity(current_cap, new_size);
 
@@ -209,7 +213,7 @@ class Vector {
     T* new_block = Vector::Allocate(new_cap);
 
     if (data_) {
-      std::memcpy(new_block, data_, current_cap * sizeof(T));
+      memcpy(new_block, data_, current_cap * sizeof(T));
       base::DestructRange(data_, end_);
       Vector::Free(data_, current_cap);
     }

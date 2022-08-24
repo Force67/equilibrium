@@ -21,11 +21,12 @@ unittest("entitlement:entilement_test")
   add_generic_test_main()
 
 component("entitlement:issuing_tool")
+  kind("ConsoleApp")
   files({
     "issuing_tool/*.cc",
     "issuing_tool/*.h",
   })
-  links("entitlement", "crypto")
+  links({"entitlement", "crypto"})
   dependencies({
     "fmtlib", 
     "mbedtls"})
@@ -35,7 +36,7 @@ unittest("entitlement:issuing_tool:issuing_test")
     "issuing_tool/*.cc",
     "issuing_tool/*.h",
   })
-  links("entitlement", "crypto")
+  links({"entitlement", "crypto"})
   dependencies({
     "fmtlib", 
     "mbedtls"})
@@ -46,7 +47,7 @@ component("entitlement:licensee_database_server")
     "licensee_database_server/*.cc",
     "licensee_database_server/*.h",
   })
-  links("entitlement", "crypto")
+  links({"entitlement", "crypto"})
   dependencies({
     "fmtlib", 
     "mbedtls"})
