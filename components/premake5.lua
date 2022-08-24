@@ -2,6 +2,7 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 push_scope("Components")
+include("crypto")
 include("database")
 include("decompiler")
 include("diffing")

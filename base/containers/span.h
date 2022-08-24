@@ -17,7 +17,7 @@ namespace base {
 template <typename T>
 class Span {
  public:
-  explicit constexpr Span(T* ptr, mem_size len) : ptr_(ptr), len_(len) {}
+  explicit constexpr Span(const T* ptr, mem_size len) : ptr_(ptr), len_(len) {}
 
   // TODO: this allows to create a span from a span, which is not intended
   // behaviour, disable that
@@ -29,7 +29,7 @@ class Span {
   constexpr Span(T (&a)[N]) noexcept  // NOLINT(runtime/explicit)
       : Span(a, N) {}
 
-  T* data() const noexcept { return ptr_; }
+  const T* data() const noexcept { return ptr_; }
   mem_size size() const noexcept { return len_; }
   mem_size length() const noexcept { return len_; }
   bool empty() const noexcept { return ptr_ == nullptr; }
@@ -58,12 +58,12 @@ class Span {
   }
 
  private:
-  T* ptr_;
+  const T* ptr_;
   mem_size len_;
 };
 
 // adapter for containers.
-template <typename TContainer>
+template <class TContainer>
 auto MakeSpan(TContainer& container) requires HasContainerTraits<TContainer> {
   return base::Span(container.data(), container.size());
 }

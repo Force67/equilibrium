@@ -7,10 +7,15 @@
 #include <mbedtls/entropy.h>
 #include <mbedtls/rsa.h>
 #include <mbedtls/pk.h>
-#include <mbedtls/base64.h>
 #include <mbedtls/ctr_drbg.h>
 
 namespace entitlement {
+#define MBED_VERIFY_RESULT(result, name, return_what) \
+  if (result != 0) {                               \
+    LOG_ERROR(#name " failed");                    \
+    return return_what;                            \
+  }  // namespace entitlement
+
 class EntropyWrap {
  public:
   EntropyWrap() { mbedtls_entropy_init(&context_); }
@@ -48,11 +53,5 @@ class PublicKeyWrap {
  private:
   mbedtls_pk_context context_;
 };
-
-int Base64Encode(base::String& out, const base::Span<u8> in_data) {
-  return mbedtls_base64_encode(reinterpret_cast<u8*>(out.data()), out.length(),
-                               nullptr, reinterpret_cast<const u8*>(in_data.data()),
-                               in_data.length());
-}
 
 }  // namespace entitlement

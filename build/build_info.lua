@@ -37,12 +37,12 @@ function include_meta()
     ('GIT_BRANCH="' .. blu.git_branch .. '"'),
     ('GIT_COMMIT="' .. blu.git_commit .. '"'),
     ('GIT_COMMIT_LONG="' .. blu.git_commit_long .. '"'),
-    ('TK_NAME="%{wks.name}"'),
-    ('TK_NAME_WIDE=L"%{wks.name}"'),
-    ('TK_COMPANY="Force67"'),
-    ('TK_VERSION_STR="' .. blu.version .. '"'),
+    ('EQ_NAME="%{wks.name}"'),
+    ('EQ_NAME_WIDE=L"%{wks.name}"'),
+    ('EQ_COMPANY="Force67"'),
+    ('EQ_VERSION_STR="' .. blu.version .. '"'),
     -- delete the first character 'v'
-    ('TK_VERSION=' .. to_double(blu.version))
+    ('EQ_VERSION=' .. to_double(blu.version))
   })
 
   --filter("kind:not StaticLib")

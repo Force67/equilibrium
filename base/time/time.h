@@ -6,6 +6,9 @@
 #include <base/arch.h>
 
 namespace base {
+
+using time_type = i64;
+
 class Time {
  public:
   // explicit Time(i64 us);

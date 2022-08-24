@@ -1,2 +1,4 @@
-// Copyright (C) 2022 Vincent Hengel.
-// For licensing information see LICENSE at the root of this distribution.
+Copyright (C) Vincent Hengel Tech, EU - All Rights Reserved
+* Unauthorized copying of this file, via any medium is strictly prohibited
+* Proprietary and confidential
+* Written by Vincent Hengel
