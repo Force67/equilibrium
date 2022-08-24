@@ -16,6 +16,8 @@ constexpr const char8_t kIssuingAuthority[]{u8"VH-TECH"};
 base::String EncodeLicenseBlock(const LicenseHeader& header,
                                 const base::StringU8& licensee_name,
                                 const base::StringRefU8 optional_additional_data) {
+
+
   base::String storage;
   storage.resize(2048);
   {
