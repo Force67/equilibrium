@@ -14,9 +14,5 @@ class KeyStoneDatabase;
 }
 
 namespace entitlement::issuing_tool {
-// exposed for testing.
-base::String EncodeLicenseBlock(const LicenseHeader& header,
-                                const base::StringU8& licensee_name);
-
-void WriteAndFormatLicenseFile(const base::Path&, KeyStoneDatabase&);
+bool WriteAndFormatLicenseFile(const base::Path&, KeyStoneDatabase&);
 }  // namespace entitlement::issuing_tool

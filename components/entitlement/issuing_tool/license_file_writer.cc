@@ -9,20 +9,22 @@
 #include <fmt/format.h>
 
 #include <crypto/base64.h>
+#include <base/optional.h>
 #include <base/time/time.h>
 #include <entitlement/issuing_tool/license_file_writer.h>
 #include <entitlement/keystone/keystone_database.h>
 
 namespace entitlement::issuing_tool {
 namespace {
-constexpr const char8_t kIssuingAuthority[]{u8"VH-TECH"};
-constexpr const char8_t kLicenseHead[]{u8"License XXX.XXX.XXX LMAO?"};
+constexpr const char kIssuingAuthority[]{"VH-TECH"};
+constexpr const char kLicenseHead[]{"License XXX.XXX.XXX\n\n"};
 
 }  // namespace
 
 // consider the license name as an extended "field"
-base::String EncodeLicenseBlock(const LicenseHeader& header,
-                                const base::StringU8& licensee_name) {
+base::Optional<base::String> EncodeLicenseBlock(
+    const LicenseHeader& header,
+    const base::StringU8& licensee_name) {
   base::String header_text;
   const base::Span header_span(reinterpret_cast<const byte*>(&header),
                                sizeof(LicenseHeader));
@@ -42,21 +44,24 @@ base::String EncodeLicenseBlock(const LicenseHeader& header,
   // end base64
 }
 
-void WriteAndFormatLicenseFile(const base::Path& location,
+bool WriteAndFormatLicenseFile(const base::Path& location,
                                KeyStoneDatabase& keystone_database) {
-  base::File f(location, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
-  // copyright
-  mem_size pos = f.Write(0, reinterpret_cast<const char*>(kLicenseHead), sizeof(kLicenseHead));
-
-  // produce fancy text
+  base::String s(kLicenseHead);
   for (const FeatureEntilement& fe : keystone_database.entitlements()) {
-    auto text = fmt::format("{}:{}\n", fe.license_id, fe.support_expiry_timestamp);
-    pos += f.Write(pos, text.c_str(), text.length());
+    s += fmt::format("{}:{}\n", fe.license_id, fe.support_expiry_timestamp);
   }
-
+  s += "\n";
   // data block
-  base::String license_block =
+  auto encode_result =
       EncodeLicenseBlock(keystone_database.header(), keystone_database.licensee());
-  pos += f.Write(pos, license_block.c_str(), license_block.length());
+  if (encode_result.failed())
+    return false;
+
+  s += encode_result.value();
+  {
+    base::File f(location, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
+    f.Write(0, s.c_str(), s.length());
+  }
+  return true;
 }
 }  // namespace entitlement::issuing_tool
