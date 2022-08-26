@@ -15,7 +15,7 @@ struct LicenseHeader {
   u16 version;
   Type type;
   u8 size{sizeof(LicenseHeader)};
-  u16 reserved1;
+  u16 program_version;
   base::time_type issue_timestamp;
   base::time_type expiry_timestamp;
 };

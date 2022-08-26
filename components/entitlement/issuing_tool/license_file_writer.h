@@ -14,5 +14,8 @@ class KeyStoneDatabase;
 }
 
 namespace entitlement::issuing_tool {
-bool WriteAndFormatLicenseFile(const base::Path&, KeyStoneDatabase&);
+bool WriteAndFormatLicenseFile(const base::StringRef program_name,
+                               const base::StringRef issuing_authority,
+                               const base::Path&,
+                               KeyStoneDatabase&);
 }  // namespace entitlement::issuing_tool

@@ -16,7 +16,8 @@ int main() {
   ks.AddEntitlement("DDD-EEE-FFF", 22222222, 20000);
   ks.AddEntitlement("GGG-HHH-III", 33333333, 30000);
 
-  entitlement::issuing_tool::WriteAndFormatLicenseFile(R"(Q:\Mods\retk.lk)", ks);
+  entitlement::issuing_tool::WriteAndFormatLicenseFile("RETK", "VH-TECH",
+                                                       R"(Q:\Mods\retk.lk)", ks);
 
   return 0;
 }

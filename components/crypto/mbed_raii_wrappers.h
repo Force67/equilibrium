@@ -9,11 +9,11 @@
 #include <mbedtls/pk.h>
 #include <mbedtls/ctr_drbg.h>
 
-namespace entitlement {
+namespace crypto {
 #define MBED_VERIFY_RESULT(result, name, return_what) \
-  if (result != 0) {                               \
-    LOG_ERROR(#name " failed");                    \
-    return return_what;                            \
+  if (result != 0) {                                  \
+    LOG_ERROR(#name " failed");                       \
+    return return_what;                               \
   }  // namespace entitlement
 
 class EntropyWrap {
@@ -54,4 +54,4 @@ class PublicKeyWrap {
   mbedtls_pk_context context_;
 };
 
-}  // namespace entitlement
+}  // namespace crypto
