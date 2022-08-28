@@ -9,6 +9,7 @@
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/container_traits.h>
 
+#include <new> // < for placement new
 #include <cstring>
 
 namespace base {

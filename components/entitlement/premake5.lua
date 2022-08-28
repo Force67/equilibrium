@@ -5,6 +5,7 @@ component("entitlement")
   files({
     "keystone/*.cc",
     "keystone/*.h",
+    "protocol/license.fbs",
   })
   dependencies({
     "fmtlib", 
@@ -13,7 +14,7 @@ component("entitlement")
 unittest("entitlement:entilement_test")
   files({
     "keystone/*.cc",
-    "keystone/*.h",
+    "keystone/*.h"
   })
   dependencies({
     "fmtlib", 
@@ -22,10 +23,13 @@ unittest("entitlement:entilement_test")
 
 component("entitlement:issuing_tool")
   kind("ConsoleApp")
+  rules("CompileFlatbuffers")
   files({
     "issuing_tool/*.cc",
     "issuing_tool/*.h",
+    "protocol/license.fbs",
   })
+  includedirs(blu.extdir .. "/flatbuffers/include")
   links({"entitlement", "crypto"})
   dependencies({
     "fmtlib", 

@@ -1,4 +1,4 @@
--- Copyright (C) Force67 <github.com/Force67>.
+-- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
 
 ----  ENTER FILTER BARRIER: ONLY FILTERS AFTER THIS POINT  ----

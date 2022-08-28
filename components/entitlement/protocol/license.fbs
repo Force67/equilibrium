@@ -1,0 +1,24 @@
+// Copyright (C) 2022 Vincent Hengel.
+// For licensing information see LICENSE at the root of this distribution.
+
+namespace entitlement;
+
+table Feature {
+  struct_version:ushort;
+  reserved0:ushort;
+  license_id:string;
+  feature_id:ulong;
+  support_expiry_timestamp:ulong;
+}
+
+enum LicenseType : byte { Regular, Floating, FakeDebugOnly }
+
+table LicenseBlock {
+  struct_version:ushort;
+  program_version:uint;
+  type:LicenseType;
+  license_id:string;
+  issue_date:ulong;
+  expiry_date:ulong;
+  entitlements:[Feature];
+}

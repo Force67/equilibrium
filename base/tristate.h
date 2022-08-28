@@ -6,7 +6,7 @@
 
 namespace base {
 
-enum class TriState : u8 { kFalse, kTrue, kUnknown };
+enum class TriState : i8 { kUnknown = -1, kFalse = 0, kTrue = 1 };
 
 inline bool TriFailed(TriState s) {
   return s == TriState::kFalse || s == TriState::kUnknown;
