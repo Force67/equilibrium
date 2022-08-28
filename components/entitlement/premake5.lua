@@ -7,6 +7,7 @@ component("entitlement")
     "keystone/*.h",
     "protocol/license.fbs",
   })
+  includedirs(blu.extdir .. "/flatbuffers/include")
   dependencies({
     "fmtlib", 
     "mbedtls"})
@@ -16,6 +17,7 @@ unittest("entitlement:entilement_test")
     "keystone/*.cc",
     "keystone/*.h"
   })
+  includedirs(blu.extdir .. "/flatbuffers/include")
   dependencies({
     "fmtlib", 
     "mbedtls"})

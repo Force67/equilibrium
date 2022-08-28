@@ -4,21 +4,22 @@
 namespace entitlement;
 
 table Feature {
-  struct_version:ushort;
-  reserved0:ushort;
-  license_id:string;
+  struct_version:ushort = 1;
   feature_id:ulong;
+  license_id:string;
   support_expiry_timestamp:ulong;
 }
 
 enum LicenseType : byte { Regular, Floating, FakeDebugOnly }
 
 table LicenseBlock {
-  struct_version:ushort;
+  struct_version:ushort = 1;
   program_version:uint;
   type:LicenseType;
-  license_id:string;
   issue_date:ulong;
   expiry_date:ulong;
+  license_id:string;
+  licensee:string;
+  issuing_authority:string;
   entitlements:[Feature];
 }
