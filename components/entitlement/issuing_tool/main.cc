@@ -84,6 +84,7 @@ base::String EncodeAndSignLicenseData(const base::Span<byte> data) {
   contents += fmt::format("\n{}:", base64_sign.length());
   contents += base64_sign;
 
+  // immedeatly challenge the contents:
   return contents;
 }
 }  // namespace issuing_tool

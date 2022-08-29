@@ -3,6 +3,7 @@
 // Windows platform message loop.
 #pragma once
 
+#include <Windows.h>
 #include <base/win/minwin.h>
 
 namespace ui {
