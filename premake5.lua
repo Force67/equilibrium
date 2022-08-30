@@ -9,6 +9,7 @@ workspace("Equilibrium")
     "Debug",
     "DebugAsan",
     "Release",
+    "Profile",
     "Shipping",
   })
   flags({

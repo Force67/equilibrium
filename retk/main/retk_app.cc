@@ -3,12 +3,15 @@
 
 #include <base/check.h>
 #include <base/logging.h>
+#include <base/profiling.h>
 #include <base/threading/thread.h>
 #include <base/allocator/memory_coordinator.h>
 #include <base/memory/distinct_pointer_experimental.h>
 
 #include <main/error_handler.h>
 #include <main/log_handler.h>
+
+#include <Windows.h>
 
 namespace main {
 
@@ -20,6 +23,10 @@ class ReTKApplication {
   int Exec() {
     LOG_INFO("Starting ReTK");
 
+    while (true) {
+      BASE_PROFILE_FRAME("Main");
+      Sleep(10);
+    }
 
     return 0;
   }

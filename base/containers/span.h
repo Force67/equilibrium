@@ -42,7 +42,7 @@ class Span {
 #endif
 
   // FIXME(Vince): we sacrifice const for dcheck here atm
-  inline CONSTEXPR_ND T& operator[](mem_size index) const noexcept {
+  inline CONSTEXPR_ND const T& operator[](mem_size index) const noexcept {
     DCHECK(index < len_);
     return ptr_[index];
   }

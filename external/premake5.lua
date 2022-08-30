@@ -29,6 +29,19 @@ project("capstone")
     "capstone/*.h",
   })
 
+project("tracysdk")
+  kind("StaticLib")
+  language("C++")
+  pubdefines("TRACY_ENABLE")
+  pubincludedirs("./tracy")
+  files("tracy/TracyClient.cpp")
+
+  -- v 8.2.1.+
+  --pubincludedirs("./tracy/public")
+  --files({
+    --"tracy/public/TracyClient.cpp",
+  --})
+
 project("zydis")
   kind("StaticLib")
   language("C++")

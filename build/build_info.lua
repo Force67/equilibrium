@@ -45,7 +45,7 @@ function include_meta()
     ('EQ_VERSION=' .. to_double(blu.version))
   })
 
-  --filter("kind:not StaticLib")
-    --files("")
-  --filter{}
+  filter("kind:not StaticLib")
+    files("")
+  filter{}
 end

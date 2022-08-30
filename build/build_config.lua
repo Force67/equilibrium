@@ -3,12 +3,6 @@
 
 ----  ENTER FILTER BARRIER: ONLY FILTERS AFTER THIS POINT  ----
 
-	---- Architecture ----
-filter("architecture:x86_64 or ARM64")
-  targetsuffix("_64")
-filter("architecture:x86")
-  targetsuffix("_32")
-
 	---- Supported Operating Systems ----
 filter("system:windows")
   defines({
@@ -22,26 +16,21 @@ filter("system:macosx")
   defines("OS_MACOS")
 filter{}
 
-filter("language:C or C++")
-  -- disable exceptions
-  exceptionhandling("Off")
-  -- all warnings (/wall)
-  -- warnings("Everything")
-  -- all errors are warnings
-  -- includes very pedantic warnings
-  --flags("FatalWarnings")
-  -- no rtti type info
-  rtti("Off")
+---- Build configurations ----
 
-  ---- Build configurations ----
+-- recommended for development
+-- has no optimization
 filter("configurations:Debug")
   runtime("Debug")
   defines({
     "CONFIG_DEBUG",
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
+  targetsuffix("%{cfg.architecture}_d")
 
-filter("configurations:DebugAsan")
+-- special configuration for memory debugging
+-- enables ASAN and msvc debug heap
+filter("configurations:DebugMem")
   runtime("Debug")
   flags({
     "NoRuntimeChecks",
@@ -52,16 +41,30 @@ filter("configurations:DebugAsan")
     "CONFIG_DEBUG",
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
+  targetsuffix("%{cfg.architecture}_dm")
 
-filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugAsan"})
+filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugMem"})
   enableASAN("true")
 filter{}
 
+-- release build, good code gen, but no sub folding
 filter("configurations:Release")
   runtime("Release")
   optimize("Speed")
   defines("CONFIG_RELEASE")
+  targetsuffix("%{cfg.architecture}_r")
 
+-- this mode features release codegen but with profiler logging (usually using tracy)
+-- enabled
+filter("configurations:Profile")
+  runtime("Release")
+  optimize("Speed")
+  defines({
+    "CONFIG_RELEASE", 
+    "ENABLE_PROFILE"})
+    targetsuffix("%{cfg.architecture}_p")
+
+-- fully optimized build, ready to be shipped to the user
 filter("configurations:Shipping")
   runtime("Release")
   optimize("Full")
@@ -69,11 +72,22 @@ filter("configurations:Shipping")
     "LinkTimeOptimization"
   })
   defines("CONFIG_SHIPPING")
+  targetsuffix("")
+  --targetsuffix(config_suffix .. "_dm") -- < none
 
 filter("language:C or C++")
   --vectorextensions("SSE4.2")
   vectorextensions("AVX2")
   staticruntime("on")
+  -- disable exceptions
+  exceptionhandling("Off")
+  -- all warnings (/wall)
+  -- warnings("Everything")
+  -- all errors are warnings
+  -- includes very pedantic warnings
+  --flags("FatalWarnings")
+  -- no rtti type info
+  rtti("Off")
 
 filter("language:C++")
   cppdialect("C++20")

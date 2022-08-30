@@ -7,6 +7,8 @@
 
 #include "display/dpi.h"
 
+#pragma comment(lib, "Shcore")
+
 namespace ui {
 
 HMONITOR GetCurrentMonitorHandle(HWND hwnd) {

@@ -7,17 +7,16 @@
 #include <platform/win/native_window_win32.h>
 
 namespace {
-TEST(RSA, SignVerify) {
+TEST(NativeWindow, Create) {
   ui::NativeWindowWin32 win_window(u8"WindowTest", nullptr);
-  EXPECT_TRUE(win_window.Init(nullptr, {100, 100, 100, 100}));
+  EXPECT_TRUE(win_window.Init(HWND_DESKTOP, {}));
 
   win_window.Show();
 
 
   ui::MessagePumpWin mp;
-  while (true) {
-    mp.Update();
-    mp.Pump();
-  }
+ // while (mp.Update()) {
+ //   mp.Pump();
+ // }
 }
 }  // namespace

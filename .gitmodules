@@ -35,3 +35,6 @@
 [submodule "external/stackwalker"]
 	path = external/stackwalker
 	url = https://github.com/JochenKalmbach/StackWalker
+[submodule "external/tracy"]
+	path = external/tracy
+	url = https://github.com/wolfpld/tracy/

@@ -2,6 +2,11 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 local function base_project()
+  
+  filter("configurations:Profile")
+    dependencies("tracysdk")
+  filter{}
+
   dependencies("googlemock")
   links({"fmtlib"})
   defines("BASE_IMPLEMENTATION")

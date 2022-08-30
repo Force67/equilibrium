@@ -38,11 +38,14 @@ class FileReader {
 
  private:
   bool Read(byte** new_head, size_t n, bool advance = true) {
+      #if 0
     if (pos_ > buffer_.size())
       return false;
     *new_head = &buffer_[pos_];
     if (advance)
         pos_ += n;
+    #endif
+    __debugbreak();
     return true;
   }
 

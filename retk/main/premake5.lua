@@ -17,6 +17,7 @@ project("App_Main")
         "ui",
         "program_loader"
     })
+    dependencies("tracysdk")
     links({
         -- third party
         "skia",
