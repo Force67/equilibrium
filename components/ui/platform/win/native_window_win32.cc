@@ -209,6 +209,13 @@ bool NativeWindowWin32::Init(handle parent_handle, const SkIRect suggested_bound
     DCHECK(::IsWindow(parent));
   }
 
+  /*
+     int32_t fLeft;   //!< smaller x-axis bounds
+    int32_t fTop;    //!< smaller y-axis bounds
+    int32_t fRight;  //!< larger x-axis bounds
+    int32_t fBottom; //!< larger y-axis bounds
+  */
+
   SkIRect bounds{};
   if (suggested_bounds.isEmpty())
     bounds = {CW_USEDEFAULT};

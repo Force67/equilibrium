@@ -4,8 +4,8 @@
 project("App_Main")
     kind("WindowedApp")
     include_meta()
+    --include_ui()
     files({
-        "retk_full.rc",
         "retk.manifest",
         "**.cc",
         "**.h"
@@ -30,8 +30,9 @@ project("App_Main")
     })
     linkoptions({
         -- use our regular main instead of winmain
-        "/ENTRY:mainCRTStartup"
+        --"/ENTRY:TKWinMain"
     })
+    includedirs("C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.30.30705/crt/src/vcruntime")
     includedirs({
         ".",
         "../",

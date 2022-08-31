@@ -20,10 +20,10 @@ BEGIN
         BEGIN
             VALUE "CompanyName", EQ_COMPANY
             VALUE "ProductName", EQ_NAME
-            VALUE "FileDescription", "ReTK ui"
-            VALUE "LegalCopyright", "Copyright (C) Force67 <github.com/Force67>."
-            VALUE "InternalName", "ReTKUi"
-            VALUE "OriginalFilename", "ReTKUi.exe"
+            VALUE "FileDescription", PROJECT_NAME
+            VALUE "LegalCopyright", "Copyright (C) VHT."
+            VALUE "InternalName", PROJECT_NAME
+            VALUE "OriginalFilename", PROJECT_NAME
         END
     END
     BLOCK "VarFileInfo"

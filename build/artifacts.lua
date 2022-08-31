@@ -2,6 +2,7 @@
 -- For licensing information see LICENSE at the root of this distribution.
 
 blu.rootdir = os.getcwd() .. '/../'
+blu.builddir = os.getcwd()
 
 local outdir = os.getcwd() .. '/../out/' .. _ACTION
 blu.bindir = outdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"

@@ -73,7 +73,7 @@ struct EQMemoryRouter {
   mem_size block_size(PageTable& tab, void* block) { return 0; }
 
   Allocator* FindOwningAllocator(void* block) {
-    // we should already know the index, since everything is aligned to a 1mib
+    // TODO(Vince): we should already know the index, since everything is aligned to a 1mib
     // boundary, so we can assume the page alignment, so therefore the offset of the
     // block. (starting from page_base)?
     // and since we are the god father allocator we could hopefully grow that way?

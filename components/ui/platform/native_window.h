@@ -3,6 +3,7 @@
 // Platform window.
 #pragma once
 
+#include <core/SkRect.h>
 #include <base/strings/string_ref.h>
 
 namespace ui {

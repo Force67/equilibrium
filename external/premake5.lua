@@ -10,7 +10,7 @@ group("Dependencies")
 function include_skia()
   defines("SK_GL")
   links("skia")
-  includedirs({
+  pubincludedirs({
     blu.extdir .. "/skia_sdk",
     blu.extdir .. "/skia_sdk/include",
   })
@@ -32,10 +32,11 @@ project("capstone")
 project("tracysdk")
   kind("StaticLib")
   language("C++")
-  pubdefines("TRACY_ENABLE")
+  pubdefines({
+    "TRACY_ENABLE",
+    "TRACY_HAS_CALLSTACK"})
   pubincludedirs("./tracy")
   files("tracy/TracyClient.cpp")
-
   -- v 8.2.1.+
   --pubincludedirs("./tracy/public")
   --files({

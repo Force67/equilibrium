@@ -62,7 +62,7 @@ void RemoveMemoryCategory(MemoryCategory id) {
   }
 }
 
-void MemoryTracker::TrackOperation(pointer_diff size) {
+void MemoryTracker::TrackOperation(void* pointer, pointer_diff size) {
   // DCHECK(current_token != kInvalidCategory, "Category not set");
   //  DCHECK(pointer_diff((memory_sizes[current_token] + size) /*atomic op*/) < 0,
   //         "Underflow into tracking storage");

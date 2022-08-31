@@ -20,7 +20,7 @@ constexpr MemoryCategory kInvalidCategory{0};
 // this is not a proper class since we want to allow constinit for the MC
 struct MemoryTracker {
   // since a negative complement gets added with a + anyway, we simply only ever add
-  void TrackOperation(pointer_diff size /*signed number*/);
+  void TrackOperation(void* pointer, pointer_diff size /*signed number*/);
 
   // 0xfff... means that the entry is unused,
   // 0 means that we fall under the general category,

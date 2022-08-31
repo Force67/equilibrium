@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/compiler.h>
+#include <base/profiling.h>
 #include <base/allocator/memory_stat_tracker.h>
 
 #define BASE_USE_EQ_ALLOCATOR 0
@@ -20,21 +21,24 @@ template <class TRouter>
 struct MCInstance {
   // goal is to have these folded in the ::new/alloc operators
 
-  STRONG_INLINE void* Allocate(size_t size) {
-    tracker_.TrackOperation(pointer_diff(size));
-    return router_.Allocate(size);
-  }
-
-  STRONG_INLINE void* ReAllocate(void* former, size_t new_size) {
-    pointer_diff diff_out = 0; /*already signed*/
-    void* block = router_.ReAllocate(former, new_size, diff_out);
-    tracker_.TrackOperation(diff_out);
+  inline void* Allocate(size_t size) {
+    void* block = router_.Allocate(size);
+    tracker_.TrackOperation(block, pointer_diff(size));
+    BASE_PROFILE_ALLOCATION(block, size);
     return block;
   }
 
-  STRONG_INLINE void Free(void* address) {
+  inline void* ReAllocate(void* former, size_t new_size) {
+    pointer_diff diff_out = 0; /*already signed*/
+    void* block = router_.ReAllocate(former, new_size, diff_out);
+    tracker_.TrackOperation(block, diff_out);
+    return block;
+  }
+
+  inline void Free(void* address) {
+    BASE_PROFILE_FREE(address);
     const mem_size amount_freed = router_.Free(address);
-    tracker_.TrackOperation(-pointer_diff(amount_freed) /*negate amount*/);
+    tracker_.TrackOperation(address, -pointer_diff(amount_freed) /*negate amount*/);
   }
 
   auto& tracker() { return tracker_; }

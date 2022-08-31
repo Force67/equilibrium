@@ -45,7 +45,7 @@ function include_meta()
     ('EQ_VERSION=' .. to_double(blu.version))
   })
 
-  filter("kind:not StaticLib")
-    files("")
+  filter("kind:WindowedApp or kind:ConsoleApp or kind:SharedLib")
+    files((blu.builddir .. "/build_info.rc"))
   filter{}
 end

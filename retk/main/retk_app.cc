@@ -11,7 +11,10 @@
 #include <main/error_handler.h>
 #include <main/log_handler.h>
 
-#include <Windows.h>
+#include <main_window.h>
+#include <ui/platform/win/message_pump_win.h>
+
+//#define RETK_APP_HEADLESS
 
 namespace main {
 
@@ -20,21 +23,39 @@ class ReTKApplication {
   ReTKApplication() {}
   ~ReTKApplication() {}
 
-  int Exec() {
-    LOG_INFO("Starting ReTK");
+  int Exec();
 
-    while (true) {
-      BASE_PROFILE_FRAME("Main");
-      Sleep(10);
-    }
-
-    return 0;
-  }
+ private:
+  bool Initialize();
 
  private:
   // this _must_ come first.
   main::LogHandler log_handler_;
+#ifndef BASE_IS_HEADLESS
+  MainWindow main_window_;
+#endif
 };
+
+bool ReTKApplication::Initialize() {
+  BASE_PROFILE("App::Initialize");
+  main_window_.Initialize();
+  return true;
+}
+
+int ReTKApplication::Exec() {
+  LOG_INFO("Starting ReTK");
+
+  if (!Initialize())
+    return 0;
+
+  ui::MessagePumpWin message_pump;
+  while (message_pump.Update()) {
+    BASE_PROFILE_FRAME("Main");
+    message_pump.Pump();
+  }
+
+  return 0;
+}
 }  // namespace main
 
 int ReTKMain() {
@@ -44,6 +65,7 @@ int ReTKMain() {
     base::SetCurrentThreadName("Main");
   }
 
+  // keep the stack free
   base::DistinctPointer<main::ReTKApplication> app;
   return app->Exec();
 }

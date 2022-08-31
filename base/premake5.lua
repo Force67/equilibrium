@@ -9,7 +9,9 @@ local function base_project()
 
   dependencies("googlemock")
   links({"fmtlib"})
-  defines("BASE_IMPLEMENTATION")
+  defines({
+    "BASE_IMPLEMENTATION",
+    "TRACY_HAS_CALLSTACK"})
   includedirs({".", blu.rootdir, blu.extdir .. "/fmt/include"})
 end
 

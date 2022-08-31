@@ -48,6 +48,14 @@ class BasicStringRef {
                                                    : StringRefFlags::kNone;
   }
 
+  constexpr BasicStringRef(const TChar* data,
+                           mem_size length,
+                           bool is_null_terminated)
+      : data_(data),
+        length_(static_cast<u32>(length)),
+        tags_(is_null_terminated ? StringRefFlags::kIsNullTerm
+                                 : StringRefFlags::kNone) {}
+
   BasicStringRef(const TChar* data)
       : data_(data),
         length_(

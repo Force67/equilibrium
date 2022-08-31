@@ -27,6 +27,7 @@ filter("configurations:Debug")
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
   targetsuffix("%{cfg.architecture}_d")
+filter{}
 
 -- special configuration for memory debugging
 -- enables ASAN and msvc debug heap
@@ -42,6 +43,7 @@ filter("configurations:DebugMem")
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
   targetsuffix("%{cfg.architecture}_dm")
+filter{}
 
 filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugMem"})
   enableASAN("true")
@@ -53,6 +55,7 @@ filter("configurations:Release")
   optimize("Speed")
   defines("CONFIG_RELEASE")
   targetsuffix("%{cfg.architecture}_r")
+filter{}
 
 -- this mode features release codegen but with profiler logging (usually using tracy)
 -- enabled
@@ -62,18 +65,21 @@ filter("configurations:Profile")
   defines({
     "CONFIG_RELEASE", 
     "ENABLE_PROFILE"})
-    targetsuffix("%{cfg.architecture}_p")
+  targetsuffix("%{cfg.architecture}_p")
+filter{}
 
 -- fully optimized build, ready to be shipped to the user
 filter("configurations:Shipping")
   runtime("Release")
-  optimize("Full")
+  --optimize("Full") https://stackoverflow.com/questions/5063334/what-is-the-difference-between-the-ox-and-o2-compiler-options
+  -- read also: https://github.com/ulfjack/ryu/pull/70#issuecomment-412168459 for further info on why we use O2
+  optimize("Speed")
   flags({
     "LinkTimeOptimization"
   })
   defines("CONFIG_SHIPPING")
   targetsuffix("")
-  --targetsuffix(config_suffix .. "_dm") -- < none
+filter{}
 
 filter("language:C or C++")
   --vectorextensions("SSE4.2")
