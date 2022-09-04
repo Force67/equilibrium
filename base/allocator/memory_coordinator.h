@@ -33,7 +33,9 @@ struct MCInstance {
     return block;
   }
 
-  inline MemoryBlock AllocateAligned(mem_size size, AlignmentValue alignment) {
+  inline allocator_primitives::v2::MemoryBlock AllocateAligned(
+      mem_size size,
+      allocator_primitives::v2::AlignmentValue alignment) {
     void* block = router_.AllocateAligned(
         size /*mem_size size*/,
         static_cast<mem_size>(alignment) /*mem_size alignment*/);
@@ -57,9 +59,10 @@ struct MCInstance {
     return block;
   }
 
-  inline MemoryBlock ReAllocateAligned(MemoryBlock former,
-                                       mem_size new_size,
-                                       AlignmentValue alignment) {
+  inline allocator_primitives::v2::MemoryBlock ReAllocateAligned(
+      allocator_primitives::v2::MemoryBlock former,
+      mem_size new_size,
+      allocator_primitives::v2::AlignmentValue alignment) {
     void* block = router_.ReAllocateAligned(
         former.pointer /*void* former_block*/, former.size /*mem_size former_size*/,
         new_size /*mem_size new_size*/,
@@ -79,13 +82,15 @@ struct MCInstance {
     tracker_.TrackOperation(address, -pointer_diff(amount_freed) /*negate amount*/);
   }
 
-  inline bool Deallocate(MemoryBlock block, AlignmentValue alignment) {
+  inline bool Deallocate(allocator_primitives::v2::MemoryBlock block,
+                         allocator_primitives::v2::AlignmentValue alignment) {
     BASE_PROFILE_FREE(block.pointer);
     bool was_sucessfull = router_.Deallocate(
         block.pointer /*void* block*/, block.size /*mem_size size*/,
         static_cast<mem_size>(alignment) /* mem_size alignment*/);
     tracker_.TrackOperation(block.pointer,
                             -pointer_diff(block.size) /*negate amount*/);
+    return was_sucessfull;
   }
 
   auto& tracker() { return tracker_; }
@@ -94,7 +99,6 @@ struct MCInstance {
   MemoryTracker tracker_;
   TRouter router_;
 };
-
 
 // this configures the use of different allocators
 // add your own here:

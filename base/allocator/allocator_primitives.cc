@@ -63,15 +63,15 @@ MemoryBlockV3 Allocate(mem_size size,
                        AllocationHints hints) {
   static_assert(
       sizeof(AllocationFlags) == (sizeof(MemoryBlockV3::tracking_flags) / 2),
-      "Allocationflags is misaligned");
+      "AllocationFlags are misaligned");
   static_assert(
       sizeof(AllocationHints) == (sizeof(MemoryBlockV3::tracking_flags) / 2),
-      "Allocationflags is misaligned");
+      "AllocationHints are misaligned");
 
   // TODO: allocate
 
   return MemoryBlockV3{
-      .pointer = nullptr, .size = 0, .flags = flags, .hints = hints};
+      .pointer = nullptr, .size = 0, .tracking = {.flags = flags, .hints = hints}};
 }
 
 bool Deallocate(MemoryBlockV3 block_info, AlignAndSkew align_and_skew) {

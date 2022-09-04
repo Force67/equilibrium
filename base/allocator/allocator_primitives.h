@@ -83,10 +83,13 @@ enum class AlignAndSkew : mem_size {};
 struct MemoryBlockV3 {
   void* pointer;
   mem_size size;
+
   union {
-    AllocationFlags flags;
-    AllocationHints hints;
     u64 tracking_flags;
+    struct {
+      AllocationFlags flags;
+      AllocationHints hints;
+    } tracking;
   };
 };
 
@@ -95,7 +98,6 @@ MemoryBlockV3 Allocate(mem_size size,
                        AllocationFlags flags = AllocationFlags::None,
                        AllocationHints hints = AllocationHints::None);
 bool Deallocate(MemoryBlockV3 info, AlignAndSkew align_and_skew);
-
 
 }  // namespace v3
 

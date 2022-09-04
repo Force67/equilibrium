@@ -32,9 +32,10 @@ project("capstone")
 project("tracysdk")
   kind("StaticLib")
   language("C++")
-  pubdefines({
-    "TRACY_ENABLE",
-    "TRACY_HAS_CALLSTACK"})
+  pubdefines("TRACY_ENABLE")
+  filter("system:windows")
+    pubdefines("TRACY_HAS_CALLSTACK")
+  filter{}
   pubincludedirs("./tracy")
   files("tracy/TracyClient.cpp")
   -- v 8.2.1.+
@@ -123,6 +124,9 @@ project("googlemock")
 project("stackwalker")
   language("C++")
   kind("StaticLib")
+  filter("system:not windows")
+    kind("None")
+  filter{}
   pubincludedirs({
     "stackwalker/Main/StackWalker",
   })
@@ -134,6 +138,9 @@ project("stackwalker")
 project("gtest-memleak-detector")
   language("C++")
   kind("StaticLib")
+  filter("system:not windows")
+    kind("None")
+  filter{}
   pubincludedirs({
     "googletest/googletest/include",
     "googletest/googletest",
