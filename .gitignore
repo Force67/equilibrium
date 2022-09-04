@@ -16,6 +16,9 @@ velocity/
 compile_commands.json
 *.idx
 
+# intellij
+idea/
+
 # User-specific files
 *.suo
 *.user
