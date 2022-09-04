@@ -2,6 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <base/check.h>
+
+#define BASE_MAY_USE_MEMORY_COORDINATOR
 #include <base/allocator/memory_coordinator.h>
 #include <base/allocator/memory_stat_tracker.h>
 

@@ -5,6 +5,7 @@ local function build_gpu()
   dependencies("fmtlib")
   includedirs("..")
   files({
+    "readme.md",
     "**.cc",
     "**.c",
     "**.h",

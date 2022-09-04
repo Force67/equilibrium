@@ -15,59 +15,59 @@ BASE_EXPORT void* operator new(size_t size, void* param) {
 
 #if defined(CONFIG_DEBUG)
 BASE_EXPORT void* operator new(size_t size, const base::SourceLocation& source_loc) {
-  return base::AllocateTracked(size, source_loc);
+  return base::allocator_primitives::AllocateTracked(size, source_loc);
 }
 
 BASE_EXPORT void operator delete(void* p, const base::SourceLocation& source_loc) noexcept {
-  base::FreeTracked(p, source_loc);
+  base::allocator_primitives::FreeTracked(p, source_loc);
 }
 
 BASE_EXPORT void* operator new[](size_t size, const base::SourceLocation& source_loc) {
-  return base::AllocateTracked(size, source_loc);
+  return base::allocator_primitives::AllocateTracked(size, source_loc);
 }
 
 BASE_EXPORT void operator delete[](void* p, const base::SourceLocation& source_loc) noexcept {
-  base::FreeTracked(p, source_loc);
+  base::allocator_primitives::FreeTracked(p, source_loc);
 }
 #endif
 
 BASE_EXPORT void* operator new(size_t size) {
-  return base::Allocate(size);
+  return base::allocator_primitives::Allocate(size);
 }
 
 BASE_EXPORT void operator delete(void* p) noexcept {
-  base::Free(p);
+  base::allocator_primitives::Free(p);
 }
 
 BASE_EXPORT void* operator new[](size_t size) {
-  return base::Allocate(size);
+  return base::allocator_primitives::Allocate(size);
 }
 
 BASE_EXPORT void operator delete[](void* p) noexcept {
-  base::Free(p);
+  base::allocator_primitives::Free(p);
 }
 
 BASE_EXPORT void* operator new(size_t size, const std::nothrow_t&) noexcept {
   // TODO(Force): NoThrow shit..
-  return base::Allocate(size);
+  return base::allocator_primitives::Allocate(size);
 }
 
 BASE_EXPORT void* operator new[](size_t size, const std::nothrow_t&) noexcept {
-  return base::Allocate(size);
+  return base::allocator_primitives::Allocate(size);
 }
 
 BASE_EXPORT void operator delete(void* p, const std::nothrow_t&) noexcept {
-  base::Free(p);
+  base::allocator_primitives::Free(p);
 }
 
 BASE_EXPORT void operator delete[](void* p, const std::nothrow_t&) noexcept {
-  base::Free(p);
+  base::allocator_primitives::Free(p);
 }
 
 BASE_EXPORT void operator delete(void* p, size_t) noexcept {
-  base::Free(p);
+  base::allocator_primitives::Free(p);
 }
 
 BASE_EXPORT void operator delete[](void* p, size_t) noexcept {
-  base::Free(p);
+  base::allocator_primitives::Free(p);
 }

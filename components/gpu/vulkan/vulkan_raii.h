@@ -4,7 +4,7 @@
 
 // TODO(Vince): very expensive header.
 #include <base/logging.h>
-#include <vulkan/loader/glad/include/glad/vulkan.h>
+#include <vulkan/vulkan.h>
 
 namespace gpu::vulkan {
 struct VkInstance_Cxx {

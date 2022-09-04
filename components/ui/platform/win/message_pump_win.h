@@ -10,7 +10,10 @@ namespace ui {
 
 class MessagePumpWin {
  public:
-  bool Update();
+  // https://stackoverflow.com/questions/2850186/why-peekmessage-before-getmessage
+  bool UpdateBlocking();
+  bool UpdateImmediately();
+
   void Pump();
 
  private:

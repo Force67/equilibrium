@@ -5,6 +5,7 @@
 
 #include <base/check.h>
 
+#define BASE_MAY_USE_MEMORY_COORDINATOR
 #include <allocator/eq_alloc/page_table.h>
 #include <allocator/memory_coordinator.h>
 
@@ -28,7 +29,7 @@ void TrackerTest1() {
   void* obj = new char[512];
 
   auto current_context = current_memory_category();
-  u32 store = tracker.memory_sizes[kGeneralMemory];
+  mem_size store = tracker.memory_sizes[kGeneralMemory];
   // somehow this is thread local now?
   BUGCHECK(store == 512);
 
@@ -40,7 +41,7 @@ void TrackerTest2() {
   auto& tracker = base::memory_tracker();
 
   void* x = base::memory_coordinator().Allocate(10);
-  u32 store = tracker.memory_sizes[kGeneralMemory];
+  mem_size store = tracker.memory_sizes[kGeneralMemory];
   BUGCHECK(store == 10);
 
   x = base::memory_coordinator().ReAllocate(x, 20);

@@ -1,7 +1,9 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <vector>
+#define GLAD_VULKAN_IMPLEMENTATION
+
+
 #include <base/logging.h>
 #include <gpu/vulkan/vulkan_loader.h>
 #include <gpu/vulkan/vulkan_instance.h>

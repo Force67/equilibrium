@@ -49,11 +49,12 @@ int ReTKApplication::Exec() {
     return 0;
 
   ui::MessagePumpWin message_pump;
-  while (message_pump.Update()) {
+  while (message_pump.UpdateBlocking()) {
     BASE_PROFILE_FRAME("Main");
     message_pump.Pump();
   }
 
+  LOG_INFO("Shutting down ReTK");
   return 0;
 }
 }  // namespace main

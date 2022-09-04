@@ -8,14 +8,17 @@ namespace gpu::vulkan {
 
 class VulkanSurface {
  public:
-  VulkanSurface();
+  VulkanSurface(VkInstance_Cxx& instance) : instance_(instance){};
   ~VulkanSurface();
 
   enum class Format { Rgba32, Rgb16, Count, Default = Rgba32 };
 
-  bool Initialize(VkInstance_Cxx& vki, void* os_hinstance, void* os_window_handle);
+  bool Initialize(void* os_hinstance, void* os_window_handle);
+
+  inline VkSurfaceKHR instance() { return surface_handle_; }
 
  private:
+  VkInstance_Cxx& instance_;
   VkSurfaceKHR surface_handle_{VK_NULL_HANDLE};
 };
 }  // namespace gpu::vulkan
