@@ -13,7 +13,7 @@
 
 namespace base {
 
-// basically llvm's error-or class, on sucess we return the expected value, on
+// basically llvm's error-or class, on success we return the expected value, on
 // failure, we return the 'WrongValue' which for instance could be an error code.
 template <typename TExpected, typename TError>
 class Expected {

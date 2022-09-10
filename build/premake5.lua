@@ -4,10 +4,9 @@
 -- Declare the blu build tool namespace
 blu = {}
 
-require('vstudio')
-
--- compile_commands.json support for clangd
-require("compile_commands/export-compile-commands")
+require('vstudio') -- support for visual studio TODO(disable me on linux)
+require("compile_commands/export-compile-commands") -- compile_commands.json support for clangd
+require("vscode/vscode") -- support for vscode
 
 -- pull in root dependencies
 -- by order of importance.

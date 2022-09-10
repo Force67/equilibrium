@@ -4,7 +4,13 @@
 blu.rootdir = os.getcwd() .. '/../'
 blu.builddir = os.getcwd()
 
-local outdir = os.getcwd() .. '/../out/' .. _ACTION
+local outdir = nil
+if _ACTION == "vscode" then
+  outdir = blu.rootdir
+else
+  outdir = os.getcwd() .. '/../out/' .. _ACTION
+end
+
 blu.bindir = outdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
 blu.libdir = outdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"
 blu.objdir = outdir .. "/link/%{cfg.platform}/%{cfg.buildcfg}"
@@ -17,14 +23,16 @@ blu.netout = outdir .. "/net"
 location(outdir)
 
 filter("language:C or C++")
-    location(outdir)
-    objdir(blu.objdir)
-    libdirs({blu.libdir})
-    architecture("x86_64")
+  objdir(blu.objdir)
+  libdirs({blu.libdir})
+  architecture("x86_64")
 filter{}
 
 -- workaround a premake bug
-os.mkdir(outdir .. "/sym")
+if _ACTION ~= "vscode" then
+  os.mkdir(outdir .. "/sym")
+end
+
 blu.extdir = path.getabsolute(os.getcwd() .."/../external")
 
 -- dont bloat output folder with libs

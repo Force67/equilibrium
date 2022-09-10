@@ -32,8 +32,8 @@ constexpr T&& forward(T&& x) noexcept  // requires(is_lvalue_reference<T>
 }
 
 template <typename T>
-constexpr remove_reference<T>::type&& move(T&& x) noexcept {
-  return static_cast<remove_reference<T>::type&&>(x);
+constexpr typename remove_reference<T>::type&& move(T&& x) noexcept {
+  return static_cast<typename remove_reference<T>::type&&>(x);
 }
 
 template <class T>
@@ -47,7 +47,7 @@ template <class T>
   class_name& operator=(const class_name&) = delete; \
   class_name& operator=(class_name&&) = delete;
 
-#define BASE_NOMOVE(class_name)           \
+#define BASE_NOMOVE(class_name)            \
   class_name(const class_name&&) = delete; \
   class_name& operator=(class_name&&) = delete;
 

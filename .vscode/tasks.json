@@ -1,16 +1,19 @@
-{
-    // docs at https://go.microsoft.com/fwlink/?LinkId=733558
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "premake",
-            "type": "shell",
-            "command": "build/premake_linux.sh debug",
-            "group": "build",
-            "presentation": {
-                // Reveal the output only if unrecognized errors occur.
-                "reveal": "silent"
-            }
-        }
-    ]
+﻿{
+  "version": "2.0.0",
+  "tasks": [{
+    "type": "shell",
+    "label": "C/C++: build",
+    "command": "clear && time make -r -j`nproc`",
+    "args": [],
+    "options": {
+      "cwd": "${workspaceFolder}/"
+    },
+    "problemMatcher": [
+      "$gcc"
+    ],
+    "group": {
+      "kind": "build",
+      "isDefault": true
+    }
+  }]
 }
