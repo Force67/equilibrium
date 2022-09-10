@@ -42,7 +42,7 @@ class Expected {
   constexpr Expected(T value, const bool is_error) requires(types_match)
       : has_error_(is_error) {
     if (is_error)
-      error_value_ = base::move(value); // moving here is most likely a bug
+      error_value_ = base::move(value);  // moving here is most likely a bug
     else
       expected_value_ = base::move(value);
   }
@@ -59,7 +59,7 @@ class Expected {
   // const in order to forbid abusing the object as a storage facility
   CONSTEXPR_ND const TExpected& value() const noexcept {
     DCHECK(!has_error_, "Invalid access on error'd value");
-    DCHECK(has_checked_validity_, "Validy wasn't checked before accessing value");
+    DCHECK(has_checked_validity_, "Validity wasn't checked before accessing value");
     return expected_value_;
   }
 

@@ -8,6 +8,10 @@
 #define PA_YIELD_PROCESSOR _mm_pause()
 #endif
 
+#if (OS_LINUX)
+#define PA_YIELD_PROCESSOR __asm__ __volatile__("pause")
+#endif
+
 namespace {
 template <class T>
 const T& XX_min(const T& a, const T& b) {

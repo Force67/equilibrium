@@ -68,7 +68,7 @@ class SpinningMutex {
   // more.
   static constexpr int kSpinCount = 64;
 
-#if defined(PA_HAS_LINUX_KERNEL)
+#if defined(OS_LINUX)
   void FutexWait();
   void FutexWake();
 
