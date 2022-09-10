@@ -13,7 +13,6 @@ compile_commands.json
 
 # vscode
 .vscode/*
-!/.vscode/tasks.json
 .modules
 
 # intellij
@@ -73,3 +72,4 @@ Thumbs.db
 
 # But do include the artifacts needed for building :)
 !/build/bin/
+.vscode/tasks.json

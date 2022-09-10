@@ -4,12 +4,7 @@
 blu.rootdir = os.getcwd() .. '/../'
 blu.builddir = os.getcwd()
 
-local outdir = nil
-if _ACTION == "vscode" then
-  outdir = blu.rootdir
-else
-  outdir = os.getcwd() .. '/../out/' .. _ACTION
-end
+local outdir = os.getcwd() .. '/../out/' .. _ACTION
 
 blu.bindir = outdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
 blu.libdir = outdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"

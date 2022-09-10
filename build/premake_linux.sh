@@ -1,11 +1,14 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-  "$DIR/bin/linux/premake5" --file="$DIR/../premake5.lua" vscode
+if [[ $# -eq 0 ]] ; then
+    echo 'Give me some configuration, dumbass'
+    exit 0
 fi
 
-#Generate latest compile-commands.json
+if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+  "$DIR/bin/linux/premake5" --file="$DIR/../premake5.lua" vscode --vscode-config=$1 --vscode-fakeaction=gmake2
+fi
+
 "$DIR/bin/linux/premake5" --file="$DIR/../premake5.lua" export-compile-commands --export-compile-config=$1
-#Generate makefiles
 "$DIR/bin/linux/premake5" --file="$DIR/../premake5.lua" gmake2
