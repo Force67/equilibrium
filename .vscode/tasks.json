@@ -1,19 +1,204 @@
-﻿{
+{
   "version": "2.0.0",
-  "tasks": [{
-    "type": "shell",
-    "label": "C/C++: build",
-    "command": "clear && time make -r -j`nproc`",
-    "args": [],
-    "options": {
-      "cwd": "${workspaceFolder}/"
+  "tasks":
+  [
+    {
+      "type": "shell",
+      "label": "make_base_unittests",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make base_unittests"
     },
-    "problemMatcher": [
-      "$gcc"
-    ],
-    "group": {
-      "kind": "build",
-      "isDefault": true
+    {
+      "type": "shell",
+      "label": "make_base_memory_unittests",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make base_memory_unittests"
+    },
+    {
+      "type": "shell",
+      "label": "make_crypto_tests",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make crypto_tests"
+    },
+    {
+      "type": "shell",
+      "label": "make_sqlite_test",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make sqlite_test"
+    },
+    {
+      "type": "shell",
+      "label": "make_multimatch",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make multimatch"
+    },
+    {
+      "type": "shell",
+      "label": "make_entilement_test",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make entilement_test"
+    },
+    {
+      "type": "shell",
+      "label": "make_issuing_tool",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make issuing_tool"
+    },
+    {
+      "type": "shell",
+      "label": "make_issuing_test",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make issuing_test"
+    },
+    {
+      "type": "shell",
+      "label": "make_vulkan_test",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make vulkan_test"
+    },
+    {
+      "type": "shell",
+      "label": "make_unittests",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make unittests"
+    },
+    {
+      "type": "shell",
+      "label": "make_testclient",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make testclient"
+    },
+    {
+      "type": "shell",
+      "label": "make_testserver",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make testserver"
+    },
+    {
+      "type": "shell",
+      "label": "make_refl_test",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make refl_test"
+    },
+    {
+      "type": "shell",
+      "label": "make_platformtests",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make platformtests"
+    },
+    {
+      "type": "shell",
+      "label": "make_gammatests",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make gammatests"
+    },
+    {
+      "type": "shell",
+      "label": "make_layout",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make layout"
+    },
+    {
+      "type": "shell",
+      "label": "make_database_test",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make database_test"
+    },
+    {
+      "type": "shell",
+      "label": "make_App_Main",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make App_Main"
+    },
+    {
+      "type": "shell",
+      "label": "make_dedi_server",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make dedi_server"
+    },
+    {
+      "type": "shell",
+      "label": "make_runner",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make runner"
+    },
+    {
+      "type": "shell",
+      "label": "make_sample_app_cli",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make sample_app_cli"
+    },
+    {
+      "type": "shell",
+      "label": "make_Hits",
+      "options":
+      {
+        "cwd": "/home/vince/Documents/Dev/equilibrium/build/../out/gmake2",
+      },
+      "command": "make Hits"
     }
-  }]
+  ]
 }

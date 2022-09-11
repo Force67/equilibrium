@@ -9,7 +9,7 @@ local vscode = p.modules.vscode
 local project = p.project
 local workspace = p.workspace
 
-function vscode.getcompiler(cfg)
+function vscode.getToolset(cfg)
 	local toolset = p.tools[_OPTIONS.cc or cfg.toolset or p.CLANG]
 	if not toolset then
 		error("Invalid toolset '" + (_OPTIONS.cc or cfg.toolset) + "'")
@@ -47,6 +47,10 @@ function vscode.mockAction(str)
     return str:gsub(string.format("/%s", _ACTION), string.format("/%s", _OPTIONS["vscode-fakeaction"]))
 end
 
+function vscode.canBuild(prj)
+    return prj.kind == 'ConsoleApp' or prj.kind == 'WindowedApp'
+end
+
 function vscode.onWorkspace(wks)
     p.eol("\r\n")
     p.indent("  ")
@@ -62,7 +66,7 @@ function vscode.onWorkspace(wks)
         for prj in workspace.eachproject(wks) do
             i = i+1
 
-            if prj.kind == "ConsoleApp" then
+            if vscode.canBuild(prj) then
             p.push('{')
 
 			p.w('"name": "%s",', prj.name)
@@ -125,6 +129,8 @@ function vscode.onWorkspace(wks)
         for prj in workspace.eachproject(wks) do
             i=i+1
 
+            if vscode.canBuild(prj) then
+
             local target_config = vscode.getConfig(prj)
             if target_config == nil then
                 print("u done fucked up")
@@ -153,11 +159,82 @@ function vscode.onWorkspace(wks)
               else
                 p.pop('}')
             end
-
+        end
         end
 
 
         p.pop(']')
+        p.pop('}')
+    end)
+
+    p.generate(wks, blu.rootdir .. "/.vscode/c_cpp_properties.json", function(wks)
+        p.push('{')
+		p.w('"configurations":')
+        p.push('[')
+
+        local i = 0 -- works in lua since arrays start from 1
+        for prj in workspace.eachproject(wks) do
+            i = i+1
+
+            local target_config = vscode.getConfig(prj)
+            if target_config == nil then
+                print("u done fucked up")
+            end
+
+            local toolset = vscode.getToolset(target_config)
+
+            p.push('{')
+
+            p.w('"name": "%s %s",', prj.name, target_config.name)
+
+            p.w('"includePath":')
+
+            p.push('[')
+            p.w('"${workspaceFolder}/**",')
+            local j = 0
+            for _, includedir in ipairs(target_config.includedirs) do
+                j = j+1
+                p.w('"%s"%s', includedir, j == #target_config.includedirs and '' or ',')
+            end
+            p.pop('],')
+
+            -- toolset.getdefines(cfg.defines)
+            p.w('"defines":')
+            p.push('[')
+                local defines = table.join(toolset.getdefines(target_config.defines, target_config), toolset.getundefines(target_config.undefines))
+                if #defines > 0 then
+                    for k = 1,#defines do
+                        p.w('"%s"%s', defines[k]:gsub('\\', '\\\\'):gsub('"', '\\"'), k == #defines and '' or ',')
+                    end
+                end
+            p.pop('],')
+
+            p.w('"compilerPath": "/usr/bin/g++",') --TODO premake toolset
+            if target_config.cdialect ~= nil then
+                p.w('"cStandard": "%s",', target_config.cdialect:lower())
+            end
+            if target_config.cppdialect ~= nil then
+                p.w('"cppStandard": "%s",', target_config.cppdialect:lower())
+            end
+            p.w('"intelliSenseMode": "gcc-x64",') --TODO premake toolset
+
+            p.w('"compilerArgs":')
+            p.push('[')
+                -- force includes
+                local forceincludes = toolset.getforceincludes(target_config)
+                p.w('"' .. table.concat(forceincludes, ";") .. '"')
+            p.pop(']')
+
+            -- end entry
+            if i ~= #wks.projects then
+                p.pop('},')
+              else
+                p.pop('}')
+            end
+        end
+
+        p.pop('],')
+        p.w('"version": 4')
         p.pop('}')
     end)
 end
