@@ -11,9 +11,11 @@ namespace base {
 #if defined(OS_WIN)
 #define BASE_PATH_SEP_MACRO L'\\'
 #define BASE_PATH_LITERAL(x) L##x
-#else
+#endif
+
+#if defined(OS_POSIX)
 #define BASE_PATH_SEP_MACRO '/'
-#define BASE_PATH_LITERAL(x) L##x
+#define BASE_PATH_LITERAL(x) x
 #endif
 
 class BASE_EXPORT Path {
@@ -52,9 +54,15 @@ class BASE_EXPORT Path {
   friend Path operator/(const Path& lhs, const Path& rhs);
   Path& operator/=(const Path& other);
 
-  operator bool() { return !empty(); }
-  bool operator!=(const Path& other) const { return path_buf_ != other.path_buf_; }
-  bool operator==(const Path& other) const { return path_buf_ == other.path_buf_; }
+  operator bool() {
+    return !empty();
+  }
+  bool operator!=(const Path& other) const {
+    return path_buf_ != other.path_buf_;
+  }
+  bool operator==(const Path& other) const {
+    return path_buf_ == other.path_buf_;
+  }
 
   // append another path to this path, and insert a seperator in between of them
   void Append(const Path&);
@@ -79,9 +87,15 @@ class BASE_EXPORT Path {
   [[nodiscard]] Path Extension() const;
 
   // cxx adapters
-  inline bool empty() const { return path_buf_.empty(); }
-  const CharType* c_str() const { return path_buf_.c_str(); }
-  inline const BufferType& path() const { return path_buf_; }
+  inline bool empty() const {
+    return path_buf_.empty();
+  }
+  const CharType* c_str() const {
+    return path_buf_.c_str();
+  }
+  inline const BufferType& path() const {
+    return path_buf_;
+  }
 
  private:
   void StripTrailingSeparators();

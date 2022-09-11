@@ -19,14 +19,13 @@ void EQPageTableTest1() {
 
   void* page = table.RequestPage(base::PageProtectionFlags::RW);
   BUGCHECK(page);
-
 }
 
 void TrackerTest1() {
   auto& tracker = base::memory_tracker();
 
   // demonstates the use of the tracker for debugging
-  void* obj = new char[512];
+  char* obj = new char[512];
 
   auto current_context = current_memory_category();
   mem_size store = tracker.memory_sizes[kGeneralMemory];
@@ -60,8 +59,6 @@ void TestMemoryCategories() {
   }
 
   auto& tracker = base::memory_tracker();
-
-
 }
 
 int main() {

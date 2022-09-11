@@ -21,8 +21,8 @@ class Span {
 
   // TODO: this allows to create a span from a span, which is not intended
   // behaviour, disable that
-  template <class T>
-  constexpr Span(T& container) noexcept requires HasContainerTraits<T>
+  template <class TT>
+  constexpr Span(TT& container) noexcept requires HasContainerTraits<TT>
       : Span(container.data(), container.size()) {}
 
   template <mem_size N>

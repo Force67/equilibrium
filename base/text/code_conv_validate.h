@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include "arch.h"
 #include <base/external/icu/icu_utf.h>
 
 namespace base {
@@ -20,7 +21,7 @@ inline bool IsValidUTF8Character(base_icu::UChar32 code_point) {
 template <typename Char>
 inline bool DoIsStringUTF8(const Char* str, mem_size length) {
   const u8* src = reinterpret_cast<const u8*>(str);
-  size_t char_index = 0;
+  arch_types::mem_size char_index = 0;
 
   while (char_index < length) {
     base_icu::UChar32 code_point;
@@ -38,8 +39,7 @@ inline bool IsValidCodepoint(uint32_t code_point) {
   // code points larger than 0x10FFFF (the highest codepoint allowed).
   // Non-characters and unassigned code points are allowed.
   // https://unicode.org/glossary/#unicode_scalar_value
-  return code_point < 0xD800u ||
-         (code_point >= 0xE000u && code_point <= 0x10FFFFu);
+  return code_point < 0xD800u || (code_point >= 0xE000u && code_point <= 0x10FFFFu);
 }
 
 // Assuming that a pointer is the size of a "machine word", then
@@ -51,7 +51,7 @@ inline bool IsMachineWordAligned(const void* pointer) {
 }
 
 template <class Char>
-bool DoIsStringASCII(const Char* characters, size_t length) {
+bool DoIsStringASCII(const Char* characters, mem_size length) {
   // Bitmasks to detect non ASCII characters for character sizes of 8, 16 and 32
   // bits.
   constexpr MachineWord NonASCIIMasks[] = {
@@ -73,7 +73,7 @@ bool DoIsStringASCII(const Char* characters, size_t length) {
     return false;
 
   // Compare the values of CPU word size.
-  constexpr size_t chars_per_word = sizeof(MachineWord) / sizeof(Char);
+  constexpr mem_size chars_per_word = sizeof(MachineWord) / sizeof(Char);
   constexpr int batch_count = 16;
   while (characters <= end - batch_count * chars_per_word) {
     all_char_bits = 0;

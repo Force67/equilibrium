@@ -8,7 +8,7 @@ for key, value_map in pairs(system_ext_map) do
   for i, value in pairs(value_map) do
     if key ~= _TARGET_OS then
       -- ignore duplicate entries
-      if string.find(rval, value) == nil then
+      if string.find(rval, value) == nil and system_ext_map[key].valuu ~= system_ext_map[_TARGET_OS].value then
         local sourceglob = string.format("**_%s.cc or **/%s/**", value, value)
         rval = rval .. (first and "" or " or ") .. sourceglob
         if first then first = false end
@@ -16,6 +16,8 @@ for key, value_map in pairs(system_ext_map) do
     end
   end
 end
+
+print(rval)
 
 filter(rval)
 flags("ExcludeFromBuild")

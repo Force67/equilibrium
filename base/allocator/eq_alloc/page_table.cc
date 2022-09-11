@@ -79,43 +79,43 @@ mem_size PageTable::ReservePages(const pointer_size page_base,
 }
 
 void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
-  //ScopedSpinLock _;
+  // ScopedSpinLock _;
 
-    #if 0
+#if 0
   if (void* block =
           Allocate(e.pointer(), ideal_page_size(), page_flags, 0xFF, true)) {
     return block;
   }
-  #endif
+#endif
 
   // walk the freelist..
 
-      // for debugging reasons we fill each new page with 0xFF to detect unitialized
-  // memory more easily
-  #if 0
+  // for debugging reasons we fill each new page with 0xFF to detect unitialized
+// memory more easily
+#if 0
   if (void* block =
           Allocate(e.pointer(), ideal_page_size(), page_flags, 0xFF, true)) {
     return block;
   }
-  #endif
+#endif
 
   return nullptr;
 }
 
 bool PageTable::ReleasePage(void* page_pointer) {
-  __debugbreak();
+  //__debugbreak();
   return false;
 }
 
 PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
-    #if 0
+#if 0
   for (auto i = 0; i < 12; i++) {
     auto& e = page_entries_[i];
     if (e.Contains(block)) {
       return &e;
     }
   }
-  #endif
+#endif
   return nullptr;
 }
 

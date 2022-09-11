@@ -3,12 +3,13 @@
 
 #include <mbedtls/base64.h>
 #include <crypto/base64.h>
+#include <cstddef>
 
 namespace crypto {
 bool Base64Encode(const base::Span<byte> in_data, base::String& out) {
   DCHECK(!in_data.empty(), "Invalid span passed to Base64Encode");
 
-  mem_size out_length = 0;
+  size_t out_length = 0;
   int result = 0;
 
   // reasonable default, so that we dont have to resize for each character in the
@@ -35,7 +36,7 @@ bool Base64Encode(const base::Span<byte> in_data, base::String& out) {
 }
 
 bool Base64Decode(const base::StringRef in_text, base::String& out) {
-  mem_size out_length = 0;
+  size_t out_length = 0;
   int result = 0;
 
   // reasonable default, so that we dont have to resize for each character in the

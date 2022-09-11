@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <base/threading/spinning_mutex.h>
+#include "check.h"
 
 #if (OS_WIN)
 #include <intrin.h>
@@ -60,5 +61,26 @@ void SpinningMutex::AcquireSpinThenBlock() {
 
   LockSlow();
 }
+
+#if defined(OS_LINUX)
+#define FUTEX_WAKE 1
+#define FUTEX_PRIVATE_FLAG 128
+
+void SpinningMutex::FutexWake() {
+  int saved_errno = errno;
+  long retval = syscall(SYS_futex, &state_, FUTEX_WAKE | FUTEX_PRIVATE_FLAG,
+                        1 /* wake up a single waiter */, nullptr, nullptr, 0);
+  DCHECK(retval != -1);
+  errno = saved_errno;
+}
+
+void SpinningMutex::LockSlow() {
+  // If this thread gets awaken but another one got the lock first, then go back
+  // to sleeping. See comments in |FutexWait()| to see why a loop is required.
+  while (state_.exchange(kLockedContended, std::memory_order_acquire) != kUnlocked) {
+    FutexWait();
+  }
+}
+#endif
 
 }  // namespace base

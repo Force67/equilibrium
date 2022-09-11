@@ -38,10 +38,10 @@ requires(!base::ISSame<T, void>) class UniquePointer {
       Free();
   }
   // must be used for construction
-  template <typename T, typename... TArgs>
-  friend UniquePointer<T> MakeUnique(TArgs&&... args) requires(!base::IsArray<T>);
-  template <typename T>
-  friend UniquePointer<T> MakeUnique(mem_size count) requires(base::IsArray<T>);
+  template <typename TT, typename... TArgs>
+  friend UniquePointer<TT> MakeUnique(TArgs&&... args) requires(!base::IsArray<TT>);
+  template <typename TT>
+  friend UniquePointer<TT> MakeUnique(mem_size count) requires(base::IsArray<TT>);
 
   // you have to request move
   BASE_NOCOPY(UniquePointer)
@@ -71,7 +71,7 @@ requires(!base::ISSame<T, void>) class UniquePointer {
 
   // array access
   TType& operator[](mem_size index) requires(base::IsArray<T>) {
-    //DCHECK(index < (sizeof(T) / sizeof(pointer_[0])));
+    // DCHECK(index < (sizeof(T) / sizeof(pointer_[0])));
     return pointer_[index];
   }
 

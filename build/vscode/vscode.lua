@@ -10,11 +10,16 @@ local project = p.project
 local workspace = p.workspace
 
 function vscode.getToolset(cfg)
-	local toolset = p.tools[_OPTIONS.cc or cfg.toolset or p.CLANG]
-	if not toolset then
-		error("Invalid toolset '" + (_OPTIONS.cc or cfg.toolset) + "'")
-	end
-	return toolset
+	--local toolset = p.tools[_OPTIONS.cc or cfg.toolset or p.CLANG]
+	--if not toolset then
+	--	error("Invalid toolset '" + (_OPTIONS.cc or cfg.toolset) + "'")
+	--end
+	--return toolset
+    local t = p.tools[cfg.toolset or 'gcc']
+    if not t then
+        error("invalid toolset")
+    end
+    return t
 end
 
 function vscode.generateWorkspace(wks)
@@ -75,7 +80,7 @@ function vscode.onWorkspace(wks)
 
             local target_config = vscode.getConfig(prj)
             if target_config == nil then
-                print("u done fucked up")
+                error("u done fucked up")
             end
 
 			p.w('"program": "%s/%s",', vscode.mockAction(target_config.buildtarget.directory), prj.name)
@@ -133,7 +138,7 @@ function vscode.onWorkspace(wks)
 
             local target_config = vscode.getConfig(prj)
             if target_config == nil then
-                print("u done fucked up")
+                error("u done fucked up")
             end
 
             p.push('{')
@@ -178,15 +183,13 @@ function vscode.onWorkspace(wks)
 
             local target_config = vscode.getConfig(prj)
             if target_config == nil then
-                print("u done fucked up")
+                error("u done fucked up")
             end
 
             local toolset = vscode.getToolset(target_config)
 
             p.push('{')
-
             p.w('"name": "%s %s",', prj.name, target_config.name)
-
             p.w('"includePath":')
 
             p.push('[')
@@ -216,6 +219,8 @@ function vscode.onWorkspace(wks)
             if target_config.cppdialect ~= nil then
                 p.w('"cppStandard": "%s",', target_config.cppdialect:lower())
             end
+
+            --print(toolset.gettoolname(target_config, "cxx"))
             p.w('"intelliSenseMode": "gcc-x64",') --TODO premake toolset
 
             p.w('"compilerArgs":')

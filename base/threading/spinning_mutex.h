@@ -98,6 +98,44 @@ STRONG_INLINE void SpinningMutex::Acquire() {
 
 inline constexpr SpinningMutex::SpinningMutex() = default;
 
+#if defined(OS_LINUX)
+
+STRONG_INLINE bool SpinningMutex::Try() {
+  // Using the weak variant of compare_exchange(), which may fail spuriously. On
+  // some architectures such as ARM, CAS is typically performed as a LDREX/STREX
+  // pair, where the store may fail. In the strong version, there is a loop
+  // inserted by the compiler to retry in these cases.
+  //
+  // Since we are retrying in Lock() anyway, there is no point having two nested
+  // loops.
+  int expected = kUnlocked;
+  return (state_.load(std::memory_order_relaxed) == expected) &&
+         state_.compare_exchange_weak(expected, kLockedUncontended,
+                                      std::memory_order_acquire,
+                                      std::memory_order_relaxed);
+}
+
+STRONG_INLINE void SpinningMutex::Release() {
+  if ((state_.exchange(kUnlocked, std::memory_order_release) ==
+       kLockedContended)) {  // likelz
+    // |kLockedContended|: there is a waiter to wake up.
+    //
+    // Here there is a window where the lock is unlocked, since we just set it
+    // to |kUnlocked| above. Meaning that another thread can grab the lock
+    // in-between now and |FutexWake()| waking up a waiter. Aside from
+    // potentially fairness, this is not an issue, as the newly-awaken thread
+    // will check that the lock is still free.
+    //
+    // There is a small pessimization here though: if we have a single waiter,
+    // then when it wakes up, the lock will be set to |kLockedContended|, so
+    // when this waiter releases the lock, it will needlessly call
+    // |FutexWake()|, even though there are no waiters. This is supported by the
+    // kernel, and is what bionic (Android's libc) also does.
+    FutexWake();
+  }
+}
+#endif
+
 #if defined(OS_WIN)
 
 STRONG_INLINE void SpinningMutex::LockSlow() {

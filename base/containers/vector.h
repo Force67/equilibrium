@@ -9,7 +9,7 @@
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/container_traits.h>
 
-#include <new> // < for placement new
+#include <new>  // < for placement new
 #include <cstring>
 
 namespace base {
@@ -169,7 +169,6 @@ class Vector {
     ::new (static_cast<void*>(end_++)) T(args...);
   }
 
-  template <typename T>
   void InsertValueAtEnd(mem_size n, const T& value) {
     if (n > mem_size(capacity_ - end_)) {
       const auto current_cap = size();
