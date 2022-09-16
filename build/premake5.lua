@@ -4,9 +4,15 @@
 -- Declare the blu build tool namespace
 blu = {}
 
-require('vstudio') -- support for visual studio TODO(disable me on linux)
-require("compile_commands/export-compile-commands") -- compile_commands.json support for clangd
-require("vscode/vscode") -- support for vscode
+if _ACTION == "vs2022" then
+  require('vstudio')
+  print("Enabling vs2022 overrides")
+end
+
+if _ACTION == "gmake2" then
+  require("compile_commands/export-compile-commands") -- compile_commands.json support for clangd
+  require("vscode/vscode") -- support for vscode
+end
 
 -- pull in root dependencies
 -- by order of importance.

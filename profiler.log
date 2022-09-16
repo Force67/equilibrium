@@ -1,0 +1,194 @@
+> Total time: 0.295000 s
+------------------------------------------------------------------------------------------------------------------------------------------
+| FILE                                              : FUNCTION                                          : LINE   : TIME   : %     : #    |
+------------------------------------------------------------------------------------------------------------------------------------------
+| S:/Work/VanForce/equilibrium/build/premake5       : Anon                                              :     0  : 0.1780 : 60.3  :    1 |
+| S:/Work/VanForce/equilibrium/build/build_info     : Anon                                              :     0  : 0.1540 : 52.2  :    1 |
+| S:/Work/VanForce/equilibrium/build/build_info     : io_exec                                           :    12  : 0.1530 : 51.9  :    5 |
+| S:/Work/VanForce/equilibrium/components/premake5  : Anon                                              :     0  : 0.0590 : 20.0  :    1 |
+| [string "src/base/configset.lua"]                 : store                                             :   180  : 0.0520 : 17.6  :  667 |
+| [string "src/base/api.lua"]                       : _setContainer                                     :    38  : 0.0460 : 15.6  :   88 |
+| [string "src/base/configset.lua"]                 : Anon                                              :   186  : 0.0390 : 13.2  :  667 |
+| [string "src/base/api.lua"]                       : project                                           :    11  : 0.0360 : 12.2  :   51 |
+| [string "src/base/configset.lua"]                 : __newindex                                        :   125  : 0.0360 : 12.2  :  912 |
+| [string "src/base/project.lua"]                   : new                                               :     6  : 0.0330 : 11.2  :   51 |
+| S:/Work/VanForce/equilibrium/retk/premake5        : Anon                                              :     0  : 0.0220 : 7.5   :    1 |
+| S:/Work/VanForce/equilibrium/build/unittest       : unittest                                          :    26  : 0.0210 : 7.1   :   14 |
+| S:/Work/VanForce/equilibrium/build/component      : component                                         :    15  : 0.0210 : 7.1   :   14 |
+| [string "src/base/container.lua"]                 : classCanContain                                   :    75  : 0.0200 : 6.8   :  584 |
+| S:/Work/VanForce/equilibrium/external/premake5    : Anon                                              :     0  : 0.0200 : 6.8   :    1 |
+| [string "src/base/api.lua"]                       : target                                            :   196  : 0.0190 : 6.4   :  456 |
+| [string "src/base/container.lua"]                 : new                                               :    17  : 0.0170 : 5.8   :   53 |
+| [string "src/base/configset.lua"]                 : addFilter                                         :   151  : 0.0170 : 5.8   :  154 |
+| [string "src/_premake_init.lua"]                  : allowed                                           :  1137  : 0.0140 : 4.7   :   51 |
+| [string "src/base/api.lua"]                       : checkValue                                        :   292  : 0.0140 : 4.7   :  388 |
+| [string "src/base/api.lua"]                       : filter                                            :   651  : 0.0130 : 4.4   :   66 |
+| [string "src/base/criteria.lua"]                  : new                                               :    48  : 0.0130 : 4.4   :  154 |
+| [string "src/base/api.lua"]                       : group                                             :    11  : 0.0100 : 3.4   :   35 |
+| ...ork/VanForce/equilibrium/components/network/pre: Anon                                              :     0  : 0.0100 : 3.4   :    1 |
+| [string "src/base/api.lua"]                       : storeList                                         :   513  : 0.0090 : 3.1   :  596 |
+| ...VanForce/equilibrium/components/entitlement/pre: Anon                                              :     0  : 0.0090 : 3.1   :    1 |
+| S:/Work/VanForce/equilibrium/build/build_info     : include_meta                                      :    35  : 0.0090 : 3.1   :   10 |
+| [string "src/base/_foundation.lua"]               : findProjectScript                                 :   129  : 0.0090 : 3.1   :   57 |
+| [string "vstudio/vstudio.lua"]                    : Anon                                              :     0  : 0.0090 : 3.1   :    1 |
+| S:/Work/VanForce/equilibrium/components/ui/premake: Anon                                              :     0  : 0.0080 : 2.7   :    1 |
+| [string "src/base/table.lua"]                     : contains                                          :     8  : 0.0080 : 2.7   :  435 |
+| S:/Work/VanForce/equilibrium/base/premake5        : Anon                                              :     0  : 0.0070 : 2.4   :    1 |
+| S:/Work/VanForce/equilibrium/build/build_config   : Anon                                              :     0  : 0.0070 : 2.4   :    1 |
+| S:/Work/VanForce/equilibrium/retk/components/prema: Anon                                              :     0  : 0.0070 : 2.4   :    1 |
+| ...ce/equilibrium/components/tilted_reflection/pre: Anon                                              :     0  : 0.0060 : 2.0   :    1 |
+| S:/Work/VanForce/equilibrium/components/gpu/premak: Anon                                              :     0  : 0.0050 : 1.7   :    1 |
+| ...quilibrium/retk/components/program_database/pre: Anon                                              :     0  : 0.0050 : 1.7   :    1 |
+| S:/Work/VanForce/equilibrium/nemisis/premake5     : Anon                                              :     0  : 0.0050 : 1.7   :    1 |
+| [string "src/base/string.lua"]                    : explode                                           :     7  : 0.0050 : 1.7   :   57 |
+| [string "src/base/field.lua"]                     : get                                               :   113  : 0.0050 : 1.7   : 1146 |
+| ...rk/VanForce/equilibrium/components/database/pre: Anon                                              :     0  : 0.0040 : 1.4   :    1 |
+| [string "src/base/container.lua"]                 : eachChildClass                                    :   106  : 0.0040 : 1.4   :  751 |
+| S:/Work/VanForce/equilibrium/components/crypto/pre: Anon                                              :     0  : 0.0040 : 1.4   :    1 |
+| [string "src/base/api.lua"]                       : storeListItem                                     :   506  : 0.0040 : 1.4   :  746 |
+| .../VanForce/equilibrium/retk/integrations/ida/pre: Anon                                              :     0  : 0.0040 : 1.4   :    1 |
+| ...ork/VanForce/equilibrium/components/diffing/pre: Anon                                              :     0  : 0.0040 : 1.4   :    1 |
+| [string "src/base/configset.lua"]                 : addblock                                          :   147  : 0.0040 : 1.4   :   81 |
+| S:/Work/VanForce/equilibrium/external/premake-idaq: Anon                                              :     0  : 0.0030 : 1.0   :    1 |
+| [string "src/base/field.lua"]                     : property                                          :   127  : 0.0030 : 1.0   :   20 |
+| ...VanForce/equilibrium/external/premake-idaqt/_pr: Anon                                              :     0  : 0.0030 : 1.0   :    1 |
+| [string "src/base/api.lua"]                       : register                                          :    88  : 0.0030 : 1.0   :   20 |
+| S:/Work/VanForce/equilibrium/retk/main/premake5   : Anon                                              :     0  : 0.0030 : 1.0   :    1 |
+| ...nForce/equilibrium/retk/integrations/x64dbg/pre: Anon                                              :     0  : 0.0030 : 1.0   :    1 |
+| S:/Work/VanForce/equilibrium/base/premake5        : base_project                                      :     4  : 0.0030 : 1.0   :    3 |
+| S:/Work/VanForce/equilibrium/components/sync/prema: Anon                                              :     0  : 0.0020 : 0.7   :    1 |
+| ...ce/equilibrium/retk/sync_server/dedi_server/pre: Anon                                              :     0  : 0.0020 : 0.7   :    1 |
+| ...k/VanForce/equilibrium/components/ir_lifter/pre: Anon                                              :     0  : 0.0020 : 0.7   :    1 |
+| S:/Work/VanForce/equilibrium/nemisis/runner/premak: Anon                                              :     0  : 0.0020 : 0.7   :    1 |
+| [string "src/base/configset.lua"]                 : metatable                                         :   123  : 0.0020 : 0.7   :   81 |
+| [string "src/base/string.lua"]                    : for iterator                                      :    11  : 0.0020 : 0.7   :   93 |
+| [string "src/base/container.lua"]                 : addChild                                          :    31  : 0.0020 : 0.7   :   81 |
+| [string "src/base/criteria.lua"]                  : flatten                                           :    21  : 0.0020 : 0.7   :  154 |
+| [string "src/base/configset.lua"]                 : __index                                           :   137  : 0.0020 : 0.7   :  169 |
+| .../equilibrium/retk/components/program_loader/pre: Anon                                              :     0  : 0.0020 : 0.7   :    1 |
+| S:/Work/VanForce/equilibrium/build/unittest       : add_generic_test_main                             :    10  : 0.0010 : 0.3   :   20 |
+| [string "src/base/os.lua"]                        : mkdir                                             :   264  : 0.0010 : 0.3   :    1 |
+| [string "src/base/container.lua"]                 : getChild                                          :   126  : 0.0010 : 0.3   :   88 |
+| S:/Work/VanForce/equilibrium/build/dependency     : Anon                                              :     0  : 0.0010 : 0.3   :    1 |
+| S:/Work/VanForce/equilibrium/build/artifacts      : Anon                                              :     0  : 0.0010 : 0.3   :    1 |
+| .../VanForce/equilibrium/components/decompiler/pre: Anon                                              :     0  : 0.0010 : 0.3   :    1 |
+| [string "src/base/configset.lua"]                 : new                                               :     5  : 0.0010 : 0.3   :   81 |
+| S:/Work/VanForce/equilibrium/components/gpu/premak: build_gpu                                         :     4  : 0.0010 : 0.3   :    2 |
+| S:/Work/VanForce/equilibrium/external/premake-idaq: enable                                            :    31  : 0.0010 : 0.3   :    2 |
+| [string "src/base/os.lua"]                        : __newindex                                        :   141  : 0.0010 : 0.3   :   69 |
+| S:/Work/VanForce/equilibrium/components/ui/premake: include_ui                                        :     4  : 0.0010 : 0.3   :    4 |
+| S:/Work/VanForce/equilibrium/nemisis/sdk/premake5 : Anon                                              :     0  : 0.0010 : 0.3   :    1 |
+| ...ork/VanForce/equilibrium/components/network/pre: network_include                                   :     4  : 0.0010 : 0.3   :    4 |
+| ...rk/VanForce/equilibrium/nemisis/sample_apps/pre: Anon                                              :     0  : 0.0010 : 0.3   :    1 |
+| [string "src/base/criteria.lua"]                  : _word                                             :    77  : 0.0010 : 0.3   :   65 |
+| ...ce/equilibrium/nemisis/sample_apps/dummyapp/pre: Anon                                              :     0  : 0.0010 : 0.3   :    1 |
+| [string "src/base/api.lua"]                       : workspace                                         :    11  : 0.0010 : 0.3   :    1 |
+| ...anForce/equilibrium/retk/sync_server/server/pre: Anon                                              :     0  : 0.0010 : 0.3   :    1 |
+| [string "src/_premake_main.lua"]                  : Anon                                              :    21  : 0.0010 : 0.3   :    2 |
+| [string "src/base/criteria.lua"]                  : flatten                                           :    23  : 0.0010 : 0.3   :  185 |
+------------------------------------------------------------------------------------------------------------------------------------------
+| [string "src/base/api.lua"]                       : dependson                                         :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : pchheader                                         :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : pchsource                                         :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : debugcommand                                      :   112  : ~      : ~     :    1 |
+| [string "src/base/os.lua"]                        : uuid                                              :   493  : ~      : ~     :   51 |
+| [string "src/base/api.lua"]                       : debugdir                                          :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : forceincludes                                     :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : qtgenerateddir                                    :   112  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : qtpath                                            :   112  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : qtmodules                                         :   112  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : qtenabled                                         :   112  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : qtprefix                                          :   112  : ~      : ~     :    2 |
+| ...anForce/equilibrium/external/premake-idaqt/qtmo: Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : targetname                                        :   112  : ~      : ~     :    5 |
+| [string "src/base/group.lua"]                     : new                                               :     5  : ~      : ~     :   28 |
+| [string "src/base/api.lua"]                       : includedirs                                       :   112  : ~      : ~     :   65 |
+| [string "src/base/api.lua"]                       : kind                                              :   112  : ~      : ~     :   54 |
+| [string "src/base/api.lua"]                       : func                                              :   250  : ~      : ~     :    4 |
+| [string "src/base/configset.lua"]                 : remove                                            :   197  : ~      : ~     :    2 |
+| [string "src/base/table.lua"]                     : foreachi                                          :    73  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : Anon                                              :   281  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : recurse                                           :   250  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : removefiles                                       :   116  : ~      : ~     :    2 |
+| [string "src/base/field.lua"]                     : remove                                            :   141  : ~      : ~     :    2 |
+| [string "src/base/api.lua"]                       : rules                                             :   112  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/unittest       : tokenize                                          :    18  : ~      : ~     :   14 |
+| S:/Work/VanForce/equilibrium/build/component      : push_scope                                        :     6  : ~      : ~     :    3 |
+| [string "src/base/api.lua"]                       : links                                             :   112  : ~      : ~     :   51 |
+| S:/Work/VanForce/equilibrium/external/premake5    : include_skia                                      :    10  : ~      : ~     :    5 |
+| [string "src/base/api.lua"]                       : pubincludedirs                                    :   112  : ~      : ~     :   16 |
+| [string "src/base/api.lua"]                       : files                                             :   112  : ~      : ~     :   81 |
+| S:/Work/VanForce/equilibrium/build/build_info     : to_double                                         :    19  : ~      : ~     :   10 |
+| [string "src/base/api.lua"]                       : language                                          :   112  : ~      : ~     :   11 |
+| [string "src/base/table.lua"]                     : isempty                                           :   176  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : dependencies                                      :   112  : ~      : ~     :   64 |
+| [string "src/base/api.lua"]                       : pubdefines                                        :   112  : ~      : ~     :   11 |
+| S:/Work/VanForce/equilibrium/build/component      : scope_group                                       :    10  : ~      : ~     :    4 |
+| [string "src/base/api.lua"]                       : linkoptions                                       :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : configurations                                    :   112  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/sdk            : Anon                                              :     0  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/sanitizer      : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/field.lua"]                     : new                                               :    10  : ~      : ~     :   20 |
+| [string "vstudio/vs2013_vcxitems.lua"]            : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2010_rules_targets.lua"]       : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2010_rules_xml.lua"]           : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2010_rules_props.lua"]         : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/field.lua"]                     : accessor                                          :    76  : ~      : ~     :  717 |
+| [string "src/base/field.lua"]                     : removes                                           :   149  : ~      : ~     :   20 |
+| [string "src/base/field.lua"]                     : store                                             :   152  : ~      : ~     :  667 |
+| [string "src/base/field.lua"]                     : processor                                         :    97  : ~      : ~     :  746 |
+| [string "src/base/container.lua"]                 : for iterator                                      :   109  : ~      : ~     :  796 |
+| [string "src/base/api.lua"]                       : defines                                           :   112  : ~      : ~     :   35 |
+| [string "src/base/_foundation.lua"]               : iif                                               :   132  : ~      : ~     :   38 |
+| [string "vstudio/vs2010_vcxproj_filters.lua"]     : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2010_vcxproj.lua"]             : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/path.lua"]                      : getname                                           :    62  : ~      : ~     :    2 |
+| [string "src/base/string.lua"]                    : findlast                                          :    24  : ~      : ~     :    4 |
+| [string "src/base/_foundation.lua"]               : require                                           :   145  : ~      : ~     :    2 |
+| [string "src/base/path.lua"]                      : getdirectory                                      :    28  : ~      : ~     :    2 |
+| [string "vstudio/vs2010_vcxproj_user.lua"]        : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs200x_vcproj.lua"]              : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2005_solution.lua"]            : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2010_nuget.lua"]               : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/_foundation.lua"]               : override                                          :   139  : ~      : ~     :    7 |
+| [string "src/base/_foundation.lua"]               : resolveAlias                                      :   152  : ~      : ~     :    7 |
+| [string "vstudio/vs200x_vcproj_user.lua"]         : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2005_fsproj_user.lua"]         : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2005_csproj_user.lua"]         : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2005_fsproj.lua"]              : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2005_dotnetbase.lua"]          : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "vstudio/vs2005_csproj.lua"]              : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/workspace.lua"]                 : new                                               :     8  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : targetsuffix                                      :   112  : ~      : ~     :    5 |
+| [string "src/base/api.lua"]                       : targetdir                                         :   112  : ~      : ~     :    2 |
+| S:/Work/VanForce/equilibrium/build/format_extensio: Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : rule                                              :    11  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/profiler/profil: stop                                              :   225  : ~      : ~     :    1 |
+| [string "src/base/_foundation.lua"]               : isdir                                             :   145  : ~      : ~     :    6 |
+| [string "src/base/rule.lua"]                      : new                                               :     4  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : buildoutputs                                      :   112  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/component      : Anon                                              :     0  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/unittest       : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : buildcommands                                     :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : fileextension                                     :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : buildmessage                                      :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : _clearContainerChildren                           :    79  : ~      : ~     :   90 |
+| [string "src/base/api.lua"]                       : display                                           :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : runtime                                           :   112  : ~      : ~     :    5 |
+| [string "src/base/api.lua"]                       : architecture                                      :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : libdirs                                           :   112  : ~      : ~     :    7 |
+| [string "src/base/api.lua"]                       : optimize                                          :   112  : ~      : ~     :    3 |
+| [string "src/base/api.lua"]                       : vectorextensions                                  :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : staticruntime                                     :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : exceptionhandling                                 :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : enableASAN                                        :   112  : ~      : ~     :    1 |
+| [string "src/base/table.lua"]                     : indexof                                           :   107  : ~      : ~     :   12 |
+| [string "src/base/api.lua"]                       : flags                                             :   112  : ~      : ~     :    5 |
+| [string "src/base/_foundation.lua"]               : editAndContinue                                   :    52  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : rtti                                              :   112  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/platform_files : Anon                                              :     0  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : objdir                                            :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : cppdialect                                        :   112  : ~      : ~     :    1 |
+| [string "src/base/api.lua"]                       : location                                          :   112  : ~      : ~     :    1 |
+| S:/Work/VanForce/equilibrium/build/platform_files : intersects_target                                 :    10  : ~      : ~     :    3 |
+------------------------------------------------------------------------------------------------------------------------------------------

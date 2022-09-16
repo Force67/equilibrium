@@ -26,7 +26,7 @@ filter("configurations:Debug")
     "CONFIG_DEBUG",
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
-  targetsuffix("%{cfg.architecture}_d")
+  targetsuffix("_%{cfg.architecture}_d")
 filter{}
 
 -- special configuration for memory debugging
@@ -42,7 +42,7 @@ filter("configurations:DebugMem")
     "CONFIG_DEBUG",
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
-  targetsuffix("%{cfg.architecture}_dm")
+  targetsuffix("_%{cfg.architecture}_dm")
 filter{}
 
 filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugMem"})
@@ -54,7 +54,7 @@ filter("configurations:Release")
   runtime("Release")
   optimize("Speed")
   defines("CONFIG_RELEASE")
-  targetsuffix("%{cfg.architecture}_r")
+  targetsuffix("_%{cfg.architecture}_r")
 filter{}
 
 -- this mode features release codegen but with profiler logging (usually using tracy)
@@ -65,7 +65,7 @@ filter("configurations:Profile")
   defines({
     "CONFIG_RELEASE", 
     "ENABLE_PROFILE"})
-  targetsuffix("%{cfg.architecture}_p")
+  targetsuffix("_%{cfg.architecture}_p")
 filter{}
 
 -- fully optimized build, ready to be shipped to the user

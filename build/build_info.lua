@@ -39,7 +39,7 @@ function include_meta()
     ('GIT_COMMIT_LONG="' .. blu.git_commit_long .. '"'),
     ('EQ_NAME="%{wks.name}"'),
     ('EQ_NAME_WIDE=L"%{wks.name}"'),
-    ('EQ_COMPANY="Force67"'),
+    ('EQ_COMPANY="VH Tech"'),
     ('EQ_VERSION_STR="' .. blu.version .. '"'),
     -- delete the first character 'v'
     ('EQ_VERSION=' .. to_double(blu.version))

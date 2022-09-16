@@ -1,7 +1,7 @@
-// Copyright (C) Force67 <github.com/Force67>.
+// Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "winuser.h"
+#include <winres.h>
 
 VS_VERSION_INFO VERSIONINFO
 FILEFLAGSMASK 0x17L
@@ -21,7 +21,7 @@ BEGIN
             VALUE "CompanyName", EQ_COMPANY
             VALUE "ProductName", EQ_NAME
             VALUE "FileDescription", PROJECT_NAME
-            VALUE "LegalCopyright", "Copyright (C) VHT."
+            VALUE "LegalCopyright", "© " EQ_COMPANY "All rights reserved."
             VALUE "InternalName", PROJECT_NAME
             VALUE "OriginalFilename", PROJECT_NAME
         END
@@ -32,4 +32,4 @@ BEGIN
     END
 END
 
-102 ICON "retk_full.ico"
+//102 ICON "retk_full.ico"
