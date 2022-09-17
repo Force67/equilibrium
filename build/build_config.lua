@@ -1,92 +1,94 @@
 -- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
 
-----  ENTER FILTER BARRIER: ONLY FILTERS AFTER THIS POINT  ----
-
-	---- Supported Operating Systems ----
-filter("system:windows")
+---- Supported Operating Systems ----
+when({'system:windows'}, function()
   defines({
     "OS_WIN",
     "NOMINMAX"})
-filter("system:linux")
+end)
+
+when({'system:linux'}, function()
   defines({
     "OS_LINUX",
     "OS_POSIX"}) -- we also define the POSIX alias here)
-filter("system:macosx")
+end)
+
+when({'system:macosx'}, function()
   defines("OS_MACOS")
-filter{}
+end)
 
 ---- Build configurations ----
 
 -- recommended for development
 -- has no optimization
-filter("configurations:Debug")
-  runtime("Debug")
+when({'configurations:Debug'}, function()
+  --runtime("Debug")
   defines({
     "CONFIG_DEBUG",
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
-  targetsuffix("_%{cfg.architecture}_d")
-filter{}
+  --targetsuffix("_%{cfg.architecture}_d")
+end)
 
 -- special configuration for memory debugging
 -- enables ASAN and msvc debug heap
-filter("configurations:DebugMem")
-  runtime("Debug")
-  flags({
-    "NoRuntimeChecks",
-    "NoIncrementalLink"})
+when({'configurations:DebugMem'}, function()
+  --runtime("Debug")
+  --flags({
+  --  "NoRuntimeChecks",
+  --  "NoIncrementalLink"})
   defines("CONFIG_DEBUG")
-  editAndContinue("Off")
+  --editAndContinue("Off")
   defines({
     "CONFIG_DEBUG",
     "_DEBUG" -- enable MSVC debug features, such as debug heap
   })
-  targetsuffix("_%{cfg.architecture}_dm")
-filter{}
+  --targetsuffix("_%{cfg.architecture}_dm")
+end)
 
-filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugMem"})
+when({'kind:ConsoleApplication or WindowedApplication', 'configurations:DebugMem'}, function()
   enableASAN("true")
-filter{}
+end)
 
 -- release build, good code gen, but no sub folding
-filter("configurations:Release")
-  runtime("Release")
-  optimize("Speed")
+when({'configurations:Release'}, function()
+  --runtime("Release")
+  --optimize("Speed")
   defines("CONFIG_RELEASE")
-  targetsuffix("_%{cfg.architecture}_r")
-filter{}
+  --targetsuffix("_%{cfg.architecture}_r")
+end)
 
 -- this mode features release codegen but with profiler logging (usually using tracy)
 -- enabled
-filter("configurations:Profile")
-  runtime("Release")
-  optimize("Speed")
+when({'configurations:Profile'}, function()
+  --runtime("Release")
+  --optimize("Speed")
   defines({
     "CONFIG_RELEASE", 
     "ENABLE_PROFILE"})
-  targetsuffix("_%{cfg.architecture}_p")
-filter{}
+  --targetsuffix("_%{cfg.architecture}_p")
+end)
 
 -- fully optimized build, ready to be shipped to the user
-filter("configurations:Shipping")
-  runtime("Release")
+when({'configurations:Shipping'}, function()
+  --runtime("Release")
   --optimize("Full") https://stackoverflow.com/questions/5063334/what-is-the-difference-between-the-ox-and-o2-compiler-options
   -- read also: https://github.com/ulfjack/ryu/pull/70#issuecomment-412168459 for further info on why we use O2
-  optimize("Speed")
-  flags({
-    "LinkTimeOptimization"
-  })
+  --optimize("Speed")
+  --flags({
+  --  "LinkTimeOptimization"
+  --})
   defines("CONFIG_SHIPPING")
-  targetsuffix("")
-filter{}
+  --targetsuffix("")
+end)
 
-filter("language:C or C++")
+--when({'language:C or C++'}, function()
   --vectorextensions("SSE4.2")
-  vectorextensions("AVX2")
-  staticruntime("on")
+  --vectorextensions("AVX2")
+  --staticruntime("on")
   -- disable exceptions
-  exceptionhandling("Off")
+  exceptionHandling("Off")
   -- all warnings (/wall)
   -- warnings("Everything")
   -- all errors are warnings
@@ -94,12 +96,11 @@ filter("language:C or C++")
   --flags("FatalWarnings")
   -- no rtti type info
   rtti("Off")
+--end)
 
-filter("language:C++")
-  cppdialect("C++20")
-
-----  LEAVE FILTER BARRIER: NO FILTERS AFTER THIS POINT  ----
-filter{}
+--when({'language:C++'}, function()
+  --cppDialect("C++20")
+--end)
 
 -- This is here rather temporarily
 defines("PROJECT_NAME=\"%{prj.name}\"")
