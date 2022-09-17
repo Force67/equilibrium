@@ -46,7 +46,7 @@ filter("configurations:DebugMem")
 filter{}
 
 filter({"kind:ConsoleApp OR WindowedApp", "configurations:DebugMem"})
-  enableASAN("true")
+  sanitize("Address")
 filter{}
 
 -- release build, good code gen, but no sub folding

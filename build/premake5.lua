@@ -6,7 +6,6 @@ blu = {}
 
 if _ACTION == "vs2022" then
   require('vstudio')
-  print("Enabling vs2022 overrides")
 end
 
 if _ACTION == "gmake2" then
@@ -16,7 +15,6 @@ end
 
 -- pull in root dependencies
 -- by order of importance.
-include('sanitizer.lua')
 include('build_config.lua')
 include('platform_files.lua')
 include('artifacts.lua')
