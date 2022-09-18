@@ -333,6 +333,10 @@ void NativeWindowWin32::SendCommand(Command command) {
   ::ShowWindow(hwnd_, cmd_show);
 }
 
+NativeWindowWin32::handle NativeWindowWin32::os_handle() const {
+  return hwnd_;
+}
+
 const SkIRect NativeWindowWin32::bounds() const {
   RECT r{};
   ::GetWindowRect(hwnd_, &r);

@@ -174,6 +174,8 @@ bool VulkanInstance::Create() {
   // attach the debug log
   messenger_.Make(*this);
 #endif
+
+   BindFunctionPointers();
   return true;
 }
 }  // namespace gpu::vulkan

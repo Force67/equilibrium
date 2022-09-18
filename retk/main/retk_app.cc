@@ -34,6 +34,7 @@ class ReTKApplication {
 
  private:
   bool Initialize();
+  void Update();
 
  private:
   // this _must_ come first.
@@ -53,16 +54,23 @@ bool ReTKApplication::Initialize() {
   return true;
 }
 
+void ReTKApplication::Update() {
+
+}
+
 int ReTKApplication::Exec() {
   LOG_INFO("Starting ReTK");
 
   if (!Initialize())
     return 0;
 
-  ui::MessagePumpWin message_pump;
-  while (message_pump.UpdateBlocking()) {
+  ui::MessagePumpWin message_loop;
+  while (!message_loop.WantsToQuit()) {
     BASE_PROFILE_FRAME("Main");
-    message_pump.Pump();
+    if (message_loop.Peek())
+      message_loop.Pump();
+    else
+      Update();
   }
 
   LOG_INFO("Shutting down ReTK");

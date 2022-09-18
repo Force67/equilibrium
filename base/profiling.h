@@ -17,6 +17,8 @@
 #include <external/tracy/Tracy.hpp>
 
 #define BASE_PROFILE(name) ZoneScopedN(name)
+#define BASE_PROFILE_NAMED ZoneScopedN(__FUNCTION__)
+
 #define BASE_PROFILE_FRAME(x) FrameMarkNamed(x)
 #define BASE_PROFILE_TAG(y, x) ZoneText(x, strlen(x))
 #define BASE_PROFILE_LOG(text, size) TracyMessage(text, size)
@@ -27,6 +29,7 @@
 #else
 
 #define BASE_PROFILE(name)
+#define BASE_PROFILE_NAMED
 #define BASE_PROFILE_FRAME(x)
 #define BASE_PROFILE_TAG(y, x)
 #define BASE_PROFILE_LOG(text, size)

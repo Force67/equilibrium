@@ -25,6 +25,8 @@ class NativeWindow {
   // properties get inherited.
   virtual bool Init(handle native_parent_handle, const SkIRect bounds) = 0;
 
+  virtual handle os_handle() const = 0;
+
   virtual bool SetTitle(const base::StringRefU8 title) = 0;
   const base::StringRefU8 title() const { return title_; }
 
@@ -38,8 +40,6 @@ class NativeWindow {
   inline void ToggleVisibility(bool b) {
     SendCommand(b ? Command::kShow : Command::kHide);
   }
-
-
 
  protected:
   // implementation specific commands

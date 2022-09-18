@@ -13,8 +13,11 @@ class GrDirectContext;
 
 namespace ui {
 
+enum class GrcApi { kUnknown = -1, kOpenGl, kVulkan };
+
 struct ContextCreateInfo {
-  int width, height;
+  SkIPoint dimensions;
+  GrcApi gr_api_type;
 };
 
 class SkiaContext {
@@ -38,6 +41,11 @@ class SkiaContext {
   void RestoreScaling();
 
  private:
+  void RebuildGlContext(SkPoint);
+  void RebuildVkContext(SkPoint);
+
+ private:
+  GrcApi grc_api_{GrcApi::kUnknown};
   // keep surface first as it needs to be destroyed first
   SkSurface* surface_;
   GrDirectContext* gpu_context_;

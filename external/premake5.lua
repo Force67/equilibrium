@@ -8,7 +8,10 @@ qt = premake.modules.qt
 group("Dependencies")
 
 function include_skia()
-  defines("SK_GL")
+  defines({
+    "SK_GL", --< opengl
+    "SK_VULKAN" --< vulkan
+  })
   links("skia")
   pubincludedirs({
     blu.extdir .. "/skia_sdk",

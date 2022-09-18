@@ -6,6 +6,9 @@
 
 #include <ui/platform/native_window.h>
 
+#include <gpu/vulkan/vulkan_instance.h>
+#include <gpu/vulkan/vulkan_surface.h>
+
 namespace main {
 
 class MainWindow {
@@ -17,5 +20,9 @@ class MainWindow {
 
  private:
   base::UniquePointer<ui::NativeWindow> native_window_;
+
+  gpu::vulkan::VulkanInstance vk_instance_;
+
+  base::LazyInstance<gpu::vulkan::VulkanSurface> surface_;
 };
 }  // namespace main

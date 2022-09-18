@@ -5,6 +5,7 @@ local function include_ui()
   dependencies({
     "fmtlib",
     "imgui",
+    "gpu" -- gpu component
   })
   include_skia()
   -- define our own imgui config file.

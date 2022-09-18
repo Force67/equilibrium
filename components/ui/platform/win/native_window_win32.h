@@ -25,7 +25,7 @@ class WindowDelegateWin {
 class NativeWindowWin32 final : public ui::NativeWindow {
  public:
   explicit NativeWindowWin32(base::StringRefU8 name,
-                     WindowDelegateWin* delegate = nullptr);
+                             WindowDelegateWin* delegate = nullptr);
   ~NativeWindowWin32();
 
   bool Init(handle parent, const SkIRect bounds) override;
@@ -33,7 +33,10 @@ class NativeWindowWin32 final : public ui::NativeWindow {
 
   void SendCommand(Command) override;
 
+  handle os_handle() const override;
   const SkIRect bounds() const override;
+
+  void SetDelegate(WindowDelegateWin* new_delegate) { delegate_ = new_delegate; }
 
  private:
   // static item.
@@ -50,6 +53,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   void HandleWindowResize(const SkIPoint new_size);
 
   bool ResizeBounds(const SkIPoint window_pos, const SkIPoint in_dimension);
+
  private:
   DWORD window_style_;
   DWORD window_ex_style_ = 0;

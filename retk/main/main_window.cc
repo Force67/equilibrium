@@ -1,6 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <Windows.h>
+
 #if defined(CreateWindow)
 #undef CreateWindow
 #endif
@@ -21,5 +23,12 @@ MainWindow::~MainWindow() {}
 void MainWindow::Initialize() {
   native_window_->Init(nullptr, SkIRect::MakeXYWH(0, 0, 1920, 1080));
   native_window_->Show();
+
+  BUGCHECK(vk_instance_.Create());
+
+  surface_.Make(vk_instance_.instance());
+
+  BUGCHECK(surface_->Initialize(::GetModuleHandleW(nullptr), native_window_->os_handle(),
+                      gpu::vulkan::VulkanSurface::Format::Default));
 }
 }  // namespace main

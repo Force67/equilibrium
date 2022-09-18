@@ -16,8 +16,6 @@ bool GetEnvironmentVariable(const base::StringRefU8 variable_name,
 
   base::StringW wide_buffer;
   wide_buffer.resize(buffer_size);
-
-  auto size = wide_buffer.size();
   buffer_size = ::GetEnvironmentVariableW(wide_name.c_str(), wide_buffer.data(),
                                           static_cast<DWORD>(wide_buffer.size()));
 

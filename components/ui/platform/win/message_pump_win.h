@@ -12,9 +12,11 @@ class MessagePumpWin {
  public:
   // https://stackoverflow.com/questions/2850186/why-peekmessage-before-getmessage
   bool UpdateBlocking();
-  bool UpdateImmediately();
+  bool Peek();
 
   void Pump();
+
+  bool WantsToQuit() const { return msg_.message == WM_QUIT; }
 
  private:
   MSG msg_{};

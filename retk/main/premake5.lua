@@ -15,6 +15,7 @@ project("App_Main")
         "imgui",
         -- system
         "ui",
+        "gpu",
         "program_loader"
     })
     dependencies("tracysdk")
