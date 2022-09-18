@@ -6,7 +6,7 @@
 
 namespace base {
 
-#if defined(MSC_VER)
+#if defined(_MSC_VER)
 template <typename T>
 [[nodiscard]] mem_size PopCount(const T value) noexcept {
   constexpr mem_size _Digits = base::MinMax<T>::digits();

@@ -13,7 +13,6 @@ TEST(NativeWindow, Create) {
 
   win_window.Show();
 
-
   ui::MessagePumpWin mp;
  // while (mp.Update()) {
  //   mp.Pump();

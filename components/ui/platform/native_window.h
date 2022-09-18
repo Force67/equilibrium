@@ -3,8 +3,14 @@
 // Platform window.
 #pragma once
 
+#if defined(CreateWindow)
+#undef CreateWindow
+#endif
+
 #include <core/SkRect.h>
+
 #include <base/strings/string_ref.h>
+#include <base/memory/unique_pointer.h>
 
 namespace ui {
 class NativeWindow {
@@ -26,11 +32,14 @@ class NativeWindow {
   virtual const SkIRect bounds() const = 0;
   SkScalar dpi() const { return dpi_; }
 
+  // visibility control
   inline void Show() { SendCommand(Command::kShow); }
   inline void Hide() { SendCommand(Command::kHide); }
   inline void ToggleVisibility(bool b) {
     SendCommand(b ? Command::kShow : Command::kHide);
   }
+
+
 
  protected:
   // implementation specific commands
@@ -55,4 +64,6 @@ class NativeWindow {
   base::StringU8 title_;
   SkScalar dpi_{};
 };
+
+base::UniquePointer<NativeWindow> MakeWindow(const base::StringRefU8);
 }  // namespace ui

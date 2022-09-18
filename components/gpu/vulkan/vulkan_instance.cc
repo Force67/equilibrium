@@ -1,10 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#define GLAD_VULKAN_IMPLEMENTATION
-
-
 #include <base/logging.h>
+
 #include <gpu/vulkan/vulkan_loader.h>
 #include <gpu/vulkan/vulkan_instance.h>
 
@@ -176,7 +174,6 @@ bool VulkanInstance::Create() {
   // attach the debug log
   messenger_.Make(*this);
 #endif
-
   return true;
 }
 }  // namespace gpu::vulkan

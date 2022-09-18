@@ -30,8 +30,10 @@ class BasicStringRef {
 
   static constexpr mem_size npos = kStringNotFoundPos;
 
+  // disable default ctor
   BasicStringRef() = delete;
 
+  // construct from base::String<T>
   BasicStringRef(const BASE_STRING(TChar) & str)
       : data_(str.c_str()),
         length_(static_cast<u32>(str.length())),
@@ -39,15 +41,18 @@ class BasicStringRef {
     DCHECK(str.size() <= max_size_characters());
   }
 
+  // construct from other
   BasicStringRef(const BasicStringRef<TChar>& other)
       : data_(other.data_), length_(other.length_), tags_(other.tags_) {}
 
+  // construct from TChar, length
   BasicStringRef(const TChar* data, mem_size length)
       : data_(data), length_(static_cast<u32>(length)) {
     tags_ = base::FindNullTerminator(data, length) ? StringRefFlags::kIsNullTerm
                                                    : StringRefFlags::kNone;
   }
 
+  // construct from compiletime
   constexpr BasicStringRef(const TChar* data,
                            mem_size length,
                            bool is_null_terminated)
@@ -56,6 +61,7 @@ class BasicStringRef {
         tags_(is_null_terminated ? StringRefFlags::kIsNullTerm
                                  : StringRefFlags::kNone) {}
 
+  // construct from raw string
   BasicStringRef(const TChar* data)
       : data_(data),
         length_(

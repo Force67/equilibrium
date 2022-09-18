@@ -15,5 +15,7 @@ bool VulkanDeviceQueue::Initialize() {
       .queueCount = 1,
       .pQueuePriorities = &queuePriority,
   };
+
+  return false;
 }
 }  // namespace gpu::vulkan

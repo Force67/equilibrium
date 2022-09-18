@@ -45,6 +45,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
 
   void ClearUserData();
 
+  void HandleDestroy();
   void HandleWindowMove();
   void HandleWindowResize(const SkIPoint new_size);
 

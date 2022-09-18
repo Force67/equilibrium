@@ -32,9 +32,21 @@ int __stdcall TKWinMain() {
 }
 #endif
 
-int APIENTRY wWinMain( HINSTANCE hInstance,
-                       HINSTANCE hPrevInstance,
-                       LPWSTR lpCmdLine,
-                       int nCmdShow) {
+struct ComScope {
+  bool ok = false;
+
+  ComScope() { ok = SUCCEEDED(::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)); }
+  ~ComScope() {
+    if (ok)
+      ::CoUninitialize();
+  }
+};
+
+int APIENTRY wWinMain(HINSTANCE hInstance,
+                      HINSTANCE hPrevInstance,
+                      LPWSTR lpCmdLine,
+                      int nCmdShow) {
+  ComScope _;
+  (void)_;
   return ReTKMain();
 }

@@ -17,7 +17,7 @@ bool VulkanSwapChain::Create(VulkanSurface& surface,
                              VulkanDeviceQueue& device_queue,
                              u32 min_image_count,
                              const VkSurfaceFormatKHR& format,
-                             const base::Vec2<i32> surface_size) {
+                             const base::Vec2<u32> surface_size) {
   const VkSwapchainCreateInfoKHR swap_chain_create_info{
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
       .flags = 0,

@@ -20,7 +20,7 @@ class VulkanSwapChain {
               VulkanDeviceQueue& device_queue,
               u32 min_image_count,
               const VkSurfaceFormatKHR& format,
-              const base::Vec2<i32> image_size);
+              const base::Vec2<u32> image_size);
 
  private:
   VkSwapchainKHR swapchain_handle_{VK_NULL_HANDLE};

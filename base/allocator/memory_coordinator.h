@@ -71,7 +71,7 @@ struct MCInstance {
     // TODO: verify actual new size.
     tracker_.TrackOperation(block, pointer_diff(new_size - former.size));
 
-    BASE_PROFILE_FREE(former);
+    BASE_PROFILE_FREE(former.pointer);
     BASE_PROFILE_ALLOCATION(block, new_size);
     return {block, new_size};
   }

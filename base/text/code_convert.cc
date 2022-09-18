@@ -17,12 +17,12 @@
 namespace base {
 namespace {
 
-constexpr int32_t kErrorCodePoint = 0xFFFD;
+constexpr base_icu::UChar32 kErrorCodePoint = 0xFFFD;
 
 template <typename SrcChar, typename DestChar>
 struct SizeCoefficient {
-  static_assert(sizeof(SrcChar) < sizeof(DestChar),
-                "Default case: from a smaller encoding to the bigger one");
+  //static_assert(sizeof(SrcChar) < sizeof(DestChar),
+  //              "Default case: from a smaller encoding to the bigger one");
 
   // ASCII symbols are encoded by one codeunit in all encodings.
   static constexpr int value = 1;
@@ -226,12 +226,12 @@ base::StringU16 UTF8ToUTF16(base::StringRef utf8) {
   return ret;
 }
 
-bool UTF16ToUTF8(const char16_t* src, size_t src_len, base::String* output) {
+bool UTF16ToUTF8(const char16_t* src, size_t src_len, base::StringU8* output) {
   return UTFConversion(base::StringRefU16(src, src_len), output);
 }
 
-base::String UTF16ToUTF8(base::StringRefU16 utf16) {
-  base::String ret;
+base::StringU8 UTF16ToUTF8(base::StringRefU16 utf16) {
+  base::StringU8 ret;
   // Ignore the success flag of this call, it will do the best it can for
   // invalid input, which is what we want here.
   UTF16ToUTF8(utf16.data(), utf16.length(), &ret);
@@ -311,11 +311,11 @@ inline const char16_t* as_u16cstr(base::StringRefW str) {
   return reinterpret_cast<const char16_t*>(str.data());
 }
 
-bool WideToUTF8(const wchar_t* src, size_t src_len, base::String* output) {
+bool WideToUTF8(const wchar_t* src, size_t src_len, base::StringU8* output) {
   return UTF16ToUTF8(as_u16cstr(src), src_len, output);
 }
 
-base::String WideToUTF8(const base::StringRefW wide) {
+base::StringU8 WideToUTF8(const base::StringRefW wide) {
   return UTF16ToUTF8(base::StringRefU16(as_u16cstr(wide), wide.size()));
 }
 

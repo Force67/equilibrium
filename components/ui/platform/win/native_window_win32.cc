@@ -3,6 +3,8 @@
 // Windows platform window implementation.
 
 #include <base/check.h>
+#include <base/atomic.h>
+
 #include <base/text/code_convert.h>
 
 #include <ui/display/dpi.h>
@@ -15,6 +17,8 @@
 namespace ui {
 
 namespace {
+base::Atomic<u32> window_count = 0;
+
 constexpr DWORD kWindowDefaultChildStyle =
     WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 constexpr DWORD kWindowDefaultStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
@@ -137,10 +141,7 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
       break;
     case WM_QUIT:
     case WM_DESTROY: {
-      // TODO(Force): evaluate if this makes that much sense, since this in its
-      // current form
-      // would mean, that the whole process dies for every closed window...
-      PostQuitMessage(0);
+      HandleDestroy();
       break;
     }
     case WM_MOVE:
@@ -192,8 +193,25 @@ void NativeWindowWin32::HandleWindowResize(const SkIPoint new_size) {
   }
 }
 
+void NativeWindowWin32::HandleDestroy() {
+  BUGCHECK(window_count > 0, "Invalid construction to destruction ratio");
+
+  if (window_count == 1) {
+    // last man standing, exit the message loop, we need to verify the window
+    // count in order to make sure we don't exit while other windows still might
+    // be active.
+    PostQuitMessage(0);
+  }
+  window_count--;
+}
+
 bool NativeWindowWin32::Init(handle parent_handle, const SkIRect suggested_bounds) {
   HWND parent = TranslateHandle(parent_handle);
+
+  if (suggested_bounds.width() == 0 || suggested_bounds.height() == 0) {
+    // invalid rect specified
+    return false;
+  }
 
   if (window_style_ == 0)
     window_style_ = parent ? kWindowDefaultChildStyle : kWindowDefaultStyle;
@@ -209,27 +227,25 @@ bool NativeWindowWin32::Init(handle parent_handle, const SkIRect suggested_bound
     DCHECK(::IsWindow(parent));
   }
 
-  /*
-     int32_t fLeft;   //!< smaller x-axis bounds
-    int32_t fTop;    //!< smaller y-axis bounds
-    int32_t fRight;  //!< larger x-axis bounds
-    int32_t fBottom; //!< larger y-axis bounds
-  */
-
-  SkIRect bounds{};
+  SkIRect bounds;
   if (suggested_bounds.isEmpty())
     bounds = {CW_USEDEFAULT};
   else
     bounds = suggested_bounds;
 
-  const WNDCLASSEXW wc{
-      .cbSize = sizeof(wc),
-      .style = CS_VREDRAW | CS_HREDRAW,
-      .lpfnWndProc = WndProc,
-      .hInstance = nullptr,
-      .lpszClassName = kWindowClassName,
-  };
-  BUGCHECK(RegisterClassExW(&wc));
+  // guard the class registration against being called twice
+  if (window_count == 0) {
+    const WNDCLASSEXW wc{
+        .cbSize = sizeof(wc),
+        .style = CS_VREDRAW | CS_HREDRAW,
+        .lpfnWndProc = WndProc,
+        .hInstance = nullptr,
+        .lpszClassName = kWindowClassName,
+    };
+
+    BUGCHECK(RegisterClassExW(&wc));
+  }
+  window_count++;
 
   // ATOM atom = GetWindowClassAtom();
   auto wide_name = base::UTF8ToWide(title_);
@@ -312,6 +328,8 @@ void NativeWindowWin32::SendCommand(Command command) {
       return;
   }
 
+  // If the window was previously visible, the return value is nonzero.
+  // If the window was previously hidden, the return value is zero.
   ::ShowWindow(hwnd_, cmd_show);
 }
 

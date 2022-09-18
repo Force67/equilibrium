@@ -12,7 +12,7 @@ BASE_EXPORT bool WideToUTF8(const wchar_t* src,
                             size_t src_len,
                             base::String* output);
 
-[[nodiscard]] BASE_EXPORT base::String WideToUTF8(const base::StringRefW wide);
+[[nodiscard]] BASE_EXPORT base::StringU8 WideToUTF8(const base::StringRefW wide);
 
 BASE_EXPORT bool UTF8ToWide(const char* src,
                             size_t src_len,
@@ -31,7 +31,7 @@ BASE_EXPORT bool UTF8ToUTF16(const char* src,
                              std::u16string* output);
 BASE_EXPORT bool UTF16ToUTF8(const char16_t* src,
                              size_t src_len,
-                             base::String* output);
+                             base::StringU8* output);
 
 // This converts an ASCII string, typically a hardcoded constant, to a wide
 // string.

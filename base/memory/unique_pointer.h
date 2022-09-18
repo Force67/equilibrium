@@ -28,9 +28,19 @@ requires(!base::ISSame<T, void>) class UniquePointer {
  public:
   // create empty pointer
   constexpr UniquePointer() noexcept : pointer_(nullptr) {}
-  // move constructor
+
+  // move constructor exactly the same type
   constexpr UniquePointer(UniquePointer&& rhs) noexcept : pointer_(rhs.pointer_) {
     rhs.pointer_ = nullptr;
+  }
+
+  // move constructor from base type
+  // e.g when assigning UniquePtr<Base> b = move(UniquePtr<Super>....
+  template <typename U>
+  requires(std::is_base_of_v<T, U>) constexpr UniquePointer(
+      UniquePointer<U>&& rhs) noexcept
+      : pointer_(rhs.Get_UseOnlyIfYouKnowWhatYouareDoing()) {
+    rhs.ResetUnchecked_UseOnlyIfYouKnowWhatYouareDoing();
   }
 
   ~UniquePointer() {
@@ -56,6 +66,20 @@ requires(!base::ISSame<T, void>) class UniquePointer {
     return *this;
   }
 
+#if 0
+  template <typename U>
+  inline UniquePointer<U>& operator=(UniquePointer&& rhs) noexcept
+      requires(std::convertible_to<T, U>)
+  /*TODO(Vince): requires(is_move_assignable_v<T>)*/ {
+    if (this != base::AddressOf(rhs)) {
+      // steal & invalidate right side.
+      pointer_ = rhs.pointer_;
+      rhs.pointer_ = nullptr;
+    }
+    return *this;
+  }
+#endif
+
   // release all memory owned by this pointer
   void Free() {
     DCHECK(pointer_);
@@ -77,6 +101,9 @@ requires(!base::ISSame<T, void>) class UniquePointer {
 
   bool empty() const noexcept { return pointer_ == nullptr; }
   operator bool() const noexcept { return pointer_ != nullptr; }
+
+  TType* Get_UseOnlyIfYouKnowWhatYouareDoing() { return pointer_; }
+  void ResetUnchecked_UseOnlyIfYouKnowWhatYouareDoing() { pointer_ = nullptr; }
 
  private:
   TType* pointer_;
