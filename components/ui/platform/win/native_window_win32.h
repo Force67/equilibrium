@@ -9,7 +9,7 @@
 
 namespace ui {
 
-class WindowDelegateWin {
+class WindowDelegateWin : public NativeWindow::Delegate {
  public:
   // Processes one message from the window's message queue.
   virtual BOOL ProcessWindowMessage(HWND window,

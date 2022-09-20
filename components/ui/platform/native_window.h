@@ -13,8 +13,11 @@
 #include <base/memory/unique_pointer.h>
 
 namespace ui {
+
 class NativeWindow {
  public:
+  class Delegate {};  // delegate prototype
+
   // On windows this aliases directly to the native handle type, however
   // on other platforms we store a metadata struct block in the handle.
   using handle = void*;
@@ -65,5 +68,6 @@ class NativeWindow {
   SkScalar dpi_{};
 };
 
-base::UniquePointer<NativeWindow> MakeWindow(const base::StringRefU8);
+base::UniquePointer<NativeWindow> MakeWindow(const base::StringRefU8,
+                                             NativeWindow::Delegate&);
 }  // namespace ui
