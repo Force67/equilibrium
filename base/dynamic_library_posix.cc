@@ -8,6 +8,7 @@
 #include <base/filesystem/path.h>
 #include <base/dynamic_library.h>
 
+#include <base/text/code_conv_validate.h>
 #include <base/strings/char_algorithms.h>
 #include "strings/string_ref.h"
 
@@ -22,8 +23,11 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
   // user preference
   should_free_ = should_free;
 
+  BUGCHECK(!base::DoIsStringUTF8(path.c_str(), path.length()),
+           "DynamicLibrary::Load(): BASE requires paths to be utf8 encoded!");
+
   // TODO(vince): RTLD_LAZY preferences in flags...
-  handle_ = ::dlopen(path.c_str(), RTLD_NOW);
+  handle_ = ::dlopen(reinterpret_cast<const char*>(path.c_str()), RTLD_NOW);
   return handle_;
 }
 
@@ -46,7 +50,12 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
       return 0;
 
     // According to the man pages, dlpi_name is null terminated
-    const base::StringRef ref(info->dlpi_name);
+    const base::StringRefU8 ref(reinterpret_cast<const char8_t*>(info->dlpi_name));
+
+    BUGCHECK(
+        !base::DoIsStringUTF8(ref.c_str(), ref.length()),
+        "DynamicLibrary::LoadExisting(): BASE requires paths to be utf8 encoded!");
+
     DCHECK(ref.IsNullTerminated(),
            "dlapi_name is not null terminated according to spec.");
 
@@ -69,9 +78,7 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
 }
 
 bool DynamicLibrary::Free() {
-  if (!handle_)
-    return false;
-  return ::dlclose(handle_);
+  return !handle_ ? false : ::dlclose(handle_) == 0;
 }
 
 void* DynamicLibrary::FindSymbolPointer(const char* name) const {

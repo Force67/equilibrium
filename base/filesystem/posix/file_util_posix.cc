@@ -25,7 +25,7 @@ namespace {
 constexpr char kIdentifier[] = "XXXXXX";
 
 Path FormatTemporaryFileName(const Path::CharType* identifier) {
-  base::String prefix = ".org.equi.Equilibrium.";
+  Path::BufferType prefix = BASE_PATH_LITERAL(".org.equi.Equilibrium.");
   prefix += identifier;
   return Path(prefix);
 }

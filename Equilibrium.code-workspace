@@ -1,4 +1,4 @@
-﻿{"folders": [
+{"folders": [
 {
 "path": "."
 },
@@ -155,4 +155,10 @@
 {
 "path": "."
 },
-]}
+],
+"settings": {
+    "files.associations": {
+        "string_view": "cpp"
+    }
+}
+}

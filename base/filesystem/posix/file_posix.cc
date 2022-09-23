@@ -9,12 +9,16 @@
 #include <stdint.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <base/check.h>
 
 #include <base/filesystem/file.h>
 #include <base/filesystem/posix/eintr_wrapper.h>
+
 #include <base/text/code_convert.h>
+#include <base/text/code_conv_validate.h>
+
 #include <base/threading/scoped_blocking_call.h>
 #include "build/build_config.h"
 
@@ -364,12 +368,22 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
 
   int mode = S_IRUSR | S_IWUSR;
 
-  int descriptor = HANDLE_EINTR(open(path.c_str(), open_flags, mode));
+  BUGCHECK(!base::DoIsStringUTF8(path.c_str(), path.length()),
+           "File::DoInitialize(): BASE requires paths to be utf8 encoded!");
+
+  // decay to a regular char type cause the api requires it, by no means that means
+  // that the api doesn't accept utf8 tho, they merely treat the paths as arrays of
+  // bytes and do a poor mans bitcast
+  char* utf8_path_buf = nullptr;
+  memcpy(reinterpret_cast<void*>(utf8_path_buf), path.c_str(), path.length());
+  DCHECK(utf8_path_buf, "File::DoInitialize(): Failed to convert path type");
+
+  int descriptor = HANDLE_EINTR(open(utf8_path_buf, open_flags, mode));
 
   if (flags & FLAG_OPEN_ALWAYS) {
     if (descriptor < 0) {
       open_flags |= O_CREAT;
-      descriptor = HANDLE_EINTR(open(path.c_str(), open_flags, mode));
+      descriptor = HANDLE_EINTR(open(utf8_path_buf, open_flags, mode));
       if (descriptor >= 0)
         created_ = true;
     }
@@ -384,7 +398,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
     created_ = true;
 
   if (flags & FLAG_DELETE_ON_CLOSE)
-    unlink(path.c_str());
+    unlink(utf8_path_buf);
 
   async_ = ((flags & FLAG_ASYNC) == FLAG_ASYNC);
   error_details_ = FILE_OK;
