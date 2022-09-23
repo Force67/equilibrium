@@ -5,7 +5,9 @@
 #include <base/logging.h>
 #include <base/profiling.h>
 #include <base/threading/thread.h>
-#include <base/allocator/memory_coordinator.h>
+#include <base/allocator/memory_coordinator.h> 
+
+#include <base/memory/lazy_complex_instance.h>
 #include <base/memory/distinct_pointer_experimental.h>
 
 #include <main/error_handler.h>

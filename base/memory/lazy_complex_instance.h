@@ -9,43 +9,42 @@
 
 namespace base {
 // prefer this class over unneeded unique_pointers if your only goal is to delay
-// creation. use with composition.
+// creation. use with composition. This is a no overhead version of the same class,
+// for which you need to implement a _constructed_ method. Think _carefully_ about
+// what kind of members you check for construction
 template <typename T>
-requires(!base::IsTrivial<T>) class LazyInstance {
+requires(!base::IsTrivial<T>) class LazyComplexInstance {
  public:
-  constexpr LazyInstance() = default;
+  constexpr LazyComplexInstance() = default;
 
-  constexpr ~LazyInstance() {
-    if (exists_)
+  constexpr ~LazyComplexInstance() {
+    if (!T::constructed())
       as_obj().~T();
   }
 
-  BASE_NOCOPYMOVE(LazyInstance)
+  BASE_NOCOPYMOVE(LazyComplexInstance)
 
   void Make() {
-    DCHECK(!exists_);
-    exists_ = true;
+    DCHECK(!T::constructed());
     new (&storage_[0]) T();
   }
 
   template <typename... TArgs>
   void Make(TArgs&&... args) {
-    DCHECK(!exists_);
-    exists_ = true;
+    DCHECK(!T::constructed());
     new (&storage_[0]) T(base::forward<TArgs>(args)...);
   }
 
   // if the instance has been made yet
-  bool constructed() const noexcept { return exists_; }
-  operator bool() const noexcept { return exists_; }
+  operator bool() const noexcept { return T::construced(); }
 
   T* operator->() noexcept {
-    DCHECK(exists_);
+    DCHECK(T::constructed());
     return &as_obj();
   }
 
-  T& operator*() noexcept {
-    DCHECK(exists_);
+  T& operator*() const noexcept {
+    DCHECK(T::constructed());
     return as_obj();
   }
 
@@ -53,10 +52,6 @@ requires(!base::IsTrivial<T>) class LazyInstance {
   T& as_obj() noexcept { return *reinterpret_cast<T*>(&storage_); }
 
  private:
-  // we cannot assume there wouldnd be a valid object thatd be 0 in data
-  // so we rely on the extra boolean to be absolutely sure.
-  bool exists_{false};
-
   // we dont declare this as the master alignment in hopes of getting a better total
   // alignment with the boolean
   u8 alignas(T) storage_[sizeof(T)]{0};

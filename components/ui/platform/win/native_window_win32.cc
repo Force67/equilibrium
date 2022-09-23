@@ -4,6 +4,7 @@
 
 #include <base/check.h>
 #include <base/atomic.h>
+#include <base/containers/bitsets/bitset.h>
 
 #include <base/text/code_convert.h>
 
@@ -13,6 +14,18 @@
 
 #include <Windows.h>
 #include <VersionHelpers.h>
+
+#include <Uxtheme.h>
+// only for vsync, not necessary in copies:
+#include <dwmapi.h>
+
+#pragma comment(lib, "Dwmapi.lib")
+#pragma comment(lib, "UxTheme.lib")
+
+#ifndef GET_X_LPARAM
+#define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
+#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
+#endif
 
 namespace ui {
 
@@ -43,6 +56,10 @@ HWND GetWindowToParentTo(bool get_real_hwnd) {
 
 inline HWND TranslateHandle(NativeWindow::handle native_window_handle) {
   return static_cast<HWND>(native_window_handle);
+}
+
+i32 HitTest(i32 x, i32 y, RECT rect) {
+  return ((rect.left <= x && x < rect.right) && (rect.top <= y && y < rect.bottom));
 }
 
 BOOL IsWindows10BuildOrGreaterWin32(WORD build) {
@@ -87,6 +104,19 @@ void ScaleWindowSize(DWORD style,
 }
 
 constexpr wchar_t kWindowClassName[] = L"vhtNativeWindow";
+
+int caption_width = 30;
+int border_width = 10;
+
+#define MAX_EMBEDDED_WIDGETS 128
+int embedded_widget_count = 0;
+RECT embedded_widget_rect[MAX_EMBEDDED_WIDGETS];
+void EmbeddedWidgetRect(RECT rect) {
+  if (embedded_widget_count < MAX_EMBEDDED_WIDGETS) {
+    embedded_widget_rect[embedded_widget_count] = rect;
+    embedded_widget_count += 1;
+  }
+}
 }  // namespace
 
 NativeWindowWin32::NativeWindowWin32(base::StringRefU8 name,
@@ -136,6 +166,32 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
   LRESULT result = 0;
 
   switch (message) {
+    case WM_DWMCOMPOSITIONCHANGED: {
+      BUGCHECK(false, "Invalid DWM message. Windows 7 and below are unsupported.");
+      break;
+    }
+    case WM_NCCALCSIZE: {
+      if (!is_custom_styled_)
+        break;
+
+      RECT& r = *reinterpret_cast<RECT*>(l_param);
+      ExtendClientFrame(r);
+      break;
+    }
+    case WM_NCACTIVATE: {
+      // TODO(Vince): this is a nice way of testing if we were minimized
+      break;
+    }
+    case WM_NCHITTEST: {
+      if (!is_custom_styled_)
+        break;
+
+      result = HandleWindowHittest({GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param)});
+      break;
+    }
+    case WM_PAINT: {
+      break;
+    }
     case WM_NCDESTROY:
       hwnd_ = nullptr;
       break;
@@ -146,6 +202,9 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
     }
     case WM_MOVE:
       HandleWindowMove();
+      break;
+    case WM_SIZING:
+      ::InvalidateRect(hwnd_, nullptr, FALSE);
       break;
     case WM_SIZE: {
 #if 0
@@ -193,6 +252,83 @@ void NativeWindowWin32::HandleWindowResize(const SkIPoint new_size) {
   }
 }
 
+LRESULT NativeWindowWin32::HandleWindowHittest(const SkIPoint pos) {
+  // Make sure the point is inside of the window
+  RECT frame_rect{};
+  ::GetWindowRect(hwnd_, &frame_rect);
+  if (!HitTest(pos.x(), pos.y(), frame_rect))
+    return HTNOWHERE;
+
+  RECT rect{};
+  ::GetClientRect(hwnd_, &rect);
+
+  POINT p{.x = pos.x(), .y = pos.y()};
+  ::ScreenToClient(hwnd_, &p);
+
+  // Check each border
+  bool l = false;
+  bool r = false;
+  bool b = false;
+  bool t = false;
+  if (!::IsZoomed(hwnd_)) {
+    if (rect.left <= pos.x() && pos.x() < rect.left + border_width)
+      l = true; // left
+    if (rect.right - border_width <= pos.x() && pos.x() < rect.right)
+      r = true; // right
+    if (rect.bottom - border_width <= pos.y() && pos.y() < rect.bottom)
+      b = true; // bottom
+    if (rect.top <= pos.y() && pos.y() < rect.top + border_width)
+      t = true; // top
+  }
+
+  // If the point is in two borders, use the corresponding corner resize.
+  // If the point is in just one border, use the corresponding side
+  // resize.
+
+  LRESULT result = 0;
+  if (l) {
+    if (t) {
+      result = HTTOPLEFT;
+    } else if (b) {
+      result = HTBOTTOMLEFT;
+    } else {
+      result = HTLEFT;
+    }
+  } else if (r) {
+    if (t) {
+      result = HTTOPRIGHT;
+    } else if (b) {
+      result = HTBOTTOMRIGHT;
+    } else {
+      result = HTRIGHT;
+    }
+  } else if (t) {
+    result = HTTOP;
+  } else if (b) {
+    result = HTBOTTOM;
+  }
+
+  // Here the point must be further inside the window than the resize
+  // borders, so the final options are the window moving area (caption)
+  // and the client area.
+  else {
+    if (rect.top <= pos.y() && pos.y() < rect.top + caption_width) {
+      result = HTCAPTION;
+      // Check the application defined widget areas
+      for (int i = 0; i < embedded_widget_count; i += 1) {
+        if (HitTest(pos.x(), pos.y(), embedded_widget_rect[i])) {
+          result = HTCLIENT;
+          break;
+        }
+      }
+    } else {
+      result = HTCLIENT;
+    }
+  }
+
+  return result;
+}
+
 void NativeWindowWin32::HandleDestroy() {
   BUGCHECK(window_count > 0, "Invalid construction to destruction ratio");
 
@@ -205,16 +341,46 @@ void NativeWindowWin32::HandleDestroy() {
   window_count--;
 }
 
-bool NativeWindowWin32::Init(handle parent_handle, const SkIRect suggested_bounds) {
+bool NativeWindowWin32::Init(handle parent_handle,
+                             const SkIRect suggested_bounds,
+                             const CreateFlags flags) {
+  // Note  As of Windows 8, DWM composition is always enabled. If an app declares
+  // Windows 8 compatibility in their manifest, this function will receive a value
+  // of TRUE through pfEnabled. If no such manifest entry is found, Windows 8
+  // compatibility is not assumed and this function receives a value of FALSE
+  // through pfEnabled. This is done so that older programs that interpret a value
+  // of TRUE to imply that high contrast mode is off can continue to make the
+  // correct decisions about rendering their images. (Note that this is a bad
+  // practice—you should use the SystemParametersInfo function with the
+  // SPI_GETHIGHCONTRAST flag to determine the state of high contrast mode.)
+  BOOL compositon_enabled = FALSE;
+  ::DwmIsCompositionEnabled(&compositon_enabled);
+  BUGCHECK(compositon_enabled,
+           "Composition isn't enabled. Win <= 8 isn't supported anymore. Enable "
+           "Windows8 compatability in manifest!");
+
+  LOG_INFO(
+      "Warning: VSYNC might be enabled though the DWMCompositionEnabled, make "
+      "sure "
+      "it isnt killing perf?");
+
   HWND parent = TranslateHandle(parent_handle);
 
   if (suggested_bounds.width() == 0 || suggested_bounds.height() == 0) {
-    // invalid rect specified
+    LOG_DEBUG(
+        "Win32Window: Invalid rect was specified: could lead to negative bounds "
+        "(invisible window). Terminating init!");
     return false;
   }
 
   if (window_style_ == 0)
     window_style_ = parent ? kWindowDefaultChildStyle : kWindowDefaultStyle;
+
+  if ((flags & NativeWindow::CreateFlags::kCustomBorder) &&
+      (window_style_ & kWindowDefaultStyle)) {
+    is_custom_styled_ = true;
+    LOG_DEBUG("Win32Window: fancy border is enabled");
+  }
 
   if (parent == HWND_DESKTOP) {
     // Only non-child windows can have HWND_DESKTOP (0) as their parent.
@@ -237,9 +403,12 @@ bool NativeWindowWin32::Init(handle parent_handle, const SkIRect suggested_bound
   if (window_count == 0) {
     const WNDCLASSEXW wc{
         .cbSize = sizeof(wc),
-        .style = CS_VREDRAW | CS_HREDRAW,
+        .style = /*CS_VREDRAW | CS_HREDRAW*/ 0,
         .lpfnWndProc = WndProc,
+        .cbClsExtra = 0,
+        .cbWndExtra = 0,
         .hInstance = nullptr,
+        .hIcon = nullptr,
         .lpszClassName = kWindowClassName,
     };
 
@@ -254,6 +423,15 @@ bool NativeWindowWin32::Init(handle parent_handle, const SkIRect suggested_bound
                             bounds.height(), parent, nullptr, nullptr, this);
   if (!hwnd_)
     return false;
+
+  // The other key aspect is SetWindowTheme. Using SetWindowTheme with single
+  // spaces effectively disables an theme on the window. Doing this is critical
+  // for removing special shapes, shading, etc. from the default window on
+  // any given version of Windows.
+  // This will make the window look like:
+  // https://media.discordapp.net/attachments/598919611118911488/1022557987509903470/unknown.png?width=1463&height=845
+  if (is_custom_styled_)
+    ::SetWindowTheme(hwnd_, L" ", L" ");
 
   const DWORD create_window_error = ::GetLastError();
   if (hwnd_ && (window_style_ & WS_CAPTION)) {
@@ -280,6 +458,10 @@ bool NativeWindowWin32::SetTitle(const base::StringRefU8 title_name) {
     return true;
   }
   return false;
+}
+
+void NativeWindowWin32::SetDelegate(ui::NativeWindow::Delegate* delegate) {
+  delegate_ = reinterpret_cast<WindowDelegateWin*>(delegate);
 }
 
 void NativeWindowWin32::SendCommand(Command command) {
@@ -366,5 +548,66 @@ bool NativeWindowWin32::ResizeBounds(const SkIPoint window_pos,
   request_resize_ = true;
   return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(), bounds.height(),
                       TRUE);
+}
+
+void NativeWindowWin32::ExtendClientFrame(RECT& r) {
+  // The WM_NCCALCSIZE is used to establish the mapping from the window's
+  // non-client area to the client area. The non-client area is passed to
+  // this code through a pointer in lParam that points to the RECT type.
+  // Then this code indicates the mapping to a client area by modifying
+  // that RECT.
+
+  // The WM_NCCALCSIZE documentation mentions a circumstance where wParam
+  // is true and another where wParam is false, and the possibility that
+  // lParam points to the type NCCALCSIZE_PARAMS. It turns out that the
+  // first member of NCCALCSIZE_PARAMS is a RECT, and that if the rest
+  // of the NCCALCSIZE_PARAMS structure is ignored then this message
+  // behaves the same way in eitehr case. NCCALCSIZE_PARAMS offers
+  // additional features that are not not used here.
+
+  // The main strategy is to leave the client area the same as the
+  // non-client area by not modifying the RECT at all. This way the whole
+  // window will be considered client area and the rendering of the border
+  // is just the same as rendering anything else inside the window.
+
+  // However there is a circumstance when this strategy doesn't work.
+  // When a window is maximized the OS will automatically allow the
+  // window's area hang a little outside of the monitor. When a window
+  // uses the default border this makes it so that the maximized window
+  // doesn't show it's border. This behavior can't be disabled but
+  // it is possible nullify the effect by querying how wide the overhang
+  // area will be and pushing the non-client area in by that amount.
+
+  // Pushing in the client area gives the render target for the application
+  // the correct area, but it still leaves an unrendered artifact hanging
+  // outside of the window, which is visible for users with multiple
+  // monitors. Calling DwmExtendFrameIntoClientArea addresses this. Normally
+  // this call widens the area thw window paints as part of border by
+  // pushing in the interior of the window frame. In this case where border
+  // rendering is in application code  it just pushes in the area where
+  // the overhang artifact is visible to the point where it is removed.
+
+  MARGINS margins = {};
+  // A convenient function for checking if a window is maximized.
+  if (::IsZoomed(hwnd_)) {
+    int x_push_in =
+        ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER);
+    int y_push_in =
+        ::GetSystemMetrics(SM_CYFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER);
+
+    r.left += x_push_in;
+    r.top += y_push_in;
+    r.bottom -= x_push_in;
+    r.right -= y_push_in;
+
+    margins.cxLeftWidth = margins.cxRightWidth = x_push_in;
+    margins.cyTopHeight = margins.cyBottomHeight = y_push_in;
+  }
+
+  ::DwmExtendFrameIntoClientArea(hwnd_, &margins);
+}
+
+bool NativeWindowWin32::IsCustomWindowBorderEnabled() const {
+  return is_custom_styled_;
 }
 }  // namespace ui

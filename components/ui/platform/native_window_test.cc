@@ -9,7 +9,7 @@
 namespace {
 TEST(NativeWindow, Create) {
   ui::NativeWindowWin32 win_window(u8"WindowTest", nullptr);
-  EXPECT_TRUE(win_window.Init(HWND_DESKTOP, {}));
+  EXPECT_TRUE(win_window.Init(HWND_DESKTOP, {}, ui::NativeWindow::CreateFlags::kNone));
 
   win_window.Show();
 

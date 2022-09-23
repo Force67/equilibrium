@@ -3,12 +3,13 @@
 // Platform window.
 #pragma once
 
+// workaround for windows bs
 #if defined(CreateWindow)
 #undef CreateWindow
 #endif
 
 #include <core/SkRect.h>
-
+#include <base/enum_traits.h>
 #include <base/strings/string_ref.h>
 #include <base/memory/unique_pointer.h>
 
@@ -16,17 +17,30 @@ namespace ui {
 
 class NativeWindow {
  public:
-  class Delegate {};  // delegate prototype
+  class Delegate {
+   public:
+    virtual ~Delegate() = default;
+  };  // delegate prototype
 
   // On windows this aliases directly to the native handle type, however
   // on other platforms we store a metadata struct block in the handle.
   using handle = void*;
 
   inline NativeWindow(const base::StringRefU8 title) : title_(title.data()) {}
+  virtual ~NativeWindow() = default;
 
   // create the window, if a parent handle is passed the style and other
   // properties get inherited.
-  virtual bool Init(handle native_parent_handle, const SkIRect bounds) = 0;
+  enum class CreateFlags : u32 {
+    kNone = 0,
+    kCustomBorder = 1 << 0,
+  };
+
+  virtual bool Init(handle native_parent_handle,
+                    const SkIRect bounds,
+                    const CreateFlags flags) = 0;
+
+  virtual void SetDelegate(Delegate*) = 0;
 
   virtual handle os_handle() const = 0;
 
@@ -68,6 +82,9 @@ class NativeWindow {
   SkScalar dpi_{};
 };
 
-base::UniquePointer<NativeWindow> MakeWindow(const base::StringRefU8,
-                                             NativeWindow::Delegate&);
+BASE_IMPL_ENUM_BIT_TRAITS(NativeWindow::CreateFlags, u32)
+
+base::UniquePointer<NativeWindow> MakeWindow(
+    const base::StringRefU8,
+    NativeWindow::Delegate* delegate = nullptr);
 }  // namespace ui

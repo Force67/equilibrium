@@ -2,15 +2,16 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Windows platform window implementation.
 #pragma once
-
+#include <Windows.h>
 #include <core/SkRect.h>
-#include <base/win/minwin.h>
 #include <ui/platform/native_window.h>
 
 namespace ui {
 
 class WindowDelegateWin : public NativeWindow::Delegate {
  public:
+  virtual ~WindowDelegateWin() = default;
+
   // Processes one message from the window's message queue.
   virtual BOOL ProcessWindowMessage(HWND window,
                                     UINT message,
@@ -28,8 +29,9 @@ class NativeWindowWin32 final : public ui::NativeWindow {
                              WindowDelegateWin* delegate = nullptr);
   ~NativeWindowWin32();
 
-  bool Init(handle parent, const SkIRect bounds) override;
+  bool Init(handle parent, const SkIRect bounds, const CreateFlags) override;
   bool SetTitle(const base::StringRefU8) override;
+  void SetDelegate(ui::NativeWindow::Delegate*);
 
   void SendCommand(Command) override;
 
@@ -51,8 +53,12 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   void HandleDestroy();
   void HandleWindowMove();
   void HandleWindowResize(const SkIPoint new_size);
+  LRESULT HandleWindowHittest(const SkIPoint);
 
   bool ResizeBounds(const SkIPoint window_pos, const SkIPoint in_dimension);
+  void ExtendClientFrame(RECT&);
+
+  bool IsCustomWindowBorderEnabled() const;
 
  private:
   DWORD window_style_;
@@ -62,6 +68,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   HMONITOR tracked_monitor_ = nullptr;
   SkIPoint user_size_{};
   bool request_resize_{false};
+  bool is_custom_styled_{false};
   WindowDelegateWin* delegate_;
 };
 }  // namespace ui

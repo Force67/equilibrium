@@ -10,12 +10,12 @@
 
 namespace ui {
 base::UniquePointer<NativeWindow> MakeWindow(const base::StringRefU8 title,
-                                             NativeWindow::Delegate& d) {
+                                             NativeWindow::Delegate* d) {
   // TODO(Vince): a bunch of compositor logic for linux
   // TODO(Vince): UWP window support.
 #if defined(OS_WIN)
   return base::move(base::MakeUnique<NativeWindowWin32>(
-      title, reinterpret_cast<WindowDelegateWin*>(&d)));
+      title, reinterpret_cast<WindowDelegateWin*>(d)));
 #endif
 }
 }  // namespace ui
