@@ -12,6 +12,7 @@ BASE_EXPORT bool WideToUTF8(const wchar_t* src,
                             size_t src_len,
                             base::String* output);
 
+// This converts a wide string to a well formed utf8 represented string.
 [[nodiscard]] BASE_EXPORT base::StringU8 WideToUTF8(const base::StringRefW wide);
 
 BASE_EXPORT bool UTF8ToWide(const char* src,

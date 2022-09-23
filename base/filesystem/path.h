@@ -15,7 +15,7 @@ namespace base {
 
 #if defined(OS_POSIX)
 #define BASE_PATH_SEP_MACRO '/'
-#define BASE_PATH_LITERAL(x) x
+#define BASE_PATH_LITERAL(x) u8##x
 #endif
 
 class BASE_EXPORT Path {
@@ -26,11 +26,27 @@ class BASE_EXPORT Path {
   // preffered platform seperators, use when having to deal with native paths, else
   // prefer path encoding we use
   static constexpr wchar_t kSeperator = L'\\';
-#elif (OS_POSIX)
-  // On MacOs,these are encoded in utf8, linux encoding is not strictly specified
-  using CharType = char;
-  static constexpr char kSeperator = '/';
 #endif
+
+#if defined(OS_POSIX)
+  // On MacOs,these are encoded in utf8, linux encoding is not strictly specified
+  // however we aim to enforce utf8 on linux too
+
+  // Specifically, Glib (used by Gtk+ apps) assumes that all file names are UTF-8
+  // encoded, regardless of the user's locale. This may be overridden with the
+  // environment variables G_FILENAME_ENCODING and G_BROKEN_FILENAMES. On the other
+  // hand, Qt defaults to assuming that all file names are encoded in the current
+  // user's locale. An individual application may choose to override this assumption,
+  // though I do not know of any that do, and there is no external override switch.
+  // Modern Linux distributions are set up such that all users are using UTF-8
+  // locales and paths on foreign filesystem mounts are translated to UTF-8, so this
+  // difference in strategies generally has no effect. However, if you really want to
+  // be safe, you cannot assume any structure about filenames beyond "NUL-terminated,
+  // '/'-delimited sequence of bytes".
+  using CharType = char8_t;
+  static constexpr CharType kSeperator = u8'/';
+#endif
+
   // The special path component meaning "this directory."
   static constexpr CharType kCurrentDirectory[] = BASE_PATH_LITERAL(".");
   // The special path component meaning "the parent directory."
@@ -90,11 +106,17 @@ class BASE_EXPORT Path {
   inline bool empty() const {
     return path_buf_.empty();
   }
+
   const CharType* c_str() const {
     return path_buf_.c_str();
   }
+
   inline const BufferType& path() const {
     return path_buf_;
+  }
+
+  inline auto length() const {
+    return path_buf_.length();
   }
 
  private:
