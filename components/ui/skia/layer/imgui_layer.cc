@@ -10,6 +10,7 @@
 #include <core/SkVertices.h>
 #include <core/SkImage.h>
 #include <core/SkSwizzle.h>
+#include <core/SkPixmap.h>
 
 #include <private/SkTDArray.h>
 #include <private/SkTPin.h>

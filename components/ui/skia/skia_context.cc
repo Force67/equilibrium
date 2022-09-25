@@ -5,6 +5,8 @@
 #include <core/SkGraphics.h>
 #include <core/SkSurface.h>
 #include <core/SkCanvas.h>
+#include <core/SkImage.h>
+#include <core/SkColorSpace.h>
 
 #include <gpu/gl/GrGLInterface.h>
 #include <gpu/GrContextOptions.h>

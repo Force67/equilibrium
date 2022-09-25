@@ -177,6 +177,12 @@ project("imgui")
     "imgui/imstb_textedit.h",
     "imgui/imstb_truetype.h"
   })
+  filter({"system:windows"})
+    files({
+      "imgui/backends/imgui_impl_win32.cpp",
+      "imgui/backends/imgui_impl_win32.h"
+    })
+  filter{}
 
 project("lz4")
   language("C")

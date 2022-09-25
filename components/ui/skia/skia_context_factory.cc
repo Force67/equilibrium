@@ -15,13 +15,14 @@
 
 namespace ui {
 // TODO: Possibly move this to a factory..
-std::unique_ptr<SkiaContext> CreateSkiaContext(
+base::UniquePointer<SkiaContext> CreateSkiaContext(
     const ContextCreateInfo& create_info) {
-  auto context = std::make_unique<SkiaContext>();
+  auto context = base::MakeUnique<SkiaContext>();
 
-  if (!context->Initialize(create_info))
-    return nullptr;
+  if (!context->Initialize(create_info)) {
+    __debugbreak();
+  }
 
-  return context;
+  return base::move(context);
 }
 }

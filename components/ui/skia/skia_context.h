@@ -16,8 +16,8 @@ namespace ui {
 enum class GrcApi { kUnknown = -1, kOpenGl, kVulkan };
 
 struct ContextCreateInfo {
-  SkIPoint dimensions;
   GrcApi gr_api_type;
+  SkIPoint dimensions;
 };
 
 class SkiaContext {
@@ -50,6 +50,6 @@ class SkiaContext {
   SkSurface* surface_;
   GrDirectContext* gpu_context_;
 
-  SkPoint dpi_scale_;
+  SkPoint dpi_scale_{};
 };
 }  // namespace ui

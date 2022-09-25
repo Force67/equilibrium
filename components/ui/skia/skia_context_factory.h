@@ -4,7 +4,9 @@
 
 #include "skia_context.h"
 
+#include <base/memory/unique_pointer.h>
+
 namespace ui {
 
-std::unique_ptr<SkiaContext> CreateSkiaContext(const ContextCreateInfo&);
+base::UniquePointer<SkiaContext> CreateSkiaContext(const ContextCreateInfo&);
 }  // namespace ui

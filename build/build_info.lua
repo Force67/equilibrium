@@ -46,7 +46,10 @@ function include_meta(ico_path)
   })
 
   filter("kind:WindowedApp or kind:ConsoleApp or kind:SharedLib")
-    files((blu.builddir .. "/build_info.rc"))
+    files({
+      (blu.builddir .. "/build_info.rc"),
+      (blu.builddir .. "/win_app.manifest")
+    })
     defines('EQ_ICON="%{prj.name}.ico"')
   filter{}
 end
