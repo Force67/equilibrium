@@ -3,7 +3,8 @@
 
 #include <base/check.h>
 #include <base/logging.h>
-#include <base/profiling.h>
+#include <base/profiling/profiler.h>
+#include <base/profiling/profiler_communication.h>
 #include <base/threading/thread.h>
 #include <base/allocator/memory_coordinator.h> 
 
@@ -16,6 +17,7 @@
 #include <main_window.h>
 #include <debug_window.h>
 
+#include <base/environment_variables.h>
 #include <ui/platform/win/message_pump_win.h>
 
 #if defined(ENABLE_PROFILE)
@@ -80,19 +82,17 @@ int ReTKApplication::Exec() {
 }
 }  // namespace main
 
+#undef SetEnvironmentVariable
+
 bool AttachProfiler() {
-  // hardcode the target address for now.
-#if defined(ENABLE_PROFILE)
-  // dispatch tracy
-  if (!base::SpawnProcess(
-          R"(C:\Users\vince\Desktop\DepotTools\Tracy-0.8.2\Tracy.exe)", u8"")) {
-    // -a 127.0.0.1 TODO: auto attach
-    MessageBoxW(0, L"Failed to start profiler", L"ReTK", MB_ICONSTOP);
+  base::SetEnvironmentVariable(
+      u8"EQ_TRACY_PATH",
+      u8R"(C:\Users\vince\Desktop\DepotTools\Tracy-0.8.2\Tracy.exe)");
+
+  if (!base::AttachProfiler()) {
+    ::MessageBoxW(nullptr, L"Failed to spawn profiler", L"ReTK", MB_ICONSTOP);
     return false;
   }
-
-  LOG_INFO("Launched profiler at {}", "127.0.0.1");
-#endif
   return true;
 }
 

@@ -6,7 +6,6 @@ project("App_Main")
     include_meta()
     --include_ui()
     files({
-        "retk.manifest",
         "**.cc",
         "**.h"
     })
