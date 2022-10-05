@@ -15,6 +15,7 @@ end
 
 -- pull in root dependencies
 -- by order of importance.
+include('namespace.lua')
 include('build_config.lua')
 include('platform_files.lua')
 include('artifacts.lua')

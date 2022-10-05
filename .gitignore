@@ -1,11 +1,6 @@
 # build artifacts
 out/
 
-# other projects
-Avalanche/
-avalanche/
-velocity/
-
 # clangd
 .cache/
 compile_commands.json

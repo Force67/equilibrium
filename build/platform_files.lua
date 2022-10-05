@@ -35,9 +35,3 @@ end
 filter(rval)
   flags("ExcludeFromBuild")
 filter {}
-
-function opt_include(path)
-  if os.isdir(path) then
-    include(path)
-  end
-end
