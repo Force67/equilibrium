@@ -1,6 +1,7 @@
 # Project Architecture
 
-Everything in the equilibrium source tree is using base as a sort of standard library. Then there are global components which are used by all projects (in `equilibrium/components`), and then there are project specific components which are used by individual projects. This is done to ensure that programs remain modular and can be tested independently of each other.
+It is important to understand that equilibrium functions as a mono-repository that provides a set of common code blocks and build tools for all projects built by VH-Tech. First there are global components which are used by all projects (in `equilibrium/components`), and then there are project specific components which are used by individual projects. 
+The projects live in the `/projects/` dir and are not tracked from equilibrium, they merely depend on equilibrium but are cloned into the projects folder.
 
 For more information on how to use/consume the base library, see its [readme](../base/readme.md).
 
