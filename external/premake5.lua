@@ -1,10 +1,5 @@
 -- Copyright (C) 2021 Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
-
--- ida flavored qt for the integrastion plugin
-require("premake-idaqt/qt")
-qt = premake.modules.qt
-
 group("Dependencies")
 
 function include_skia()
@@ -22,16 +17,6 @@ function include_skia()
   libdirs(blu.extdir .. "/skia_sdk/lib/release_static")
 end
 
-project("capstone")
-  kind("StaticLib")
-  language("C++")
-  includedirs("./capstone")
-  pubincludedirs("capstone/include")
-  files({
-    "capstone/*.c",
-    "capstone/*.h",
-  })
-
 project("tracysdk")
   kind("StaticLib")
   language("C++")
@@ -46,24 +31,6 @@ project("tracysdk")
   --files({
     --"tracy/public/TracyClient.cpp",
   --})
-
-project("zydis")
-  kind("StaticLib")
-  language("C++")
-  pubincludedirs({
-    "zydis/include",
-    "zydis/dependencies/zycore/include",
-  })
-  includedirs("zydis/src")
-  pubdefines({
-    "ZYDIS_STATIC_BUILD",
-    "ZYCORE_STATIC_BUILD"})
-  files({
-    "zydis/src/*.c",
-    "zydis/include/**.h",
-    "zydis/dependencies/zycore/include/**.h",
-    "zydis/dependencies/zycore/src/**.c",
-  })
 
 project("mbedtls")
   kind("StaticLib")

@@ -1,6 +1,6 @@
 # ![Logo](https://i.imgur.com/l2bqQgT.png) Equilibrium
 
-Equilibrium is a framework for assembly related things that aims to deliver a stable and enjoyable experience for reverse engineering/obfuscating code.
+Equilibrium is the mono repository root for all projects built by VH-Tech EU.
 
 ## Architecture
 ### Top level directories:

@@ -1,11 +1,6 @@
-local function opt_include(path)
-    if os.isdir(path) then
-      include(path)
-    end
+matches = os.matchdirs("*")
+for i,v in ipairs(matches) do
+  if os.isfile("./" .. v .. "/premake5.lua") then
+    include("./" .. v)
+  end
 end
-
---opt_include("./5ed")
-opt_include("./overload")
-opt_include("./nemisis")
-opt_include("./retk")
-opt_include("./velocity")

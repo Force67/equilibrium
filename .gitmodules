@@ -19,16 +19,6 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui
-[submodule "external/mem"]
-	path = external/mem
-	url = https://github.com/0x1F9F1/mem
-[submodule "external/capstone"]
-	path = external/capstone
-	url = https://github.com/capstone-engine/capstone
-	branch = next
-[submodule "external/zydis"]
-	path = external/zydis
-	url = https://github.com/zyantific/zydis
 [submodule "external/gtest-memleak-detector"]
 	path = external/gtest-memleak-detector
 	url = https://github.com/ekcoh/gtest-memleak-detector
