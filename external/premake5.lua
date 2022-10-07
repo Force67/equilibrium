@@ -2,6 +2,11 @@
 -- For licensing information see LICENSE at the root of this distribution.
 group("Dependencies")
 
+blu.http_source(
+  "https://drive.google.com/u/0/uc?id=1htQqkDGAz2Z6ofoCuFXrFQ-4yJWXp9fY&export=download&confirm=t&uuid=92747ac7-c336-40f2-a392-07ed2fd92398",
+  "skia_sdk.zip",
+  "2ae11cd812bf8e8441dd7cf0bf10923d85caf2334abb20503d6756d3046617b7", ".") -- since its double wrapped
+
 function include_skia()
   defines({
     "SK_GL", --< opengl
