@@ -10,10 +10,13 @@ blu.bindir = outdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
 blu.libdir = outdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"
 blu.objdir = outdir .. "/link/%{cfg.platform}/%{cfg.buildcfg}"
 blu.symdir = outdir .. "/sym/%{cfg.platform}/%{cfg.buildcfg}"
+blu.tempdir = outdir .. "/temp/"
 
 -- newprojectformat tries to outsmarten me
 blu.netdir = outdir .. "/clr/%{cfg.platform}"
 blu.netout = outdir .. "/net"
+
+os.mkdir(blu.tempdir)
 
 location(outdir)
 
