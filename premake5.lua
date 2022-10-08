@@ -17,7 +17,10 @@ workspace("Equilibrium")
   })
   -- external must always come first
   -- so 'dependencies' can link against them
-  include("./external")
-  include("./base")
-  include("./components")
+  family("equilibrium")
+  grouped_include("./external", "Dependencies")
+  grouped_include("./base", "Base")
+  grouped_include("./components", "Components")
+  family("")
+
   include("./projects")

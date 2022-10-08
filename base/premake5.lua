@@ -15,7 +15,6 @@ local function base_project()
   includedirs({".", blu.rootdir, blu.extdir .. "/fmt/include"})
 end
 
-group("Base")
   project("base")
   kind("StaticLib")
   base_project()

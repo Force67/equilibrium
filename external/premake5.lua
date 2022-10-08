@@ -1,7 +1,5 @@
 -- Copyright (C) 2021 Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
-group("Dependencies")
-
 blu.http_source(
   "https://drive.google.com/u/0/uc?id=1htQqkDGAz2Z6ofoCuFXrFQ-4yJWXp9fY&export=download&confirm=t&uuid=92747ac7-c336-40f2-a392-07ed2fd92398",
   "skia_sdk.zip",

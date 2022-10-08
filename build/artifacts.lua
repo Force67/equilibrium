@@ -6,8 +6,10 @@ blu.builddir = os.getcwd()
 
 local outdir = os.getcwd() .. '/../out/' .. _ACTION
 
-blu.bindir = outdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}"
-blu.libdir = outdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}"
+-- %{prj.bludomain}
+-- %{prj.group}
+blu.bindir = outdir .. "/bin/%{cfg.platform}/%{cfg.buildcfg}/%{prj.family}"
+blu.libdir = outdir .. "/lib/%{cfg.platform}/%{cfg.buildcfg}/%{prj.family}"
 blu.objdir = outdir .. "/link/%{cfg.platform}/%{cfg.buildcfg}"
 blu.symdir = outdir .. "/sym/%{cfg.platform}/%{cfg.buildcfg}"
 blu.tempdir = outdir .. "/temp/"
@@ -41,3 +43,7 @@ filter("kind:StaticLib")
 
 -- LEAVE FILTER BARRIER
 filter{}
+
+function blu.include_root()
+  includedirs(blu.rootdir)
+end

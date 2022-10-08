@@ -15,7 +15,7 @@ local function include_ui()
   })
 end
 
-component("ui")
+component2("ui")
   files({
     "**.cc",
     "**.h",
@@ -23,7 +23,7 @@ component("ui")
   })
   include_ui()
 
-unittest("ui:platformtests")
+unittest2("ui:platformtests")
   files({
     "platform/**.cc",
     "platform/**.h",
@@ -33,7 +33,7 @@ unittest("ui:platformtests")
   include_ui()
   add_generic_test_main()
 
-unittest("ui:gammatests")
+unittest2("ui:gammatests")
   files({
     "test/run_all_tests.cc",
     "test/ui_test_suite.cc",
@@ -45,7 +45,7 @@ unittest("ui:gammatests")
   })
   include_ui()
 
-unittest("ui:layout")
+unittest2("ui:layout")
   files({
     "test/run_all_tests.cc",
     "test/ui_test_suite.cc",

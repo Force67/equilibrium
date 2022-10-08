@@ -58,3 +58,39 @@ function unittest(name)
       dependencies("googlemock")
       links("base")
 end
+
+function unittest2(name)
+  local tokens = tokenize(name)
+  if #tokens == 0 then
+    error("Unittest name is empty")
+  end
+
+  local component_name = nil
+  local project_name = nil
+  for i = 1, #tokens do
+    --print(i, ". ", tokens[i])
+    if i == 1 then
+      component_name = tokens[i]
+    end
+
+    if i == #tokens then
+      project_name = tokens[i]
+    end
+  end
+
+  if component_name == nil or project_name == nil then
+    error("Failed to find a component or subproject name")
+  end
+  
+  --group(scope_name .. "/" .. component_name .. "/tests")
+    project(project_name)
+      kind("ConsoleApp")
+      add_generic_test_main()
+      includedirs({
+        ".",        --< current dir
+        "../",      --< component dir
+        blu.rootdir,--< main dir for direct base access
+      })
+      dependencies("googlemock")
+      links("base")
+end

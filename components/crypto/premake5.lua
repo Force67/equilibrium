@@ -1,7 +1,7 @@
 -- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
 
-component("crypto")
+component2("crypto")
   files({
     "*.cc",
     "*.h",
@@ -10,7 +10,7 @@ component("crypto")
     "fmtlib", 
     "mbedtls"})
 
-unittest("crypto:crypto_tests")
+unittest2("crypto:crypto_tests")
   files({
     "*.cc",
     "*.h",

@@ -4,6 +4,8 @@
 -- Declare the blu build tool namespace
 blu = {}
 
+include('family.lua')
+
 if _ACTION == "vs2022" then
   require('vstudio')
 end
@@ -15,7 +17,6 @@ end
 
 -- pull in root dependencies
 -- by order of importance.
-include('namespace.lua')
 include('build_config.lua')
 include('platform_files.lua')
 include('artifacts.lua')

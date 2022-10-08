@@ -15,8 +15,8 @@ local function build_gpu()
   filter{}
 end
 
-component("gpu")
+component2("gpu")
   build_gpu()
 
-unittest("gpu:vulkan_test")
+unittest2("gpu:vulkan_test")
   build_gpu()

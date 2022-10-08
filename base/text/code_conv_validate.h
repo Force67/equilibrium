@@ -3,7 +3,7 @@
 #pragma once
 
 #include <cstdint>
-#include "arch.h"
+#include <base/arch.h>
 #include <base/external/icu/icu_utf.h>
 
 namespace base {

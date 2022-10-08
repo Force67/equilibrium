@@ -11,6 +11,13 @@ function scope_group(name)
   group(scope_name .. "/" .. name)
 end
 
+-- use this instead of scope groups.
+function grouped_include(name, namespace)
+  group(namespace)
+  include(name)
+  group("")
+end
+
 -- Declare a component; use this in place of 'project'
 function component(name)
   local start, final, match = name:find(":(.*)")
@@ -22,6 +29,22 @@ function component(name)
   end
 
   group(scope_name .. "/" .. name)
+    project(p_name)
+      kind("StaticLib")
+      includedirs({
+        ".",        --< current dir
+        "../",      --< component dir
+        blu.rootdir,--< main dir for direct base access
+      })
+      -- each component links against google mock
+      dependencies("googlemock")
+      links("base")
+end
+
+function component2(name)
+  local start, final, match = name:find(":(.*)")
+  local p_name = match or name
+
     project(p_name)
       kind("StaticLib")
       includedirs({

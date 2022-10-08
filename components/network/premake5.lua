@@ -14,7 +14,7 @@ function network_include()
     })
 end
 
-component("network")
+component2("network")
     files({
         "base/*.cc",
         "base/*.h",
@@ -30,7 +30,7 @@ component("network")
     })
     network_include()
 
-unittest("network:unittests")
+unittest2("network:unittests")
     include_meta()
     files({
         "test/run_all_unittests.cc",
@@ -43,7 +43,7 @@ unittest("network:unittests")
         "./test",
     })
 
-unittest("network:testclient")
+unittest2("network:testclient")
     include_meta()
     files({
         "test/client/main.cc",
@@ -56,7 +56,7 @@ unittest("network:testclient")
         "test/client"
     })
 
-unittest("network:testserver")
+unittest2("network:testserver")
     include_meta()
     files({
         "test/server/main.cc",
