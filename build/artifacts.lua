@@ -37,9 +37,9 @@ blu.extdir = path.getabsolute(os.getcwd() .."/../external")
 
 -- dont bloat output folder with libs
 filter("kind:not StaticLib")
-    targetdir(blu.bindir)
+  targetdir(blu.bindir)
 filter("kind:StaticLib")
-    targetdir(blu.libdir)
+  targetdir(blu.libdir)
 
 -- LEAVE FILTER BARRIER
 filter{}

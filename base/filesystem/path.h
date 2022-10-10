@@ -125,4 +125,6 @@ class BASE_EXPORT Path {
  private:
   BufferType path_buf_;
 };
+
+Path GetExecutablePath();
 }  // namespace base

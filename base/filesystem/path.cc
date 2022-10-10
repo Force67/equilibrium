@@ -155,4 +155,8 @@ Path Path::Extension() const {
   #endif
   return {};
 }
+
+Path GetExecutablePath() {
+  return {};
+}
 }  // namespace base
