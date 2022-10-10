@@ -272,13 +272,13 @@ LRESULT NativeWindowWin32::HandleWindowHittest(const SkIPoint pos) {
   bool t = false;
   if (!::IsZoomed(hwnd_)) {
     if (rect.left <= pos.x() && pos.x() < rect.left + border_width)
-      l = true; // left
+      l = true;  // left
     if (rect.right - border_width <= pos.x() && pos.x() < rect.right)
-      r = true; // right
+      r = true;  // right
     if (rect.bottom - border_width <= pos.y() && pos.y() < rect.bottom)
-      b = true; // bottom
+      b = true;  // bottom
     if (rect.top <= pos.y() && pos.y() < rect.top + border_width)
-      t = true; // top
+      t = true;  // top
   }
 
   // If the point is in two borders, use the corresponding corner resize.
@@ -343,7 +343,8 @@ void NativeWindowWin32::HandleDestroy() {
 
 bool NativeWindowWin32::Init(handle parent_handle,
                              const SkIRect suggested_bounds,
-                             const CreateFlags flags) {
+                             const CreateFlags flags,
+                             u8 icon_id) {
   // Note  As of Windows 8, DWM composition is always enabled. If an app declares
   // Windows 8 compatibility in their manifest, this function will receive a value
   // of TRUE through pfEnabled. If no such manifest entry is found, Windows 8
@@ -400,7 +401,14 @@ bool NativeWindowWin32::Init(handle parent_handle,
     bounds = suggested_bounds;
 
   // guard the class registration against being called twice
+  // TODO: fix this hack.
+
   if (window_count == 0) {
+    // this icon stuff is questionable.
+    HICON icon_handle =
+        icon_id && !is_custom_styled_
+            ? ::LoadIconW(::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(icon_id))
+            : nullptr;
     const WNDCLASSEXW wc{
         .cbSize = sizeof(wc),
         .style = /*CS_VREDRAW | CS_HREDRAW*/ 0,
@@ -408,7 +416,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
         .cbClsExtra = 0,
         .cbWndExtra = 0,
         .hInstance = nullptr,
-        .hIcon = nullptr,
+        .hIcon = icon_handle,
         .lpszClassName = kWindowClassName,
     };
 

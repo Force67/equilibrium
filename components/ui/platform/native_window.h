@@ -38,7 +38,7 @@ class NativeWindow {
 
   virtual bool Init(handle native_parent_handle,
                     const SkIRect bounds,
-                    const CreateFlags flags) = 0;
+                    const CreateFlags flags, uint8_t icon_id = 102) = 0;
 
   virtual void SetDelegate(Delegate*) = 0;
 

@@ -29,7 +29,10 @@ class NativeWindowWin32 final : public ui::NativeWindow {
                              WindowDelegateWin* delegate = nullptr);
   ~NativeWindowWin32();
 
-  bool Init(handle parent, const SkIRect bounds, const CreateFlags) override;
+  bool Init(handle parent,
+            const SkIRect bounds,
+            const CreateFlags,
+            u8 icon_id = 102) override;
   bool SetTitle(const base::StringRefU8) override;
   void SetDelegate(ui::NativeWindow::Delegate*);
 
