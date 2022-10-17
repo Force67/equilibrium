@@ -64,8 +64,7 @@ class BasicStringRef {
   // construct from raw string
   BasicStringRef(const TChar* data)
       : data_(data),
-        length_(
-            static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
+        length_(static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
     // if our length is greater than 0, it means we have hit the null barrier..., so
     // we assume for now that we may advance by one to catch the actual null
     // terminator, that would have been cut off otherwise, since the specification
@@ -101,16 +100,10 @@ class BasicStringRef {
     return data_;
   }
 
-  inline const TChar* data() const {
-    return data_;
-  }
+  inline const TChar* data() const { return data_; }
 
-  inline const TChar* begin() const {
-    return data_;
-  }
-  inline const TChar* end() const {
-    return &data_[length_];
-  }
+  inline const TChar* begin() const { return data_; }
+  inline const TChar* end() const { return &data_[length_]; }
 
   constexpr static mem_size max_size_bytes() {
     return mem_size(base::MinMax<u32>::max());
@@ -120,13 +113,9 @@ class BasicStringRef {
     return mem_size(base::MinMax<u32>::max()) / sizeof(TChar);
   }
 
-  mem_size size() const {
-    return static_cast<mem_size>(length_);
-  }
+  mem_size size() const { return static_cast<mem_size>(length_); }
   // returns the length in characters
-  mem_size length() const {
-    return static_cast<mem_size>(length_);
-  }
+  mem_size length() const { return static_cast<mem_size>(length_); }
 
   constexpr mem_size find(const TChar* s, mem_size pos, mem_size count) const {
     return base::StringSearch(data_, length(), s, pos, count);
@@ -139,9 +128,7 @@ class BasicStringRef {
   }
 #endif
 
-  TChar operator[](mem_size size) const {
-     return data_[size];
-  }
+  TChar operator[](mem_size size) const { return data_[size]; }
 
  private:
   const TChar* data_;
@@ -156,4 +143,27 @@ using StringRefW = BasicStringRef<wchar_t>;
 using StringRefU8 = BasicStringRef<char8_t>;
 using StringRefU16 = BasicStringRef<char16_t>;
 using StringRefU32 = BasicStringRef<char32_t>;
+
+// construction helpers
+// The declaration of a literal operator shall have a parameter-declaration-clause
+// equivalent to one of the following: const char* const char*, std::size_t const
+// wchar_t*, std::size_t const char16_t*, std::size_t const char32_t*, std::size_t
+inline base::StringRef operator""_s(const char* s) {
+  return base::StringRef(s);
+}
+inline base::StringRef operator""_s(const char* s, mem_size length) {
+  return base::StringRef(s, length);
+}
+inline base::StringRefW operator""_s(const wchar_t* s, mem_size length) {
+  return base::StringRefW(s, length);
+}
+inline base::StringRefU8 operator""_s(const char8_t* s, mem_size length) {
+  return base::StringRefU8(s, length);
+}
+inline base::StringRefU16 operator""_s(const char16_t* s, mem_size length) {
+  return base::StringRefU16(s, length);
+}
+inline base::StringRefU32 operator""_s(const char32_t* s, mem_size length) {
+  return base::StringRefU32(s, length);
+}
 }  // namespace base

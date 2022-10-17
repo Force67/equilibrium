@@ -10,6 +10,8 @@
 #include <base/memory/deleter.h>
 #include <base/memory/cxx_lifetime.h>
 
+#include <type_traits>
+
 namespace base {
 // unique_ptr replacement class, but you are:
 // - forced to use MakeUnique, so you cannot use it with a foreign pointer

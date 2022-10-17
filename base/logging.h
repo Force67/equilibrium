@@ -40,7 +40,7 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
 }
 
 // adadpter function for legacy printf style systems
-// please use the LOG_X macros
+// please use the LOG_... macros
 template <typename... Args>
 void PrintfLogMessage(LogLevel level, const char* format, const Args&... args) {
   using context = fmt::basic_printf_context_t<char>;
