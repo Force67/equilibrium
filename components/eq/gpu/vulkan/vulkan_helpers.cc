@@ -1,7 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <gpu/vulkan/vulkan_helpers.h>
+#include "vulkan_helpers.h"
 
 namespace gpu::vulkan {
 // switch case cause we cannot be sure that those values are gonna remain consistant

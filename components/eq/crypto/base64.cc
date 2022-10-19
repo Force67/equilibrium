@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <mbedtls/base64.h>
-#include <crypto/base64.h>
+#include "base64.h"
 #include <cstddef>
 
 namespace crypto {

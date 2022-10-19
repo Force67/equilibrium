@@ -5,17 +5,18 @@ local function include_ui()
   dependencies({
     "fmtlib",
     "imgui",
-    "gpu" -- gpu component
+    "eq_gpu" -- gpu component
   })
+  includedirs("../../")
   include_skia()
   -- define our own imgui config file.
   pubdefines({
-    "IMGUI_USER_CONFIG=<ui/imgui/imgui_config.h>",
-    "SK_USER_CONFIG_HEADER=<ui/skia/skia_config.h>"
+    "IMGUI_USER_CONFIG=<eq/ui/imgui/imgui_config.h>",
+    "SK_USER_CONFIG_HEADER=<eq/ui/skia/skia_config.h>"
   })
 end
 
-component2("ui")
+component2("eq_ui")
   files({
     "**.cc",
     "**.h",
@@ -23,7 +24,7 @@ component2("ui")
   })
   include_ui()
 
-unittest2("ui:platformtests")
+unittest2("eq_ui:platformtests")
   files({
     "platform/**.cc",
     "platform/**.h",
@@ -33,7 +34,7 @@ unittest2("ui:platformtests")
   include_ui()
   add_generic_test_main()
 
-unittest2("ui:gammatests")
+unittest2("eq_ui:gammatests")
   files({
     "test/run_all_tests.cc",
     "test/ui_test_suite.cc",
@@ -45,7 +46,7 @@ unittest2("ui:gammatests")
   })
   include_ui()
 
-unittest2("ui:layout")
+unittest2("eq_ui:layout")
   files({
     "test/run_all_tests.cc",
     "test/ui_test_suite.cc",

@@ -10,7 +10,7 @@
 
 #include <ui/display/dpi.h>
 #include <ui/display/win/dpi_win.h>
-#include <ui/platform/win/native_window_win32.h>
+#include "native_window_win32.h"
 
 #include <Windows.h>
 #include <VersionHelpers.h>
@@ -352,7 +352,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
   // through pfEnabled. This is done so that older programs that interpret a value
   // of TRUE to imply that high contrast mode is off can continue to make the
   // correct decisions about rendering their images. (Note that this is a bad
-  // practice—you should use the SystemParametersInfo function with the
+  // practiceï¿½you should use the SystemParametersInfo function with the
   // SPI_GETHIGHCONTRAST flag to determine the state of high contrast mode.)
   BOOL compositon_enabled = FALSE;
   ::DwmIsCompositionEnabled(&compositon_enabled);

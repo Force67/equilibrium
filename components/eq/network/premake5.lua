@@ -1,7 +1,7 @@
 -- Copyright (C) 2021 Force67 <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
 
-function network_include()
+function eq_network_include()
     dependencies({
         "sockpp",
         "fmtlib",
@@ -14,7 +14,7 @@ function network_include()
     })
 end
 
-component2("network")
+component2("eq_network")
     files({
         "base/*.cc",
         "base/*.h",
@@ -28,42 +28,42 @@ component2("network")
         -- documentation
         "zeta/readme.md",
     })
-    network_include()
+    eq_network_include()
 
-unittest2("network:unittests")
+unittest2("eq_network:unittests")
     include_meta()
     files({
         "test/run_all_unittests.cc",
     })
-    network_include()
+    eq_network_include()
     links({
-        "network",
+        "eq_network",
     })
     includedirs({
         "./test",
     })
 
-unittest2("network:testclient")
+unittest2("eq_network:testclient")
     include_meta()
     files({
         "test/client/main.cc",
     })
-    network_include()
+    eq_network_include()
     links({
-        "network"
+        "eq_network"
     })
     includedirs({
         "test/client"
     })
 
-unittest2("network:testserver")
+unittest2("eq_network:testserver")
     include_meta()
     files({
         "test/server/main.cc",
     })
-    network_include()
+    eq_network_include()
     links({
-        "network"
+        "eq_network"
     })
     includedirs({
         "test/server"

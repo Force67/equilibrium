@@ -1,7 +1,7 @@
 -- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
 
-component2("entitlement")
+component2("eq_entitlement")
   files({
     "keystone/*.cc",
     "keystone/*.h",
@@ -12,7 +12,7 @@ component2("entitlement")
     "fmtlib", 
     "mbedtls"})
 
-unittest2("entitlement:entilement_test")
+unittest2("eq_entitlement:entilement_test")
   files({
     "keystone/*.cc",
     "keystone/*.h"
@@ -23,7 +23,7 @@ unittest2("entitlement:entilement_test")
     "mbedtls"})
   add_generic_test_main()
 
-component2("entitlement:issuing_tool")
+component2("eq_entitlement:issuing_tool")
   kind("ConsoleApp")
   rules("CompileFlatbuffers")
   files({
@@ -32,28 +32,28 @@ component2("entitlement:issuing_tool")
     "protocol/license.fbs",
   })
   includedirs(blu.extdir .. "/flatbuffers/include")
-  links({"entitlement", "crypto"})
+  links({"eq_entitlement", "crypto"})
   dependencies({
     "fmtlib", 
     "mbedtls"})
 
-unittest2("entitlement:issuing_tool:issuing_test")
+unittest2("eq_entitlement:issuing_tool:issuing_test")
   files({
     "issuing_tool/*.cc",
     "issuing_tool/*.h",
   })
-  links({"entitlement", "crypto"})
+  links({"eq_entitlement", "crypto"})
   dependencies({
     "fmtlib", 
     "mbedtls"})
   add_generic_test_main()
 
-component2("entitlement:licensee_database_server")
+component2("eq_entitlement:licensee_database_server")
   files({
     "licensee_database_server/*.cc",
     "licensee_database_server/*.h",
   })
-  links({"entitlement", "crypto"})
+  links({"eq_entitlement", "crypto"})
   dependencies({
     "fmtlib", 
     "mbedtls"})

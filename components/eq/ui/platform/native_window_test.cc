@@ -3,8 +3,8 @@
 
 #include <gtest/gtest.h>
 
-#include <platform/win/message_pump_win.h>
-#include <platform/win/native_window_win32.h>
+#include "win/message_pump_win.h"
+#include "win/native_window_win32.h"
 
 namespace {
 TEST(NativeWindow, Create) {

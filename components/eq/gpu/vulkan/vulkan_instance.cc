@@ -3,8 +3,8 @@
 
 #include <base/logging.h>
 
-#include <gpu/vulkan/vulkan_loader.h>
-#include <gpu/vulkan/vulkan_instance.h>
+#include "vulkan_loader.h"
+#include "vulkan_instance.h"
 
 namespace gpu::vulkan {
 

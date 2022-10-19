@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <base/arch.h>
-#include <gpu/vulkan/vulkan_surface.h>
+#include "vulkan_surface.h"
 
 namespace gpu::vulkan {
 namespace {

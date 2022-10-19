@@ -1,7 +1,7 @@
 -- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
 
-component2("database")
+component2("eq_database")
     files({
         "sqlite/*.cc",
         "sqlite/*.h",
@@ -11,7 +11,7 @@ component2("database")
         "fmtlib"
     })
 
-unittest2("database:sqlite_test")
+unittest2("eq_database:sqlite_test")
     files({
         "sqlite/test/run_all_tests.cc",
         "sqlite/test/sqlite_test_suite.cc",

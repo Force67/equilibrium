@@ -1,7 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <gpu/vulkan/vulkan_device_queue.h>
+#include "vulkan_device_queue.h"
 
 namespace gpu::vulkan {
 

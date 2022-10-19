@@ -3,7 +3,7 @@
 // Windows platform message loop.
 
 #include <Windows.h>
-#include <ui/platform/win/message_pump_win.h>
+#include "message_pump_win.h"
 
 namespace ui {
 bool MessagePumpWin::UpdateBlocking() {

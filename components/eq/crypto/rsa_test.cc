@@ -2,9 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <gtest/gtest.h>
-#include <crypto/rsa.h>
 #include <base/random.h>
-#include <crypto/mbed_raii_wrappers.h>
+
+#include "rsa.h"	
+#include "mbed_raii_wrappers.h"	// for mbed::RsaKey
 
 namespace {
 constexpr char kPublicKey[] = R"(

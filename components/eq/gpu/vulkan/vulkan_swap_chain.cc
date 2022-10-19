@@ -1,8 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <gpu/vulkan/vulkan_surface.h>
-#include <gpu/vulkan/vulkan_swap_chain.h>
+#include "vulkan_surface.h"
+#include "vulkan_swap_chain.h"
 
 namespace gpu::vulkan {
 constexpr const char kDeviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};

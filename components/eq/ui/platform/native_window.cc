@@ -2,10 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Platform window.
 
-#include <ui/platform/native_window.h>
+#include "native_window.h"
 
 #if defined(OS_WIN)
-#include <ui/platform/win/native_window_win32.h>
+#include "win/native_window_win32.h"
 #endif
 
 namespace ui {

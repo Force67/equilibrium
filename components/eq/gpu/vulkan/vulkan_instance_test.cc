@@ -3,8 +3,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gpu/vulkan/vulkan_instance.h>
-#include <gpu/vulkan/vulkan_surface.h>
+#include "vulkan_instance.h"
+#include "vulkan_surface.h"
 
 namespace {
 using namespace gpu::vulkan;
