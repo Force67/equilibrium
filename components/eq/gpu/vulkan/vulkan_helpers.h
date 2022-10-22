@@ -3,7 +3,7 @@
 #pragma once
 
 // TODO(Vince): very expensive header.
-#include <gpu/vulkan/vulkan.h>
+#include <eq/gpu/vulkan/vulkan.h>
 
 namespace gpu::vulkan {
 

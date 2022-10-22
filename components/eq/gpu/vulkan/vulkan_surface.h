@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <gpu/vulkan/vulkan_raii.h>
+#include <eq/gpu/vulkan/vulkan_raii.h>
 
 namespace gpu::vulkan {
 

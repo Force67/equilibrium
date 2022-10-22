@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include <fmt/printf.h>
 
+#include <base/export.h>
 #include <base/compiler.h>
 
 // TODO: support concept of spaces
@@ -31,8 +32,8 @@ void WriteLogMessage(LogLevel, const char*);
 }  // namespace detail
 
 using LogHandler = void (*)(void*, LogLevel, const char*);
-void SetLogHandler(LogHandler, void* user_pointer) noexcept;
-void SetLogInstance(void* user_pointer);
+BASE_EXPORT void SetLogHandler(LogHandler, void* user_pointer) noexcept;
+BASE_EXPORT void SetLogInstance(void* user_pointer);
 
 template <typename... Args>
 void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {

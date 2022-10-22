@@ -3,7 +3,7 @@
 
 local function build_gpu()
   dependencies("fmtlib")
-  includedirs("..")
+  includedirs("../../")
   files({
     "readme.md",
     "**.cc",

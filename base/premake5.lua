@@ -1,13 +1,21 @@
 -- Copyright (C) 2022 Vincent Hengel.
 -- For licensing information see LICENSE at the root of this distribution.
 
+-- this will replace the crt init code with our own bootcode,
+-- so we can perform a number of optimizations and security enhancements
+function enable_base_crt_bootstrap()
+  defines("BASE_ENABLE_CRT_BOOTSTRAP")
+
+  -- this should be one always without semicolon, else the path breaks!
+  includedirs("$(VCToolsInstallDir)/crt/src/vcruntime")
+end
+
 local function base_project()
-  
   filter("configurations:Profile")
     dependencies("tracysdk")
   filter{}
 
-  dependencies("googlemock")
+  dependencies("googlemock")  
   links({"fmtlib"})
   defines({
     "BASE_IMPLEMENTATION",
@@ -15,13 +23,23 @@ local function base_project()
   includedirs({".", blu.rootdir, blu.extdir .. "/fmt/include"})
 end
 
-  project("base")
-  kind("StaticLib")
+local function base_library()
+  enable_base_crt_bootstrap()
   base_project()
   files({"**.cc", "**.h", "**.in", "**.inl"})
   removefiles({
     "**_test.cc",
     "allocator/memory_unittests_main.cc"})
+end
+
+project("base")
+  kind("StaticLib")
+  base_library()
+
+project("base_shared")
+  kind("SharedLib")
+  base_library()
+  defines("BUILDING_DLL")
 
 project("base_unittests")
   kind("ConsoleApp")

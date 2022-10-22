@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <gpu/vulkan/vulkan_helpers.h>
+#include <eq/gpu/vulkan/vulkan_helpers.h>
 
 namespace gpu::vulkan {
 class VulkanInstance;

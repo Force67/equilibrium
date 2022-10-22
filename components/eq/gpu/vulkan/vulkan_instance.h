@@ -7,10 +7,10 @@
 
 #include <base/containers/vector.h>
 
-#include <gpu/vulkan/vulkan_raii.h>
-#include <gpu/vulkan/vulkan_helpers.h>
-#include <gpu/vulkan/vulkan_debug_utils.h>
-#include <gpu/vulkan/vulkan_surface.h>
+#include <eq/gpu/vulkan/vulkan_raii.h>
+#include <eq/gpu/vulkan/vulkan_helpers.h>
+#include <eq/gpu/vulkan/vulkan_debug_utils.h>
+#include <eq/gpu/vulkan/vulkan_surface.h>
 
 namespace gpu::vulkan {
 

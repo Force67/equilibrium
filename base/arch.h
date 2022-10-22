@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Core type definitions to be portable across architectures.
 #pragma once
-// Warning: This header may _never_ include other source files
+// Warning: This header may _never_ include other files
 namespace arch_types {
 using u8 = unsigned char;
 using u16 = unsigned short;
@@ -13,7 +13,8 @@ using i8 = signed char;
 using i16 = short;
 using i32 = int;
 using i64 = long long;
-// use this instead of u8
+// use this instead of u8 for data
+// we guarantee that this type is always sizeof(byte) = 1, on any platform
 using byte = u8;
 
 using mem_size = u64;

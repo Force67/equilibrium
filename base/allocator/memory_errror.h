@@ -3,7 +3,7 @@
 #pragma once
 
 #include <base/compiler.h>
-#include <base/source_location.h>
+#include <base/meta/source_location.h>
 
 namespace base {
 namespace detail {

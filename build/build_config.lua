@@ -94,6 +94,7 @@ filter("language:C or C++")
   --flags("FatalWarnings")
   -- no rtti type info
   rtti("Off")
+  justmycode("Off")
 
 filter("language:C++")
   cppdialect("C++20")

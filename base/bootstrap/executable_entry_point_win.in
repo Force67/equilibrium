@@ -1,0 +1,169 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (C) 2022 Vincent Hengel.
+// For licensing information see LICENSE at the root of this distribution.
+// the earliest entry point of equilibrium applications.
+
+// WARNING(Vince): This file may not include any headers except exe_common.inl.
+
+#if defined(BASE_ENABLE_CRT_BOOTSTRAP)
+
+#if defined _M_CEE || _MANAGED
+#error Cannot compile base for CLR or managed environments
+#endif
+
+#define _VCRT_BUILD
+#define _VCRT_ALLOW_INTERNALS
+#define _SCRT_STARTUP_WINMAIN
+
+// this path should always be valid, since it goes back from the $(VC_IncludePath)
+// Note that it is only defined for executables though.
+#include <exe_common.inl>
+
+#undef _VCRT_BUILD
+#undef _VCRT_ALLOW_INTERNALS
+#undef _SCRT_STARTUP_WINMAIN
+
+#ifdef CONFIG_DEBUG
+#pragma comment(lib, "libcmtd.lib")
+#pragma comment(lib, "libvcruntimed.lib")
+#pragma comment(lib, "libucrtd.lib")
+#else
+#pragma comment(lib, "libcmt.lib")
+#pragma comment(lib, "libvcruntime.lib")
+#pragma comment(lib, "libucrt.lib")
+#endif
+
+int eq_main();
+
+namespace {
+// symbols defined by the compiler
+extern "C" {
+extern _PIFV __xi_a[];  // First C Initializer
+extern _PIFV __xi_z[];  // Last C Initializer
+extern _PVFV __xc_a[];  // First C++ Initializer
+extern _PVFV __xc_z[];  // Last C++ Initializer
+extern _PVFV __xp_a[];  // First Pre-Terminator
+extern _PVFV __xp_z[];  // Last Pre-Terminator
+extern _PVFV __xt_a[];  // First Terminator
+extern _PVFV __xt_z[];  // Last Terminator
+}
+
+void InvokeCxxInitializers(_PVFV* first, _PVFV* last) {
+  while (first != last) {
+    if (*first)
+      (*first)();
+    ++first;
+  }
+}
+
+int InvokeCInitializers(_PIFV* first, _PIFV* last) {
+  unsigned int v3;  // [rsp+20h] [rbp-28h]
+
+  while (first != last) {
+    if (*first) {
+      v3 = (*first)();
+      if (v3)
+        return v3;
+    }
+    ++first;
+  }
+  return 0;
+}
+
+bool InvokeInitializerLists(bool& has_cctor) {
+  // lock in TEB
+  bool const is_nested = __scrt_acquire_startup_lock();
+  using startup_state = __scrt_native_startup_state;
+
+  switch (__scrt_current_native_startup_state) {
+    case startup_state::initializing:
+      __scrt_fastfail(FAST_FAIL_FATAL_APP_EXIT);
+      break;
+    case startup_state::uninitialized: {
+      __scrt_current_native_startup_state = startup_state::initializing;
+
+      if (InvokeCInitializers(__xi_a, __xi_z))  // _initterm_e
+        return false;
+
+      InvokeCxxInitializers(__xc_a, __xc_z);  // _initterm
+
+      __scrt_current_native_startup_state = startup_state::initialized;
+      break;
+    }
+    default:
+      has_cctor = true;
+      break;
+  }
+
+  __scrt_release_startup_lock(is_nested);
+  return true;
+}
+
+void BindTLSVariables() {
+  // If this module has any dynamically initialized __declspec(thread)
+  // variables, then we invoke their initialization for the primary thread
+  // used to start the process:
+  _tls_callback_type const* const tls_init_callback =
+      __scrt_get_dyn_tls_init_callback();
+  if (*tls_init_callback != nullptr &&
+      __scrt_is_nonwritable_in_current_image(tls_init_callback)) {
+    (*tls_init_callback)(nullptr, /*DLL_THREAD_ATTACH*/ 2, nullptr);
+  }
+
+  // If this module has any thread-local destructors, register the
+  // callback function with the Unified CRT to run on exit.
+  _tls_callback_type const* const tls_dtor_callback =
+      __scrt_get_dyn_tls_dtor_callback();
+  if (*tls_dtor_callback != nullptr &&
+      __scrt_is_nonwritable_in_current_image(tls_dtor_callback)) {
+    _register_thread_local_exe_atexit_callback(*tls_dtor_callback);
+  }
+}
+
+int ProtectedMain() {
+  // base_startup_cha
+
+  bool has_cctor = false;
+  __try {
+    // wake initializers
+    if (!InvokeInitializerLists(has_cctor))
+      return 255;
+    // bind thread_locals
+    BindTLSVariables();
+
+    int const main_result = eq_main();
+    exit(main_result);
+
+    if (!has_cctor)
+      _cexit();
+    // Finally, we terminate the CRT:
+    __scrt_uninitialize_crt(true, false);
+    return main_result;
+  } __except (_seh_filter_exe(_exception_code(), GetExceptionInformation())) {
+    // Note:  We should never reach this except clause.
+    int const main_result = _exception_code();
+    _exit(main_result);
+    if (!has_cctor)
+      _c_exit();
+    return main_result;
+  }
+}
+}  // namespace
+
+extern "C" int EquilibriumExecutableMain() {
+  // Set the stack security cookie. to disable:
+  // __security_cookie = 0;
+  __security_init_cookie();
+
+  // bind the c runtime
+  if (!__scrt_initialize_crt(__scrt_module_type::exe)) {
+    // int 0x29 the kernel will take over and kill our app after this interrupt has
+    // been raised
+    __scrt_fastfail(FAST_FAIL_FATAL_APP_EXIT);
+  }
+
+  // enter the SEH main
+  return ProtectedMain();
+}  // namespace base
+
+#endif
