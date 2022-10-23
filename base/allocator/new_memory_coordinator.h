@@ -13,9 +13,16 @@ namespace base {
 class NewMemoryCoordinator {
  public:
   // static initialization methods for initializing/killing the memory subsystem
-  static void Create();
+  // these are special methods, in which the following may not be done:
+  // - allocate memory
+  // - declare static variables
+  // do *NEVER* call these manually
+  static bool Create();
   static void Destroy();
 
+ private:
+  // same as above applies also here, as well as to any methods being called from the
+  // ctor.
   NewMemoryCoordinator();
   ~NewMemoryCoordinator();
 
@@ -23,6 +30,7 @@ class NewMemoryCoordinator {
   MemoryTracker memory_tracker_;
 };
 
+// implementation detail, do not touch.
 namespace detail {
 extern byte new_mc_data[];
 }

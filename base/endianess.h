@@ -7,10 +7,6 @@
 #include <base/compiler.h>
 
 namespace base {
-
-// TODO: NON AMD64
-constexpr mem_size kCharBit = 8;
-
 // this will always byteswap
 template <typename T>
 consteval T ByteSwap_Always(T i, T j = 0u, mem_size n = 0u) {

@@ -4,6 +4,9 @@
 // the earliest entry point of equilibrium applications.
 
 // WARNING(Vince): This file may not include any headers except exe_common.inl.
+// This is to stop poisioning the well with windows.h and its symbols.
+
+#include <base/allocator/new_memory_coordinator.h>
 
 #if defined(BASE_ENABLE_CRT_BOOTSTRAP)
 
@@ -120,11 +123,14 @@ void BindTLSVariables() {
   }
 }
 
-int ProtectedMain() {
+__forceinline int ProtectedMain() {
   // base_startup_cha
 
   bool has_cctor = false;
   __try {
+    if (!base::NewMemoryCoordinator::Create())
+      return 254;
+
     // wake initializers
     if (!InvokeInitializerLists(has_cctor))
       return 255;
@@ -132,12 +138,17 @@ int ProtectedMain() {
     BindTLSVariables();
 
     int const main_result = eq_main();
+	// we will get killed by regular exit
+    base::NewMemoryCoordinator::Destroy();
     exit(main_result);
 
     if (!has_cctor)
       _cexit();
     // Finally, we terminate the CRT:
     __scrt_uninitialize_crt(true, false);
+
+	// if we are still alive, try again.
+    base::NewMemoryCoordinator::Destroy();
     return main_result;
   } __except (_seh_filter_exe(_exception_code(), GetExceptionInformation())) {
     // Note:  We should never reach this except clause.

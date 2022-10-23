@@ -5,9 +5,13 @@
 -- so we can perform a number of optimizations and security enhancements
 function enable_base_crt_bootstrap()
   defines("BASE_ENABLE_CRT_BOOTSTRAP")
-
   -- this should be one always without semicolon, else the path breaks!
   includedirs("$(VCToolsInstallDir)/crt/src/vcruntime")
+
+  linkoptions({
+    -- use our own main instead of winmain
+    "/ENTRY:EquilibriumExecutableMain"
+  })
 end
 
 local function base_project()
