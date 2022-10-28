@@ -132,12 +132,12 @@ class Vector {
   }
 
   [[nodiscard]] const T& back() const {
-    DCHECK(empty());
+    DCHECK(!empty());
     return *(end_ - 1);
   }
 
   [[nodiscard]] T& back() {
-    DCHECK(empty());
+    DCHECK(!empty());
     return *(end_ - 1);
   }
 
@@ -145,7 +145,7 @@ class Vector {
   [[nodiscard]] T* end() const { return end_; }
   [[nodiscard]] T* data() const { return data_; }
 
-  [[nodiscard]] bool empty() const { return data_ == nullptr || end_ <= data_; }
+  [[nodiscard]] bool empty() const { return data_ == nullptr || end_ == data_; }
   [[nodiscard]] mem_size size() const { return end_ - data_; }
   [[nodiscard]] mem_size capacity() const { return capacity_ - data_; }
 

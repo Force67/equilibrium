@@ -5,10 +5,7 @@
 #include <base/numeric_limits.h>
 
 namespace base {
-
-constexpr auto x = sizeof(unsigned long);
-
-u32 CountLeadingZeros(u32 val) {
+inline u32 CountLeadingZeros(u32 val) {
   if (val == 0)
     return 32;
 
@@ -21,7 +18,7 @@ u32 CountLeadingZeros(u32 val) {
 #endif
 }
 
-u64 CountLeadingZeros(u64 val) {
+inline u64 CountLeadingZeros(u64 val) {
   if (val == 0)
     return 64;
 

@@ -120,7 +120,7 @@ template <typename T, typename... TArgs>
 }
 
 template <typename T>
-[[nodiscard]] UniquePointer<T> MakeUnique(mem_size count) requires(
+[[nodiscard]] UniquePointer<T> MakeUnique(const mem_size count) requires(
     base::IsArray<T>) {
   using TElem = base::remove_extent_t<T>;
   return UniquePointer<T>(new TElem[count]);
