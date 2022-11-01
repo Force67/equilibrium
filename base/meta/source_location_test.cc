@@ -1,7 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <base/source_location.h>
+#include <base/meta/source_location.h>
 #include <gtest/gtest.h>
 
 namespace {

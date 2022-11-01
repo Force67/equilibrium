@@ -23,7 +23,7 @@ class Thread {
   virtual u32 Run();
 
   // since both are same size anyway, we can use the same type
-  bool good() const { return handle_data_.handle_ == nullptr; }
+  bool good() const { return handle_data_.handle_ != nullptr; }
 
   void SetName(const base::StringRef name);
 
@@ -38,9 +38,9 @@ class Thread {
 
  private:
   // raw underlying implementation defined handle
-  Handle handle_data_;
+  Handle handle_data_{};
   // tid of the thread this thread was created on
-  u32 parent_thread_index_;
+  u32 parent_thread_index_{0};
   // name of the thread
   base::String thread_name_;
 };

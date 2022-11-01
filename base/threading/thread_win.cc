@@ -15,7 +15,7 @@
 namespace base {
 
 namespace {
-DWORD WINAPI ThreadFunc(void* user_param) {
+DWORD WINAPI ThreadFunc(LPVOID user_param) {
   auto* thread = static_cast<base::Thread*>(user_param);
   // its best practice to set the thread name on the thread itself on windows
   thread->ApplyName();

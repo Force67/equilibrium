@@ -6,7 +6,7 @@
 namespace base {
 
 Thread::Thread(const base::StringRef ref, const Thread::Priority prio)
-    : thread_name_(ref.c_str()) {
+    : thread_name_(ref.c_str(), ref.length()) {
   parent_thread_index_ = base::GetCurrentThreadIndex();
 
   handle_data_ = Thread::Spawn();
@@ -21,8 +21,8 @@ u32 Thread::Run() {
 }
 
 void Thread::SetName(const base::StringRef name) {
-  thread_name_ = name.data();
-  base::SetThreadName(handle_data_, name.data());
+  thread_name_ = base::String(name.data(), name.length());
+  base::SetThreadName(handle_data_, thread_name_.c_str());
 }
 
 void Thread::ApplyName() {

@@ -60,8 +60,9 @@ LONG RegistryKey::CreateWithDisposition(HKEY rootkey,
                                         REGSAM access) {
   DCHECK(rootkey && subkey && access && disposition);
   HKEY subhkey = nullptr;
-  LONG result = RegCreateKeyExW(rootkey, subkey, 0, nullptr, REG_OPTION_NON_VOLATILE,
-                                access, nullptr, &subhkey, disposition);
+  LONG result =
+      ::RegCreateKeyExW(rootkey, subkey, 0, nullptr, REG_OPTION_NON_VOLATILE, access,
+                        nullptr, &subhkey, disposition);
   if (result == ERROR_SUCCESS) {
     Close();
     key_ = subhkey;
@@ -83,8 +84,8 @@ LONG RegistryKey::CreateKey(const wchar_t* name, REGSAM access) {
     return 87L;
   }
   HKEY subkey = nullptr;
-  LONG result = RegCreateKeyExW(key_, name, 0, nullptr, REG_OPTION_NON_VOLATILE,
-                                access, nullptr, &subkey, nullptr);
+  LONG result = ::RegCreateKeyExW(key_, name, 0, nullptr, REG_OPTION_NON_VOLATILE,
+                                  access, nullptr, &subkey, nullptr);
   if (result == ERROR_SUCCESS) {
     Close();
     key_ = subkey;
@@ -98,7 +99,7 @@ LONG RegistryKey::Open(HKEY rootkey, const wchar_t* subkey, REGSAM access) {
   DCHECK(rootkey && subkey && access);
   HKEY subhkey = nullptr;
 
-  LONG result = RegOpenKeyExW(rootkey, subkey, 0, access, &subhkey);
+  LONG result = ::RegOpenKeyExW(rootkey, subkey, 0, access, &subhkey);
   if (result == ERROR_SUCCESS) {
     Close();
     key_ = subhkey;
@@ -120,7 +121,7 @@ LONG RegistryKey::OpenKey(const wchar_t* relative_key_name, REGSAM access) {
     return 87L;
   }
   HKEY subkey = nullptr;
-  LONG result = RegOpenKeyExW(key_, relative_key_name, 0, access, &subkey);
+  LONG result = ::RegOpenKeyExW(key_, relative_key_name, 0, access, &subkey);
 
   // We have to close the current opened key before replacing it with the new
   // one.
@@ -141,23 +142,23 @@ void RegistryKey::Close() {
 }
 
 bool RegistryKey::HasValue(const wchar_t* name) const {
-  return RegQueryValueExW(key_, name, nullptr, nullptr, nullptr, nullptr) ==
+  return ::RegQueryValueExW(key_, name, nullptr, nullptr, nullptr, nullptr) ==
          ERROR_SUCCESS;
 }
 
 DWORD RegistryKey::GetValueCount() const {
   DWORD count = 0;
   LONG result =
-      RegQueryInfoKeyW(key_, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                       &count, nullptr, nullptr, nullptr, nullptr);
+      ::RegQueryInfoKeyW(key_, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                         &count, nullptr, nullptr, nullptr, nullptr);
   return (result == ERROR_SUCCESS) ? count : 0;
 }
 
 FILETIME RegistryKey::GetLastWriteTime() const {
   FILETIME last_write_time;
   LONG result =
-      RegQueryInfoKeyW(key_, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                       nullptr, nullptr, nullptr, nullptr, &last_write_time);
+      ::RegQueryInfoKeyW(key_, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                         nullptr, nullptr, nullptr, nullptr, &last_write_time);
   return (result == ERROR_SUCCESS) ? last_write_time : FILETIME{};
 }
 
@@ -179,7 +180,7 @@ LONG RegistryKey::DeleteKey(const wchar_t* name) {
 
   // Verify the key exists before attempting delete to replicate previous
   // behavior.
-  LONG result = RegOpenKeyExW(key_, name, 0, READ_CONTROL | wow64access_, &subkey);
+  LONG result = ::RegOpenKeyExW(key_, name, 0, READ_CONTROL | wow64access_, &subkey);
   if (result != ERROR_SUCCESS)
     return result;
   RegCloseKey(subkey);
@@ -192,29 +193,30 @@ LONG RegistryKey::DeleteEmptyKey(const wchar_t* name) {
   DCHECK(name);
 
   HKEY target_key = nullptr;
-  LONG result = RegOpenKeyExW(key_, name, 0, KEY_READ | wow64access_, &target_key);
+  LONG result = ::RegOpenKeyExW(key_, name, 0, KEY_READ | wow64access_, &target_key);
 
   if (result != ERROR_SUCCESS)
     return result;
 
   DWORD count = 0;
-  result = RegQueryInfoKeyW(target_key, nullptr, nullptr, nullptr, nullptr, nullptr,
-                            nullptr, &count, nullptr, nullptr, nullptr, nullptr);
+  result =
+      ::RegQueryInfoKeyW(target_key, nullptr, nullptr, nullptr, nullptr, nullptr,
+                         nullptr, &count, nullptr, nullptr, nullptr, nullptr);
 
-  RegCloseKey(target_key);
+  ::RegCloseKey(target_key);
 
   if (result != ERROR_SUCCESS)
     return result;
 
   if (count == 0)
-    return RegDeleteKeyExW(key_, name, wow64access_, 0);
+    return ::RegDeleteKeyExW(key_, name, wow64access_, 0);
 
   return ERROR_DIR_NOT_EMPTY;
 }
 
 LONG RegistryKey::DeleteValue(const wchar_t* value_name) {
   DCHECK(key_);
-  LONG result = RegDeleteValueW(key_, value_name);
+  LONG result = ::RegDeleteValueW(key_, value_name);
   return result;
 }
 
@@ -281,8 +283,8 @@ LONG RegistryKey::ReadValue(const wchar_t* name,
                             void* data,
                             DWORD& dsize,
                             DWORD& dtype) const {
-  LONG result = RegQueryValueExW(key_, name, nullptr, &dtype,
-                                 reinterpret_cast<LPBYTE>(data), &dsize);
+  LONG result = ::RegQueryValueExW(key_, name, nullptr, &dtype,
+                                   reinterpret_cast<LPBYTE>(data), &dsize);
   return result;
 }
 
@@ -305,8 +307,8 @@ LONG RegistryKey::WriteValue(const wchar_t* name,
   DCHECK(data || !dsize);
 
   LONG result =
-      RegSetValueExW(key_, name, 0, dtype,
-                     reinterpret_cast<LPBYTE>(const_cast<void*>(data)), dsize);
+      ::RegSetValueExW(key_, name, 0, dtype,
+                       reinterpret_cast<LPBYTE>(const_cast<void*>(data)), dsize);
   return result;
 }
 
@@ -318,8 +320,8 @@ LONG RegistryKey::RegDelRecurse(HKEY root_key, const wchar_t* name, REGSAM acces
     return result;
 
   HKEY target_key = nullptr;
-  result =
-      RegOpenKeyExW(root_key, name, 0, KEY_ENUMERATE_SUB_KEYS | access, &target_key);
+  result = ::RegOpenKeyExW(root_key, name, 0, KEY_ENUMERATE_SUB_KEYS | access,
+                           &target_key);
 
   if (result == ERROR_FILE_NOT_FOUND)
     return ERROR_SUCCESS;
@@ -344,8 +346,8 @@ LONG RegistryKey::RegDelRecurse(HKEY root_key, const wchar_t* name, REGSAM acces
     key_name.reserve(kMaxKeyNameLength);
     key_name.resize(kMaxKeyNameLength - 1);
 
-    result = RegEnumKeyExW(target_key, 0, key_name.data(), &key_size, nullptr,
-                           nullptr, nullptr, nullptr);
+    result = ::RegEnumKeyExW(target_key, 0, key_name.data(), &key_size, nullptr,
+                             nullptr, nullptr, nullptr);
 
     if (result != ERROR_SUCCESS)
       break;
@@ -358,10 +360,10 @@ LONG RegistryKey::RegDelRecurse(HKEY root_key, const wchar_t* name, REGSAM acces
       break;
   }
 
-  RegCloseKey(target_key);
+  ::RegCloseKey(target_key);
 
   // Try again to delete the key.
-  result = RegDeleteKeyExW(root_key, name, access, 0);
+  result = ::RegDeleteKeyExW(root_key, name, access, 0);
 
   return result;
 }
