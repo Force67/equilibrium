@@ -155,7 +155,7 @@ class BASE_EXPORT File {
 
   ~File();
 
-  File& operator=(File&& other);
+  File& operator=(File&& other) noexcept;
 
   // Creates or opens the given file.
   void Initialize(const Path& path, uint32_t flags);

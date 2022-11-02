@@ -59,7 +59,7 @@ File::~File() {
   Close();
 }
 
-File& File::operator=(File&& other) {
+File& File::operator=(File&& other) noexcept {
   Close();
   SetPlatformFile(other.TakePlatformFile());
   path_ = other.path_;

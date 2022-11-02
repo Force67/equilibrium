@@ -46,10 +46,10 @@ bool IsSeparator(T character) {
 }  // namespace
 
 Path::Path(const Path& other) : path_buf_(other.path_buf_) {
-  NormalizePath(path_buf_);
+  Normalize(path_buf_);
 }
 Path::Path(const BufferType& path) : path_buf_(path) {
-  NormalizePath(path_buf_);
+  Normalize(path_buf_);
 }
 
 void Path::Append(const Path& other) {

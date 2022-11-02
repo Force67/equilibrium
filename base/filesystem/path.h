@@ -85,7 +85,7 @@ class BASE_EXPORT Path {
 
   // modifies the buffer to the internal path notation e.g. backslashes on windows or
   // forward slashes on *nix
-  static void NormalizePath(BufferType&);
+  static void Normalize(BufferType&);
 
   // returns a Path corresponding to the directory containing the path
   // named by this object, stripping away the file component.  If this object
@@ -107,7 +107,7 @@ class BASE_EXPORT Path {
     return path_buf_.empty();
   }
 
-  const CharType* c_str() const {
+  inline const CharType* c_str() const {
     return path_buf_.c_str();
   }
 

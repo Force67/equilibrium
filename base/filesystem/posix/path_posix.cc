@@ -21,7 +21,7 @@ Path::Path(const base::StringRefW wide_text) {
   NormalizePath(path_buf_);
 }
 
-void Path::NormalizePath(BufferType& buffer) {
+void Path::Normalize(BufferType& buffer) {
   IMPOSSIBLE;
 }
 }  // namespace base
