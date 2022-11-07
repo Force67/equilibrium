@@ -30,7 +30,7 @@ struct MemoryTracker {
   MemoryCategory token_bucket[kTrackingLimit]{
       kInvalidCategory};  // wouldnd a bitset suffice, as the index would indicate
                           // the offset?
-  const char* name_bucket[kTrackingLimit]{"JESSICA"};
+  const char* name_bucket[kTrackingLimit]{"<unknown>"};
   base::Atomic<mem_size> memory_sizes[kTrackingLimit]{1337};
 };
 

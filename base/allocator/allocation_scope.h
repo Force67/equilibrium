@@ -10,12 +10,12 @@ namespace base {
 // for optimization reasons at most 255 allocators are supported
 using allocator_id = u8;
 
-// Memoryscopes allow you to override the allocator for a given scope
+// AllocationScopes allow you to override the allocator for a given scope
 // e.g
-// void f() { Memoryscope _(12); auto x = new char[512], } <-- Memory is provided and
+// void f() { AllocationScope _(12); auto x = new char[512], } <-- Memory is provided and
 // owned by allocator 12. As soon as they run out of scope they return to the
 // formerly set allocator
-class MemoryScope {
+class AllocationScope {
  public:
   // we use the custom type here, as we want to store -1 for the default beh, but
   // also need to fit the whole range of 'allocator_id'
@@ -25,7 +25,7 @@ class MemoryScope {
   // default id set on every thread
   static constexpr allocator_handle NoOverride = -1;
 
-  explicit inline MemoryScope(allocator_id id) {
+  explicit inline AllocationScope(allocator_id id) {
     DCHECK(id > 0 && id <= 255, "Invalid ID?");
     // Enter the new allocator/pool instance.
     if (current_allocator() != id) {
@@ -33,7 +33,7 @@ class MemoryScope {
     }
   }
 
-  inline ~MemoryScope() { Enter(previous_allocator_); }
+  inline ~AllocationScope() { Enter(previous_allocator_); }
 
   // memory substem is responsible for polling this state.
   static allocator_handle current_allocator();
