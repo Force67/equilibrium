@@ -7,6 +7,7 @@
 #include <base/arch.h>
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
+#include <base/memory/move.h>
 #include <base/containers/container_traits.h>
 
 #include <new>  // < for placement new
@@ -101,9 +102,9 @@ class Vector {
   template <typename... TArgs>
   T& emplace_back(TArgs&&... args) {
     if (end_ < capacity_) [[likely]]
-      ::new (static_cast<void*>(end_++)) T(args...);
+      ::new (static_cast<void*>(end_++)) T(base::forward<TArgs>(args)...);
     else
-      InsertAtEnd(args...);
+      InsertAtEnd(base::forward<TArgs>(args)...);
     return back();
   }
 
