@@ -10,8 +10,8 @@ namespace database {
 void SqliteTestSuite::SetUp() {
   ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
 
-  //const std::string path = db_path().c_str();
-  __debugbreak();
+  // const std::string path = db_path().c_str();
+  //__debugbreak();
   std::string path = "";
   ASSERT_TRUE(db_.Open(path));
 }

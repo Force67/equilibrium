@@ -21,12 +21,14 @@ local function base_project()
     dependencies("tracysdk")
   filter{}
 
-  dependencies("googlemock")  
-  links({"fmtlib"})
+  dependencies({
+    "googlemock",
+    "fmtlib"
+  })  
   defines({
     "BASE_IMPLEMENTATION",
     "TRACY_HAS_CALLSTACK"})
-  includedirs({".", blu.rootdir, blu.extdir .. "/fmt/include"})
+  includedirs({".", blu.rootdir})
 end
 
 local function base_library()

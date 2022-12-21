@@ -45,7 +45,7 @@ function include_meta(ico_path)
     ('EQ_VERSION=' .. to_double(blu.version))
   })
 
-  filter("kind:WindowedApp or kind:ConsoleApp or kind:SharedLib")
+  filter({"system:windows", "kind:WindowedApp or kind:ConsoleApp or kind:SharedLib"})
     files({
       (blu.builddir .. "/build_info.rc"),
       (blu.builddir .. "/win_app.manifest")
