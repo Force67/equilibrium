@@ -75,6 +75,7 @@ project("fmtlib")
     "fmt/src/format.cc",
     "fmt/src/os.cc",
   })
+  pic("On")
 
 project("googlemock")
   language("C++")

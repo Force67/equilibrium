@@ -95,6 +95,7 @@ filter("language:C or C++")
   -- no rtti type info
   rtti("Off")
   justmycode("Off")
+  pic("On") -- generate position independent code
 
 filter("language:C++")
   cppdialect("C++20")
