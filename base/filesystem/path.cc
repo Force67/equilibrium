@@ -3,6 +3,7 @@
 
 #include <base/filesystem/path.h>
 #include <base/text/code_convert.h>
+#include <base/text/code_conv_validate.h>
 
 namespace base {
 
@@ -145,18 +146,30 @@ Path Path::BaseName() const {
 }
 
 Path Path::Extension() const {
-    #if 0
+#if 0
   Path base(BaseName());
   const auto dot = ExtensionSeparatorPosition(base.path_buf_);
   if (dot == BufferType::npos)
     return {};
 
   return base.path_buf_.substr(dot, BufferType::npos);
-  #endif
+#endif
   return {};
 }
 
 Path GetExecutablePath() {
   return {};
+}
+
+// Life isn't easy on Linux.  We have to deal with the fact that many apis take only
+// a ascii char as parameter.
+// This is a horrible hack, defeating the point of storing stuff in utf8 internally,
+// but for now it's the only way.
+base::String Path::ToAsciiString() const {
+  DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
+                               base::CountStringLength(path_buf_.c_str())),
+         "Path must be ASCII only");
+
+  return base::String(reinterpret_cast<const char*>(path_buf_.c_str()));
 }
 }  // namespace base

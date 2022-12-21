@@ -4,14 +4,16 @@
 -- this will replace the crt init code with our own bootcode,
 -- so we can perform a number of optimizations and security enhancements
 function enable_base_crt_bootstrap()
-  defines("BASE_ENABLE_CRT_BOOTSTRAP")
-  -- this should be one always without semicolon, else the path breaks!
-  includedirs("$(VCToolsInstallDir)/crt/src/vcruntime")
+  filter("system:windows")
+    defines("BASE_ENABLE_CRT_BOOTSTRAP")
+    -- this should be one always without semicolon, else the path breaks!
+    includedirs("$(VCToolsInstallDir)/crt/src/vcruntime")
 
-  linkoptions({
-    -- use our own main instead of winmain
-    "/ENTRY:EquilibriumExecutableMain"
-  })
+    linkoptions({
+      -- use our own main instead of winmain
+      "/ENTRY:EquilibriumExecutableMain"
+    })
+  filter{}
 end
 
 local function base_project()
@@ -40,10 +42,10 @@ project("base")
   kind("StaticLib")
   base_library()
 
-project("base_shared")
-  kind("SharedLib")
-  base_library()
-  defines("BUILDING_DLL")
+--project("base_shared")
+--  kind("SharedLib")
+--  base_library()
+--  defines("BUILDING_DLL")
 
 project("base_unittests")
   kind("ConsoleApp")

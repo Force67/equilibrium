@@ -102,20 +102,23 @@ class BASE_EXPORT Path {
   [[nodiscard]] Path BaseName() const;
   [[nodiscard]] Path Extension() const;
 
+  // converts the path to an ascii string, if possible
+  [[nodiscard]] base::String ToAsciiString() const;
+
   // cxx adapters
-  inline bool empty() const {
+  [[nodiscard]] inline bool empty() const {
     return path_buf_.empty();
   }
 
-  inline const CharType* c_str() const {
+  [[nodiscard]] inline const CharType* c_str() const {
     return path_buf_.c_str();
   }
 
-  inline const BufferType& path() const {
+  [[nodiscard]] inline const BufferType& path() const {
     return path_buf_;
   }
 
-  inline auto length() const {
+  [[nodiscard]] inline auto length() const {
     return path_buf_.length();
   }
 
