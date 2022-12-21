@@ -128,7 +128,7 @@ class BasicStringRef {
   }
 #endif
 
-  TChar operator[](mem_size size) const { return data_[size]; }
+  const TChar operator[](mem_size size) const { return data_[size]; }
 
  private:
   const TChar* data_;

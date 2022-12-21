@@ -19,7 +19,8 @@ void* ReAllocate(void* former, mem_size new_size) {
 }
 
 void Free(void* block) {
-  memory_coordinator().Free(block);
+  if (block != nullptr)
+    memory_coordinator().Free(block);
 }
 
 void* AllocateTracked(mem_size size, const base::SourceLocation& source_loc) {
