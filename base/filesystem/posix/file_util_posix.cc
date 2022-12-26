@@ -22,7 +22,7 @@ namespace base {
 
 namespace {
 
-constexpr char kIdentifier[] = "XXXXXX";
+constexpr Path::CharType kIdentifier[] = BASE_PATH_LITERAL("XXXXXX");
 
 Path FormatTemporaryFileName(const Path::CharType* identifier) {
   Path::BufferType prefix = BASE_PATH_LITERAL(".org.equi.Equilibrium.");
@@ -49,7 +49,9 @@ base::StringRef AppendModeCharacter(base::StringRef mode, char mode_char) {
 Path MakeAbsolutePath(const Path& input) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   char full_path[PATH_MAX];
-  if (realpath(input.c_str(), full_path) == nullptr)
+
+  auto ascii_input = input.ToAsciiString();
+  if (::realpath(ascii_input.c_str(), full_path) == nullptr)
     return Path();
   return Path(full_path);
 }
@@ -78,13 +80,16 @@ bool SetCloseOnExec(int fd) {
 
 bool PathExists(const Path& path) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  return access(path.c_str(), F_OK) == 0;
+  auto ascii_path = path.ToAsciiString();
+  return access(ascii_path.c_str(), F_OK) == 0;
 }
 
 bool DirectoryExists(const Path& path) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   stat_wrapper_t file_info;
-  if (File::Stat(path.c_str(), &file_info) != 0)
+
+  auto ascii_path = path.ToAsciiString();
+  if (File::Stat(ascii_path.c_str(), &file_info) != 0)
     return false;
   return S_ISDIR(file_info.st_mode);
 }
@@ -110,7 +115,7 @@ static bool CreateTemporaryDirInDirImpl(const Path& base_dir,
   //        "Directory name template must end with \"XXXXXX\".");
 
   Path sub_dir = base_dir / name_tmpl;
-  base::String sub_dir_string = sub_dir.path();
+  auto sub_dir_string = sub_dir.ToAsciiString();
 
   // this should be OK since mkdtemp just replaces characters in place
   char* buffer = const_cast<char*>(sub_dir_string.c_str());
@@ -145,7 +150,7 @@ bool CreateTemporaryDirInDir(const Path& base_dir,
                              const Path::BufferType& prefix,
                              Path* new_dir) {
   Path::BufferType mkdtemp_template = prefix;
-  mkdtemp_template.append("XXXXXX");
+  mkdtemp_template.append(BASE_PATH_LITERAL("XXXXXX"));
   return CreateTemporaryDirInDirImpl(base_dir, Path(mkdtemp_template), new_dir);
 }
 
@@ -166,7 +171,8 @@ bool CreateDirectoryAndGetError(const Path& full_path, File::Error* error) {
   for (const Path& subpath : base::Reversed(subpaths)) {
     if (DirectoryExists(subpath))
       continue;
-    if (mkdir(subpath.c_str(), 0700) == 0)
+    auto ascii_subpath = subpath.ToAsciiString();
+    if (mkdir(ascii_subpath.c_str(), 0700) == 0)
       continue;
     // Mkdir failed, but it might have failed with EEXIST, or some other error
     // due to the directory appearing out of thin air. This can occur if
@@ -207,14 +213,17 @@ bool IsLink(const Path& file_path) {
   stat_wrapper_t st;
   // If we can't lstat the file, it's safe to assume that the file won't at
   // least be a 'followable' link.
-  if (File::Lstat(file_path.c_str(), &st) != 0)
+  auto ascii_path = file_path.ToAsciiString();
+  if (File::Lstat(ascii_path.c_str(), &st) != 0)
     return false;
   return S_ISLNK(st.st_mode);
 }
 
 bool GetFileInfo(const Path& file_path, File::Info* results) {
   stat_wrapper_t file_info;
-  if (File::Stat(file_path.c_str(), &file_info) != 0)
+
+  auto ascii_path = file_path.ToAsciiString();
+  if (File::Stat(ascii_path.c_str(), &file_info) != 0)
     return false;
   results->FromStat(file_info);
   return true;
@@ -225,7 +234,7 @@ bool GetCurrentDirectory(Path* dir) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
 
   char system_buffer[PATH_MAX] = "";
-  if (!getcwd(system_buffer, sizeof(system_buffer))) {
+  if (!::getcwd(system_buffer, sizeof(system_buffer))) {
     IMPOSSIBLE;
     return false;
   }
@@ -235,11 +244,13 @@ bool GetCurrentDirectory(Path* dir) {
 
 bool SetCurrentDirectory(const Path& path) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  return chdir(path.c_str()) == 0;
+  auto ascii_path = path.ToAsciiString();
+  return ::chdir(ascii_path.c_str()) == 0;
 }
 
 int GetMaximumPathComponentLength(const Path& path) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  return pathconf(path.c_str(), _PC_NAME_MAX);
+  auto ascii_path = path.ToAsciiString();
+  return ::pathconf(ascii_path.c_str(), _PC_NAME_MAX);
 }
 }  // namespace base

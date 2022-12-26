@@ -10,10 +10,10 @@ if _ACTION == "vs2022" then
   require('vstudio')
 end
 
-if _ACTION == "gmake2" then
+-- if _ACTION == "gmake2" then
   require("compile_commands/export-compile-commands") -- compile_commands.json support for clangd
   require("vscode/vscode") -- support for vscode
-end
+-- end
 
 -- pull in root dependencies
 -- by order of importance.

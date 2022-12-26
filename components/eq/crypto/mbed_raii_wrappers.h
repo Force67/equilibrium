@@ -143,7 +143,7 @@ class PublicKeyWrap {
             CrtDrbgWrap& dbg_wrap) {
     void* random_context = reinterpret_cast<void*>(&dbg_wrap.context());
 
-    mem_size olen = 0;
+    size_t olen = 0;
     int r = mbedtls_pk_sign(
         &context_, type /* Hash algorithm used*/,
         hash.data() /*Hash of the message to sign*/, hash.size() /*Hash length*/,

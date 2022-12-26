@@ -14,6 +14,10 @@ function progress_indicator(total, current)
 end
 
 function blu.http_source(url, file_name, sha256_hash, dest_dir)
+  if _ACTION == "vscode" or _ACTION == "export-compile-commands" then
+    return
+  end
+
   local file_path = blu.tempdir .. "/" .. sha256_hash .. file_name
   if os.isfile(file_path) then
     return
@@ -25,7 +29,7 @@ function blu.http_source(url, file_name, sha256_hash, dest_dir)
   local result_str, response_code = http.download(url, file_path, {
   progress = progress_indicator})
   if response_code ~= 200 then
-    error("blu.http_source(): http.download failed with " .. response_code)
+    error("[" .. _ACTION .. "] blu.http_source(): http.download failed  " .. response_code .. " for " .. url .. " with result " .. result_str)
     return false
   end
 

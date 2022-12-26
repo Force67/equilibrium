@@ -4,14 +4,16 @@
 -- this will replace the crt init code with our own bootcode,
 -- so we can perform a number of optimizations and security enhancements
 function enable_base_crt_bootstrap()
-  defines("BASE_ENABLE_CRT_BOOTSTRAP")
-  -- this should be one always without semicolon, else the path breaks!
-  includedirs("$(VCToolsInstallDir)/crt/src/vcruntime")
+  filter("system:windows")
+    defines("BASE_ENABLE_CRT_BOOTSTRAP")
+    -- this should be one always without semicolon, else the path breaks!
+    includedirs("$(VCToolsInstallDir)/crt/src/vcruntime")
 
-  linkoptions({
-    -- use our own main instead of winmain
-    "/ENTRY:EquilibriumExecutableMain"
-  })
+    linkoptions({
+      -- use our own main instead of winmain
+      "/ENTRY:EquilibriumExecutableMain"
+    })
+  filter{}
 end
 
 local function base_project()
@@ -19,12 +21,14 @@ local function base_project()
     dependencies("tracysdk")
   filter{}
 
-  dependencies("googlemock")  
-  links({"fmtlib"})
+  dependencies({
+    "googlemock",
+    "fmtlib"
+  })  
   defines({
     "BASE_IMPLEMENTATION",
     "TRACY_HAS_CALLSTACK"})
-  includedirs({".", blu.rootdir, blu.extdir .. "/fmt/include"})
+  includedirs({".", blu.rootdir})
 end
 
 local function base_library()

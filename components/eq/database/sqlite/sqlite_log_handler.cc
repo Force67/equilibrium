@@ -9,7 +9,8 @@ void sqlite3_init_sqllog() {
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-  LOG_INFO("Initializing sqlite3 version " TOSTRING(SQLITE_RESOURCE_VERSION));
+  LOG_INFO("Initializing sqlite3 version ");
+  // LOG_INFO("Initializing sqlite3 version " TOSTRING(SQLITE_RESOURCE_VERSION));
 #undef STRINGIFY
 #undef TOSTRING
 }

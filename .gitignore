@@ -7,7 +7,7 @@ compile_commands.json
 *.idx
 
 # vscode
-.vscode/*
+.vscode 
 .modules
 
 # intellij

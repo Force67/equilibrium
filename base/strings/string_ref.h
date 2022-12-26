@@ -100,10 +100,16 @@ class BasicStringRef {
     return data_;
   }
 
-  inline const TChar* data() const { return data_; }
+  inline const TChar* data() const {
+    return data_;
+  }
 
-  inline const TChar* begin() const { return data_; }
-  inline const TChar* end() const { return &data_[length_]; }
+  inline const TChar* begin() const {
+    return data_;
+  }
+  inline const TChar* end() const {
+    return &data_[length_];
+  }
 
   constexpr static mem_size max_size_bytes() {
     return mem_size(base::MinMax<u32>::max());
@@ -113,9 +119,13 @@ class BasicStringRef {
     return mem_size(base::MinMax<u32>::max()) / sizeof(TChar);
   }
 
-  mem_size size() const { return static_cast<mem_size>(length_); }
+  mem_size size() const {
+    return static_cast<mem_size>(length_);
+  }
   // returns the length in characters
-  mem_size length() const { return static_cast<mem_size>(length_); }
+  mem_size length() const {
+    return static_cast<mem_size>(length_);
+  }
 
   constexpr mem_size find(const TChar* s, mem_size pos, mem_size count) const {
     return base::StringSearch(data_, length(), s, pos, count);
@@ -128,7 +138,9 @@ class BasicStringRef {
   }
 #endif
 
-  const TChar operator[](mem_size size) const { return data_[size]; }
+  const TChar operator[](mem_size size) const {
+    return data_[size];
+  }
 
  private:
   const TChar* data_;
@@ -151,19 +163,19 @@ using StringRefU32 = BasicStringRef<char32_t>;
 inline base::StringRef operator""_s(const char* s) {
   return base::StringRef(s);
 }
-inline base::StringRef operator""_s(const char* s, mem_size length) {
+inline base::StringRef operator""_s(const char* s, size_t length) {
   return base::StringRef(s, length);
 }
-inline base::StringRefW operator""_s(const wchar_t* s, mem_size length) {
+inline base::StringRefW operator""_s(const wchar_t* s, size_t length) {
   return base::StringRefW(s, length);
 }
-inline base::StringRefU8 operator""_s(const char8_t* s, mem_size length) {
+inline base::StringRefU8 operator""_s(const char8_t* s, size_t length) {
   return base::StringRefU8(s, length);
 }
-inline base::StringRefU16 operator""_s(const char16_t* s, mem_size length) {
+inline base::StringRefU16 operator""_s(const char16_t* s, size_t length) {
   return base::StringRefU16(s, length);
 }
-inline base::StringRefU32 operator""_s(const char32_t* s, mem_size length) {
+inline base::StringRefU32 operator""_s(const char32_t* s, size_t length) {
   return base::StringRefU32(s, length);
 }
 }  // namespace base

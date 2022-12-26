@@ -13,7 +13,6 @@ component2("eq_database")
 
 unittest2("eq_database:sqlite_test")
     files({
-        "sqlite/test/run_all_tests.cc",
         "sqlite/test/sqlite_test_suite.cc",
         "sqlite/test/sqlite_test_suite.h",
         -- for now, just to get tests working...

@@ -1,7 +1,7 @@
 # Prerequisites
 Ensure that clang format is installed on your machine and available via the global path.
 
-A build machine with >8GB RAM is *strongly* recommended.
+A build machine with >8GB RAM is required.
 
 # First steps
 
