@@ -92,7 +92,7 @@ class BasicStringRef {
   // std::string_view
   // Prefer using this over .data()
   inline const TChar* c_str() const {
-    DCHECK(tags_ & StringRefFlags::kIsNullTerm,
+    BUGCHECK(tags_ & StringRefFlags::kIsNullTerm,
            "String piece is not null terminated. c_str() is therefore illegal");
 
     // TODO: review the impact of this..
@@ -139,6 +139,7 @@ class BasicStringRef {
 #endif
 
   const TChar operator[](mem_size size) const {
+    BUGCHECK(size < length_, "Index out of bounds");
     return data_[size];
   }
 
