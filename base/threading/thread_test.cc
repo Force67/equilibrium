@@ -7,6 +7,7 @@
 #include "thread.h"
 
 namespace {
+#if 0
 static std::unique_ptr<base::Thread> g_thread;
 
 class ThreadTest final : base::Thread {
@@ -19,4 +20,5 @@ TEST(Thread, SpawnDestroy) {
   base::Thread thread("test");
   ASSERT_TRUE(thread.good());
 }
+#endif
 }  // namespace
