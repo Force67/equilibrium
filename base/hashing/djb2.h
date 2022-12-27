@@ -5,21 +5,25 @@
 #include <base/arch.h>
 
 namespace base {
-namespace hashing {
-// Improved DJB2 64 bit hash implementation
-using hash_type = u64;
-
-constexpr hash_type djb2(const unsigned char* str,
-                         hash_type hash = 5381,
-                         hash_type hash2 = 52711) {
+// This implements "string-hash-64", also known as a 64 bit version of djb2
+// https://github.com/mstdokumaci/string-hash-64
+constexpr u64 Djb2Hash64(const char* str, u64 hash = 5381, u64 hash2 = 52711) {
   if (!str || !*str)
     return 0;
-  while (const int c = *str++) {
+  while (const i32 c = *str++) {
     hash = ((hash << 5) + hash) + c;
     hash2 = ((hash << 5) + hash) + c;
   }
-
   return hash * 4096 + hash2;
 }
-}  // namespace hashing
+
+// regular old djb2
+constexpr u32 Djb2Hash32(const char* str, u32 hash = 5381) {
+  if (!str || !*str)
+    return 0;
+  while (const i32 c = *str++) {
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+  }
+  return hash;
+}
 }  // namespace base

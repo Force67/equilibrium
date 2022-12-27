@@ -5,14 +5,27 @@
 #include <base/arch.h>
 
 namespace base {
-namespace hashing {
-// FNV-1a 64 bit hash
-using hash_type = u64;
-constexpr hash_type fnv_basis = 14695981039346656037ull;
-constexpr hash_type fnv_prime = 1099511628211ull;
 
-constexpr hash_type FNV1a64(const unsigned char* str, hash_type hash = fnv_basis) {
-  return *str ? FNV1a64(str + 1, (hash ^ hash_type(*str)) * fnv_prime) : hash;
+template <typename T>
+static constexpr T FNV1a(const char* str, T hash, T prime) {
+  if (!str || !*str)
+    return 0;
+  while (const int c = *str++) {
+    hash ^= c;
+    hash *= prime;
+  }
+  return hash;
 }
-}  // namespace hashing
+
+static constexpr u32 FNV1a32(const char* str,
+                             u32 hash = 0x811c9dc5,
+                             u32 prime = 0x1000193) {
+  return FNV1a<u32>(str, hash, prime);
+}
+
+static constexpr u64 FNV1a64(const char* str,
+                             u64 hash = 0xcbf29ce484222325,
+                             u64 prime = 0x100000001b3) {
+  return FNV1a<u64>(str, hash, prime);
+}
 }  // namespace base

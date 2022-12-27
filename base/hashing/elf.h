@@ -5,13 +5,10 @@
 #include <base/arch.h>
 
 namespace base {
-namespace hashing {
 // 64 bit hash implementation of PJW, used in Linux
-using hash_type = u64;
-
-constexpr hash_type Elf(const unsigned char* str) {
-  unsigned long hash = 0, high;
-  while (const unsigned char c = *str++) {
+constexpr u32 ElfHash(const char* str) {
+  u32 hash = 0, high;
+  while (const char c = *str++) {
     hash = (hash << 4) + c;
     if ((high = hash & 0xF000000000000000))
       hash ^= high >> 24;
@@ -19,5 +16,4 @@ constexpr hash_type Elf(const unsigned char* str) {
   }
   return hash;
 }
-}  // namespace hashing
 }  // namespace base
