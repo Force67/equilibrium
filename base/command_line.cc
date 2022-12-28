@@ -35,6 +35,14 @@ void CommandLine::ParseFromString(const base::StringRefU8 command_line) {
   InitializeBuffer(command_line);
 }
 
+bool CommandLine::HasSwitch(const base::StringRefU8 switch_name) {
+  for (auto& piece : pieces_) {
+    if (piece == switch_name.c_str())
+      return true;
+  }
+  return false;
+}
+
 base::StringRefU8 CommandLine::operator[](const mem_size index) {
   auto cap = pieces_.size();
   BUGCHECK(index < cap, "CommandLine::operator[]: Access out of bounds");

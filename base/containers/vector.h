@@ -182,7 +182,7 @@ class Vector {
 
     GrowCapacity(current_cap, new_cap);
     // insert at end
-    ::new (static_cast<void*>(end_++)) T(args...);
+    ::new (static_cast<void*>(end_++)) T(base::forward<TArgs>(args)...);
   }
 
   void InsertValueAtEnd(mem_size n, const T& value) {

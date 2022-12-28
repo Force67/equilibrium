@@ -39,6 +39,10 @@ class CommandLine {
   // get an argument at a given index, note that index 0 is the executable path
   base::StringRefU8 operator[](const mem_size index);
 
+  // tries to match a switch in the command line, returns true if found.
+  bool HasSwitch(const base::StringRefU8 switch_name);
+  //bool HasSwitch(const char* switch_name);
+
   const mem_size size() { return pieces_.size(); }
 
  private:

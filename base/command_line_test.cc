@@ -16,6 +16,11 @@ TEST(CommandLine, ParseFromString) {
   EXPECT_EQ(line[2].length(), 2);
   EXPECT_EQ(line[3].length(), 2);
   EXPECT_EQ(line[4].length(), 2);
+
+  EXPECT_TRUE(line.HasSwitch(u8"-a"));
+  EXPECT_TRUE(line.HasSwitch(u8"-b"));
+  EXPECT_TRUE(line.HasSwitch(u8"-c"));
+  EXPECT_TRUE(line.HasSwitch(u8"-d"));
 }
 
 TEST(CommandLine, ParseFromStringUTF8OnlyChars) {
