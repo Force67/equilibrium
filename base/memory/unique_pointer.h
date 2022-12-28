@@ -18,7 +18,8 @@ namespace base {
 // - no get, so you cannot leak the object.
 template <typename T, class TDeleter = DefaultDeleter<T>>
 // disable using void, required to allow array specialization
-requires(!base::ISSame<T, void>) class UniquePointer {
+  requires(!base::ISSame<T, void>)
+class UniquePointer {
  public:
   using TType = base::remove_extent_t<T>;
 
@@ -39,8 +40,8 @@ requires(!base::ISSame<T, void>) class UniquePointer {
   // move constructor from base type
   // e.g when assigning UniquePtr<Base> b = move(UniquePtr<Super>....
   template <typename U>
-  requires(std::is_base_of_v<T, U>) constexpr UniquePointer(
-      UniquePointer<U>&& rhs) noexcept
+    requires(std::is_base_of_v<T, U>)
+  constexpr UniquePointer(UniquePointer<U>&& rhs) noexcept
       : pointer_(rhs.Get_UseOnlyIfYouKnowWhatYouareDoing()) {
     rhs.ResetUnchecked_UseOnlyIfYouKnowWhatYouareDoing();
   }
@@ -51,9 +52,11 @@ requires(!base::ISSame<T, void>) class UniquePointer {
   }
   // must be used for construction
   template <typename TT, typename... TArgs>
-  friend UniquePointer<TT> MakeUnique(TArgs&&... args) requires(!base::IsArray<TT>);
+  friend UniquePointer<TT> MakeUnique(TArgs&&... args)
+    requires(!base::IsArray<TT>);
   template <typename TT>
-  friend UniquePointer<TT> MakeUnique(mem_size count) requires(base::IsArray<TT>);
+  friend UniquePointer<TT> MakeUnique(mem_size count)
+    requires(base::IsArray<TT>);
 
   // you have to request move
   BASE_NOCOPY(UniquePointer)
@@ -88,6 +91,8 @@ requires(!base::ISSame<T, void>) class UniquePointer {
     // restore former type info for array types so it decays to delete[] instead of
     // delete
     TDeleter::Delete(reinterpret_cast<T*>(pointer_));
+    // make sure the pointer was invalidated
+    pointer_ = nullptr;
   }
 
   TType* operator->() const noexcept {
@@ -96,7 +101,9 @@ requires(!base::ISSame<T, void>) class UniquePointer {
   }
 
   // array access
-  TType& operator[](mem_size index) requires(base::IsArray<T>) {
+  TType& operator[](mem_size index)
+    requires(base::IsArray<T>)
+  {
     // DCHECK(index < (sizeof(T) / sizeof(pointer_[0])));
     return pointer_[index];
   }
@@ -114,14 +121,16 @@ requires(!base::ISSame<T, void>) class UniquePointer {
 static_assert(sizeof(UniquePointer<u8>) == sizeof(void*), "UniquePtr is misaligned");
 
 template <typename T, typename... TArgs>
-[[nodiscard]] UniquePointer<T> MakeUnique(TArgs&&... args) requires(
-    !base::IsArray<T>) {
+[[nodiscard]] UniquePointer<T> MakeUnique(TArgs&&... args)
+  requires(!base::IsArray<T>)
+{
   return UniquePointer<T>(new T(base::forward<TArgs>(args)...));
 }
 
 template <typename T>
-[[nodiscard]] UniquePointer<T> MakeUnique(const mem_size count) requires(
-    base::IsArray<T>) {
+[[nodiscard]] UniquePointer<T> MakeUnique(const mem_size count)
+  requires(base::IsArray<T>)
+{
   using TElem = base::remove_extent_t<T>;
   return UniquePointer<T>(new TElem[count]);
 }

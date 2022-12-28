@@ -58,7 +58,10 @@ project("base_unittests")
       "gtest-memleak-detector",
       "stackwalker"
     })
-    defines("BASE_TESTING_GTEST_MEMLEAK_DETECTION")
+    defines({
+      "_CRTDBG_MAP_ALLOC",
+      "BASE_TESTING_GTEST_MEMLEAK_DETECTION"
+    })
   filter{}
   
   add_generic_test_main()

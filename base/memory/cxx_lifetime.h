@@ -6,8 +6,8 @@
 
 namespace base {
 template <class T>
-inline constexpr bool IsTrivial = __is_trivially_constructible(T) &&
-                                  __is_trivially_copyable(T);
+inline constexpr bool IsTrivial =
+    __is_trivially_constructible(T) && __is_trivially_copyable(T);
 
 template <typename>
 inline constexpr bool IsArray =
@@ -53,12 +53,28 @@ struct conditional<false, _Ty1, _Ty2> {
 template <bool _Test, class _Ty1, class _Ty2>
 using conditional_t = typename conditional<_Test, _Ty1, _Ty2>::type;
 
-template <typename T>
-inline void DestructRange(T first, T last) {
-  if constexpr (!IsTrivial<T>) {
-    for (; first != last; ++first)
-      (*first).~T();
+//std::destroy_at(&str);
+
+	template <typename T>
+inline void destruct(T* p) {
+  // https://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k(C4100)&rd=true
+  // "C4100 can also be issued when code calls a destructor on a otherwise
+  // unreferenced parameter
+  //  of primitive type. This is a limitation of the Visual C++ compiler."
+  //EA_UNUSED(p);
+  p->~T();
+}
+
+
+template <typename TType>
+inline void DestructRange(TType first, TType last) {
+  // if constexpr (!IsTrivial<T>) {
+  for (; first != last; ++first) {
+    destruct(first);
+    // first->~Type();
+    //(*first).~TT();
   }
+  //  }
 }
 
 }  // namespace base

@@ -2,33 +2,53 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/arch.h>
 #include <base/memory/unique_pointer.h>
 #include <base/strings/string_ref.h>
 #include <base/memory/move.h>
+#include <base/containers/vector.h>
+
+#include <vector>
 
 namespace base {
-
-// https://source.chromium.org/chromium/chromium/src/+/main:base/command_line.h
+// be careful, this class is designed to live throughout the entire runtime of the
+// application
 class CommandLine {
  public:
-#if defined(OS_WIN)
+  // tries to fetch cmdl itself.
   CommandLine();
-#endif
-  ~CommandLine() {}
 
-#if defined(OS_WIN)
-  void InitFromWideCommandline(const wchar_t* command_line);
-#endif
+  // resets the current - per process - commandline aswell, after this calls to
+  // ForCurrentProcess will DCHECK
+  ~CommandLine();
 
+  // Get the singleton CommandLine representing the current process's
+  // command line. Note: returned value is mutable, but not thread safe;
+  // only mutate if you know what you're doing!
+  static CommandLine* ForCurrentProcess();
+
+  // Gets the command line string, as provided by the underlying operating system.
+  base::StringU8 GetNativeUTF8CommandlineString();
+
+  // Initialze from a wide windows command line, such as the one returned by calling
+  // ::GetCommandlineW() or the one passed to WinMain.
+  void ParseFromString(const base::StringRefU8 command_line);
+
+  // reset internal buffers and counters.
   void Clear();
 
+  // get an argument at a given index, note that index 0 is the executable path
   base::StringRefU8 operator[](const mem_size index);
 
+  const mem_size size() { return pieces_.size(); }
+
  private:
-  base::UniquePointer<char8_t[]> buffer_;
-  base::UniquePointer<u16[]> indices_;
-  mem_size arg_count_{0};
+  void InitializeBuffer(const base::StringRefU8);
+
+ private:
+  base::Vector<base::StringU8> pieces_;
+  //std::vector<base::StringU8> pieces_;
+
+  static CommandLine* current_commandline_;
 
   BASE_NOCOPYMOVE(CommandLine);
 };

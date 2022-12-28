@@ -132,6 +132,21 @@ class Vector {
     return true;
   }
 
+  void clear() noexcept {
+    base::DestructRange(data_, end_);
+    end_ = data_;
+  }
+
+  void reset() {
+    // clear all without resetting pointers
+    base::DestructRange(data_, end_);
+    Vector::Free(data_, capacity());
+
+    data_ = nullptr;
+    end_ = nullptr;
+    capacity_ = nullptr;
+  }
+
   [[nodiscard]] const T& back() const {
     DCHECK(!empty());
     return *(end_ - 1);
@@ -214,7 +229,18 @@ class Vector {
     T* new_block = Vector::Allocate(new_cap);
 
     if (data_) {
-      memcpy(new_block, data_, current_cap * sizeof(T));
+      // manually move construct at new place!
+      // https://github.com/electronicarts/EASTL/blob/db160651d4f980c04d260cece06edee00c10bb33/include/EASTL/memory.h#L702
+      // basically this, it could be moved to its own sub later.
+      {
+        auto* first = data_;
+        auto* last = end_;
+
+        auto* new_spot = new_block;
+        for (; first != last; ++first, ++new_spot) {
+          ::new (reinterpret_cast<void*>(new_spot)) T(base::move(*first));
+        }
+      }
       base::DestructRange(data_, end_);
       Vector::Free(data_, current_cap);
     }

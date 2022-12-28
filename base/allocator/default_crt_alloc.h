@@ -14,7 +14,10 @@ namespace base {
 
 class DefaultCRTRouter {
  public:
-  void* Allocate(mem_size size) { return ::malloc(size); }
+  void* Allocate(mem_size size) { 
+      //if (size == 112)
+      //__debugbreak();
+      return ::malloc(size); }
   void* AllocateAligned(mem_size size, mem_size alignment) {
 // If alignment is not a power of 2 or size is zero, this function invokes the
 // invalid parameter handler, as described in Parameter Validation. If execution

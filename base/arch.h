@@ -18,6 +18,7 @@ using i64 = long long;
 using byte = u8;
 
 using mem_size = u64;
+using size = u64;
 using pointer_size = u64;
 using pointer_diff = i64;
 

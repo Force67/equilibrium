@@ -56,6 +56,18 @@ TEST(VectorTest, AddComplex) {
   };
 
   {
+    std::vector<Complex> vec;
+    for (i32 i = 0; i < 10; i++) {
+      vec.push_back(Complex(i, destruct_count));
+    }
+    EXPECT_EQ(vec.size(), 10);
+  }
+
+  EXPECT_EQ(destruct_count, 45);
+  
+  destruct_count = 0;
+
+  {
     base::Vector<Complex> vec(10, base::VectorReservePolicy::kForPushback);
     for (i32 i = 0; i < 10; i++) {
       vec.push_back(Complex(i, destruct_count));
@@ -63,7 +75,7 @@ TEST(VectorTest, AddComplex) {
     EXPECT_EQ(vec.size(), 10);
   }
 
-  EXPECT_EQ(destruct_count, 10);
+  EXPECT_EQ(destruct_count, 20);
 }
 
 TEST(VectorTest, EraseItem) {
@@ -172,5 +184,16 @@ TEST(VectorTest, ResizeComplex) {
     EXPECT_EQ(std_vec[i].a, 1337);
     EXPECT_EQ(std_vec[i].b, 1338);
   }
+}
+
+TEST(VectorTest, Clear) {
+  base::Vector<Complex2> vec;
+  for (i32 i = 0; i < 10; i++) {
+    auto complex = Complex2(i, i * 2);
+    vec.push_back(complex);
+  }
+  EXPECT_EQ(vec.size(), 10);
+  vec.clear();
+  EXPECT_EQ(vec.size(), 0);
 }
 }  // namespace
