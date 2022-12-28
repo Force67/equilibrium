@@ -14,7 +14,6 @@ CommandLine::CommandLine() {
 }
 
 CommandLine::~CommandLine() {
-  pieces_.reset();
   current_commandline_ = nullptr;
 }
 

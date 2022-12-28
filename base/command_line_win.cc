@@ -45,7 +45,7 @@ void CommandLine::InitializeBuffer(const base::StringRefU8 command_line) {
         break;
     }
 
-    if (i == (command_line.length() - 1))
+    if (i == (command_line.length() - 1) && !current_arg.empty())
       pieces_.push_back(current_arg);
   }
 }
