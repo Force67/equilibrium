@@ -42,6 +42,16 @@ class Vector {
     end_ = policy == VectorReservePolicy::kForPushback ? data_ : capacity_;
   }
 
+  // move constructor
+  Vector(Vector&& other) {
+    data_ = other.data_;
+    end_ = other.end_;
+    capacity_ = other.capacity_;
+    other.data_ = nullptr;
+    other.end_ = nullptr;
+    other.capacity_ = nullptr;
+  }
+
   ~Vector() {
     // clear all without resetting pointers
     base::DestructRange(data_, end_);
