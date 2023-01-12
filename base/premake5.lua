@@ -32,7 +32,6 @@ local function base_project()
 end
 
 local function base_library()
-  enable_base_crt_bootstrap()
   base_project()
   files({"**.cc", "**.h", "**.in", "**.inl"})
   removefiles({
@@ -43,6 +42,7 @@ end
 project("base")
   kind("StaticLib")
   base_library()
+  enable_base_crt_bootstrap() -- we need a port for shared libraries!
 
 project("base_shared")
   kind("SharedLib")
