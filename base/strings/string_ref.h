@@ -27,7 +27,6 @@ template <typename TChar>
 class BasicStringRef {
  public:
   using value_type = TChar;
-
   static constexpr mem_size npos = kStringNotFoundPos;
 
   // disable default ctor
@@ -42,7 +41,7 @@ class BasicStringRef {
   }
 
   // construct from other
-  BasicStringRef(const BasicStringRef<TChar>& other)
+  constexpr BasicStringRef(const BasicStringRef<TChar>& other)
       : data_(other.data_), length_(other.length_), tags_(other.tags_) {}
 
   // construct from TChar, length
@@ -83,6 +82,16 @@ class BasicStringRef {
 #endif
   }
 
+  // Use this in the rare case where you might have an empty string_ref;
+  static constexpr inline BasicStringRef<TChar> null_ref() {
+    // thanks to constinit we can ensure no ugly c++ guard is generated around this,
+    // so while not pretty, this is OK
+    static constinit TChar null_array[] = {0};
+    static constinit BasicStringRef<TChar> null_ref{null_array, 0,
+                                                    false /*disallow .c_str()*/};
+    return null_ref;
+  }
+
   inline bool IsNullTerminated() const {
     return tags_ & StringRefFlags::kIsNullTerm;
   }
@@ -93,23 +102,17 @@ class BasicStringRef {
   // Prefer using this over .data()
   inline const TChar* c_str() const {
     BUGCHECK(tags_ & StringRefFlags::kIsNullTerm,
-           "String piece is not null terminated. c_str() is therefore illegal");
+             "String piece is not null terminated. c_str() is therefore illegal");
 
     // TODO: review the impact of this..
     // tags_ |= StringRefFlags::kInvalidateDeadRef;
     return data_;
   }
 
-  inline const TChar* data() const {
-    return data_;
-  }
+  inline const TChar* data() const { return data_; }
 
-  inline const TChar* begin() const {
-    return data_;
-  }
-  inline const TChar* end() const {
-    return &data_[length_];
-  }
+  inline const TChar* begin() const { return data_; }
+  inline const TChar* end() const { return &data_[length_]; }
 
   constexpr static mem_size max_size_bytes() {
     return mem_size(base::MinMax<u32>::max());
@@ -119,13 +122,9 @@ class BasicStringRef {
     return mem_size(base::MinMax<u32>::max()) / sizeof(TChar);
   }
 
-  mem_size size() const {
-    return static_cast<mem_size>(length_);
-  }
+  mem_size size() const { return static_cast<mem_size>(length_); }
   // returns the length in characters
-  mem_size length() const {
-    return static_cast<mem_size>(length_);
-  }
+  mem_size length() const { return static_cast<mem_size>(length_); }
 
   constexpr mem_size find(const TChar* s, mem_size pos, mem_size count) const {
     return base::StringSearch(data_, length(), s, pos, count);

@@ -3,7 +3,7 @@
 
 #include <base/filesystem/path.h>
 #include <base/text/code_convert.h>
-#include <base/text/code_conv_validate.h>
+#include <base/text/code_point_validation.h>
 
 namespace base {
 
