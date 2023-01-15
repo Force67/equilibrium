@@ -30,14 +30,14 @@ jobs:
           }
           msbuild .\out\vs2022\Equilibrium.sln /t:'base\base:Rebuild;base\base_memory_unittests:Rebuild;base\base_unittests:Rebuild' /p:Configuration=${{ matrix.config }} /p:Platform=x64 -m
       - name: Test
-        run: Get-ChildItem -Path .\out\vs2022\bin\Debug\equilibrium\ -Filter *_x86_64_d.exe | ForEach-Object $_ { $p = @(); $p += '--gtest_color=no '; $p += '--gtest_output=xml:.\tests\' + $_.Name.Replace('_x86_64_d.exe','') + '.xml'; &$_.PSPath $p; }
+        run: Get-ChildItem -Path (Resolve-Path .\out\vs*\bin\*\equilibrium\) -Filter *.exe | ForEach-Object $_ { $p = @(); $p += '--gtest_color=no '; $p += '--gtest_output=xml:.\tests\' + $_.Name.Replace('.exe','') + '.xml'; &$_.PSPath $p; }
       - name: Convert Gtest to JUnit
         if: success() || failure()
         shell: powershell
         run: |
           $xsl = New-Object System.Xml.Xsl.XslCompiledTransform
           $xsl.Load("${{github.workspace}}\.github\gtest_to_junit.xsl")
-          Get-ChildItem -Path .\tests\ -Filter *.xml | Where-Object { !$_.Name.StartsWith('converted') } | ForEach-Object $_ { $xsl.Transform($_.FullName,($_.Directory.FullName  + '\convert-' + $_.Name)); }
+          Get-ChildItem -Path .\tests\ -Filter *.xml | Where-Object { !$_.Name.StartsWith('convert') } | ForEach-Object $_ { $xsl.Transform($_.FullName,($_.Directory.FullName  + '\convert-' + $_.Name)); }
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         if: success() || failure()
