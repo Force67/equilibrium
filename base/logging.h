@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#define FMT_HEADER_ONLY
 #include <fmt/format.h>
 #include <fmt/printf.h>
 
