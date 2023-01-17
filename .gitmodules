@@ -28,3 +28,9 @@
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy/
+[submodule "external/musl"]
+	path = external/musl
+	url = https://github.com/bminor/musl
+[submodule "external/mimalloc"]
+	path = external/mimalloc
+	url = https://github.com/microsoft/mimalloc
