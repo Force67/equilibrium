@@ -3,9 +3,9 @@
     "commit-tags": [
         {
             "wip": null,
-            "test": null, 
+            "test": null,
             "chore": null,
-            "fix": "patch", 
+            "fix": "patch",
             "feat": "minor",
             "perf": "minor",
             "docs": "docs",
