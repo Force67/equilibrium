@@ -42,6 +42,8 @@ end
 project("base")
   kind("StaticLib")
   base_library()
+  sdktargetdir("base_sdk")
+  sdkfiles({"**.h", "**.in"})
   enable_base_crt_bootstrap() -- we need a port for shared libraries!
 
 project("base_shared")
