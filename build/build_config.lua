@@ -8,6 +8,7 @@ filter("system:windows")
   defines({
     "OS_WIN",
     "NOMINMAX"})
+  buildoptions("/utf-8") -- treat everything as utf-8
 filter("system:linux")
   defines({
     "OS_LINUX",
@@ -83,7 +84,7 @@ filter{}
 
 filter("language:C or C++")
   --vectorextensions("SSE4.2")
-  vectorextensions("AVX2")
+  vectorextensions("AVX2") -- 10- 15% faster than SSE4.2, even 10 year old CPUs support it
   staticruntime("on")
   -- disable exceptions
   exceptionhandling("Off")
