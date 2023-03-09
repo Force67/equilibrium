@@ -2,15 +2,17 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "command_line.h"
+#include "numeric_limits.h"
 
 namespace base {
 CommandLine* CommandLine::current_commandline_ = nullptr;
 
 CommandLine::CommandLine() {
   current_commandline_ = this;
+#if defined(OS_WIN)
   auto string = GetNativeUTF8CommandlineString();
-  
   ParseFromString(string);
+#endif
 }
 
 CommandLine::~CommandLine() {
@@ -31,7 +33,7 @@ void CommandLine::Clear() {
 void CommandLine::ParseFromString(const base::StringRefU8 command_line) {
   if (pieces_.size())
     pieces_.reset();
-  ///pieces_.clear();
+  /// pieces_.clear();
   InitializeBuffer(command_line);
 }
 
@@ -46,7 +48,8 @@ bool CommandLine::HasSwitch(const base::StringRefU8 switch_name) {
 base::StringRefU8 CommandLine::operator[](const mem_size index) {
   auto cap = pieces_.size();
   BUGCHECK(index < cap, "CommandLine::operator[]: Access out of bounds");
-  BUGCHECK(index < USHRT_MAX, "CommandLine::operator[]: Index out of bounds");
+  BUGCHECK(index < base::MinMax<u16>::max(),
+           "CommandLine::operator[]: Index out of bounds");
   const auto& piece = pieces_[index];
   return base::StringRefU8(piece.c_str(), piece.length());
 }

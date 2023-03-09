@@ -4,14 +4,13 @@
 #include <link.h>   // for linkmap
 #include <dlfcn.h>  // for dlopen
 
-#include <base/check.h>
-#include <base/filesystem/path.h>
-#include <base/dynamic_library.h>
+#include "check.h"
+#include "filesystem/path.h"
+#include "dynamic_library.h"
 
-#include <base/text/code_conv_validate.h>
-#include <base/strings/char_algorithms.h>
+#include "text/code_point_validation.h"
+#include "strings/char_algorithms.h"
 #include "strings/string_ref.h"
-
 namespace base {
 bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
   DCHECK(!handle_, "Attempted to load an already existing library");

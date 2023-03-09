@@ -11,8 +11,6 @@ namespace {
 // getcommandlinew symbol as exported by kernel32.dll
 extern "C" {
 __declspec(dllimport) const wchar_t* __stdcall GetCommandLineW();
-__declspec(dllimport) const wchar_t* __stdcall CommandLineToArgvW(const wchar_t*,
-                                                                  int*);
 }
 }  // namespace
 

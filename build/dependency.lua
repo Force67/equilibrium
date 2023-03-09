@@ -112,30 +112,5 @@ premake.override(premake.project, "bake", function(oldfn, prj)
         end
       end
     end
-
-    -- TODO: this doesnt really belong in a 'bake' step....
-    if cfg.sdktargetdir then
-      -- copy sdk files to target dir
-      for i = 1, #cfg.sdkfiles do
-        local source = cfg.sdkfiles[i]
-        local dest = cfg.targetdir .. "/" .. cfg.sdktargetdir .. "/" .. path.getrelative(prj.basedir, source)
-        local targetdir = path.getdirectory(dest)
-        ok, err = os.mkdir(targetdir) -- https://github.com/premake/premake-core/blob/b084bea561d18f1a84b488430bf7861214c3923a/src/base/os.lua#L450
-
-        if not ok then
-          error("Failed to create directory " .. targetdir .. " " .. err)
-        end
-
-        -- delete files from former runs
-        if os.isfile(dest) then
-          os.remove(dest)
-        end
-
-        ok, err = os.copyfile(source, dest)
-        if not ok then
-          error("Failed to copy " .. source .. " to " .. destination .. " " .. err)
-        end
-      end
-    end
   end
 end)

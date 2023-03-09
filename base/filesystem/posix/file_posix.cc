@@ -11,15 +11,14 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <base/check.h>
+#include "check.h"
+#include "filesystem/file.h"
+#include "filesystem/posix/eintr_wrapper.h"
 
-#include <base/filesystem/file.h>
-#include <base/filesystem/posix/eintr_wrapper.h>
+#include "text/code_convert.h"
+#include "text/code_point_validation.h"
 
-#include <base/text/code_convert.h>
-#include <base/text/code_conv_validate.h>
-
-#include <base/threading/scoped_blocking_call.h>
+#include "threading/scoped_blocking_call.h"
 #include "build/build_config.h"
 
 namespace base {
