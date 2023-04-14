@@ -5,33 +5,57 @@
 #include <base/strings/string_ref.h>
 
 namespace {
-TEST(StringRef, AssignfromString) {
-  base::String str = "Hello World";
+    using namespace base;
 
-  base::StringRef ref(str);
-  EXPECT_STREQ(str.c_str(), ref.c_str());
+TEST(BasicStringRefTest, Construction) {
+  std::string test_str = "Hello, world!";
+  StringRef str_ref(test_str);
+
+  EXPECT_EQ(str_ref.length(), test_str.length());
+  EXPECT_EQ(str_ref.data(), test_str.data());
+  EXPECT_TRUE(str_ref.IsNullTerminated());
 }
 
-TEST(StringRef, AssignFromCStr) {
-  constexpr char kTestStr[] = "Hello World";
+TEST(BasicStringRefTest, NullTermination) {
+  const char test_data[] = {'H', 'e', 'l', 'l', 'o'};
+  StringRef str_ref(test_data, sizeof(test_data));
 
-  base::StringRef ref(kTestStr);
-  EXPECT_EQ(ref.length(), 11);
-  EXPECT_TRUE(ref.IsNullTerminated());
+  EXPECT_EQ(str_ref.length(), sizeof(test_data));
+  EXPECT_FALSE(str_ref.IsNullTerminated());
 }
 
-TEST(StringRef, AssignSubstring) {
-  constexpr char kTestStr[] = "HelloWorld";
+TEST(BasicStringRefTest, OperatorBrackets) {
+  std::string test_str = "Hello, world!";
+  StringRef str_ref(test_str);
 
-  base::StringRef ref(kTestStr, 4);
-  EXPECT_EQ(ref.length(), 4);
-  EXPECT_FALSE(ref.IsNullTerminated());
+  for (size_t i = 0; i < test_str.length(); ++i) {
+    EXPECT_EQ(str_ref[i], test_str[i]);
+  }
 }
 
-TEST(StringRef, At) {
-  constexpr char kTestStr[] = "HelloWorld";
+TEST(BasicStringRefTest, ComparisonOperators) {
+  StringRef str_ref1("Hello, world!");
+  StringRef str_ref2("Hello, world!");
+  StringRef str_ref3("Goodbye, world!");
 
-  base::StringRef ref(kTestStr);
-  EXPECT_EQ(ref[2], 'l');
+  EXPECT_TRUE(str_ref1 == str_ref2);
+  EXPECT_FALSE(str_ref1 != str_ref2);
+  EXPECT_FALSE(str_ref1 == str_ref3);
+  EXPECT_TRUE(str_ref1 != str_ref3);
+
+  EXPECT_TRUE(str_ref1 <= str_ref2);
+  EXPECT_TRUE(str_ref1 >= str_ref2);
+
+  EXPECT_TRUE(str_ref1 < str_ref3);
+  EXPECT_TRUE(str_ref1 <= str_ref3);
+  EXPECT_TRUE(str_ref3 > str_ref1);
+  EXPECT_TRUE(str_ref3 >= str_ref1);
+}
+
+TEST(BasicStringRefTest, Find) {
+  StringRef str_ref("Hello, world!");
+
+  EXPECT_EQ(str_ref.find("world", 0, 5), 7u);
+  EXPECT_EQ(str_ref.find("not_found", 0, 9), StringRef::npos);
 }
 }  // namespace

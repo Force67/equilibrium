@@ -24,7 +24,6 @@ enum class VectorReservePolicy {
              //   this.
 };
 
-// TODO: shrink_to_fit, resize
 template <typename T, class TAllocator = base::DefaultAllocator>
 class Vector {
  public:
@@ -42,6 +41,17 @@ class Vector {
     end_ = policy == VectorReservePolicy::kForPushback ? data_ : capacity_;
   }
 
+  // from braces {}
+  Vector(std::initializer_list<T> list) {
+    const auto size = list.size();
+    data_ = Vector::Allocate(size);
+    capacity_ = &data_[size];
+    end_ = capacity_;
+    for (auto&& item : list) {
+      ::new (static_cast<void*>(end_++)) T(item);
+    }
+  }
+
   // move constructor
   Vector(Vector&& other) {
     data_ = other.data_;
@@ -56,6 +66,22 @@ class Vector {
     // clear all without resetting pointers
     base::DestructRange(data_, end_);
     Vector::Free(data_, capacity());
+  }
+
+  Vector& operator=(Vector&& other) noexcept {
+    if (this != &other) {
+      base::DestructRange(data_, end_);
+      Free(data_, capacity());
+
+      data_ = other.data_;
+      end_ = other.end_;
+      capacity_ = other.capacity_;
+
+      other.data_ = nullptr;
+      other.end_ = nullptr;
+      other.capacity_ = nullptr;
+    }
+    return *this;
   }
 
   void resize(mem_size new_capacity, const T& value) {
@@ -93,12 +119,25 @@ class Vector {
         // nothing to do, just clear everything out.
         ReleaseAll();
       } else {
-        // TODO: re allocate in place...
-        IMPOSSIBLE;
+        const auto current_size = size();
+        T* new_block = Allocate(current_size);
+
+        auto* src = data_;
+        auto* dest = new_block;
+
+        for (; src != end_; ++src, ++dest) {
+          ::new (reinterpret_cast<void*>(dest)) T(base::move(*src));
+        }
+
+        base::DestructRange(data_, end_);
+        Free(data_, capacity());
+
+        data_ = new_block;
+        end_ = &new_block[current_size];
+        capacity_ = &new_block[current_size];
       }
     }
-
-    return 0;
+    return size();
   }
 
   void push_back(const T& value) {
@@ -156,6 +195,18 @@ class Vector {
     end_ = nullptr;
     capacity_ = nullptr;
   }
+
+  T& front() {
+    DCHECK(!empty(), "Vector is empty.");
+    return data_[0];
+  }
+
+  // Access first element (const)
+  const T& front() const {
+    DCHECK(!empty(), "Vector is empty.");
+    return data_[0];
+  }
+  
 
   [[nodiscard]] const T& back() const {
     DCHECK(!empty());
@@ -262,7 +313,7 @@ class Vector {
 
   void ReleaseAll() {
     if (data_ && end_ && capacity_) {
-      destruct_range(data_, end_);
+      base::DestructRange(data_, end_);
       Vector::Free(data_, capacity());
       data_ = end_ = capacity_ = nullptr;
     }

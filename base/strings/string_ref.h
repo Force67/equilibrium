@@ -82,6 +82,41 @@ class BasicStringRef {
 #endif
   }
 
+   // Comparison operators
+  friend bool operator==(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    if (lhs.length_ != rhs.length_) {
+      return false;
+    }
+    return memcmp(lhs.data_, rhs.data_, lhs.length_ * sizeof(TChar)) == 0;
+  }
+
+  friend bool operator!=(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    return !(lhs == rhs);
+  }
+
+  friend bool operator<(const BasicStringRef<TChar>& lhs,
+                        const BasicStringRef<TChar>& rhs) {
+    return lhs.length_ < rhs.length_;
+  }
+
+  friend bool operator<=(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    return !(rhs < lhs);
+  }
+
+  friend bool operator>(const BasicStringRef<TChar>& lhs,
+                        const BasicStringRef<TChar>& rhs) {
+    return rhs < lhs;
+  }
+
+  friend bool operator>=(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    return !(lhs < rhs);
+  }
+
+
   // Use this in the rare case where you might have an empty string_ref;
   static constexpr inline BasicStringRef<TChar> null_ref() {
     // thanks to constinit we can ensure no ugly c++ guard is generated around this,
