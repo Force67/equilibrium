@@ -324,7 +324,7 @@ class Vector {
     return static_cast<T*>(TAllocator::Allocate(capacity * sizeof(T)));
   }
   void Free(T* block, mem_size n) {
-    TAllocator::Free(static_cast<void*>(block), n * sizeof(T));
+    TAllocator::Free(reinterpret_cast<void*>(block), n * sizeof(T));
   }
 
  private:

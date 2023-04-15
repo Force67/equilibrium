@@ -10,6 +10,8 @@
 #include <base/strings/string_search.h>
 #include <base/strings/char_algorithms.h>
 
+#include <base/hashing/fnv1a.h>
+
 namespace base {
 
 // template <typename T>
@@ -61,7 +63,7 @@ class BasicStringRef {
                                  : StringRefFlags::kNone) {}
 
   // construct from raw string
-  BasicStringRef(const TChar* data)
+  constexpr BasicStringRef(const TChar* data)
       : data_(data),
         length_(static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
     // if our length is greater than 0, it means we have hit the null barrier..., so
@@ -73,7 +75,7 @@ class BasicStringRef {
                 : StringRefFlags::kNone;
   }
 
-  ~BasicStringRef() {
+  constexpr ~BasicStringRef() {
 #if 0
     if (tags_ & StringRefFlags::kInvalidateDeadRef) {
       data_ = nullptr;
@@ -224,3 +226,14 @@ inline base::StringRefU32 operator""_s(const char32_t* s, size_t length) {
   return base::StringRefU32(s, length);
 }
 }  // namespace base
+
+namespace std {
+template <typename TChar>
+struct hash<base::BasicStringRef<TChar>> {
+  std::size_t operator()(const base::BasicStringRef<TChar>& str) const {
+    // Use a hash function to compute the hash value for the string.
+    // Here is an example implementation using the std::hash function:
+    return base::FNV1a32(reinterpret_cast<const char*>(str.data()));
+  }
+};
+}  // namespace std
