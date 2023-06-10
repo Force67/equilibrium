@@ -8,10 +8,11 @@
 #undef CreateWindow
 #endif
 
-#include <core/SkRect.h>
 #include <base/enum_traits.h>
 #include <base/strings/string_ref.h>
 #include <base/memory/unique_pointer.h>
+
+#include <ui/primitives/rect.h>
 
 namespace ui {
 
@@ -37,7 +38,7 @@ class NativeWindow {
   };
 
   virtual bool Init(handle native_parent_handle,
-                    const SkIRect bounds,
+                    const ui::IRect bounds,
                     const CreateFlags flags, uint8_t icon_id = 102) = 0;
 
   virtual void SetDelegate(Delegate*) = 0;
@@ -48,8 +49,8 @@ class NativeWindow {
   const base::StringRefU8 title() const { return title_; }
 
   // may return an empty rect if the getter function fails.
-  virtual const SkIRect bounds() const = 0;
-  SkScalar dpi() const { return dpi_; }
+  virtual const ui::IRect bounds() const = 0;
+  float dpi() const { return dpi_; }
 
   // visibility control
   inline void Show() { SendCommand(Command::kShow); }

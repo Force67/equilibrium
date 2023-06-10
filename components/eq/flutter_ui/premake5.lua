@@ -8,6 +8,7 @@ local function include_ui()
     "eq_gpu" -- gpu component
   })
   includedirs("../../")
+  include_skia()
   -- define our own imgui config file.
   pubdefines({
     "IMGUI_USER_CONFIG=<eq/ui/imgui/imgui_config.h>",

@@ -3,6 +3,7 @@
 // Core type definitions to be portable across architectures.
 #pragma once
 // Warning: This header may _never_ include other files
+// it is equivalent to the type definition for the fusion language.
 namespace arch_types {
 using u8 = unsigned char;
 using u16 = unsigned short;
@@ -13,6 +14,10 @@ using i8 = signed char;
 using i16 = short;
 using i32 = int;
 using i64 = long long;
+// floating point
+using f32 = float;
+using f64 = double;
+
 // use this instead of u8 for data
 // we guarantee that this type is always sizeof(byte) = 1, on any platform
 using byte = u8;
