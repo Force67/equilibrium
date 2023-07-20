@@ -3,8 +3,8 @@
 #pragma once
 
 #include <vector>
-#include <core/SkPoint.h>
 #include <base/math/vec2.h>
+#include <ui/primitives/point.h>
 
 namespace ui {
 
@@ -19,8 +19,8 @@ class Element {
 
   size_t child_count() const { return children_.size(); }
 
-  SkPoint screen_pos;
-  SkPoint bounds;
+  ui::Point<f32> screen_pos;
+  ui::Point<f32> bounds;
 };
 
 class Layout {

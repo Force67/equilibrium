@@ -3,7 +3,6 @@
 #pragma once
 
 #include "layout.h"
-#include <core/SkCanvas.h>
 
 namespace ui {
 // follows the css grid spec:
@@ -28,18 +27,18 @@ class GridLayout final : public Layout, public Element {
     return *this;
   }
 
-  GridLayout& gap(SkScalar gap) {
+  GridLayout& gap(f32 gap) {
     row_gap_ = gap;
     col_gap_ = gap;
     return *this;
   }
 
-  GridLayout& row_gap(SkScalar gap) {
+  GridLayout& row_gap(f32 gap) {
     row_gap_ = gap;
     return *this;
   }
 
-  GridLayout& column_gap(SkScalar gap) {
+  GridLayout& column_gap(f32 gap) {
     col_gap_ = gap;
     return *this;
   }
@@ -52,9 +51,9 @@ class GridLayout final : public Layout, public Element {
  private:
 
  private:
-  std::vector<SkScalar> columns_;
-  std::vector<SkScalar> rows_;
-  SkScalar row_gap_;
-  SkScalar col_gap_;
+  std::vector<f32> columns_;
+  std::vector<f32> rows_;
+  f32 row_gap_;
+  f32 col_gap_;
 };
 }  // namespace ui

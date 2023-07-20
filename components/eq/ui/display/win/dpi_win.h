@@ -6,12 +6,12 @@
 #include <base/win/minwin.h>
 
 namespace ui {
-constexpr float kDefaultWindowsDPI = 96.f;
+constexpr f32 kDefaultWindowsDPI = 96.f;
 
 HMONITOR GetCurrentMonitorHandle(HWND hwnd);
-SkPoint GetMonitorDpi(HMONITOR monitor_handle);
+ui::FPoint GetMonitorDpi(HMONITOR monitor_handle);
 
-inline SkScalar GetDPIFactor(SkScalar dpi) {
+inline ui::FPoint GetDPIFactor(f32 dpi) {
   return dpi / kDefaultWindowsDPI;
 }
 }  // namespace ui

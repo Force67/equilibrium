@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
-              FLATBUFFERS_VERSION_MINOR == 0 &&
-              FLATBUFFERS_VERSION_REVISION == 7,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
+              FLATBUFFERS_VERSION_MINOR == 3 &&
+              FLATBUFFERS_VERSION_REVISION == 3,
              "Non-compatible flatbuffers version included");
 
 namespace entitlement {
@@ -49,12 +49,12 @@ inline const char * const *EnumNamesLicenseType() {
 }
 
 inline const char *EnumNameLicenseType(LicenseType e) {
-  if (flatbuffers::IsOutRange(e, LicenseType_Regular, LicenseType_FakeDebugOnly)) return "";
+  if (::flatbuffers::IsOutRange(e, LicenseType_Regular, LicenseType_FakeDebugOnly)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesLicenseType()[index];
 }
 
-struct Feature FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Feature FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FeatureBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_STRUCT_VERSION = 4,
@@ -68,13 +68,13 @@ struct Feature FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint64_t feature_id() const {
     return GetField<uint64_t>(VT_FEATURE_ID, 0);
   }
-  const flatbuffers::String *license_id() const {
-    return GetPointer<const flatbuffers::String *>(VT_LICENSE_ID);
+  const ::flatbuffers::String *license_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LICENSE_ID);
   }
   uint64_t support_expiry_timestamp() const {
     return GetField<uint64_t>(VT_SUPPORT_EXPIRY_TIMESTAMP, 0);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint16_t>(verifier, VT_STRUCT_VERSION, 2) &&
            VerifyField<uint64_t>(verifier, VT_FEATURE_ID, 8) &&
@@ -87,36 +87,36 @@ struct Feature FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct FeatureBuilder {
   typedef Feature Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_struct_version(uint16_t struct_version) {
     fbb_.AddElement<uint16_t>(Feature::VT_STRUCT_VERSION, struct_version, 1);
   }
   void add_feature_id(uint64_t feature_id) {
     fbb_.AddElement<uint64_t>(Feature::VT_FEATURE_ID, feature_id, 0);
   }
-  void add_license_id(flatbuffers::Offset<flatbuffers::String> license_id) {
+  void add_license_id(::flatbuffers::Offset<::flatbuffers::String> license_id) {
     fbb_.AddOffset(Feature::VT_LICENSE_ID, license_id);
   }
   void add_support_expiry_timestamp(uint64_t support_expiry_timestamp) {
     fbb_.AddElement<uint64_t>(Feature::VT_SUPPORT_EXPIRY_TIMESTAMP, support_expiry_timestamp, 0);
   }
-  explicit FeatureBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FeatureBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<Feature> Finish() {
+  ::flatbuffers::Offset<Feature> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Feature>(end);
+    auto o = ::flatbuffers::Offset<Feature>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Feature> CreateFeature(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<Feature> CreateFeature(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint16_t struct_version = 1,
     uint64_t feature_id = 0,
-    flatbuffers::Offset<flatbuffers::String> license_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> license_id = 0,
     uint64_t support_expiry_timestamp = 0) {
   FeatureBuilder builder_(_fbb);
   builder_.add_support_expiry_timestamp(support_expiry_timestamp);
@@ -126,8 +126,8 @@ inline flatbuffers::Offset<Feature> CreateFeature(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Feature> CreateFeatureDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<Feature> CreateFeatureDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint16_t struct_version = 1,
     uint64_t feature_id = 0,
     const char *license_id = nullptr,
@@ -141,7 +141,7 @@ inline flatbuffers::Offset<Feature> CreateFeatureDirect(
       support_expiry_timestamp);
 }
 
-struct LicenseBlock FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct LicenseBlock FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef LicenseBlockBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_STRUCT_VERSION = 4,
@@ -169,19 +169,19 @@ struct LicenseBlock FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint64_t expiry_date() const {
     return GetField<uint64_t>(VT_EXPIRY_DATE, 0);
   }
-  const flatbuffers::String *license_id() const {
-    return GetPointer<const flatbuffers::String *>(VT_LICENSE_ID);
+  const ::flatbuffers::String *license_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LICENSE_ID);
   }
-  const flatbuffers::String *licensee() const {
-    return GetPointer<const flatbuffers::String *>(VT_LICENSEE);
+  const ::flatbuffers::String *licensee() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LICENSEE);
   }
-  const flatbuffers::String *issuing_authority() const {
-    return GetPointer<const flatbuffers::String *>(VT_ISSUING_AUTHORITY);
+  const ::flatbuffers::String *issuing_authority() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ISSUING_AUTHORITY);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<entitlement::Feature>> *entitlements() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<entitlement::Feature>> *>(VT_ENTITLEMENTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<entitlement::Feature>> *entitlements() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<entitlement::Feature>> *>(VT_ENTITLEMENTS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint16_t>(verifier, VT_STRUCT_VERSION, 2) &&
            VerifyField<uint32_t>(verifier, VT_PROGRAM_VERSION, 4) &&
@@ -203,8 +203,8 @@ struct LicenseBlock FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct LicenseBlockBuilder {
   typedef LicenseBlock Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_struct_version(uint16_t struct_version) {
     fbb_.AddElement<uint16_t>(LicenseBlock::VT_STRUCT_VERSION, struct_version, 1);
   }
@@ -220,40 +220,40 @@ struct LicenseBlockBuilder {
   void add_expiry_date(uint64_t expiry_date) {
     fbb_.AddElement<uint64_t>(LicenseBlock::VT_EXPIRY_DATE, expiry_date, 0);
   }
-  void add_license_id(flatbuffers::Offset<flatbuffers::String> license_id) {
+  void add_license_id(::flatbuffers::Offset<::flatbuffers::String> license_id) {
     fbb_.AddOffset(LicenseBlock::VT_LICENSE_ID, license_id);
   }
-  void add_licensee(flatbuffers::Offset<flatbuffers::String> licensee) {
+  void add_licensee(::flatbuffers::Offset<::flatbuffers::String> licensee) {
     fbb_.AddOffset(LicenseBlock::VT_LICENSEE, licensee);
   }
-  void add_issuing_authority(flatbuffers::Offset<flatbuffers::String> issuing_authority) {
+  void add_issuing_authority(::flatbuffers::Offset<::flatbuffers::String> issuing_authority) {
     fbb_.AddOffset(LicenseBlock::VT_ISSUING_AUTHORITY, issuing_authority);
   }
-  void add_entitlements(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<entitlement::Feature>>> entitlements) {
+  void add_entitlements(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<entitlement::Feature>>> entitlements) {
     fbb_.AddOffset(LicenseBlock::VT_ENTITLEMENTS, entitlements);
   }
-  explicit LicenseBlockBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LicenseBlockBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<LicenseBlock> Finish() {
+  ::flatbuffers::Offset<LicenseBlock> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<LicenseBlock>(end);
+    auto o = ::flatbuffers::Offset<LicenseBlock>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<LicenseBlock> CreateLicenseBlock(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LicenseBlock> CreateLicenseBlock(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint16_t struct_version = 1,
     uint32_t program_version = 0,
     entitlement::LicenseType type = entitlement::LicenseType_Regular,
     uint64_t issue_date = 0,
     uint64_t expiry_date = 0,
-    flatbuffers::Offset<flatbuffers::String> license_id = 0,
-    flatbuffers::Offset<flatbuffers::String> licensee = 0,
-    flatbuffers::Offset<flatbuffers::String> issuing_authority = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<entitlement::Feature>>> entitlements = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> license_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> licensee = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> issuing_authority = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<entitlement::Feature>>> entitlements = 0) {
   LicenseBlockBuilder builder_(_fbb);
   builder_.add_expiry_date(expiry_date);
   builder_.add_issue_date(issue_date);
@@ -267,8 +267,8 @@ inline flatbuffers::Offset<LicenseBlock> CreateLicenseBlock(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<LicenseBlock> CreateLicenseBlockDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LicenseBlock> CreateLicenseBlockDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint16_t struct_version = 1,
     uint32_t program_version = 0,
     entitlement::LicenseType type = entitlement::LicenseType_Regular,
@@ -277,11 +277,11 @@ inline flatbuffers::Offset<LicenseBlock> CreateLicenseBlockDirect(
     const char *license_id = nullptr,
     const char *licensee = nullptr,
     const char *issuing_authority = nullptr,
-    const std::vector<flatbuffers::Offset<entitlement::Feature>> *entitlements = nullptr) {
+    const std::vector<::flatbuffers::Offset<entitlement::Feature>> *entitlements = nullptr) {
   auto license_id__ = license_id ? _fbb.CreateString(license_id) : 0;
   auto licensee__ = licensee ? _fbb.CreateString(licensee) : 0;
   auto issuing_authority__ = issuing_authority ? _fbb.CreateString(issuing_authority) : 0;
-  auto entitlements__ = entitlements ? _fbb.CreateVector<flatbuffers::Offset<entitlement::Feature>>(*entitlements) : 0;
+  auto entitlements__ = entitlements ? _fbb.CreateVector<::flatbuffers::Offset<entitlement::Feature>>(*entitlements) : 0;
   return entitlement::CreateLicenseBlock(
       _fbb,
       struct_version,

@@ -80,7 +80,7 @@ class NativeWindow {
 
  protected:
   base::StringU8 title_;
-  SkScalar dpi_{};
+  f32 dpi_{};
 };
 
 BASE_IMPL_ENUM_BIT_TRAITS(NativeWindow::CreateFlags, u32)
