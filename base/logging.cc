@@ -44,7 +44,7 @@ namespace detail {
 void WriteLogMessage(LogLevel ll, const char* text, const fmt::format_args& args) {
   // optimization to get rid of the std::string construction
   fmt::basic_memory_buffer<char> buffer;
-  fmt::detail::vformat_to(buffer, fmt::v9::string_view(text), args);
+  fmt::detail::vformat_to(buffer, fmt::v10::string_view(text), args);
   buffer.push_back(0);  // will not allocate
   log_data.callback(log_data.user_pointer, ll, buffer.data());
 }
@@ -53,7 +53,7 @@ void WriteLogMessagef(LogLevel ll,
                       const char* text,
                       const fmt::basic_format_args<fmt::printf_context>& args) {
   fmt::basic_memory_buffer<char> buffer;
-  fmt::detail::vprintf(buffer, fmt::v9::string_view(text), args);
+  fmt::detail::vprintf(buffer, fmt::v10::string_view(text), args);
   buffer.push_back(0);  // will not allocate
 
   log_data.callback(log_data.user_pointer, ll, buffer.data());

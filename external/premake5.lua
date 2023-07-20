@@ -7,8 +7,8 @@ project("tracysdk")
   filter("system:windows")
     pubdefines("TRACY_HAS_CALLSTACK")
   filter{}
-  pubincludedirs("./tracy")
-  files("tracy/TracyClient.cpp")
+  pubincludedirs("./tracy/public")
+  files("tracy/public/TracyClient.cpp")
   -- v 8.2.1.+
   --pubincludedirs("./tracy/public")
   --files({
