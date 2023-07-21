@@ -43,6 +43,8 @@ class CommandLine {
   bool HasSwitch(const base::StringRefU8 switch_name);
   //bool HasSwitch(const char* switch_name);
 
+  size FindPositionalArgumentsIndex();
+
   const mem_size size() { return pieces_.size(); }
 
  private:

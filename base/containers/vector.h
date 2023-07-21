@@ -231,6 +231,25 @@ class Vector {
     return *(Vector::at(pos));
   }
 
+  bool Contains(const T& element_match) const {
+    mem_size left = 0;
+    mem_size right = size() - 1;
+
+    while (left <= right) {
+      int middle = left + (right - left) / 2;
+      const T& middle_element = *(begin() + middle);
+
+      if (middle_element == element_match)
+        return true;
+      else if (middle_element < element_match)
+        left = middle + 1;
+      else
+        right = middle - 1;
+    }
+
+    return false;
+  }
+
  private:
   mem_size CalculateNewCapacity(mem_size cap) {
     return cap > 0 ? cap * /*capacity_mult_*/ kDefaultMult : 1;

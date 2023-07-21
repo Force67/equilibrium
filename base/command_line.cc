@@ -38,11 +38,7 @@ void CommandLine::ParseFromString(const base::StringRefU8 command_line) {
 }
 
 bool CommandLine::HasSwitch(const base::StringRefU8 switch_name) {
-  for (auto& piece : pieces_) {
-    if (piece == switch_name.c_str())
-      return true;
-  }
-  return false;
+  return pieces_.Contains(switch_name.c_str());
 }
 
 base::StringRefU8 CommandLine::operator[](const mem_size index) {
@@ -52,5 +48,18 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) {
            "CommandLine::operator[]: Index out of bounds");
   const auto& piece = pieces_[index];
   return base::StringRefU8(piece.c_str(), piece.length());
+}
+
+size CommandLine::FindPositionalArgumentsIndex() {
+  mem_size positional_index = 1;  // start at one, si nce the first arg, is the
+                                  // program path itself on most platforms
+  for (auto i = 1; i < pieces_.size(); i++) {
+    auto& piece = pieces_[i];
+    if ((piece.length() > 1 && piece.data()[0] == u8'-') ||
+        (i + 1 < pieces_.size() && pieces_[i + 1].data()[0] == u8'-')) {
+      positional_index++;
+    }
+  }
+  return positional_index;
 }
 }  // namespace base
