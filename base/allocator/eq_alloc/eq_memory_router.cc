@@ -20,11 +20,14 @@ alignas(HeapAllocator) byte heap_allocator_storage[sizeof(HeapAllocator)]{};
 // TODO: maybe refactor this in some complex obj init instantiate shit
 PageTable* EQMemoryRouter::page_table() {
   if (!page_table_data_[0]) {
-    PageTable* table = new (page_table_data_) PageTable();
+    PageTable* table = new (&page_table_data_[4]) PageTable();
     InitializeAllocators(*table);
+
+    // tombstone this so never ever ever there can be more than one pagetable.
+    *reinterpret_cast<uint32_t*>(&page_table_data_[0]) = UINT32_MAX;
     return table;
   }
-  return reinterpret_cast<PageTable*>(&page_table_data_[0]);
+  return reinterpret_cast<PageTable*>(&page_table_data_[4]);
 }
 
 void EQMemoryRouter::InitializeAllocators(PageTable& page_table) {

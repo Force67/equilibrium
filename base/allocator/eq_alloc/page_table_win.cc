@@ -52,4 +52,25 @@ void* PageTable::Allocate(void* preferred_address,
 
   return block;
 }
+
+bool PageTable::DeAllocate(void* block_address) {
+  if (!block_address)
+    return false;
+
+  // ::VirtualFree will return non-zero value on success, which we can then use to
+  // return true/false
+  return ::VirtualFree(block_address, 0, MEM_RELEASE) != 0;
+}
+
+bool PageTable::ChangePageProtection(
+    void* block_address,
+    mem_size block_size,
+    base::PageProtectionFlags new_protection_flags) {
+  const DWORD new_protect_flags =
+      base::TranslateToNativePageProtection(new_protection_flags);
+  DWORD old_protect_flags;
+
+  return ::VirtualProtect(block_address, block_size, new_protect_flags,
+                          &old_protect_flags) != 0;
+}
 }  // namespace base

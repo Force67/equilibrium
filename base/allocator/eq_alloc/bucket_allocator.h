@@ -64,19 +64,30 @@ class BucketAllocator final : public Allocator {
     mem_size page_size;  // not really needed atm, but if we wanna go for a hybrid
                          // model, it might be worth it
     // TODO: some refcount?
-    byte* begin() { return reinterpret_cast<byte*>(this); }
-    byte* data() { return begin() + sizeof(PageTag); }
-    byte* end() { return begin() + page_size; }
+
+    // better dont ask. we need to do it since we loose 16 bytes to our ancestor
+    // aswell
+    byte* begin() const {
+      return const_cast<byte*>(reinterpret_cast<const byte*>(this) -
+                               sizeof(base::internal::LinkNodeBase));
+    }
+    byte* end() const { return begin() + page_size; }
+
+    // this is also hacky
+    byte* data() const { return begin() + sizeof(HeaderNode); }
   };
+  static_assert(sizeof(PageTag) == 24, "Pagetag is of a weird size");
 
   bool DoAnyBucketsIntersect(const PageTag& tag);
 
-  class HeaderNode : public LinkNode<HeaderNode> {
+  class HeaderNode final : public LinkNode<HeaderNode> {
    public:
     explicit HeaderNode(mem_size page_size) : tag{0, 0, page_size} {}
 
     PageTag tag;
   };
+  static_assert(sizeof(HeaderNode) == 40, "HeaderNode is of a weird size");
+
   LinkedList<HeaderNode> page_list_;
 
   struct ScopedPageAccess {

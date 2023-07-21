@@ -20,7 +20,11 @@ bool IntersectsReasonable(mem_size given, mem_size exepected) {
 }
 }  // namespace
 
-BucketAllocator::BucketAllocator(PageTable& t) : page_table_(t) {}
+BucketAllocator::BucketAllocator(PageTable& t) : page_table_(t) {
+  byte* page_hint = nullptr;
+  DCHECK(TryAcquireNewPage(page_table_, page_hint),
+         "No initial page for the bucket allocator to work with!");
+}
 
 void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
   // this case should be validated by the memory router.
@@ -30,6 +34,13 @@ void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
       user_alignment > eq_allocation_constants::kBucketThreshold)
     return nullptr;
 #endif
+  #if 0
+  if ((alignment & (alignment - 1)) != 0) {
+    // alignment is not a power of 2
+    DEBUG_TRAP;
+    return nullptr;
+  }
+  #endif
 
   // align to a sensible boundary
   size += sizeof(Bucket);
@@ -54,7 +65,49 @@ void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
 void* BucketAllocator::ReAllocate(void* former_block,
                                   mem_size new_size,
                                   mem_size user_alignment) {
-  return nullptr;
+  if (former_block == nullptr) {
+    // if former_block is null, then it behaves the same as Allocate
+    return Allocate(new_size, user_alignment);
+  }
+
+  if (new_size == 0) {
+    // if new_size is zero, then it behaves the same as Free
+    Free(former_block);
+    return nullptr;
+  }
+
+  pointer_size former_address = reinterpret_cast<pointer_size>(former_block);
+  Bucket* former_bucket = FindBucket(former_address);
+
+  if (former_bucket == nullptr) {
+    // The former block wasn't allocated by this allocator
+    return nullptr;
+  }
+
+  mem_size former_size = former_bucket->size_;
+
+  if (former_size >= new_size) {
+    // If the former block is large enough, simply return it
+    return former_block;
+  }
+
+  // Otherwise, we need to allocate a new block and copy data from the former block
+  void* new_block = Allocate(new_size, user_alignment);
+
+  if (new_block == nullptr) {
+    // Failed to allocate memory
+    // Maybe log an error here
+    DEBUG_TRAP;
+    return former_block;  // Return the former_block to avoid losing it
+  }
+
+  // Copy data from the former block to the new block
+  memcpy(new_block, former_block, former_size);
+
+  // Free the former block
+  Free(former_block);
+
+  return new_block;
 }
 
 void* BucketAllocator::AcquireMemory(mem_size size, byte* hint) {
@@ -89,7 +142,7 @@ bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
 i32 BucketAllocator::FindFreeBucketHead(mem_size requested_size) {
   for (auto* node = page_list_.head(); node != page_list_.end();
        node = node->next()) {
-    // manage the page refcount (to prevent the page from being deallocated)
+    // Manage the page refcount (to prevent the page from being deallocated)
     ScopedPageAccess _(node->value()->tag);
 
     PageTag& tag = node->value()->tag;
@@ -100,7 +153,7 @@ i32 BucketAllocator::FindFreeBucketHead(mem_size requested_size) {
       return 0;
     }
 
-    for (auto i = 1; i < tag.bucket_count; i++) {
+    for (mem_size i = 1; i < tag.bucket_count; i++) {
       auto bucket =
           (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(Bucket) * i)))
               .load();
@@ -112,24 +165,42 @@ i32 BucketAllocator::FindFreeBucketHead(mem_size requested_size) {
       }
     }
 
-    // need to find if any buckets intersect at n
+    // Need to find if any buckets intersect at n
+    if (DoAnyBucketsIntersect(tag)) {
+      Bucket* free_bucket = reinterpret_cast<Bucket*>(
+          tag.end() - (sizeof(Bucket) * (tag.bucket_count + 1)));
+      TakeMemoryChunk(*free_bucket, tag.data(), requested_size);
+      free_bucket->flags_ = Bucket::kUsed;
+      return static_cast<i32>(tag.bucket_count++);
+    }
   }
 
-  return 0;
+  // Return -1 when no free bucket was found
+  return -1;
 }
 
 bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
+  // The base of the page, used to compute the physical addresses of buckets
   const byte* page_base = reinterpret_cast<const byte*>(&tag);
 
-#if 0
-  for (auto i = 0; i < tag.bucket_count; i++) {
-    auto bucket =
-        (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(Bucket) * i))).load();
+  // Track the end of the previous bucket in the loop
+  u32 prev_end_offset = 0;
+
+  for (auto i = 0; i < tag.bucket_count.load(); i++) {
+    const auto bucket =
+        (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(Bucket) * (i + 1))))
+            .load();
+
     if (bucket.IsinUse()) {
-      byte* memory = DecompressPagePointer(page_base, bucket.offset_);
+      if (bucket.offset_ < prev_end_offset) {
+        // The current bucket starts before the previous one ends, so they intersect
+        return true;
+      }
+      // Update the end of the previous bucket for the next iteration
+      prev_end_offset = bucket.offset_ + bucket.size_;
     }
   }
-#endif
+
   return false;
 }
 
@@ -145,79 +216,86 @@ void BucketAllocator::TakeMemoryChunk(Bucket& bucket,
 
 BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size,
                                                          byte*& page_start) {
-#if 0
   for (auto* node = page_list_.head(); node != page_list_.end();
        node = node->next()) {
-    PageTag& tag = node->value()->tag;
-    page_start = tag.begin();
+    page_start = node->value()->tag.begin();
+    byte* page_end = node->value()->tag.end();
 
-    // looks like a fresh page
-    if (tag.bucket_count == 0) {
-      TakeMemoryChunk(*tag.bucket_table, page_start, requested_size);
-      tag.bucket_count++;
-      return header.bucket_table;
-    }
-
-    byte* page_end = tag.end();
-
-    // attempt reclaiming unused buckets (and their memory, which is orphaned)
-    for (auto i = 0; i < tag.bucket_count; i++) {
-      Bucket* buck = reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * i));
-      // reclaim previously used bucket
-      //
-      // TODO: should make a resonable choice, based on alignment, if we can reclaim
-      // the block rather than relying on the same size...
-      if (buck->flags_ == 1 && buck->size_ >= requested_size) {
-        TakeMemoryChunk(*buck, page_start + sizeof(PageTag) + buck->offset_,
-                        requested_size);
-        tag.bucket_count++;
+    for (mem_size i = 0; i < node->value()->tag.bucket_count; i++) {
+      Bucket* buck =
+          reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
+      if ((buck->flags_ & Bucket::kReleased) && buck->size_ >= requested_size) {
+        TakeMemoryChunk(
+            *buck,
+            DecompressPagePointer(reinterpret_cast<pointer_size>(page_start),
+                                  buck->offset_),
+            requested_size);
         return buck;
       }
     }
-    // new bucket
-    // todo: validate if buckets are owned by any other memory high prio!!!
-    Bucket* free_bucket = reinterpret_cast<Bucket*>(
-        page_end - (sizeof(Bucket) * (tag.bucket_count + 1)));
-    free_bucket->flags_ = 0;
-    free_bucket->size_ = static_cast<u16>(requested_size);
-    // free_bucket->offset_ =
 
+    mem_size free_memory =
+        page_end - (page_start + sizeof(PageTag) +
+                    node->value()->tag.bucket_count * sizeof(Bucket));
+    if (free_memory < sizeof(Bucket) + requested_size) {
+      // Not enough memory in the page, try another page
+      DEBUG_TRAP;
+      continue;
+    }
+
+    // Create new Bucket with placement new
+    Bucket* free_bucket =
+        new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
+            Bucket();
+    TakeMemoryChunk(*free_bucket, page_start + sizeof(PageTag), requested_size);
+    free_bucket->flags_ = Bucket::kUsed;
+    node->value()->tag.bucket_count++;
     return free_bucket;
   }
-#endif
   return nullptr;
 }
+
 
 BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
-  return nullptr;
-}
-
-bool BucketAllocator::Free(void* pointer) {
-#if 0
-  byte* block = reinterpret_cast<byte*>(pointer);
   for (auto* node = page_list_.head(); node != page_list_.end();
        node = node->next()) {
-    // is owned by given page?
     byte* page_start = reinterpret_cast<byte*>(node);
-    byte* page_end = page_start + node->value()->header.page_size;
-    if (block >= page_start && block <= page_end) {
-      // now free it!
-
-      for (auto i = 0; i < node->value()->header.bucket_count; i++) {
-        Bucket* buck = reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * i));
-        if (block >= (page_start + buck->offset_) &&
-            block <= (page_start + buck->offset_ + buck->size_)) {
-          buck->flags_ =
-              1;  // TODO: a threshhold where we start decrementing the bucket count/
-          // and actually provide the bucket as memory space?
-          return;
+    byte* page_end = page_start + node->value()->tag.page_size;
+    if (address >= reinterpret_cast<pointer_size>(page_start) &&
+        address < reinterpret_cast<pointer_size>(page_end)) {
+      for (auto i = 0; i < node->value()->tag.bucket_count; i++) {
+        Bucket* buck =
+            reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
+        if (address >=
+                (reinterpret_cast<pointer_size>(page_start) + buck->offset_) &&
+            address < (reinterpret_cast<pointer_size>(page_start) + buck->offset_ +
+                       buck->size_)) {
+          return buck;
         }
       }
     }
   }
+  return nullptr;
+}
 
+bool BucketAllocator::Free(void* pointer) {
+  byte* block = reinterpret_cast<byte*>(pointer);
+  for (auto* node = page_list_.head(); node != page_list_.end();
+       node = node->next()) {
+    byte* page_start = reinterpret_cast<byte*>(node);
+    byte* page_end = page_start + node->value()->tag.page_size;
+    if (block >= page_start && block <= page_end) {
+      for (auto i = 0; i < node->value()->tag.bucket_count; i++) {
+        Bucket* buck = reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * i));
+        if (block >= (page_start + buck->offset_) &&
+            block <= (page_start + buck->offset_ + buck->size_)) {
+          buck->flags_ = Bucket::kReleased;
+          return true;
+        }
+      }
+    }
+  }
   DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
-#endif
   return false;
 }
 }  // namespace base

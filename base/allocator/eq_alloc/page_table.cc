@@ -79,32 +79,44 @@ mem_size PageTable::ReservePages(const pointer_size page_base,
 }
 
 void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
-  // ScopedSpinLock _;
+  ScopedSpinLock _;
 
-#if 0
-  if (void* block =
-          Allocate(e.pointer(), ideal_page_size(), page_flags, 0xFF, true)) {
+  if (!freelist_) {
+    // No free pages, need to allocate a new one.
+    // The preferred_address could be determined based on your specific memory layout
+    // needs. For simplicity, let's assume `nullptr` here which indicates no specific
+    // preference.
+    void* block = Allocate(nullptr, ideal_page_size(), page_flags, 0xFF, true);
+    if (block && size_out)
+      *size_out = ideal_page_size();
     return block;
   }
-#endif
 
-  // walk the freelist..
+  // Pop a page from the freelist.
+  FreeListEntry* freePage = freelist_;
+  freelist_ = freelist_->next;
 
-  // for debugging reasons we fill each new page with 0xFF to detect unitialized
-// memory more easily
-#if 0
-  if (void* block =
-          Allocate(e.pointer(), ideal_page_size(), page_flags, 0xFF, true)) {
-    return block;
-  }
-#endif
-
-  return nullptr;
+  if (size_out)
+    *size_out = ideal_page_size();
+  return static_cast<void*>(freePage);
 }
 
 bool PageTable::ReleasePage(void* page_pointer) {
-  //__debugbreak();
-  return false;
+  if (!page_pointer)
+    return false;
+
+  // Deallocate the page, return false if it fails.
+  if (!DeAllocate(page_pointer))
+    return false;
+
+  // Insert the freed page into the freelist.
+
+  // TODO: dont we have to adjust offset for freelist??!
+  FreeListEntry* freePage = static_cast<FreeListEntry*>(page_pointer);
+  freePage->next = freelist_;
+  freelist_ = freePage;
+
+  return true;
 }
 
 PageTable::PageEntry* PageTable::FindBackingPage(void* block) {

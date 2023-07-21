@@ -46,6 +46,11 @@ class PageTable {
                  base::PageProtectionFlags,
                  byte initalize_with,
                  bool use_initialize);
+  bool DeAllocate(void* block_address);
+
+  bool ChangePageProtection(void* block_address,
+                            mem_size block_size,
+                            base::PageProtectionFlags new_protection_flags);
 
   bool Free(void* address);
 
@@ -70,6 +75,11 @@ class PageTable {
   };
   static_assert(sizeof(PageEntry) == 2 * sizeof(pointer_size),
                 "PageEntry alignment is invalid");
+
+  struct FreeListEntry {
+    FreeListEntry* next;
+  };
+  FreeListEntry* freelist_ = nullptr;
 
   // do we even need a size parameter if every page is 64k?
   // do we even need an address if they are a continuous array? (e.g aligned to a
