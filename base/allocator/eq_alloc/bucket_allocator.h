@@ -43,6 +43,9 @@ class BucketAllocator final : public Allocator {
     };
     u16 flags_{kUsed};
 
+    explicit Bucket(u32 offset, u16 size, Flags flags)
+        : offset_(offset), size_(size), flags_(flags) {}
+
     inline bool IsinUse() const { return flags_ & Flags::kUsed; }
   };
   union BucketStore {
@@ -58,12 +61,36 @@ class BucketAllocator final : public Allocator {
   Bucket* FindBucket(pointer_size address);
   i32 FindFreeBucketHead(mem_size requested_size);
 
+  // (Bucket) Page Memory layout:
+  // +-------------------------------------------------------------------+
+  // |                             PageTag                               |
+  // |   +-------------+--------------+------------------+               |
+  // |   |  ref_count  | bucket_count |  page_size       |               |
+  // |   +-------------+--------------+------------------+               |
+  // |                                                                   |
+  // |                           HeaderNode                              |
+  // |   +-------------------------------------------------------+       |
+  // |   |  tag (ref_count, bucket_count, page_size)            |        |
+  // |   +-------------------------------------------------------+       |
+  // |                                                                   |
+  // |                           Usable Data                             |
+  // |   +------------------+------------------+----                     |
+  // |   |                  |                  |    ...                  |
+  // |   +------------------+------------------+----                     |
+  // |                                                                   |
+  // |                         Bucket Metadata                           |
+  // |   +------------------+------------------+----                     |
+  // |   |    Bucket 1      |    Bucket 2      |    ...                  |
+  // |   +------------------+------------------+----                     |
+  // +-------------------------------------------------------------------+
+
   struct PageTag {
-    base::Atomic<mem_size> ref_count;
+    base::Atomic<mem_size> ref_count;  // TODO: impl it
     base::Atomic<mem_size> bucket_count;
-    mem_size page_size;  // not really needed atm, but if we wanna go for a hybrid
-                         // model, it might be worth it
-    // TODO: some refcount?
+    mem_size
+        page_size;  // not really needed atm since we know the size is always 65k,
+                    // but if we wanna go for a hybrid model, it might be worth it
+                    //
 
     // better dont ask. we need to do it since we loose 16 bytes to our ancestor
     // aswell
@@ -73,7 +100,7 @@ class BucketAllocator final : public Allocator {
     }
     byte* end() const { return begin() + page_size; }
 
-    // this is also hacky
+    // this returns the beginning of actually useable data...
     byte* data() const { return begin() + sizeof(HeaderNode); }
   };
   static_assert(sizeof(PageTag) == 24, "Pagetag is of a weird size");

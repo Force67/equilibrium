@@ -34,13 +34,13 @@ void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
       user_alignment > eq_allocation_constants::kBucketThreshold)
     return nullptr;
 #endif
-  #if 0
+#if 0
   if ((alignment & (alignment - 1)) != 0) {
     // alignment is not a power of 2
     DEBUG_TRAP;
     return nullptr;
   }
-  #endif
+#endif
 
   // align to a sensible boundary
   size += sizeof(Bucket);
@@ -111,7 +111,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
 }
 
 void* BucketAllocator::AcquireMemory(mem_size size, byte* hint) {
-  //DCHECK(!lock_.held());
+  // DCHECK(!lock_.held());
 
   if (hint) {
     // do something with the hint index
@@ -210,28 +210,33 @@ void BucketAllocator::TakeMemoryChunk(Bucket& bucket,
                                       uint8_t* start_hint,
                                       mem_size req_size) {
   bucket.offset_ = 0;
-  bucket.flags_ = 0;
+  bucket.flags_ = Bucket::kUsed;
   bucket.size_ = static_cast<u16>(req_size);
 }
 
 BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size,
                                                          byte*& page_start) {
-  for (auto* node = page_list_.head(); node != page_list_.end();
-       node = node->next()) {
-    page_start = node->value()->tag.begin();
-    byte* page_end = node->value()->tag.end();
+  for (base::LinkNode<HeaderNode>* node = page_list_.head();
+       node != page_list_.end(); node = node->next()) {
 
-    for (mem_size i = 0; i < node->value()->tag.bucket_count; i++) {
+    PageTag& tag = node->value()->tag;
+
+    page_start = tag.begin();
+    byte* page_end = tag.end();
+
+    // best case, we can reclaim a previously reserved bucket:
+    byte* data_start = tag.data();
+    for (mem_size i = 0; i < tag.bucket_count; i++) {
       Bucket* buck =
           reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
       if ((buck->flags_ & Bucket::kReleased) && buck->size_ >= requested_size) {
-        TakeMemoryChunk(
-            *buck,
-            DecompressPagePointer(reinterpret_cast<pointer_size>(page_start),
-                                  buck->offset_),
-            requested_size);
+        buck->offset_ = buck->offset_; // ye i know, we might be smarter to realloc.. idk
+        buck->flags_ = Bucket::kUsed;
+        buck->size_ = static_cast<u16>(requested_size);
         return buck;
       }
+
+
     }
 
     mem_size free_memory =
@@ -244,17 +249,19 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
     }
 
     // Create new Bucket with placement new
+
+    // i think we are placing the bucket at the wrong spot tbh.
+
+    // store metadata
     Bucket* free_bucket =
         new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
-            Bucket();
-    TakeMemoryChunk(*free_bucket, page_start + sizeof(PageTag), requested_size);
-    free_bucket->flags_ = Bucket::kUsed;
+            Bucket(/*offset*/ 0, /*size*/ requested_size, /*flags*/ Bucket::kUsed);
     node->value()->tag.bucket_count++;
+
     return free_bucket;
   }
   return nullptr;
 }
-
 
 BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
   for (auto* node = page_list_.head(); node != page_list_.end();
