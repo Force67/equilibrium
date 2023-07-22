@@ -13,6 +13,11 @@
 
 namespace base {
 struct EQMemoryRouter {
+  // this represents the amount of memory we can address with this allocator.
+  static auto constexpr kVirtualAddressRange = 1_tib;
+  static auto constexpr kMibShift = 20;  // Shifting by this gives 1 MiB blocks
+  static auto constexpr kMaxAllocators = 0xFF;
+
   enum AllocatorID : allocator_id {
     kBucketAllocator,
     kPageAllocator,
@@ -140,7 +145,13 @@ struct EQMemoryRouter {
   mem_size block_size(PageTable& tab, void* block) { return 0; }
 
   Allocator* FindOwningAllocator(void* block) {
-    auto index = reinterpret_cast<uintptr_t>(block) >> 20;
+    // the limit for an index is 1048576
+    auto index = reinterpret_cast<uintptr_t>(block) >> kMibShift;
+    DCHECK(index <= sizeof(allocator_mapping_table_),
+           "Allocator index too large (over 1tib)");
+    DCHECK(index != kMaxAllocators,
+           "Unowned memory (no allocator knows its origin)");
+
     if (allocator_mapping_table_[index]) {
       return allocators_[allocator_mapping_table_[index]];
     }
@@ -153,14 +164,18 @@ struct EQMemoryRouter {
 
  private:
   //~EQMemoryRouter() { page_table()->~PageTable(); }
-
-  alignas(PageTable) byte page_table_data_[4+sizeof(PageTable)]{};
+  alignas(PageTable) byte page_table_data_[4 /*magic*/ + sizeof(PageTable)]{};
   // see
   // https://cdn.discordapp.com/attachments/818575873203503165/1005495331636662373/unknown.png
   // every index (number stored from 1 - 255 at given position) corresponds to a page
   // at offset n
   Allocator* allocators_[base::MinMax<allocator_id>::max()]{nullptr};
-  allocator_id allocator_mapping_table_[1_tib >> 20]{0xFF};
+  allocator_id allocator_mapping_table_[kVirtualAddressRange >> kMibShift]{
+      kMaxAllocators};
+
+  static constexpr auto x = kVirtualAddressRange >> kMibShift;
+  //static_assert(sizeof(allocator_mapping_table_) ==
+  //              kVirtualAddressRange >> kMibShift);
 };
 
 }  // namespace base

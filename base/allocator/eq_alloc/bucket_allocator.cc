@@ -120,7 +120,8 @@ void* BucketAllocator::AcquireMemory(mem_size size, byte* hint) {
   byte* page_head = nullptr;
   if (Bucket* bucket = FindFreeBucket(size, page_head)) {
     // return user memory
-    return reinterpret_cast<void*>(page_head + sizeof(PageTag) + bucket->offset_);
+    return reinterpret_cast<void*>((page_head + sizeof(HeaderNode)) +
+                                   bucket->offset_);
   }
   return nullptr;
 }
@@ -137,46 +138,6 @@ bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
   // store the entire node in the page itself
   page_list_.Append(new (page_base) HeaderNode(page_size));
   return true;
-}
-
-i32 BucketAllocator::FindFreeBucketHead(mem_size requested_size) {
-  for (auto* node = page_list_.head(); node != page_list_.end();
-       node = node->next()) {
-    // Manage the page refcount (to prevent the page from being deallocated)
-    ScopedPageAccess _(node->value()->tag);
-
-    PageTag& tag = node->value()->tag;
-
-    if (tag.bucket_count == 0) {
-      // atomic store, set the bucket as used
-      *reinterpret_cast<AtomicBucket*>(tag.end() - sizeof(Bucket)) = Bucket();
-      return 0;
-    }
-
-    for (mem_size i = 1; i < tag.bucket_count; i++) {
-      auto bucket =
-          (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(Bucket) * i)))
-              .load();
-      if (bucket.flags_ & Bucket::kReleased &&
-          IntersectsReasonable(bucket.size_, requested_size)) {
-        *reinterpret_cast<AtomicBucket*>(tag.end() - sizeof(Bucket)) =
-            Bucket();  // claim (in ctor)
-        return static_cast<i32>(tag.bucket_count++);
-      }
-    }
-
-    // Need to find if any buckets intersect at n
-    if (DoAnyBucketsIntersect(tag)) {
-      Bucket* free_bucket = reinterpret_cast<Bucket*>(
-          tag.end() - (sizeof(Bucket) * (tag.bucket_count + 1)));
-      TakeMemoryChunk(*free_bucket, tag.data(), requested_size);
-      free_bucket->flags_ = Bucket::kUsed;
-      return static_cast<i32>(tag.bucket_count++);
-    }
-  }
-
-  // Return -1 when no free bucket was found
-  return -1;
 }
 
 bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
@@ -218,46 +179,89 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
                                                          byte*& page_start) {
   for (base::LinkNode<HeaderNode>* node = page_list_.head();
        node != page_list_.end(); node = node->next()) {
-
     PageTag& tag = node->value()->tag;
 
     page_start = tag.begin();
     byte* page_end = tag.end();
 
-    // best case, we can reclaim a previously reserved bucket:
+    // best case, we can reclaim a previously reserved bucket, and its associated
+    // memory.
     byte* data_start = tag.data();
     for (mem_size i = 0; i < tag.bucket_count; i++) {
       Bucket* buck =
           reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
       if ((buck->flags_ & Bucket::kReleased) && buck->size_ >= requested_size) {
-        buck->offset_ = buck->offset_; // ye i know, we might be smarter to realloc.. idk
+        buck->offset_ =
+            buck->offset_;  // ye i know, we might be smarter to realloc.. idk
         buck->flags_ = Bucket::kUsed;
         buck->size_ = static_cast<u16>(requested_size);
         return buck;
       }
-
-
     }
 
-    mem_size free_memory =
-        page_end - (page_start + sizeof(PageTag) +
-                    node->value()->tag.bucket_count * sizeof(Bucket));
-    if (free_memory < sizeof(Bucket) + requested_size) {
-      // Not enough memory in the page, try another page
+    // fastpath: If no buckets exist yet, create the first one at the beginning of
+    // the available data space
+    if (tag.bucket_count == 0) {
+      Bucket* free_bucket =
+          new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
+              Bucket(/*offset*/ 0, /*size*/ requested_size, /*flags*/ Bucket::kUsed);
+      node->value()->tag.bucket_count++;
+      return free_bucket;
+    }
+
+    // TODO: refactor this to be more efficient
+
+    // find the largest gap between two buckets...
+    mem_size max_free_space = 0;
+    mem_size offset = 0;
+    byte* last_bucket_end = data_start;
+    for (mem_size i = 0; i < tag.bucket_count; i++) {
+      Bucket* meta_data =
+          reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
+
+      byte* bucket_data_start = DecompressPagePointer(
+          reinterpret_cast<pointer_size>(data_start), meta_data->offset_);
+      byte* bucket_data_end = bucket_data_start + meta_data->size_;
+
+      mem_size free_space = bucket_data_start - bucket_data_end;
+      if (free_space > max_free_space) {
+        max_free_space = free_space;
+        offset = last_bucket_end - data_start;
+      }
+      last_bucket_end = bucket_data_end;
+    }
+
+    // Check if we found a large enough gap
+    if (max_free_space >= requested_size) {
+      // We did, create a bucket in the gap
+      Bucket* free_bucket =
+          new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
+              Bucket(/*offset*/ offset, /*size*/ requested_size,
+                     /*flags*/ Bucket::kUsed);
+      node->value()->tag.bucket_count++;
+      return free_bucket;
+    }
+
+    // Check if we can place a bucket at the end of the last bucket
+
+    // this is not super smart, we put the end directly below the last metadataentry
+    byte* data_end =
+        page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1));
+    // get the last metadata entry:
+    Bucket* last_buck = reinterpret_cast<Bucket*>(
+        page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count)));
+    if ((data_end - ((data_start + last_buck->offset_ + last_buck->size_))) <
+        requested_size) {
       DEBUG_TRAP;
-      continue;
-    }
+      return nullptr;
+    } 
 
-    // Create new Bucket with placement new
-
-    // i think we are placing the bucket at the wrong spot tbh.
-
-    // store metadata
+    offset = last_buck->offset_ + last_buck->size_;
     Bucket* free_bucket =
-        new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
-            Bucket(/*offset*/ 0, /*size*/ requested_size, /*flags*/ Bucket::kUsed);
+        new (data_end)
+            Bucket(/*offset*/ offset, /*size*/ requested_size,
+                   /*flags*/ Bucket::kUsed);
     node->value()->tag.bucket_count++;
-
     return free_bucket;
   }
   return nullptr;

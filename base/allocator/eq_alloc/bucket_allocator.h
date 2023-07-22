@@ -59,7 +59,6 @@ class BucketAllocator final : public Allocator {
                 "Bucket must fit into atomic/register space");
 
   Bucket* FindBucket(pointer_size address);
-  i32 FindFreeBucketHead(mem_size requested_size);
 
   // (Bucket) Page Memory layout:
   // +-------------------------------------------------------------------+
