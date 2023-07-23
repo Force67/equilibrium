@@ -48,6 +48,8 @@ class BucketAllocator final : public Allocator {
 
     inline bool IsinUse() const { return flags_ & Flags::kUsed; }
   };
+  static_assert(sizeof(Bucket) == sizeof(pointer_size), "Bucket is too fat");
+
   union BucketStore {
     Bucket bucket;
     pointer_size as_pointer;
@@ -129,7 +131,7 @@ class BucketAllocator final : public Allocator {
     return reinterpret_cast<byte*>(page_base + offset);
   }
 
-  //void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
+  // void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
   Bucket* FindFreeBucket(mem_size requested_size, byte*&);
 };
 }  // namespace base

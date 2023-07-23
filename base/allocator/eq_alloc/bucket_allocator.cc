@@ -175,6 +175,14 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
     page_start = tag.begin();
     byte* page_end = tag.end();
 
+    if (tag.bucket_count == 0) {
+      Bucket* free_bucket =
+          new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
+              Bucket(/*offset*/ 0, /*size*/ requested_size, /*flags*/ Bucket::kUsed);
+      node->value()->tag.bucket_count++;
+      return free_bucket;
+    }
+
     // best case, we can reclaim a previously reserved bucket, and its associated
     // memory.
     byte* data_start = tag.data();
@@ -189,51 +197,7 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
         return buck;
       }
     }
-
-    // fastpath: If no buckets exist yet, create the first one at the beginning of
-    // the available data space
-    if (tag.bucket_count == 0) {
-      Bucket* free_bucket =
-          new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
-              Bucket(/*offset*/ 0, /*size*/ requested_size, /*flags*/ Bucket::kUsed);
-      node->value()->tag.bucket_count++;
-      return free_bucket;
-    }
-
-    // TODO: refactor this to be more efficient
-
-    // find the largest gap between two buckets...
-    mem_size max_free_space = 0;
-    mem_size offset = 0;
-    byte* last_bucket_end = data_start;
-    for (mem_size i = 0; i < tag.bucket_count; i++) {
-      Bucket* meta_data =
-          reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
-
-      byte* bucket_data_start = DecompressPagePointer(
-          reinterpret_cast<pointer_size>(data_start), meta_data->offset_);
-      byte* bucket_data_end = bucket_data_start + meta_data->size_;
-
-      mem_size free_space = bucket_data_start - bucket_data_end;
-      if (free_space > max_free_space) {
-        max_free_space = free_space;
-        offset = last_bucket_end - data_start;
-      }
-      last_bucket_end = bucket_data_end;
-    }
-
-    // Check if we found a large enough gap
-    if (max_free_space >= requested_size) {
-      // We did, create a bucket in the gap
-      Bucket* free_bucket =
-          new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
-              Bucket(/*offset*/ offset, /*size*/ requested_size,
-                     /*flags*/ Bucket::kUsed);
-      node->value()->tag.bucket_count++;
-      return free_bucket;
-    }
-
-    // Check if we can place a bucket at the end of the last bucket
+    // TODO: are there any gaps in between buckets?!
 
     // this is not super smart, we put the end directly below the last metadataentry
     byte* data_end =
@@ -247,7 +211,7 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
       return nullptr;
     }
 
-    offset = last_buck->offset_ + last_buck->size_;
+    auto offset = last_buck->offset_ + last_buck->size_;
     Bucket* free_bucket =
         new (data_end) Bucket(/*offset*/ offset, /*size*/ requested_size,
                               /*flags*/ Bucket::kUsed);
@@ -258,21 +222,25 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
 }
 
 BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
+  address -= sizeof(HeaderNode);
+
   for (auto* node = page_list_.head(); node != page_list_.end();
        node = node->next()) {
     byte* page_start = reinterpret_cast<byte*>(node);
-    byte* page_end = page_start + node->value()->tag.page_size;
-    if (address >= reinterpret_cast<pointer_size>(page_start) &&
-        address < reinterpret_cast<pointer_size>(page_end)) {
-      for (auto i = 0; i < node->value()->tag.bucket_count; i++) {
-        Bucket* buck =
-            reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
-        if (address >=
-                (reinterpret_cast<pointer_size>(page_start) + buck->offset_) &&
-            address < (reinterpret_cast<pointer_size>(page_start) + buck->offset_ +
-                       buck->size_)) {
-          return buck;
-        }
+    byte* page_end = node->value()->tag.end();
+
+    if (address < reinterpret_cast<pointer_size>(page_start) &&
+        address > reinterpret_cast<pointer_size>(page_end)) {
+      continue;
+    }
+
+    for (auto i = 0; i < node->value()->tag.bucket_count; i++) {
+      Bucket* buck =
+          reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
+      if (address >= (reinterpret_cast<pointer_size>(page_start) + buck->offset_) &&
+          address < (reinterpret_cast<pointer_size>(page_start) + (buck->offset_ +
+                     buck->size_))) {
+        return buck;
       }
     }
   }
