@@ -129,7 +129,7 @@ class BucketAllocator final : public Allocator {
     return reinterpret_cast<byte*>(page_base + offset);
   }
 
-  void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
+  //void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
   Bucket* FindFreeBucket(mem_size requested_size, byte*&);
 };
 }  // namespace base

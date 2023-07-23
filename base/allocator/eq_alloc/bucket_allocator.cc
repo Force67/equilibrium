@@ -142,7 +142,7 @@ bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
 
 bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
   // The base of the page, used to compute the physical addresses of buckets
-  const byte* page_base = reinterpret_cast<const byte*>(&tag);
+  const byte* page_base = tag.begin();
 
   // Track the end of the previous bucket in the loop
   u32 prev_end_offset = 0;
@@ -166,15 +166,6 @@ bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:base/atomic_sequence_num.h;bpv=1;bpt=1
-
-void BucketAllocator::TakeMemoryChunk(Bucket& bucket,
-                                      uint8_t* start_hint,
-                                      mem_size req_size) {
-  bucket.offset_ = 0;
-  bucket.flags_ = Bucket::kUsed;
-  bucket.size_ = static_cast<u16>(req_size);
-}
-
 BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size,
                                                          byte*& page_start) {
   for (base::LinkNode<HeaderNode>* node = page_list_.head();
@@ -254,13 +245,12 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
         requested_size) {
       DEBUG_TRAP;
       return nullptr;
-    } 
+    }
 
     offset = last_buck->offset_ + last_buck->size_;
     Bucket* free_bucket =
-        new (data_end)
-            Bucket(/*offset*/ offset, /*size*/ requested_size,
-                   /*flags*/ Bucket::kUsed);
+        new (data_end) Bucket(/*offset*/ offset, /*size*/ requested_size,
+                              /*flags*/ Bucket::kUsed);
     node->value()->tag.bucket_count++;
     return free_bucket;
   }
@@ -290,21 +280,9 @@ BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
 }
 
 bool BucketAllocator::Free(void* pointer) {
-  byte* block = reinterpret_cast<byte*>(pointer);
-  for (auto* node = page_list_.head(); node != page_list_.end();
-       node = node->next()) {
-    byte* page_start = reinterpret_cast<byte*>(node);
-    byte* page_end = page_start + node->value()->tag.page_size;
-    if (block >= page_start && block <= page_end) {
-      for (auto i = 0; i < node->value()->tag.bucket_count; i++) {
-        Bucket* buck = reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * i));
-        if (block >= (page_start + buck->offset_) &&
-            block <= (page_start + buck->offset_ + buck->size_)) {
-          buck->flags_ = Bucket::kReleased;
-          return true;
-        }
-      }
-    }
+  if (Bucket* b = FindBucket(reinterpret_cast<pointer_size>(pointer))) {
+    b->flags_ = Bucket::kReleased;
+    return true;
   }
   DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
   return false;
