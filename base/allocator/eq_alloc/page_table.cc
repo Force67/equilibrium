@@ -37,24 +37,36 @@ class ScopedSpinLock : spin_lock {
 };
 }  // namespace
 
-PageTable::PageTable() {
-  ReservePages(0, kPageGrowByRatio);
+PageTable::PageTable(mem_size reserve_count) {
+  ReservePages(0, reserve_count);
 }
 
 mem_size PageTable::ReservePages(const pointer_size page_base,
                                  const mem_size page_reserve_count) {
   byte* preferred_address = page_base ? reinterpret_cast<byte*>(page_base) : nullptr;
 
-  const mem_size page_boundary = page_boundary_alignment();
+  // const mem_size page_boundary = page_boundary_alignment();
+  const mem_size page_boundary = 0;
   const mem_size page_size = ideal_page_size();
 
   byte* block = nullptr;
   if (page_boundary == 0) {
+    // let the OS choose where in our 8tib address space to put the allocation
+    if (preferred_address == nullptr) {
+      block = Reserve(nullptr, nullptr, page_size);
+      first_page_ = reinterpret_cast<pointer_size>(block);
+      preferred_address = reinterpret_cast<byte*>(first_page_.load()) + page_size;
+    }
+
     // no boundary, we simply can tack on the next page on the end of the current
     // page so we can allocate everything in one go
-    const mem_size total_page_memory = page_size * page_reserve_count;
-    block = Reserve(preferred_address, page_size * total_page_memory);
+    const pointer_size total_adress_space = page_size * (page_reserve_count - 1);
+    void* end = reinterpret_cast<void*>(static_cast<byte*>(preferred_address) +
+                                        total_adress_space);
+    block = Reserve(preferred_address, end, page_size * total_adress_space);
+    __debugbreak();
   } else {
+#if 0
     block = preferred_address;
 
     for (auto i = 0; i < page_reserve_count; i++) {
@@ -69,6 +81,7 @@ mem_size PageTable::ReservePages(const pointer_size page_base,
       // TODO, this isnt exactly aligning at page bounds..
       block += page_boundary;
     }
+#endif
   }
 
   // no pages were allocated

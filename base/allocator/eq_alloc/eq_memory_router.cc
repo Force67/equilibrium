@@ -20,7 +20,8 @@ alignas(HeapAllocator) byte heap_allocator_storage[sizeof(HeapAllocator)]{};
 // TODO: maybe refactor this in some complex obj init instantiate shit
 PageTable* EQMemoryRouter::page_table() {
   if (!page_table_data_[0]) {
-    PageTable* table = new (&page_table_data_[4]) PageTable();
+      // with 5 pages?
+    PageTable* table = new (&page_table_data_[4]) PageTable(5);
     InitializeAllocators(*table);
 
     // tombstone this so never ever ever there can be more than one pagetable.

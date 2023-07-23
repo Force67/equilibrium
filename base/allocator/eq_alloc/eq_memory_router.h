@@ -37,22 +37,29 @@ struct EQMemoryRouter {
   }
 
   STRONG_INLINE void* Allocate(const mem_size size) {
-    // acquire atleast once, so it is always initialized, this is a rather big hack,
-    // but for now i guess we need to.
-    (void)page_table();
+    PageTable& page_tab = *page_table();
 
-    const auto allocator_id = MemoryScope::allocator_handle();
+    void* block = nullptr;
+    MemoryScope::allocator_handle allocator_id = MemoryScope::allocator_handle();
     if (allocator_id != MemoryScope::NoOverride) {
-      return allocators_[allocator_id]->Allocate(size, 1042);
+      block = allocators_[allocator_id]->Allocate(size, 1042);
+    } else if (size <= eq_allocation_constants::kBucketThreshold) {
+      allocator_id = AllocatorID::kBucketAllocator;
+      block = allocators_[AllocatorID::kBucketAllocator]->Allocate(size, 4);
+    } else if (size <= eq_allocation_constants::kPageThreshold) {
+      allocator_id = AllocatorID::kPageAllocator;
+      block = allocators_[AllocatorID::kPageAllocator]->Allocate(
+          size, eq_allocation_constants::kPageThreshold);
+    } else {
+      allocator_id = AllocatorID::kHeapAllocator;
+      block = allocators_[AllocatorID::kHeapAllocator]->Allocate(
+          size, nextPowerOfTwo(size));
     }
 
-    if (size <= eq_allocation_constants::kBucketThreshold)
-      return allocators_[AllocatorID::kBucketAllocator]->Allocate(size, 4);
-    if (size <= eq_allocation_constants::kPageThreshold)
-      return allocators_[AllocatorID::kPageAllocator]->Allocate(
-          size, eq_allocation_constants::kPageThreshold);
-    return allocators_[AllocatorID::kHeapAllocator]->Allocate(size,
-                                                              nextPowerOfTwo(size));
+    uintptr_t po = page_tab.PageOffset(block);
+    auto index = po >> kMibShift;
+    allocator_mapping_table_[index] = allocator_id;
+    return block;
   }
 
   STRONG_INLINE void* AllocateAligned(mem_size size, mem_size alignment) {
@@ -88,7 +95,7 @@ struct EQMemoryRouter {
     auto& page_tab = *page_table();
     diff_out = new_size - block_size(page_tab, former);
 
-    auto* allocator = FindOwningAllocator(former);
+    auto* allocator = FindOwningAllocator(page_tab, former);
     DCHECK(allocator, "ReAllocate(): Orphaned memory?");
 
     return allocator->ReAllocate(former, new_size);
@@ -125,7 +132,7 @@ struct EQMemoryRouter {
     auto& page_tab = *page_table();
     const mem_size bytes_freed{block_size(page_tab, block)};
 
-    auto* allocator = FindOwningAllocator(block);
+    auto* allocator = FindOwningAllocator(page_tab, block);
     DCHECK(allocator, "Free(): Orphaned memory?");
 
     if (!allocator || !allocator->Free(block))
@@ -144,15 +151,15 @@ struct EQMemoryRouter {
  private:
   mem_size block_size(PageTable& tab, void* block) { return 0; }
 
-  Allocator* FindOwningAllocator(void* block) {
+  Allocator* FindOwningAllocator(base::PageTable& page_table, void* block) {
     // the limit for an index is 1048576
-    auto index = reinterpret_cast<uintptr_t>(block) >> kMibShift;
+    auto index = page_table.PageOffset(block) >> kMibShift;
     DCHECK(index <= sizeof(allocator_mapping_table_),
            "Allocator index too large (over 1tib)");
     DCHECK(index != kMaxAllocators,
            "Unowned memory (no allocator knows its origin)");
 
-    if (allocator_mapping_table_[index]) {
+    if (allocator_mapping_table_[index] != kMaxAllocators) {
       return allocators_[allocator_mapping_table_[index]];
     }
     return nullptr;
@@ -174,8 +181,8 @@ struct EQMemoryRouter {
       kMaxAllocators};
 
   static constexpr auto x = kVirtualAddressRange >> kMibShift;
-  //static_assert(sizeof(allocator_mapping_table_) ==
-  //              kVirtualAddressRange >> kMibShift);
+  // static_assert(sizeof(allocator_mapping_table_) ==
+  //               kVirtualAddressRange >> kMibShift);
 };
 
 }  // namespace base

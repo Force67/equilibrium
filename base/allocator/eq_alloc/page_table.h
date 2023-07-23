@@ -8,6 +8,7 @@
 #include <base/containers/linked_list.h>
 #include <base/memory/memory_literals.h>
 
+#include <base/allocator/memory_range.h>
 #include <base/allocator/page_protection.h>
 
 namespace base {
@@ -16,7 +17,7 @@ using namespace memory_literals;
 // page table only manages pages, not blocks within these pages.
 class PageTable {
  public:
-  PageTable();
+  explicit PageTable(mem_size reserve_count);
 
   struct Options {
     bool zero_pages{true};
@@ -35,13 +36,22 @@ class PageTable {
 
   bool ReleasePage(void* address);
 
+  uintptr_t PageOffset(void* address) {
+    auto b = reinterpret_cast<uintptr_t>(address);
+    DCHECK(first_page_ != 0, "First page not set");
+    DCHECK(b >= first_page_, "Page out of bounds");
+    return b - first_page_;
+  }
+
  private:
   mem_size ReservePages(const pointer_size page_base, const mem_size count);
 
-  byte* Reserve(void* preferred, mem_size block_size);
+  byte* Reserve(void* requested_range_start_address,
+                void* requested_range_end_address,
+                mem_size block_size);
 
   // initialize_with should be an optional...
-  void* Allocate(void* preferred_address,
+  void* Allocate(void* requested_range_start_address,
                  mem_size block_size,
                  base::PageProtectionFlags,
                  byte initalize_with,
