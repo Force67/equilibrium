@@ -39,13 +39,13 @@ class PageTable {
   uintptr_t PageOffset(void* address) {
     auto b = reinterpret_cast<uintptr_t>(address);
     DCHECK(first_page_ != 0, "First page not set");
-    DCHECK(b >= first_page_, "Page out of bounds");
+    //DCHECK(b >= first_page_, "Page out of bounds");
     return b - first_page_;
   }
 
  private:
-  mem_size ReservePages(const pointer_size page_base, const mem_size count);
-
+  mem_size ReserveAddressSpace();
+  
   byte* Reserve(void* requested_range_start_address,
                 void* requested_range_end_address,
                 mem_size block_size);

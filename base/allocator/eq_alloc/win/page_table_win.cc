@@ -29,74 +29,9 @@ u32 PageTable::page_boundary_alignment() {
 byte* PageTable::Reserve(void* requested_range_start_address,
                          void* requested_range_end_address,
                          mem_size block_size) {
-  // from non fixed base
-  if (!requested_range_start_address) {
-    return reinterpret_cast<byte*>(::VirtualAlloc(
-        // touching a unallocated page should result in immedeate infraction.
-        nullptr, block_size, MEM_RESERVE, PAGE_NOACCESS));
-  }
-
-  SYSTEM_INFO sysInfo;
-  GetSystemInfo(&sysInfo);
-  if (reinterpret_cast<uintptr_t>(requested_range_end_address) >
-      reinterpret_cast<uintptr_t>(sysInfo.lpMaximumApplicationAddress)) {
-    __debugbreak();
-    return nullptr;
-  }
-
-  uintptr_t start_address =
-      reinterpret_cast<uintptr_t>(requested_range_start_address);
-  // Ensure requested_range_start_address is a multiple of the allocation granularity
-  if (start_address % sysInfo.dwAllocationGranularity != 0) {
-    start_address += sysInfo.dwAllocationGranularity -
-                     (start_address % sysInfo.dwAllocationGranularity);
-    requested_range_start_address = reinterpret_cast<void*>(start_address);
-  }
-
-  // Ensure block_size is a multiple of the page size
-  if (block_size % sysInfo.dwPageSize != 0) {
-    __debugbreak();
-    return nullptr;
-  }
-
-  SIZE_T largePageSize = GetLargePageMinimum();
-  if (block_size % largePageSize != 0) {
-    __debugbreak();
-    return nullptr;
-  }
-
-  MEM_ADDRESS_REQUIREMENTS memReq = {
-      .LowestStartingAddress =
-          requested_range_start_address, /*Specifies the lowest acceptable address.
-                                            This address must be a multiple of the
-                                            allocation granularity returned by
-                                            GetSystemInfo, or a multiple of the large
-                                            page size returned by GetLargePageMinimum
-                                            if large pages are being requested. If
-                                            this member is NULL, then there is no
-                                            lower limit.*/
-      .HighestEndingAddress =
-          requested_range_end_address, /*Specifies the highest acceptable address
-                                          (inclusive). This address must not exceed
-                                          lpMaximumApplicationAddress returned by
-                                          GetSystemInfo. If this member is NULL, then
-                                          there is no upper limit.*/
-      .Alignment = 0 /*Specifies power-of-2 alignment. Specifying 0 aligns the
-                        returned address on the system allocation granularity.
-
-*/};
-  MEM_EXTENDED_PARAMETER param = {.Type = MemExtendedParameterAddressRequirements,
-                                  .Pointer = &memReq};
-  DWORD err222 = ::GetLastError();
-
-  auto* ptr = reinterpret_cast<byte*>(::VirtualAlloc2(
-      nullptr,
+  return reinterpret_cast<byte*>(::VirtualAlloc(
       // touching a unallocated page should result in immedeate infraction.
-      nullptr, block_size, MEM_RESERVE, PAGE_READWRITE, &param,
-      1));
-
-  DWORD err = ::GetLastError();
-  return ptr;
+      requested_range_start_address, block_size, MEM_RESERVE, PAGE_NOACCESS));
 }
 
 void* PageTable::Allocate(void* requested_range_start_address,

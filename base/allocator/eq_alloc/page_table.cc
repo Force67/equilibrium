@@ -38,68 +38,23 @@ class ScopedSpinLock : spin_lock {
 }  // namespace
 
 PageTable::PageTable(mem_size reserve_count) {
-  ReservePages(0, reserve_count);
+  // ReservePages(0, reserve_count);
+  ReserveAddressSpace();
 }
 
-mem_size PageTable::ReservePages(const pointer_size page_base,
-                                 const mem_size page_reserve_count) {
-  byte* preferred_address = page_base ? reinterpret_cast<byte*>(page_base) : nullptr;
-
-  // const mem_size page_boundary = page_boundary_alignment();
-  const mem_size page_boundary = 0;
-  const mem_size page_size = ideal_page_size();
-
-  byte* block = nullptr;
-  if (page_boundary == 0) {
-    // let the OS choose where in our 8tib address space to put the allocation
-    if (preferred_address == nullptr) {
-      block = Reserve(nullptr, nullptr, page_size);
-      first_page_ = reinterpret_cast<pointer_size>(block);
-      preferred_address = reinterpret_cast<byte*>(first_page_.load()) + page_size;
-    }
-
-    // no boundary, we simply can tack on the next page on the end of the current
-    // page so we can allocate everything in one go
-    const pointer_size total_adress_space = page_size * (page_reserve_count - 1);
-    void* end = reinterpret_cast<void*>(static_cast<byte*>(preferred_address) +
-                                        total_adress_space);
-    block = Reserve(preferred_address, end, page_size * total_adress_space);
-    __debugbreak();
-  } else {
-#if 0
-    block = preferred_address;
-
-    for (auto i = 0; i < page_reserve_count; i++) {
-      block = Reserve(block, page_size);
-      if (!block)
-        return 0;
-
-      // first block sets this
-      if (!first_page_)
-        first_page_ = reinterpret_cast<pointer_size>(block);
-
-      // TODO, this isnt exactly aligning at page bounds..
-      block += page_boundary;
-    }
-#endif
-  }
-
-  // no pages were allocated
-  if (!block)
-    return 0;
-
-  return page_reserve_count;
+mem_size PageTable::ReserveAddressSpace() {
+  auto *address_space = Reserve(nullptr, nullptr, 1_tib);
+  first_page_ = reinterpret_cast<pointer_size>(address_space);
+  return 1_tib;
 }
 
 void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
   ScopedSpinLock _;
 
   if (!freelist_) {
-    // No free pages, need to allocate a new one.
-    // The preferred_address could be determined based on your specific memory layout
-    // needs. For simplicity, let's assume `nullptr` here which indicates no specific
-    // preference.
-    void* block = Allocate(nullptr, ideal_page_size(), page_flags, 0xFF, true);
+    void* block = Allocate(reinterpret_cast<void*>(first_page_.load()), ideal_page_size(),
+                           page_flags,
+                           0xFF, true);
     if (block && size_out)
       *size_out = ideal_page_size();
     return block;
