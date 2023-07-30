@@ -84,6 +84,10 @@ class BasicStringRef {
 #endif
   }
 
+  bool compare(const TChar* rhs, mem_size character_count) const {
+    return memcmp(data_, rhs, character_count * sizeof(TChar)) == 0;
+  }
+
   // Comparison operators
   friend bool operator==(const BasicStringRef<TChar>& lhs,
                          const BasicStringRef<TChar>& rhs) {
