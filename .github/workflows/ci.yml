@@ -57,9 +57,9 @@ jobs:
           submodules: 'recursive'
           fetch-depth: '0'
       - name: Setup C++ environment
-        uses: actions/setup-cpp@v1
+        uses: aminya/setup-cpp@v1
         with:
-          compiler-version: '16'
+          compiler: llvm
       - name: Build
         run: |
           ./build/premake_linux.sh
