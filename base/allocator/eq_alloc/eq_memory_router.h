@@ -13,6 +13,11 @@
 
 namespace base {
 struct EQMemoryRouter {
+  // this represents the amount of memory we can address with this allocator.
+  static auto constexpr kVirtualAddressRange = 1_tib;
+  static auto constexpr kMibShift = 20;  // Shifting by this gives 1 MiB blocks
+  static auto constexpr kMaxAllocators = 0xFF;
+
   enum AllocatorID : allocator_id {
     kBucketAllocator,
     kPageAllocator,
@@ -20,27 +25,68 @@ struct EQMemoryRouter {
     kCustomAllocators,
   };
 
+  STRONG_INLINE mem_size nextPowerOfTwo(mem_size size) {
+    if (size == 0)
+      return 1;
+    if ((size & (size - 1)) == 0)
+      return size;  // Already a power of 2
+    while ((size & (size - 1)) > 0) {
+      size = size & (size - 1);
+    }
+    return size << 1;
+  }
+
   STRONG_INLINE void* Allocate(const mem_size size) {
-    // allocate and route the memory here, preferably at compile time
-    // if < kBucketThreshold -> Invoke bucket allocator
-    // if < PageTreshhold -> Invoke page table
-    // else: Directly reserve heap memory, which uses an intrusive list of free
-    // blocks red black tree. like dmalloc.
-    const auto allocator_id = MemoryScope::allocator_handle();
-    // user selected an override
+    PageTable& page_tab = *page_table();
+
+    void* block = nullptr;
+    MemoryScope::allocator_handle allocator_id = MemoryScope::allocator_handle();
     if (allocator_id != MemoryScope::NoOverride) {
-      return allocators_[allocator_id]->Allocate(size, 1337);
+      block = allocators_[allocator_id]->Allocate(size, 1042);
+    } else if (size <= eq_allocation_constants::kBucketThreshold) {
+      allocator_id = AllocatorID::kBucketAllocator;
+      block = allocators_[AllocatorID::kBucketAllocator]->Allocate(size, 4);
+    } else if (size <= eq_allocation_constants::kPageThreshold) {
+      allocator_id = AllocatorID::kPageAllocator;
+      block = allocators_[AllocatorID::kPageAllocator]->Allocate(
+          size, eq_allocation_constants::kPageThreshold);
+    } else {
+      allocator_id = AllocatorID::kHeapAllocator;
+      block = allocators_[AllocatorID::kHeapAllocator]->Allocate(
+          size, nextPowerOfTwo(size));
     }
 
-    // we are unrolling these manually here for performance reasons.
-    if (size <= eq_allocation_constants::kBucketThreshold)
-      return allocators_[AllocatorID::kBucketAllocator]->Allocate(
-          size, 4);
-    if (size <= eq_allocation_constants::kPageThreshold)
-      return allocators_[AllocatorID::kPageAllocator]->Allocate(
-          size, eq_allocation_constants::kPageThreshold);
-    return allocators_[AllocatorID::kHeapAllocator]->Allocate(
-        size, 2 /*TODO: align to the power of two!*/);
+    uintptr_t po = page_tab.PageOffset(block);
+    auto index = po >> kMibShift;
+    allocator_mapping_table_[index] = allocator_id;
+    return block;
+  }
+
+  STRONG_INLINE void* AllocateAligned(mem_size size, mem_size alignment) {
+    // Adjust the size to include extra space for alignment correction and storing
+    // the adjustment.
+    mem_size expanded_size = size + alignment + sizeof(mem_size);
+
+    // Allocate a new block with the expanded size.
+    void* raw_block = Allocate(expanded_size);
+
+    if (!raw_block) {
+      // Allocation failed.
+      return nullptr;
+    }
+
+    // Calculate the adjustment by masking off the lower bits of the address,
+    // to make it a multiple of the alignment.
+    mem_size adjustment =
+        alignment - (reinterpret_cast<mem_size>(raw_block) & (alignment - 1));
+
+    // Calculate the aligned address.
+    byte* aligned_block = reinterpret_cast<byte*>(raw_block) + adjustment;
+
+    // Store the adjustment just before the aligned block.
+    reinterpret_cast<mem_size*>(aligned_block)[-1] = adjustment;
+
+    return aligned_block;
   }
 
   STRONG_INLINE void* ReAllocate(void* former,
@@ -49,18 +95,44 @@ struct EQMemoryRouter {
     auto& page_tab = *page_table();
     diff_out = new_size - block_size(page_tab, former);
 
-    auto* allocator = FindOwningAllocator(former);
+    auto* allocator = FindOwningAllocator(page_tab, former);
     DCHECK(allocator, "ReAllocate(): Orphaned memory?");
 
-    // we try our hardest to grow in place.
     return allocator->ReAllocate(former, new_size);
+  }
+
+  STRONG_INLINE void* ReAllocateAligned(void* former_block,
+                                        mem_size former_size,
+                                        mem_size new_size,
+                                        mem_size alignment) {
+    DEBUG_TRAP;
+    return nullptr;
+#if 0
+    // Allocate a new block with the desired size and alignment.
+    void* new_block = allocators_[AllocatorID::kHeapAllocator]->AllocateAligned(
+        new_size, alignment);
+
+    if (!new_block) {
+      // Allocation failed.
+      return nullptr;
+    }
+
+    // Copy the old data to the new block.
+    mem_size copy_size = former_size < new_size ? former_size : new_size;
+    memcpy(new_block, former_block, copy_size);
+
+    // Free the old block.
+    allocators_[AllocatorID::kHeapAllocator]->Free(former_block);
+
+    return new_block;
+#endif
   }
 
   STRONG_INLINE mem_size Free(void* block) {
     auto& page_tab = *page_table();
     const mem_size bytes_freed{block_size(page_tab, block)};
 
-    auto* allocator = FindOwningAllocator(block);
+    auto* allocator = FindOwningAllocator(page_tab, block);
     DCHECK(allocator, "Free(): Orphaned memory?");
 
     if (!allocator || !allocator->Free(block))
@@ -69,19 +141,27 @@ struct EQMemoryRouter {
     return bytes_freed;
   }
 
+  STRONG_INLINE bool Deallocate(void* block, mem_size size, mem_size alignment) {
+    (void)alignment;
+    (void)size;
+    Free(block);
+    return true;
+  }
+
  private:
   mem_size block_size(PageTable& tab, void* block) { return 0; }
 
-  Allocator* FindOwningAllocator(void* block) {
-    // TODO(Vince): we should already know the index, since everything is aligned to a 1mib
-    // boundary, so we can assume the page alignment, so therefore the offset of the
-    // block. (starting from page_base)?
-    // and since we are the god father allocator we could hopefully grow that way?
-    for (auto i = 0; i < sizeof(allocator_mapping_table_) / sizeof(u8); i++) {
-      if (allocator_mapping_table_[i]) {
-      }
-    }
+  Allocator* FindOwningAllocator(base::PageTable& page_table, void* block) {
+    // the limit for an index is 1048576
+    auto index = page_table.PageOffset(block) >> kMibShift;
+    DCHECK(index <= sizeof(allocator_mapping_table_),
+           "Allocator index too large (over 1tib)");
+    DCHECK(index != kMaxAllocators,
+           "Unowned memory (no allocator knows its origin)");
 
+    if (allocator_mapping_table_[index] != kMaxAllocators) {
+      return allocators_[allocator_mapping_table_[index]];
+    }
     return nullptr;
   }
 
@@ -90,17 +170,19 @@ struct EQMemoryRouter {
   PageTable* page_table();
 
  private:
-  // TODO: figure out a way to run the dtor of the pagetable?
-  alignas(PageTable) byte page_table_data_[sizeof(PageTable)]{};
+  //~EQMemoryRouter() { page_table()->~PageTable(); }
+  alignas(PageTable) byte page_table_data_[4 /*magic*/ + sizeof(PageTable)]{};
   // see
   // https://cdn.discordapp.com/attachments/818575873203503165/1005495331636662373/unknown.png
   // every index (number stored from 1 - 255 at given position) corresponds to a page
   // at offset n
   Allocator* allocators_[base::MinMax<allocator_id>::max()]{nullptr};
+  allocator_id allocator_mapping_table_[kVirtualAddressRange >> kMibShift]{
+      kMaxAllocators};
 
-  // this shit incredibly bloats any exe with the 1mib
-  // but still better than denuvo i guess.
-  allocator_id allocator_mapping_table_[1_tib >> 20]{0xFF};
+  static constexpr auto x = kVirtualAddressRange >> kMibShift;
+  // static_assert(sizeof(allocator_mapping_table_) ==
+  //               kVirtualAddressRange >> kMibShift);
 };
 
 }  // namespace base

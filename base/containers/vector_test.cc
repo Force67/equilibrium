@@ -196,4 +196,38 @@ TEST(VectorTest, Clear) {
   vec.clear();
   EXPECT_EQ(vec.size(), 0);
 }
+
+TEST(VectorTest, Accessors) {
+  base::Vector<i32> vec;
+
+  for (i32 i = 0; i < 10; i++) {
+    vec.push_back(i);
+  }
+
+  for (i32 i = 0; i < 10; i++) {
+    EXPECT_EQ(vec[i], i);
+  }
+
+  for (i32 i = 0; i < 10; i++) {
+    EXPECT_EQ(*vec.at(i), i);
+  }
+
+  EXPECT_EQ(vec.front(), 0);
+  EXPECT_EQ(vec.back(), 9);
+}
+
+TEST(VectorTest, ShrinkToFit) {
+  base::Vector<i32> vec;
+
+  for (i32 i = 0; i < 20; i++) {
+    vec.push_back(i);
+  }
+  vec.resize(10);
+  EXPECT_EQ(vec.size(), 10);
+  EXPECT_NE(vec.capacity(), 10);
+
+  vec.shrink_to_fit();
+  EXPECT_EQ(vec.size(), 10);
+  EXPECT_EQ(vec.capacity(), 10);
+}
 }  // namespace

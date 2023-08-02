@@ -3,10 +3,10 @@
 // High dpi scaling utilities.
 #pragma once
 
-#include <core/SkPoint.h>
+#include <ui/primitives/point.h>
 
 namespace ui {
 
-SkPoint GetCurrentDpi(void* os_window);
-SkPoint GetCurrentDpiScalingFactor(void* os_window);
+ui::Point<f32> GetCurrentDpi(void* os_window);
+ui::Point<f32> GetCurrentDpiScalingFactor(void* os_window);
 }

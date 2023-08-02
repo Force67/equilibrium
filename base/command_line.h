@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/arch.h>
 #include <base/memory/unique_pointer.h>
 #include <base/strings/string_ref.h>
 #include <base/memory/move.h>
@@ -43,7 +44,9 @@ class CommandLine {
   bool HasSwitch(const base::StringRefU8 switch_name);
   //bool HasSwitch(const char* switch_name);
 
-  const mem_size size() { return pieces_.size(); }
+  xsize FindPositionalArgumentsIndex();
+
+  const xsize parameter_count() { return pieces_.size(); }
 
  private:
   void InitializeBuffer(const base::StringRefU8);

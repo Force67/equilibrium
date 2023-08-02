@@ -3,7 +3,7 @@
 
 #include "base/filesystem/path.h"
 
-#include "text/code_conv_validate.h"
+#include "text/code_point_validation.h"
 #include "text/code_convert.h"
 
 #include "strings/char_algorithms.h"

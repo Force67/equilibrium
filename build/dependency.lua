@@ -107,7 +107,7 @@ premake.override(premake.project, "bake", function(oldfn, prj)
           merge_pubdirs(rcfg, cfg)
           merge_pubdefs(rcfg, cfg)
         else
-          print("Failed to match remote config (Source proj is " .. prj.name ..
+          error("Failed to match remote config (Source proj is " .. prj.name ..
                   " dependency proj is " .. rp.name .. ")")
         end
       end

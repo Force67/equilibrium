@@ -1,0 +1,79 @@
+// Copyright (C) 2022 Vincent Hengel.
+// For licensing information see LICENSE at the root of this distribution.
+
+#include <sys/mman.h>
+#include <cstdint> // for uint32_t
+#include <cstring> // for memset
+
+namespace base {
+
+// Translate base::PageProtectionFlags to Linux-specific protection flags.
+NativePageProtectionType TranslateToNativePageProtection(const PageProtectionFlags flags) {
+    NativePageProtectionType result = PROT_NONE;
+
+    if (flags & PageProtectionFlags::X) {
+        if (flags & PageProtectionFlags::C) {
+            result = PROT_EXEC | PROT_WRITE;
+        } else if (flags & PageProtectionFlags::W) {
+            result = PROT_EXEC | PROT_READ | PROT_WRITE;
+        } else if (flags & PageProtectionFlags::R) {
+            result = PROT_EXEC | PROT_READ;
+        } else {
+            result = PROT_EXEC;
+        }
+    } else {
+        if (flags & PageProtectionFlags::C) {
+            result = PROT_WRITE;
+        } else if (flags & PageProtectionFlags::W) {
+            result = PROT_READ | PROT_WRITE;
+        } else if (flags & PageProtectionFlags::R) {
+            result = PROT_READ;
+        } else {
+            result = PROT_NONE;
+        }
+    }
+
+    if (flags & PageProtectionFlags::G)
+        result |= MAP_GUARD;
+
+    return result;
+}
+
+// Translate Linux-specific protection flags to base::PageProtectionFlags.
+PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtectionType flags) {
+    PageProtectionFlags result = PageProtectionFlags::NONE;
+
+    switch (flags & PROT_READ | PROT_WRITE | PROT_EXEC) {
+        case PROT_EXEC:
+            result = PageProtectionFlags::X;
+            break;
+        case PROT_EXEC | PROT_READ:
+            result = PageProtectionFlags::RX;
+            break;
+        case PROT_EXEC | PROT_READ | PROT_WRITE:
+            result = PageProtectionFlags::RWX;
+            break;
+        case PROT_EXEC | PROT_WRITE:
+            result = PageProtectionFlags::RWXC;
+            break;
+        case PROT_READ:
+            result = PageProtectionFlags::R;
+            break;
+        case PROT_READ | PROT_WRITE:
+            result = PageProtectionFlags::RW;
+            break;
+        case PROT_WRITE:
+            result = PageProtectionFlags::RWC;
+            break;
+        default:
+            result = PageProtectionFlags::INVALID;
+            break;
+    }
+
+    if (flags & MAP_GUARD)
+        result |= PageProtectionFlags::G;
+
+    return result;
+}
+
+} // namespace base

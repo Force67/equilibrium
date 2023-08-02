@@ -4,6 +4,7 @@
 
 #include <base/check.h>
 #include <base/atomic.h>
+#include <base/logging.h>
 #include <base/containers/bitsets/bitset.h>
 
 #include <base/text/code_convert.h>
@@ -232,12 +233,12 @@ void NativeWindowWin32::HandleWindowMove() {
   // we changed displays.
   HMONITOR current_mon = ui::GetCurrentMonitorHandle(hwnd_);
   if (current_mon != tracked_monitor_) {
-    dpi_ = ui::GetMonitorDpi(current_mon).x();
+    dpi_ = ui::GetMonitorDpi(current_mon).x;
     tracked_monitor_ = current_mon;
     // re-scale based on the actual desired bounds instead of the
     // current(scaled) bounds in order to avoid infinite scaling.
     const auto b = bounds();
-    ResizeBounds({b.x(), b.y()}, user_size_);
+    ResizeBounds({b.x, b.y}, user_size_);
 
     // fire dpi change event so UI can react.
     if (delegate_)
@@ -245,24 +246,24 @@ void NativeWindowWin32::HandleWindowMove() {
   }
 }
 
-void NativeWindowWin32::HandleWindowResize(const SkIPoint new_size) {
+void NativeWindowWin32::HandleWindowResize(const ui::IPoint new_size) {
   // TODO: does this even make much sense, no!
   if (new_size != user_size_) {
     user_size_ = new_size;
   }
 }
 
-LRESULT NativeWindowWin32::HandleWindowHittest(const SkIPoint pos) {
+LRESULT NativeWindowWin32::HandleWindowHittest(const ui::IPoint pos) {
   // Make sure the point is inside of the window
   RECT frame_rect{};
   ::GetWindowRect(hwnd_, &frame_rect);
-  if (!HitTest(pos.x(), pos.y(), frame_rect))
+  if (!HitTest(pos.x, pos.y, frame_rect))
     return HTNOWHERE;
 
   RECT rect{};
   ::GetClientRect(hwnd_, &rect);
 
-  POINT p{.x = pos.x(), .y = pos.y()};
+  POINT p{.x = pos.x, .y = pos.y};
   ::ScreenToClient(hwnd_, &p);
 
   // Check each border
@@ -271,13 +272,13 @@ LRESULT NativeWindowWin32::HandleWindowHittest(const SkIPoint pos) {
   bool b = false;
   bool t = false;
   if (!::IsZoomed(hwnd_)) {
-    if (rect.left <= pos.x() && pos.x() < rect.left + border_width)
+    if (rect.left <= pos.x && pos.x < rect.left + border_width)
       l = true;  // left
-    if (rect.right - border_width <= pos.x() && pos.x() < rect.right)
+    if (rect.right - border_width <= pos.x && pos.x < rect.right)
       r = true;  // right
-    if (rect.bottom - border_width <= pos.y() && pos.y() < rect.bottom)
+    if (rect.bottom - border_width <= pos.y && pos.y < rect.bottom)
       b = true;  // bottom
-    if (rect.top <= pos.y() && pos.y() < rect.top + border_width)
+    if (rect.top <= pos.y && pos.y < rect.top + border_width)
       t = true;  // top
   }
 
@@ -312,11 +313,11 @@ LRESULT NativeWindowWin32::HandleWindowHittest(const SkIPoint pos) {
   // borders, so the final options are the window moving area (caption)
   // and the client area.
   else {
-    if (rect.top <= pos.y() && pos.y() < rect.top + caption_width) {
+    if (rect.top <= pos.y && pos.y < rect.top + caption_width) {
       result = HTCAPTION;
       // Check the application defined widget areas
       for (int i = 0; i < embedded_widget_count; i += 1) {
-        if (HitTest(pos.x(), pos.y(), embedded_widget_rect[i])) {
+        if (HitTest(pos.x, pos.y, embedded_widget_rect[i])) {
           result = HTCLIENT;
           break;
         }
@@ -342,7 +343,7 @@ void NativeWindowWin32::HandleDestroy() {
 }
 
 bool NativeWindowWin32::Init(handle parent_handle,
-                             const SkIRect suggested_bounds,
+                             const ui::IRect suggested_bounds,
                              const CreateFlags flags,
                              u8 icon_id) {
   // Note  As of Windows 8, DWM composition is always enabled. If an app declares
@@ -394,8 +395,8 @@ bool NativeWindowWin32::Init(handle parent_handle,
     DCHECK(::IsWindow(parent));
   }
 
-  SkIRect bounds;
-  if (suggested_bounds.isEmpty())
+  ui::IRect bounds;
+  if (suggested_bounds.empty())
     bounds = {CW_USEDEFAULT};
   else
     bounds = suggested_bounds;
@@ -451,7 +452,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
   // store the monitor we were spawned from
   BUGCHECK(tracked_monitor_ = ui::GetCurrentMonitorHandle(hwnd_));
   user_size_ = {bounds.width(), bounds.height()};
-  dpi_ = ui::GetMonitorDpi(tracked_monitor_).x();
+  dpi_ = ui::GetMonitorDpi(tracked_monitor_).x;
   // this is only done now since we have to wait for the window to be placed in
   // order to fetch DPI
   ResizeBounds({bounds.x(), bounds.y()}, user_size_);
@@ -527,28 +528,28 @@ NativeWindowWin32::handle NativeWindowWin32::os_handle() const {
   return hwnd_;
 }
 
-const SkIRect NativeWindowWin32::bounds() const {
+const ui::IRect NativeWindowWin32::bounds() const {
   RECT r{};
   ::GetWindowRect(hwnd_, &r);
   return {r.left, r.top, r.right, r.bottom};
 }
 
-bool NativeWindowWin32::ResizeBounds(const SkIPoint window_pos,
-                                     const SkIPoint in_dimension) {
+bool NativeWindowWin32::ResizeBounds(const ui::IPoint window_pos,
+                                     const ui::IPoint in_dimension) {
   DCHECK(dpi_ > 95.f,
          "A dpi value must be provided to ensure the same size across all "
          "monitors");
   // Manually do what EnableNonClientDpiScaling() would do, so we are compatible
   // with all versions of windows.
-  SkScalar dpi_factor = GetDPIFactor(dpi_);
-  const SkIPoint scaled_bounds = {static_cast<i32>(in_dimension.x() * dpi_factor),
-                                  static_cast<i32>(in_dimension.y() * dpi_factor)};
+  f32 dpi_factor = GetDPIFactor(dpi_).x;
+  const ui::IPoint scaled_bounds = {static_cast<i32>(in_dimension.x * dpi_factor),
+                                  static_cast<i32>(in_dimension.y * dpi_factor)};
 
   // what we get out is the new desired size, but what if we update that only after
   // the
   i32 new_width = 0, new_height = 0;
-  ScaleWindowSize(window_style_, window_ex_style_, scaled_bounds.x(),
-                  scaled_bounds.y(), new_width, new_height, static_cast<UINT>(dpi_));
+  ScaleWindowSize(window_style_, window_ex_style_, scaled_bounds.x,
+                  scaled_bounds.y, new_width, new_height, static_cast<UINT>(dpi_));
 
   const auto bounds =
       SkIRect::MakeXYWH(window_pos.x(), window_pos.y(), new_width, new_height);

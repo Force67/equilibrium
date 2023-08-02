@@ -24,9 +24,7 @@ template <typename T>
 class Optional {
   // BASE_NOMOVE(Expected);
  public:
-  inline Optional(T value) : is_empty_(false) { 
-      *storage() = value;
-  }
+  inline Optional(T value) : is_empty_(false) { *storage() = value; }
   // empty
   inline Optional() : is_empty_(true) {}
 
@@ -41,6 +39,8 @@ class Optional {
 #endif
     return is_empty_;
   }
+
+  bool has_value() noexcept { return !is_empty_; }
 
   CONSTEXPR_ND T& value() noexcept {
     DCHECK(!is_empty_, "base::Optional::value(): tried to access empty value");

@@ -2,8 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Windows platform window implementation.
 #pragma once
+
 #include <Windows.h>
-#include <core/SkRect.h>
+#include <ui/primitives/rect.h>
+#include <ui/primitives/point.h>
 #include <ui/platform/native_window.h>
 
 namespace ui {
@@ -30,7 +32,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   ~NativeWindowWin32();
 
   bool Init(handle parent,
-            const SkIRect bounds,
+            const ui::IRect bounds,
             const CreateFlags,
             u8 icon_id = 102) override;
   bool SetTitle(const base::StringRefU8) override;
@@ -39,7 +41,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   void SendCommand(Command) override;
 
   handle os_handle() const override;
-  const SkIRect bounds() const override;
+  const ui::IRect bounds() const override;
 
   void SetDelegate(WindowDelegateWin* new_delegate) { delegate_ = new_delegate; }
 
@@ -55,10 +57,10 @@ class NativeWindowWin32 final : public ui::NativeWindow {
 
   void HandleDestroy();
   void HandleWindowMove();
-  void HandleWindowResize(const SkIPoint new_size);
-  LRESULT HandleWindowHittest(const SkIPoint);
+  void HandleWindowResize(const ui::IPoint new_size);
+  LRESULT HandleWindowHittest(const ui::IPoint);
 
-  bool ResizeBounds(const SkIPoint window_pos, const SkIPoint in_dimension);
+  bool ResizeBounds(const ui::IPoint window_pos, const ui::IPoint in_dimension);
   void ExtendClientFrame(RECT&);
 
   bool IsCustomWindowBorderEnabled() const;
@@ -69,7 +71,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   UINT class_style_;
   HWND hwnd_ = nullptr;
   HMONITOR tracked_monitor_ = nullptr;
-  SkIPoint user_size_{};
+  ui::IPoint user_size_{};
   bool request_resize_{false};
   bool is_custom_styled_{false};
   WindowDelegateWin* delegate_;

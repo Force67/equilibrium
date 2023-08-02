@@ -6,6 +6,7 @@ include("eq/database")
 include("eq/entitlement")
 include("eq/gpu")
 include("eq/network")
+--include("eq/flutter_ui")
 include("eq/ui")
 
 -- we intentionally don't include the eq dir here, as the user should

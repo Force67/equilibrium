@@ -45,7 +45,7 @@ void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
 // please use the LOG_... macros
 template <typename... Args>
 void PrintfLogMessage(LogLevel level, const char* format, const Args&... args) {
-  using context = fmt::basic_printf_context_t<char>;
+  using context = fmt::basic_printf_context<char>;
   detail::WriteLogMessagef(level, format, fmt::make_format_args<context>(args...));
 }
 }  // namespace base

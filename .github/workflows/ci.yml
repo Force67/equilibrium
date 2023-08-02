@@ -2,16 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [ "main", "devel2" ]
+    branches: [ "main", "devel3" ]
   pull_request:
-    branches: [ "main", "devel2" ]
+    branches: [ "main", "devel3" ]
 
 jobs:
     MSVC:
       runs-on: windows-latest
       strategy:
         matrix:
-          config: [Debug, DebugAsan, Profile, Release, Shipping]
+          config: [Debug, Shipping]
       steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -21,7 +21,7 @@ jobs:
       - name: Build
         shell: powershell
         run: |
-          .\premake.cmd
+          .\build\premake_win.cmd
           $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
           cmd /c """$vcvarsall_path"" x86_amd64 & set" | foreach {
             if ($_ -match "=") {
@@ -44,3 +44,24 @@ jobs:
         with:
           name: test-results
           path: .\tests\convert-*.xml
+
+    Linux:
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          config: [Debug, Shipping]
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: '0'
+      - name: Setup C++ environment
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: llvm
+      - name: Build
+        run: |
+          ./build/premake_linux.sh ${{ matrix.config }}
+          cd out/gmake2
+          make

@@ -43,8 +43,13 @@ class BucketAllocator final : public Allocator {
     };
     u16 flags_{kUsed};
 
+    explicit Bucket(u32 offset, u16 size, Flags flags)
+        : offset_(offset), size_(size), flags_(flags) {}
+
     inline bool IsinUse() const { return flags_ & Flags::kUsed; }
   };
+  static_assert(sizeof(Bucket) == sizeof(pointer_size), "Bucket is too fat");
+
   union BucketStore {
     Bucket bucket;
     pointer_size as_pointer;
@@ -56,27 +61,61 @@ class BucketAllocator final : public Allocator {
                 "Bucket must fit into atomic/register space");
 
   Bucket* FindBucket(pointer_size address);
-  i32 FindFreeBucketHead(mem_size requested_size);
+
+  // (Bucket) Page Memory layout:
+  // +-------------------------------------------------------------------+
+  // |                             PageTag                               |
+  // |   +-------------+--------------+------------------+               |
+  // |   |  ref_count  | bucket_count |  page_size       |               |
+  // |   +-------------+--------------+------------------+               |
+  // |                                                                   |
+  // |                           HeaderNode                              |
+  // |   +-------------------------------------------------------+       |
+  // |   |  tag (ref_count, bucket_count, page_size)            |        |
+  // |   +-------------------------------------------------------+       |
+  // |                                                                   |
+  // |                           Usable Data                             |
+  // |   +------------------+------------------+----                     |
+  // |   |                  |                  |    ...                  |
+  // |   +------------------+------------------+----                     |
+  // |                                                                   |
+  // |                         Bucket Metadata                           |
+  // |   +------------------+------------------+----                     |
+  // |   |    Bucket 1      |    Bucket 2      |    ...                  |
+  // |   +------------------+------------------+----                     |
+  // +-------------------------------------------------------------------+
 
   struct PageTag {
-    base::Atomic<mem_size> ref_count;
+    base::Atomic<mem_size> ref_count;  // TODO: impl it
     base::Atomic<mem_size> bucket_count;
-    mem_size page_size;  // not really needed atm, but if we wanna go for a hybrid
-                         // model, it might be worth it
-    // TODO: some refcount?
-    byte* begin() { return reinterpret_cast<byte*>(this); }
-    byte* data() { return begin() + sizeof(PageTag); }
-    byte* end() { return begin() + page_size; }
+    mem_size
+        page_size;  // not really needed atm since we know the size is always 65k,
+                    // but if we wanna go for a hybrid model, it might be worth it
+                    //
+
+    // better dont ask. we need to do it since we loose 16 bytes to our ancestor
+    // aswell
+    byte* begin() const {
+      return const_cast<byte*>(reinterpret_cast<const byte*>(this) -
+                               sizeof(base::internal::LinkNodeBase));
+    }
+    byte* end() const { return begin() + page_size; }
+
+    // this returns the beginning of actually useable data...
+    byte* data() const { return begin() + sizeof(HeaderNode); }
   };
+  static_assert(sizeof(PageTag) == 24, "Pagetag is of a weird size");
 
   bool DoAnyBucketsIntersect(const PageTag& tag);
 
-  class HeaderNode : public LinkNode<HeaderNode> {
+  class HeaderNode final : public LinkNode<HeaderNode> {
    public:
     explicit HeaderNode(mem_size page_size) : tag{0, 0, page_size} {}
 
     PageTag tag;
   };
+  static_assert(sizeof(HeaderNode) == 40, "HeaderNode is of a weird size");
+
   LinkedList<HeaderNode> page_list_;
 
   struct ScopedPageAccess {
@@ -92,7 +131,7 @@ class BucketAllocator final : public Allocator {
     return reinterpret_cast<byte*>(page_base + offset);
   }
 
-  void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
+  // void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
   Bucket* FindFreeBucket(mem_size requested_size, byte*&);
 };
 }  // namespace base

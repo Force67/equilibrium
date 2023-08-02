@@ -8,6 +8,7 @@
 #include <base/containers/linked_list.h>
 #include <base/memory/memory_literals.h>
 
+#include <base/allocator/memory_range.h>
 #include <base/allocator/page_protection.h>
 
 namespace base {
@@ -16,7 +17,7 @@ using namespace memory_literals;
 // page table only manages pages, not blocks within these pages.
 class PageTable {
  public:
-  PageTable();
+  explicit PageTable(mem_size reserve_count);
 
   struct Options {
     bool zero_pages{true};
@@ -35,17 +36,31 @@ class PageTable {
 
   bool ReleasePage(void* address);
 
- private:
-  mem_size ReservePages(const pointer_size page_base, const mem_size count);
+  uintptr_t PageOffset(void* address) {
+    auto b = reinterpret_cast<uintptr_t>(address);
+    DCHECK(first_page_ != 0, "First page not set");
+    //DCHECK(b >= first_page_, "Page out of bounds");
+    return b - first_page_;
+  }
 
-  byte* Reserve(void* preferred, mem_size block_size);
+ private:
+  mem_size ReserveAddressSpace();
+  
+  byte* Reserve(void* requested_range_start_address,
+                void* requested_range_end_address,
+                mem_size block_size);
 
   // initialize_with should be an optional...
-  void* Allocate(void* preferred_address,
+  void* Allocate(void* requested_range_start_address,
                  mem_size block_size,
                  base::PageProtectionFlags,
                  byte initalize_with,
                  bool use_initialize);
+  bool DeAllocate(void* block_address);
+
+  bool ChangePageProtection(void* block_address,
+                            mem_size block_size,
+                            base::PageProtectionFlags new_protection_flags);
 
   bool Free(void* address);
 
@@ -70,6 +85,11 @@ class PageTable {
   };
   static_assert(sizeof(PageEntry) == 2 * sizeof(pointer_size),
                 "PageEntry alignment is invalid");
+
+  struct FreeListEntry {
+    FreeListEntry* next;
+  };
+  FreeListEntry* freelist_ = nullptr;
 
   // do we even need a size parameter if every page is 64k?
   // do we even need an address if they are a continuous array? (e.g aligned to a

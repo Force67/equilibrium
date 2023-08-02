@@ -23,7 +23,7 @@ class UniquePointer {
  public:
   using TType = base::remove_extent_t<T>;
 
- private:
+ public:
   // we forbid direct useage of this in order to force the user to use the MakeUnique
   // function which prevents dangleing references
   constexpr UniquePointer(TType* pointer) noexcept : pointer_(pointer) {}

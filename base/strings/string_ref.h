@@ -10,6 +10,8 @@
 #include <base/strings/string_search.h>
 #include <base/strings/char_algorithms.h>
 
+#include <base/hashing/fnv1a.h>
+
 namespace base {
 
 // template <typename T>
@@ -61,7 +63,7 @@ class BasicStringRef {
                                  : StringRefFlags::kNone) {}
 
   // construct from raw string
-  BasicStringRef(const TChar* data)
+  constexpr BasicStringRef(const TChar* data)
       : data_(data),
         length_(static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
     // if our length is greater than 0, it means we have hit the null barrier..., so
@@ -73,7 +75,7 @@ class BasicStringRef {
                 : StringRefFlags::kNone;
   }
 
-  ~BasicStringRef() {
+  constexpr ~BasicStringRef() {
 #if 0
     if (tags_ & StringRefFlags::kInvalidateDeadRef) {
       data_ = nullptr;
@@ -82,13 +84,51 @@ class BasicStringRef {
 #endif
   }
 
+  bool compare(const TChar* rhs, mem_size character_count) const {
+    return memcmp(data_, rhs, character_count * sizeof(TChar)) == 0;
+  }
+
+  // Comparison operators
+  friend bool operator==(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    if (lhs.length_ != rhs.length_) {
+      return false;
+    }
+    return memcmp(lhs.data_, rhs.data_, lhs.length_ * sizeof(TChar)) == 0;
+  }
+
+  friend bool operator!=(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    return !(lhs == rhs);
+  }
+
+  friend bool operator<(const BasicStringRef<TChar>& lhs,
+                        const BasicStringRef<TChar>& rhs) {
+    return lhs.length_ < rhs.length_;
+  }
+
+  friend bool operator<=(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    return !(rhs < lhs);
+  }
+
+  friend bool operator>(const BasicStringRef<TChar>& lhs,
+                        const BasicStringRef<TChar>& rhs) {
+    return rhs < lhs;
+  }
+
+  friend bool operator>=(const BasicStringRef<TChar>& lhs,
+                         const BasicStringRef<TChar>& rhs) {
+    return !(lhs < rhs);
+  }
+
   // Use this in the rare case where you might have an empty string_ref;
   static constexpr inline BasicStringRef<TChar> null_ref() {
     // thanks to constinit we can ensure no ugly c++ guard is generated around this,
     // so while not pretty, this is OK
-    static constinit TChar null_array[] = {0};
-    static constinit BasicStringRef<TChar> null_ref{null_array, 0,
-                                                    false /*disallow .c_str()*/};
+    constinit TChar null_array[] = {0};
+    constinit BasicStringRef<TChar> null_ref{null_array, 0,
+                                             false /*disallow .c_str()*/};
     return null_ref;
   }
 
@@ -125,6 +165,8 @@ class BasicStringRef {
   mem_size size() const { return static_cast<mem_size>(length_); }
   // returns the length in characters
   mem_size length() const { return static_cast<mem_size>(length_); }
+
+  bool empty() const { return length_ == 0; }
 
   constexpr mem_size find(const TChar* s, mem_size pos, mem_size count) const {
     return base::StringSearch(data_, length(), s, pos, count);
@@ -179,3 +221,14 @@ inline base::StringRefU32 operator""_s(const char32_t* s, size_t length) {
   return base::StringRefU32(s, length);
 }
 }  // namespace base
+
+namespace std {
+template <typename TChar>
+struct hash<base::BasicStringRef<TChar>> {
+  std::size_t operator()(const base::BasicStringRef<TChar>& str) const {
+    // Use a hash function to compute the hash value for the string.
+    // Here is an example implementation using the std::hash function:
+    return base::FNV1a32(reinterpret_cast<const char*>(str.data()));
+  }
+};
+}  // namespace std
