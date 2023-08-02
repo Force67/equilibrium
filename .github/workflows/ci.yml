@@ -62,6 +62,6 @@ jobs:
           compiler: llvm
       - name: Build
         run: |
-          ./build/premake_linux.sh
+          ./build/premake_linux.sh ${{ matrix.config }}
           cd out/gmake2
           make
