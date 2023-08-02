@@ -105,7 +105,7 @@ struct EQMemoryRouter {
                                         mem_size former_size,
                                         mem_size new_size,
                                         mem_size alignment) {
-    __debugbreak();
+    DEBUG_TRAP;
     return nullptr;
 #if 0
     // Allocate a new block with the desired size and alignment.

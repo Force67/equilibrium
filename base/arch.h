@@ -23,7 +23,7 @@ using f64 = double;
 using byte = u8;
 
 using mem_size = u64;
-using size = u64;
+using xsize = u64;
 using pointer_size = u64;
 using pointer_diff = i64;
 

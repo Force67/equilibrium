@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <new>
+#include <cstring>
 #include <base/check.h>
 #include <base/allocator/eq_alloc/page_table.h>
 #include <base/allocator/eq_alloc/bucket_allocator.h>

@@ -50,7 +50,7 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) {
   return base::StringRefU8(piece.c_str(), piece.length());
 }
 
-size CommandLine::FindPositionalArgumentsIndex() {
+xsize CommandLine::FindPositionalArgumentsIndex() {
   mem_size positional_index = 1;  // start at one, si nce the first arg, is the
                                   // program path itself on most platforms
   for (auto i = 1; i < pieces_.size(); i++) {

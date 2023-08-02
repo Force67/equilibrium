@@ -6,7 +6,13 @@
     ],
     "settings": {
         "files.associations": {
-            "string_view": "cpp"
+            "string_view": "cpp",
+            "array": "cpp",
+            "bitset": "cpp",
+            "initializer_list": "cpp",
+            "span": "cpp",
+            "regex": "cpp",
+            "utility": "cpp"
         }
     }
 }
