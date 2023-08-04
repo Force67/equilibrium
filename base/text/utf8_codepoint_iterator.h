@@ -32,8 +32,8 @@ class UTF8CodePointIterator {
   UTF8CodePointIterator& operator=(const UTF8CodePointIterator&) = delete;
   ~UTF8CodePointIterator() = default;
 
-  size array_pos() const { return array_pos_; }
-  size char_pos() const { return char_pos_; }
+  xsize array_pos() const { return array_pos_; }
+  xsize char_pos() const { return char_pos_; }
 
   const character_type current_character() const { return char_; }
 
@@ -57,14 +57,14 @@ class UTF8CodePointIterator {
 
   // peek at current location + n characters (in code points).
   // e.g Hi 世界 -> Peek at pos 1 with 3 yields 界
-  const character_type PeekCharacter(const size number_of_code_points) {
+  const character_type PeekCharacter(const xsize number_of_code_points) {
     character_type the_char = 0;
-    size the_pos = array_pos_;
+    xsize the_pos = array_pos_;
     if (the_pos >= str_.length())
       return 0;
     // skip past this character.
     CBU8_NEXT(str_.data(), the_pos, str_.length(), the_char);
-    for (size i = 0; i < number_of_code_points; i++) {
+    for (xsize i = 0; i < number_of_code_points; i++) {
       if (the_pos >= str_.length())
         return 0;
       CBU8_NEXT(str_.data(), the_pos, str_.length(), the_char);
@@ -74,9 +74,9 @@ class UTF8CodePointIterator {
 
  private:
   base::StringRefU8 str_;
-  size array_pos_{0};
-  size next_pos_{0};
-  size char_pos_{0};
+  xsize array_pos_{0};
+  xsize next_pos_{0};
+  xsize char_pos_{0};
   character_type char_{0};
 };
 }  // namespace base
