@@ -48,6 +48,10 @@ class CommandLine {
 
   const xsize parameter_count() { return pieces_.size(); }
 
+  // cxx iterator
+  auto begin() { return pieces_.begin(); }
+  auto end() { return pieces_.end(); }
+
  private:
   void InitializeBuffer(const base::StringRefU8);
 

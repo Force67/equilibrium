@@ -3,7 +3,8 @@
 #pragma once
 
 #define FMT_HEADER_ONLY
-#include <fmt/format.h>
+#define FMT_ENABLE_WIDE
+#include <fmt/xchar.h>
 #include <fmt/printf.h>
 
 #include <base/export.h>

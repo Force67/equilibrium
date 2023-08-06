@@ -220,6 +220,15 @@ inline base::StringRefU16 operator""_s(const char16_t* s, size_t length) {
 inline base::StringRefU32 operator""_s(const char32_t* s, size_t length) {
   return base::StringRefU32(s, length);
 }
+
+template <typename T>
+base::BasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
+                                    bool no_nterm = false) {
+  base::BasicString<T> strong(slice.data(), slice.length() + (!no_nterm ? 1 : 0));
+  if (!no_nterm)
+    strong[slice.length()] = 0;
+  return strong;
+}
 }  // namespace base
 
 namespace std {

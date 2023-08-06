@@ -7,8 +7,6 @@
 #include "base/random.h"
 #include "base/logging.h"
 
-#define FMT_ENABLE_WIDE
-#include <fmt/format.h>
 #include <windows.h>
 #include <base/threading/scoped_blocking_call.h>
 
