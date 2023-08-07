@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <cstdint> // for uint32_t
 #include <cstring> // for memset
+#include "base/allocator/page_protection.h"
 
 namespace base {
 
@@ -33,9 +34,7 @@ NativePageProtectionType TranslateToNativePageProtection(const PageProtectionFla
         }
     }
 
-    if (flags & PageProtectionFlags::G)
-        result |= MAP_GUARD;
-
+    //DCHECK(!(flags & PageProtectionFlags::G), "Posix doesnt support guard pages in the same way");
     return result;
 }
 
@@ -70,8 +69,8 @@ PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtection
             break;
     }
 
-    if (flags & MAP_GUARD)
-        result |= PageProtectionFlags::G;
+    //if (flags & MAP_GUARD)
+    //    result |= PageProtectionFlags::G;
 
     return result;
 }
