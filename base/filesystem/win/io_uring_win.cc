@@ -51,8 +51,89 @@ typedef struct IORING_CQE {
   ULONG_PTR Information;
 } IORING_CQE;
 
+// enum used as discriminator for references to resources that
+// support preregistration in an IORING
+typedef enum IORING_REF_KIND {
+  IORING_REF_RAW,
+  IORING_REF_REGISTERED,
+} IORING_REF_KIND;
+
+typedef struct IORING_HANDLE_REF {
+#ifdef __cplusplus
+  explicit IORING_HANDLE_REF(HANDLE h)
+      : Kind(IORING_REF_KIND::IORING_REF_RAW), Handle(h) {}
+
+  explicit IORING_HANDLE_REF(u32 index)
+      : Kind(IORING_REF_KIND::IORING_REF_REGISTERED), Handle(index) {}
+#endif
+
+  IORING_REF_KIND Kind;
+  union HandleUnion {
+#ifdef __cplusplus
+    HandleUnion(HANDLE h) : Handle(h) {}
+
+    HandleUnion(u32 index) : Index(index) {}
+#endif
+    // Handle to the file object if Kind == IORING_REF_RAW
+    HANDLE Handle;
+
+    // Index of registered file handle if Kind == IORING_REF_REGISTERED
+    u32 Index;
+  } Handle;
+} IORING_HANDLE_REF;
+
+typedef struct IORING_REGISTERED_BUFFER {
+  // Index of pre-registered buffer
+  u32 BufferIndex;
+
+  // Offset into the pre-registered buffer
+  u32 Offset;
+} IORING_REGISTERED_BUFFER;
+
+typedef struct IORING_BUFFER_REF {
+#ifdef __cplusplus
+  explicit IORING_BUFFER_REF(void* address)
+      : Kind(IORING_REF_KIND::IORING_REF_RAW), Buffer(address) {}
+
+  explicit IORING_BUFFER_REF(IORING_REGISTERED_BUFFER registeredBuffer)
+      : Kind(IORING_REF_KIND::IORING_REF_REGISTERED), Buffer(registeredBuffer) {}
+
+  IORING_BUFFER_REF(u32 index, u32 offset)
+      : IORING_BUFFER_REF(IORING_REGISTERED_BUFFER{index, offset}) {}
+#endif
+
+  IORING_REF_KIND Kind;
+  union BufferUnion {
+#ifdef __cplusplus
+    BufferUnion(void* address) : Address(address) {}
+
+    BufferUnion(IORING_REGISTERED_BUFFER indexAndOffset)
+        : IndexAndOffset(indexAndOffset) {}
+#endif
+    // Address of the buffer if Kind == IORING_REF_RAW
+    void* Address;
+
+    // Registered buffer details if Kind == IORING_REF_REGISTERED
+    IORING_REGISTERED_BUFFER IndexAndOffset;
+  } Buffer;
+} IORING_BUFFER_REF;
+
 extern "C" __declspec(dllimport) HRESULT
     PopIoRingCompletion(_In_ void* ioRing, IORING_CQE* cqe);
+
+typedef enum IORING_SQE_FLAGS {
+  IOSQE_FLAGS_NONE = 0,
+} IORING_SQE_FLAGS;
+
+extern "C" __declspec(dllimport) HRESULT
+    BuildIoRingReadFile(void* ioRing,
+                        IORING_HANDLE_REF fileRef,
+                        IORING_BUFFER_REF dataRef,
+                        u32 numberOfBytesToRead,
+                        u64 fileOffset,
+                        UINT_PTR userData,
+                        IORING_SQE_FLAGS flags);
+
 }  // namespace
 
 #include "filesystem/io_uring.h"
@@ -64,7 +145,6 @@ bool IOUring::Create() {
     LOG_ERROR("Failed to query IO ring capabilities.");
     return false;
   }
-
   // Log the capabilities for debugging.
   LOG_TRACE(
       "MaxVersion: {}, MaxSubmissionQueueSize: {}, MaxCompletionQueueSize: {}, "
@@ -76,7 +156,6 @@ bool IOUring::Create() {
     LOG_ERROR("API outdated");
     return false;
   }
-
   IORING_CREATE_FLAGS flags{};
   if (FAILED(
           ::CreateIoRing(IORING_VERSION_3, flags, 0x10000, 0x20000, ring_handle_))) {
@@ -92,13 +171,13 @@ void IOUring::Destroy() {
     // Before destroying the IO ring, you might want to ensure there are no pending
     // operations. Depending on your use case, you might also want to check
     // completions or other states.
-
     if (FAILED(::CloseIoRing(ring_handle_))) {
       LOG_ERROR("Failed to close IO ring.");
     }
     ring_handle_ = nullptr;
   } else {
-    LOG_WARNING("Attempted to destroy an uninitialized or already destroyed IO ring.");
+    LOG_WARNING(
+        "Attempted to destroy an uninitialized or already destroyed IO ring.");
   }
 }
 
@@ -106,23 +185,17 @@ bool IOUring::SubmitReadFile(HANDLE fileHandle,
                              void* buffer,
                              UINT32 size,
                              UINT64 offset,
-                             IOCompletionCallback callback) {
+                             CompletionCallback callback) {
   IORING_HANDLE_REF fileRef = IoRingHandleRefFromHandle(fileHandle);
   IORING_BUFFER_REF bufferRef = IoRingBufferRefFromPointer(buffer);
-
-  IOOperation op;
-  op.userData = reinterpret_cast<UINT_PTR>(
-      buffer);  // Example: using buffer address as user data for simplicity
-  op.callback = callback;
-
-  HRESULT result = BuildIoRingReadFile(ioRingHandle, fileRef, bufferRef, size,
-                                       offset, op.userData, IOSQE_FLAGS_NONE);
+  Operation op{buffer, base::move(callback)};
+  HRESULT result = ::BuildIoRingReadFile(
+      ring_handle_, fileRef, bufferRef, size, offset, op.extra_data, IOSQE_FLAGS_NONE);
   if (FAILED(result)) {
     LOG_ERROR("Failed to submit read operation.");
     return false;
   }
-
-  operationsQueue.push(op);
+  pending_queue_.push_back(op);
   return true;
 }
 
@@ -131,11 +204,11 @@ void IOUring::WaitForCompletions() {
     IORING_CQE cqe;
     HRESULT result = ::PopIoRingCompletion(ring_handle_, &cqe);
     if (SUCCEEDED(result)) {
-      Operation &op = pending_queue_.front();
-      pending_queue_.pop();
+      Operation& op = pending_queue_.front();
+      pending_queue_.erase();
 
       // Check if user data matches (for validation)
-      if (op.userData == cqe.UserData && op.callback) {
+      if (op.extra_data == cqe.UserData && op.callback) {
         op.callback(cqe);
       }
     }

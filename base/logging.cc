@@ -13,7 +13,10 @@ static_assert(sizeof(kLevelToNames) / sizeof(const char*) ==
                   static_cast<size_t>(LogLevel::kAll),
               "Mapping mismatch");
 
-void DefaultLogHandler(void* user_pointer, LogLevel ll, const char* msg) {
+void DefaultLogHandler(void* user_pointer,
+                       const char* channel_name,
+                       LogLevel ll,
+                       const char* msg) {
   // TODO: log to debug out.
 }
 
@@ -41,26 +44,30 @@ void SetLogInstance(void* user_pointer) {
 }
 
 namespace detail {
-void WriteLogMessage(LogLevel ll, const char* text, const fmt::format_args& args) {
+void WriteLogMessage(const char* channel_name,
+                     LogLevel ll,
+                     const char* text,
+                     const fmt::format_args& args) {
   // optimization to get rid of the std::string construction
   fmt::basic_memory_buffer<char> buffer;
   fmt::detail::vformat_to(buffer, fmt::v10::string_view(text), args);
   buffer.push_back(0);  // will not allocate
-  log_data.callback(log_data.user_pointer, ll, buffer.data());
+  log_data.callback(log_data.user_pointer, channel_name, ll, buffer.data());
 }
 
-void WriteLogMessagef(LogLevel ll,
+void WriteLogMessagef(const char* channel_name,
+                      LogLevel ll,
                       const char* text,
                       const fmt::basic_format_args<fmt::printf_context>& args) {
   fmt::basic_memory_buffer<char> buffer;
   fmt::detail::vprintf(buffer, fmt::v10::string_view(text), args);
   buffer.push_back(0);  // will not allocate
 
-  log_data.callback(log_data.user_pointer, ll, buffer.data());
+  log_data.callback(log_data.user_pointer, channel_name, ll, buffer.data());
 }
 
-void WriteLogMessage(LogLevel ll, const char* text) {
-  log_data.callback(log_data.user_pointer, ll, text);
+void WriteLogMessage(const char* channel_name, LogLevel ll, const char* text) {
+  log_data.callback(log_data.user_pointer, channel_name, ll, text);
 }
 }  // namespace detail
 }  // namespace base

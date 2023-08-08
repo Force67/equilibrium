@@ -11,7 +11,6 @@
 #include <base/compiler.h>
 
 // TODO: support concept of spaces
-// TODO: support channels
 namespace base {
 
 enum class LogLevel : uint32_t {
@@ -26,39 +25,65 @@ enum class LogLevel : uint32_t {
 const char* LogLevelToName(LogLevel level) noexcept;
 
 namespace detail {
-void WriteLogMessage(LogLevel, const char*, const fmt::format_args&);
-void WriteLogMessagef(LogLevel,
+void WriteLogMessage(const char* channel_name,
+                     LogLevel,
+                     const char*,
+                     const fmt::format_args&);
+void WriteLogMessagef(const char* channel_name,
+                      LogLevel,
                       const char*,
                       const fmt::basic_format_args<fmt::printf_context>&);
-void WriteLogMessage(LogLevel, const char*);
+void WriteLogMessage(const char* channel_name, LogLevel, const char*);
 }  // namespace detail
 
-using LogHandler = void (*)(void*, LogLevel, const char*);
+using LogHandler = void (*)(void*, const char* channel_name, LogLevel, const char*);
 BASE_EXPORT void SetLogHandler(LogHandler, void* user_pointer) noexcept;
 BASE_EXPORT void SetLogInstance(void* user_pointer);
 
 template <typename... Args>
-void PrintLogMessage(LogLevel level, const char* format, const Args&... args) {
-  detail::WriteLogMessage(level, format, fmt::make_format_args(args...));
+void PrintLogMessage(const char* channel_name,
+                     LogLevel level,
+                     const char* format,
+                     const Args&... args) {
+  detail::WriteLogMessage(channel_name, level, format,
+                          fmt::make_format_args(args...));
 }
 
 // adadpter function for legacy printf style systems
-// please use the LOG_... macros
 template <typename... Args>
-void PrintfLogMessage(LogLevel level, const char* format, const Args&... args) {
+void PrintfLogMessage(const char* channel_name,
+                      LogLevel level,
+                      const char* format,
+                      const Args&... args) {
   using context = fmt::basic_printf_context<char>;
-  detail::WriteLogMessagef(level, format, fmt::make_format_args<context>(args...));
+  detail::WriteLogMessagef(channel_name, level, format, args);
 }
 }  // namespace base
 
 #if defined(CONFIG_DEBUG)
-// debug = trace
-#define LOG_DEBUG(...) ::base::PrintLogMessage(::base::LogLevel::kDebug, __VA_ARGS__)
+#define LOG_DEBUG(...) \
+  ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kDebug, __VA_ARGS__)
+#define LOG_TRACE(...) \
+  ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kTrace, __VA_ARGS__)
+#define LOG_CHANNEL_DEBUG(c, ...) \
+  ::base::PrintLogMessage(c, ::base::LogLevel::kDebug, __VA_ARGS__)
+#define LOG_CHANNEL_TRACE(c, ...) \
+  ::base::PrintLogMessage(c, ::base::LogLevel::kTrace, __VA_ARGS__)
 #else
 #define LOG_DEBUG(...)
+#define LOG_TRACE(...)
+#define LOG_CHANNEL_DEBUG(...)
+#define LOG_CHANNEL_TRACE
 #endif
-#define LOG_TRACE(...) ::base::PrintLogMessage(::base::LogLevel::kTrace, __VA_ARGS__)
-#define LOG_INFO(...) ::base::PrintLogMessage(::base::LogLevel::kInfo, __VA_ARGS__)
+#define LOG_INFO(...) \
+  ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kInfo, __VA_ARGS__)
 #define LOG_WARNING(...) \
-  ::base::PrintLogMessage(::base::LogLevel::kWarning, __VA_ARGS__)
-#define LOG_ERROR(...) ::base::PrintLogMessage(::base::LogLevel::kError, __VA_ARGS__)
+  ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kWarning, __VA_ARGS__)
+#define LOG_ERROR(...) \
+  ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kError, __VA_ARGS__)
+#define LOG_CHANNEL_INFO(c, ...) \
+  ::base::PrintLogMessage(c, ::base::LogLevel::kInfo, __VA_ARGS__)
+#define LOG_CHANNEL_WARNING(c, ...) \
+  ::base::PrintLogMessage(c, ::base::LogLevel::kWarning, __VA_ARGS__)
+#define LOG_CHANNEL_ERROR(c, ...) \
+  ::base::PrintLogMessage(c, ::base::LogLevel::kError, __VA_ARGS__)

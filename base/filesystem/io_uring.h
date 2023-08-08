@@ -8,8 +8,11 @@
 namespace base {
 class IOUring {
  public:
+  using CompletionCallback = base::Function<void(void)>;
+
   struct Operation {
-    base::Function<void(void)> callback;
+    void* extra_data;
+    CompletionCallback callback;
   };
 
   IOUring() {}
@@ -23,7 +26,7 @@ class IOUring {
                       void* buffer,
                       UINT32 size,
                       UINT64 offset,
-                      IOCompletionCallback callback);
+                      CompletionCallback callback);
 
  private:
   void* ring_handle_;
