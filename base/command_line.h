@@ -48,18 +48,18 @@ class CommandLine {
   base::StringRefU8 operator[](const mem_size index);
 
   // simply checks if the command line has exactly these contents, somewhere
-  bool HasItem(const base::StringRefU8 contents);
+  bool HasItem(const base::StringRefU8 item_contents);
 
   // tries to match a switch in the command line, switches can either start with
   // - or -- and can contain values. 
   // if found, returns the index in the pieces_ array.
   // if not found, returns -1
-  i32 HasSwitch(const base::StringRefU8 switch_name);
+  i32 FindSwitch(const base::StringRefU8 switch_name);
 
   // Get the value for a given switch; returns an empty string if the switch isn't
   // found or has no value these switches usually start with - or -- and the
   // parameter is provided by --myswitch=myvalue
-  base::StringU8 ExtractSwitchValue(const base::StringRefU8 switch_name);
+  static base::StringU8 ExtractSwitchValue(const base::StringRefU8 item_contents);
 
   // Finds the index for when positonal arguments start, usually after the optional
   // arguments

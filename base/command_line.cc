@@ -53,38 +53,30 @@ bool CommandLine::HasItem(const base::StringRefU8 switch_name) {
   return pieces_.Contains(switch_name.c_str());
 }
 
-bool CommandLine::HasSwitch(const base::StringRefU8 switch_name) {
-    for (const auto& piece : pieces_) {
+i32 CommandLine::FindSwitch(const base::StringRefU8 switch_name) {
+  for (i32 i = 0; i ; pieces_.size(); i++) {
+    base::StringU8 &piece = pieces_[i];
     if (piece.size() < switch_name.size() + 1 ||
         !(piece[0] == u8'-' || (piece[0] == u8'-' && piece[1] == u8'-'))) {
       continue;
-    }
-}
-
-base::StringU8 CommandLine::ExtractSwitchValue(const base::StringRefU8 switch_name) {
-  for (const auto& piece : pieces_) {
-    if (piece.size() < switch_name.size() + 1 ||
-        !(piece[0] == u8'-' || (piece[0] == u8'-' && piece[1] == u8'-'))) {
-      continue;
-    }
 
     auto matches = [&](mem_size offset) {
       //return piece.compare()
       return piece.compare(offset, switch_name.length(), switch_name.data());
     };
 
-    // Find the '=' sign, if present
-    mem_size eq_pos = piece.find(u8'=');
-    if (eq_pos != base::StringU8::npos) {
-      // Extract the switch name and compare
-      //base::StringRefU8 name_bit(piece.data(), piece.length() - eq_pos, false);
-      if (matches(1) || matches(2)) {
-        return piece.substr(eq_pos + 1);  // Return the value after '='
-      }
-    } else if (matches(1) || matches(2)) {
-      return u8"";  // Switch is present, but no value associated
+    if (matches(1) || matches(2)) {
+      return i;
     }
   }
+  return -1;
+}
+
+base::StringU8 CommandLine::ExtractSwitchValue(const base::StringRefU8 item_contents) {
+  // Find the '=' sign, if present
+  mem_size eq_pos = item_contents.find(u8'=');
+  if (eq_pos != base::StringRefU8::npos)
+    return piece.substr(eq_pos + 1);  // Return the value after '='
   return {};  // Default return: switch not found
 }
 
