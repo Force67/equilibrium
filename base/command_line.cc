@@ -15,6 +15,11 @@ CommandLine::CommandLine() {
 #endif
 }
 
+CommandLine::CommandLine(int argc, char** argv) {
+  current_commandline_ = this;
+  FromArray(argc, argv);
+}
+
 CommandLine::~CommandLine() {
   current_commandline_ = nullptr;
 }
@@ -37,8 +42,50 @@ void CommandLine::ParseFromString(const base::StringRefU8 command_line) {
   InitializeBuffer(command_line);
 }
 
-bool CommandLine::HasSwitch(const base::StringRefU8 switch_name) {
+void CommandLine::FromArray(int count, char** args) {
+  for (int i = 0; i < count; i++) {
+    char* arg = args[i];
+    pieces_.push_back(reinterpret_cast<char8_t*>(arg));
+  }
+}
+
+bool CommandLine::HasItem(const base::StringRefU8 switch_name) {
   return pieces_.Contains(switch_name.c_str());
+}
+
+bool CommandLine::HasSwitch(const base::StringRefU8 switch_name) {
+    for (const auto& piece : pieces_) {
+    if (piece.size() < switch_name.size() + 1 ||
+        !(piece[0] == u8'-' || (piece[0] == u8'-' && piece[1] == u8'-'))) {
+      continue;
+    }
+}
+
+base::StringU8 CommandLine::ExtractSwitchValue(const base::StringRefU8 switch_name) {
+  for (const auto& piece : pieces_) {
+    if (piece.size() < switch_name.size() + 1 ||
+        !(piece[0] == u8'-' || (piece[0] == u8'-' && piece[1] == u8'-'))) {
+      continue;
+    }
+
+    auto matches = [&](mem_size offset) {
+      //return piece.compare()
+      return piece.compare(offset, switch_name.length(), switch_name.data());
+    };
+
+    // Find the '=' sign, if present
+    mem_size eq_pos = piece.find(u8'=');
+    if (eq_pos != base::StringU8::npos) {
+      // Extract the switch name and compare
+      //base::StringRefU8 name_bit(piece.data(), piece.length() - eq_pos, false);
+      if (matches(1) || matches(2)) {
+        return piece.substr(eq_pos + 1);  // Return the value after '='
+      }
+    } else if (matches(1) || matches(2)) {
+      return u8"";  // Switch is present, but no value associated
+    }
+  }
+  return {};  // Default return: switch not found
 }
 
 base::StringRefU8 CommandLine::operator[](const mem_size index) {
@@ -51,7 +98,7 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) {
 }
 
 xsize CommandLine::FindPositionalArgumentsIndex() {
-  mem_size positional_index = 1;  // start at one, si nce the first arg, is the
+  mem_size positional_index = 1;  // start at one, since the first arg, is the
                                   // program path itself on most platforms
   for (auto i = 1; i < pieces_.size(); i++) {
     auto& piece = pieces_[i];

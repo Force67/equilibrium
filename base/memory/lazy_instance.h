@@ -56,9 +56,6 @@ requires(!base::IsTrivial<T>) class LazyInstance {
   // we cannot assume there wouldnd be a valid object thatd be 0 in data
   // so we rely on the extra boolean to be absolutely sure.
   bool exists_{false};
-
-  // we dont declare this as the master alignment in hopes of getting a better total
-  // alignment with the boolean
-  u8 alignas(T) storage_[sizeof(T)]{0};
+  u8 storage_[sizeof(T)]{0};
 };
 }  // namespace base

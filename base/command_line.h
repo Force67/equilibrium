@@ -18,6 +18,9 @@ class CommandLine {
   // tries to fetch cmdl itself.
   CommandLine();
 
+  // from argc
+  CommandLine(int argc, char** argv);
+
   // resets the current - per process - commandline aswell, after this calls to
   // ForCurrentProcess will DCHECK
   ~CommandLine();
@@ -34,16 +37,32 @@ class CommandLine {
   // ::GetCommandlineW() or the one passed to WinMain.
   void ParseFromString(const base::StringRefU8 command_line);
 
+  // For convenience, initializes from pieces provided by a regular main(argc, argv)
+  void FromArray(int count, char** args);
+
   // reset internal buffers and counters.
   void Clear();
 
-  // get an argument at a given index, note that index 0 is the executable path
+  // get an argument at a given index, note that index 0 is usually the executable
+  // path
   base::StringRefU8 operator[](const mem_size index);
 
-  // tries to match a switch in the command line, returns true if found.
-  bool HasSwitch(const base::StringRefU8 switch_name);
-  //bool HasSwitch(const char* switch_name);
+  // simply checks if the command line has exactly these contents, somewhere
+  bool HasItem(const base::StringRefU8 contents);
 
+  // tries to match a switch in the command line, switches can either start with
+  // - or -- and can contain values. 
+  // if found, returns the index in the pieces_ array.
+  // if not found, returns -1
+  i32 HasSwitch(const base::StringRefU8 switch_name);
+
+  // Get the value for a given switch; returns an empty string if the switch isn't
+  // found or has no value these switches usually start with - or -- and the
+  // parameter is provided by --myswitch=myvalue
+  base::StringU8 ExtractSwitchValue(const base::StringRefU8 switch_name);
+
+  // Finds the index for when positonal arguments start, usually after the optional
+  // arguments
   xsize FindPositionalArgumentsIndex();
 
   const xsize parameter_count() { return pieces_.size(); }

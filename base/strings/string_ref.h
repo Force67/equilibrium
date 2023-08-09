@@ -89,6 +89,10 @@ class BasicStringRef {
     return memcmp(data_, rhs, character_count * sizeof(TChar)) == 0;
   }
 
+  bool compare_at(const mem_size self_offset_in_bytes, const TChar* rhs, mem_size character_count) const {
+    return memcmp(data_ + self_offset_in_bytes, rhs, character_count * sizeof(TChar)) == 0;
+  }
+
   // Comparison operators
   friend bool operator==(const BasicStringRef<TChar>& lhs,
                          const BasicStringRef<TChar>& rhs) {
