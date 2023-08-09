@@ -57,7 +57,6 @@ class CommandLine {
 
  private:
   base::Vector<base::StringU8> pieces_;
-  //std::vector<base::StringU8> pieces_;
 
   static CommandLine* current_commandline_;
 
