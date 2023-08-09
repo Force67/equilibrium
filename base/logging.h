@@ -56,7 +56,7 @@ void PrintfLogMessage(const char* channel_name,
                       const char* format,
                       const Args&... args) {
   using context = fmt::basic_printf_context<char>;
-  detail::WriteLogMessagef(channel_name, level, format, args);
+  detail::WriteLogMessagef(channel_name, level, format, fmt::make_format_args<context>(args...));
 }
 }  // namespace base
 
@@ -87,3 +87,4 @@ void PrintfLogMessage(const char* channel_name,
   ::base::PrintLogMessage(c, ::base::LogLevel::kWarning, __VA_ARGS__)
 #define LOG_CHANNEL_ERROR(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kError, __VA_ARGS__)
+  

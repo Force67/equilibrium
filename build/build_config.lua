@@ -23,6 +23,7 @@ filter{}
 -- has no optimization
 filter("configurations:Debug")
   runtime("Debug")
+  symbols("On")
   defines({
     "CONFIG_DEBUG",
     "_DEBUG" -- enable MSVC debug features, such as debug heap
@@ -34,6 +35,7 @@ filter{}
 -- enables ASAN and msvc debug heap
 filter("configurations:DebugMem")
   runtime("Debug")
+  symbols("On")
   flags({
     "NoRuntimeChecks",
     "NoIncrementalLink"})

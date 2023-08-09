@@ -14,10 +14,10 @@
 
 namespace base {
 
-template <class, size_t MaxSize = 1024>
+template <class, mem_size MaxSize = 1024>
 class StaticFunction;
 
-template <class R, class... Args, size_t MaxSize>
+template <class R, class... Args, mem_size MaxSize>
 class StaticFunction<R(Args...), MaxSize> {
  public:
   StaticFunction() noexcept {}

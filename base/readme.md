@@ -3,7 +3,8 @@
 Our mission is to build a library that covers all the basic needs of a cxx application in a portable and uniform way. 
 
 *Most importantly, we want to:*
-- cover all basic needs of a modern cxx application and then some
+- be portable, while...
+- ...covering all basic needs of a modern cxx application and then some
 - aim for maximum test coverage
 - use _sensible_ modern cxx, without any STL whereever possible
 - have speed by default as our goal

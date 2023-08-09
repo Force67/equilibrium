@@ -11,8 +11,24 @@ def find_stl_functions(filename):
 
     # A regex pattern to detect std:: followed by any word (considered function or type)
     pattern = re.compile(r'\bstd::(\w+)\b')
+    inside_comment_block = False
 
     for idx, line in enumerate(contents, 1):
+        # Check if line is inside a block comment
+        if inside_comment_block:
+            if '*/' in line:
+                inside_comment_block = False
+            continue
+
+        # Check if the line starts a block comment
+        if '/*' in line:
+            inside_comment_block = True
+            continue
+
+        # Check if the line is a single-line comment
+        if line.strip().startswith('//'):
+            continue
+
         matches = pattern.findall(line)
         for match in matches:
             print(f"{filename}:{idx}: stl sym: std::{match}")

@@ -12,8 +12,9 @@
 
 namespace base {
 namespace {
-base::Vector<base::String> TokenizeCommandLine(const base::StringRefU8 command_line) {
-  base::Vector<base::String> tokens;
+base::Vector<base::StringU8> TokenizeCommandLine(
+    const base::StringRefU8 command_line) {
+  base::Vector<base::StringU8> tokens;
   size_t start = 0, end = 0;
   bool in_double_quotes = false;
   bool in_single_quotes = false;
@@ -57,11 +58,20 @@ base::Vector<base::String> TokenizeCommandLine(const base::StringRefU8 command_l
 
 bool SpawnProcess(const Path& path_to_executable,
                   const base::StringRefU8 command_line) {
-  // Make sure the command_line is null-terminated
-  if (command_line[command_line.length() - 1] != '\0') {
-    // Handle the error (throw an exception or return false)
-    return false;
+  DCHECK(command_line[command_line.length() - 1] != '\0',
+         "Command line must have a null terminator at the end");
+
+  auto tokens = TokenizeCommandLine(command_line);
+
+  // yes the c functions only take a char* ptr even though the encoding can be
+  // anything...
+  base::Vector<char*> pointers(tokens.size() + 1,
+                               base::VectorReservePolicy::kForPushback);
+  for (const base::StringU8& token : tokens) {
+    pointers.push_back(
+        const_cast<char*>(reinterpret_cast<const char*>(token.c_str())));
   }
+  pointers.push_back(nullptr); // exec() expects a nullptr at the end
 
   pid_t pid = fork();
   if (pid == -1) {
@@ -69,20 +79,7 @@ bool SpawnProcess(const Path& path_to_executable,
     return false;
   } else if (pid == 0) {
     // We're in the child process
-
-    // Convert command_line string to a list of arguments
-    // For simplicity, this assumes arguments are separated by spaces.
-    // You might need a more robust solution for real-world usage.
-    base::Vector<char*> args;
-    char* token = std::strtok(&command_line[0], " ");
-    while (token != nullptr) {
-      args.push_back(token);
-      token = std::strtok(nullptr, " ");  // is that portable enugh
-    }
-    args.push_back(nullptr);  // exec() expects a nullptr at the end
-
-    execvp(path_to_executable.c_str(), &args[0]);
-
+    execvp(reinterpret_cast<const char*>(path_to_executable.c_str()), pointers.data());
     // execvp() will only return if there's an error
     _exit(1);
   } else {

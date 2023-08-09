@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstring> // for memcmp
+#include <cstring>  // for memcmp
 #include <base/check.h>
 #include <base/enum_traits.h>
 #include <base/numeric_limits.h>
@@ -183,6 +183,26 @@ class BasicStringRef {
   const TChar operator[](mem_size size) const {
     BUGCHECK(size < length_, "Index out of bounds");
     return data_[size];
+  }
+
+  base::BasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
+    BUGCHECK(pos < length_, "Position is out of bounds");
+    if (count > length_ - pos) {
+      count = length_ - pos;
+    }
+    return base::BasicString<TChar>(&data_[pos], count);
+  }
+
+  BasicStringRef<TChar> subslice(mem_size pos = 0, mem_size count = npos) const {
+    // Clamp pos to the length of the string.
+    if (pos > length_) {
+      pos = length_;
+    }
+    // Clamp count to the difference of the length of the string and pos.
+    if (count > length_ - pos) {
+      count = length_ - pos;
+    }
+    return BasicStringRef<TChar>(&data_[pos], count);
   }
 
  private:

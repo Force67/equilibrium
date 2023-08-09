@@ -8,14 +8,16 @@
 namespace base {
 
 namespace {
+constexpr char kBaseCheckChannelName[] = "CHECK";
+
 // by default we forward those cases to the global log handler
 static void DefaultCheckHandler(const char* message,
                                  const char* file_name,
                                  const char* function,
                                  const char* msg) {
-  ::base::PrintLogMessage(::base::LogLevel::kFatal, message, file_name, function);
+  ::base::PrintLogMessage(kBaseCheckChannelName, ::base::LogLevel::kFatal, message, file_name, function);
   if (msg)
-    ::base::PrintLogMessage(::base::LogLevel::kFatal, msg);
+    ::base::PrintLogMessage(kBaseCheckChannelName, ::base::LogLevel::kFatal, msg);
 }
 
 BASE_EXPORT constinit base::CheckHandler* assert_handler{DefaultCheckHandler};

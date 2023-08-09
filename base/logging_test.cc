@@ -17,7 +17,7 @@ class LoggingTestSuite : public ::testing::Test {
 
 void LoggingTestSuite::SetUp() {
   base::SetLogHandler(
-      [](void* user_pointer, base::LogLevel ll, const char* msg) {
+      [](void* user_pointer, const char* channel_name, base::LogLevel ll, const char* msg) {
         auto* test_suite = reinterpret_cast<LoggingTestSuite*>(user_pointer);
         test_suite->last_msg_ = msg;
       },
