@@ -10,19 +10,20 @@
 #include <base/memory/move.h>
 #include <base/containers/container_traits.h>
 
-#include <new>  // < for placement new
-#include <cstring> // < linux memory stuff
+#include <new>      // < for placement new
+#include <cstring>  // < linux memory stuff
 #include <initializer_list>
 
 namespace base {
 
 enum class VectorReservePolicy {
-  kForPushback,  // < this is an optimization so you can push_back without upping the
-                 //   capacity until needed
-  kForData,  // < this is the reserve you are used to with std::vector, which will
-             //   pretend a bunch of "empty" emlements have been inserted with the
-             //   reserve, if you plan to copy data in for instance with .data() use
-             //   this.
+  kForPushback,  // < This optimization allows you to utilize push_back without
+                 // immediately increasing the capacity, reserving additional space
+                 // only when necessary.
+  kForData,      // < This reserve operation functions similarly to what you're
+             // accustomed to with std::vector. It preallocates capacity, effectively
+             // simulating the insertion of a number of "empty" elements. If you
+             // intend to copy data, especially using .data(), opt for this approach.
 };
 
 template <typename T, class TAllocator = base::DefaultAllocator>
@@ -207,7 +208,6 @@ class Vector {
     DCHECK(!empty(), "Vector is empty.");
     return data_[0];
   }
-  
 
   [[nodiscard]] const T& back() const {
     DCHECK(!empty());
@@ -237,7 +237,7 @@ class Vector {
     mem_size right = size() - 1;
 
     while (left <= right) {
-      int middle = left + (right - left) / 2;
+      mem_size middle = left + (right - left) / 2;
       const T& middle_element = *(begin() + middle);
 
       if (middle_element == element_match)

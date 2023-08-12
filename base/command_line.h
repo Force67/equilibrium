@@ -11,8 +11,8 @@
 #include <vector>
 
 namespace base {
-// be careful, this class is designed to live throughout the entire runtime of the
-// application
+// be careful, this class is designed to live throughout the entire runtime of
+// the application
 class CommandLine {
  public:
   // tries to fetch cmdl itself.
@@ -30,39 +30,87 @@ class CommandLine {
   // only mutate if you know what you're doing!
   static CommandLine* ForCurrentProcess();
 
-  // Gets the command line string, as provided by the underlying operating system.
+  // Gets the command line string, as provided by the underlying operating
+  // system.
   base::StringU8 GetNativeUTF8CommandlineString();
 
-  // Initialze from a wide windows command line, such as the one returned by calling
+  // Initialze from a wide windows command line, such as the one returned by
+  // calling
   // ::GetCommandlineW() or the one passed to WinMain.
   void ParseFromString(const base::StringRefU8 command_line);
 
-  // For convenience, initializes from pieces provided by a regular main(argc, argv)
+  // For convenience, initializes from pieces provided by a regular main(argc,
+  // argv)
   void FromArray(int count, char** args);
 
   // reset internal buffers and counters.
   void Clear();
 
-  // get an argument at a given index, note that index 0 is usually the executable
-  // path
+  // get an argument at a given index, note that index 0 is usually the
+  // executable path
   base::StringRefU8 operator[](const mem_size index);
+
+  // failsafe access at index n
+  base::StringRefU8 at(const mem_size index);
 
   // simply checks if the command line has exactly these contents, somewhere
   bool HasItem(const base::StringRefU8 item_contents);
 
   // tries to match a switch in the command line, switches can either start with
-  // - or -- and can contain values. 
+  // - or -- and can contain values.
   // if found, returns the index in the pieces_ array.
   // if not found, returns -1
-  i32 FindSwitch(const base::StringRefU8 switch_name);
+  i32 FindSwitchIndex(const base::StringRefU8 switch_name);
 
-  // Get the value for a given switch; returns an empty string if the switch isn't
-  // found or has no value these switches usually start with - or -- and the
-  // parameter is provided by --myswitch=myvalue
-  static base::StringU8 ExtractSwitchValue(const base::StringRefU8 item_contents);
+  bool FindSwitch(const base::StringRefU8 switch_name) {
+    return FindSwitchIndex(switch_name) != -1;
+  }
 
-  // Finds the index for when positonal arguments start, usually after the optional
-  // arguments
+  base::StringRefU8 FindSwitchValue(const base::StringRefU8 switch_name) {
+    i32 res = FindSwitchIndex(switch_name);
+    if (res == -1)
+      return u8"";
+    return CommandLine::ExtractSwitchValue(at(res));
+  }
+
+  // Helper for aliases
+  template <typename... Aliases>
+  inline bool FindSwitchWithAlias(const base::StringRefU8 command,
+                                  Aliases... aliases) {
+    bool found = FindSwitch(command);
+    if (found)
+      return found;
+    for (auto alias : {aliases...}) {
+      if (FindSwitch(alias))
+        return true;
+    }
+    return false;
+  }
+
+  // Helper for aliases
+  template <typename... Aliases>
+  inline base::StringRefU8 FindSwitchValuesWithAlias(
+      const base::StringRefU8 command,
+      Aliases... aliases) {
+    base::StringRefU8 val = FindSwitchValue(command);
+    if (!val.empty())
+      return val;
+    for (auto alias : {aliases...}) {
+      base::StringRefU8 it = FindSwitchValue(command);
+      if (!it.empty())
+        return it;
+    }
+    return u8"";
+  }
+
+  // Get the value for a given switch; returns an empty string if the switch
+  // isn't found or has no value these switches usually start with - or -- and
+  // the parameter is provided by --myswitch=myvalue
+  static base::StringRefU8 ExtractSwitchValue(
+      const base::StringRefU8 item_contents);
+
+  // Finds the index for when positonal arguments start, usually after the
+  // optional arguments
   xsize FindPositionalArgumentsIndex();
 
   const xsize parameter_count() { return pieces_.size(); }

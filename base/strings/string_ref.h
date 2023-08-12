@@ -89,8 +89,11 @@ class BasicStringRef {
     return memcmp(data_, rhs, character_count * sizeof(TChar)) == 0;
   }
 
-  bool compare_at(const mem_size self_offset_in_bytes, const TChar* rhs, mem_size character_count) const {
-    return memcmp(data_ + self_offset_in_bytes, rhs, character_count * sizeof(TChar)) == 0;
+  bool compare_at(const mem_size self_offset_in_bytes,
+                  const TChar* rhs,
+                  mem_size character_count) const {
+    return memcmp(data_ + self_offset_in_bytes, rhs,
+                  character_count * sizeof(TChar)) == 0;
   }
 
   // Comparison operators
@@ -175,6 +178,16 @@ class BasicStringRef {
 
   constexpr mem_size find(const TChar* s, mem_size pos, mem_size count) const {
     return base::StringSearch(data_, length(), s, pos, count);
+  }
+
+  constexpr mem_size find_first_not_of(const TChar* s,
+                                       mem_size pos,
+                                       mem_size count) const {
+    return base::StringSearchNotOf(data_, length(), s, pos, count);
+  }
+
+  constexpr mem_size find_last_not_of(const TChar* s, mem_size count) const {
+    return base::StringSearchLastNotOf(data_, length(), s, count);
   }
 
 #if 0
@@ -262,7 +275,7 @@ struct hash<base::BasicStringRef<TChar>> {
   std::size_t operator()(const base::BasicStringRef<TChar>& str) const {
     // Use a hash function to compute the hash value for the string.
     // Here is an example implementation using the std::hash function:
-    return base::FNV1a32(reinterpret_cast<const char*>(str.data()));
+    return base::FNV1a32(str.data());
   }
 };
 }  // namespace std

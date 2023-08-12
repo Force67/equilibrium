@@ -59,21 +59,15 @@ typedef enum IORING_REF_KIND {
 } IORING_REF_KIND;
 
 typedef struct IORING_HANDLE_REF {
-#ifdef __cplusplus
   explicit IORING_HANDLE_REF(HANDLE h)
       : Kind(IORING_REF_KIND::IORING_REF_RAW), Handle(h) {}
-
   explicit IORING_HANDLE_REF(u32 index)
       : Kind(IORING_REF_KIND::IORING_REF_REGISTERED), Handle(index) {}
-#endif
 
   IORING_REF_KIND Kind;
   union HandleUnion {
-#ifdef __cplusplus
     HandleUnion(HANDLE h) : Handle(h) {}
-
     HandleUnion(u32 index) : Index(index) {}
-#endif
     // Handle to the file object if Kind == IORING_REF_RAW
     HANDLE Handle;
 
@@ -91,7 +85,6 @@ typedef struct IORING_REGISTERED_BUFFER {
 } IORING_REGISTERED_BUFFER;
 
 typedef struct IORING_BUFFER_REF {
-#ifdef __cplusplus
   explicit IORING_BUFFER_REF(void* address)
       : Kind(IORING_REF_KIND::IORING_REF_RAW), Buffer(address) {}
 
@@ -100,16 +93,12 @@ typedef struct IORING_BUFFER_REF {
 
   IORING_BUFFER_REF(u32 index, u32 offset)
       : IORING_BUFFER_REF(IORING_REGISTERED_BUFFER{index, offset}) {}
-#endif
 
   IORING_REF_KIND Kind;
   union BufferUnion {
-#ifdef __cplusplus
     BufferUnion(void* address) : Address(address) {}
-
     BufferUnion(IORING_REGISTERED_BUFFER indexAndOffset)
         : IndexAndOffset(indexAndOffset) {}
-#endif
     // Address of the buffer if Kind == IORING_REF_RAW
     void* Address;
 
@@ -149,8 +138,8 @@ bool IOUring::Create() {
   LOG_TRACE(
       "MaxVersion: {}, MaxSubmissionQueueSize: {}, MaxCompletionQueueSize: {}, "
       "FeatureFlags: {}",
-      caps.MaxVersion, caps.MaxSubmissionQueueSize, caps.MaxCompletionQueueSize,
-      caps.FeatureFlags);
+      static_cast<int>(caps.MaxVersion), caps.MaxSubmissionQueueSize,
+      caps.MaxCompletionQueueSize, static_cast<int>(caps.FeatureFlags));
 
   if (caps.MaxVersion < IORING_VERSION_3) {
     LOG_ERROR("API outdated");
@@ -162,8 +151,7 @@ bool IOUring::Create() {
     LOG_ERROR("Failed to create IO ring.");
     return false;
   }
-
-  return false;
+  return true;
 }
 
 void IOUring::Destroy() {
@@ -183,11 +171,12 @@ void IOUring::Destroy() {
 
 bool IOUring::SubmitReadFile(HANDLE fileHandle,
                              void* buffer,
-                             UINT32 size,
-                             UINT64 offset,
+                             u32 size,
+                             u64 offset,
                              CompletionCallback callback) {
-  IORING_HANDLE_REF fileRef = IoRingHandleRefFromHandle(fileHandle);
-  IORING_BUFFER_REF bufferRef = IoRingBufferRefFromPointer(buffer);
+  IORING_HANDLE_REF fileRef(fileHandle);
+  IORING_BUFFER_REF bufferRef(buffer);
+  #if 0
   Operation op{buffer, base::move(callback)};
   HRESULT result = ::BuildIoRingReadFile(
       ring_handle_, fileRef, bufferRef, size, offset, op.extra_data, IOSQE_FLAGS_NONE);
@@ -196,6 +185,7 @@ bool IOUring::SubmitReadFile(HANDLE fileHandle,
     return false;
   }
   pending_queue_.push_back(op);
+  #endif
   return true;
 }
 
@@ -205,12 +195,13 @@ void IOUring::WaitForCompletions() {
     HRESULT result = ::PopIoRingCompletion(ring_handle_, &cqe);
     if (SUCCEEDED(result)) {
       Operation& op = pending_queue_.front();
-      pending_queue_.erase();
-
+#if 0
+      pending_queue_.erase(
       // Check if user data matches (for validation)
       if (op.extra_data == cqe.UserData && op.callback) {
         op.callback(cqe);
       }
+#endif
     }
   }
 }

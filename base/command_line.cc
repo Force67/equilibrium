@@ -53,18 +53,19 @@ bool CommandLine::HasItem(const base::StringRefU8 switch_name) {
   return pieces_.Contains(switch_name.c_str());
 }
 
-i32 CommandLine::FindSwitch(const base::StringRefU8 switch_name) {
-  for (i32 i = 0; i ; pieces_.size(); i++) {
-    base::StringU8 &piece = pieces_[i];
-    if (piece.size() < switch_name.size() + 1 ||
-        !(piece[0] == u8'-' || (piece[0] == u8'-' && piece[1] == u8'-'))) {
+i32 CommandLine::FindSwitchIndex(const base::StringRefU8 switch_name) {
+  for (i32 i = 0; i < pieces_.size(); i++) {
+    base::StringU8& piece = pieces_[i];
+    // yes intentional, easier to debug.
+    if (piece.size() < switch_name.size())
       continue;
-
+    if (piece[0] != u8'-')
+      continue;
+    if (!(piece[0] == u8'-' && piece[1] == u8'-'))
+      continue;
     auto matches = [&](mem_size offset) {
-      //return piece.compare()
       return piece.compare(offset, switch_name.length(), switch_name.data());
     };
-
     if (matches(1) || matches(2)) {
       return i;
     }
@@ -72,12 +73,13 @@ i32 CommandLine::FindSwitch(const base::StringRefU8 switch_name) {
   return -1;
 }
 
-base::StringU8 CommandLine::ExtractSwitchValue(const base::StringRefU8 item_contents) {
+base::StringRefU8 CommandLine::ExtractSwitchValue(
+    const base::StringRefU8 item_contents) {
   // Find the '=' sign, if present
-  mem_size eq_pos = item_contents.find(u8'=');
+  mem_size eq_pos = item_contents.find(u8"=", 0, 1);
   if (eq_pos != base::StringRefU8::npos)
-    return piece.substr(eq_pos + 1);  // Return the value after '='
-  return {};  // Default return: switch not found
+    return item_contents.subslice(eq_pos + 1);  // Return the value after '='
+  return u8"";  // Default return: switch not found
 }
 
 base::StringRefU8 CommandLine::operator[](const mem_size index) {
@@ -85,6 +87,14 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) {
   BUGCHECK(index < cap, "CommandLine::operator[]: Access out of bounds");
   BUGCHECK(index < base::MinMax<u16>::max(),
            "CommandLine::operator[]: Index out of bounds");
+  const auto& piece = pieces_[index];
+  return base::StringRefU8(piece.c_str(), piece.length());
+}
+
+base::StringRefU8 CommandLine::at(const mem_size index) {
+  auto cap = pieces_.size();
+  if (index > cap || index == -1)
+    return u8"";
   const auto& piece = pieces_[index];
   return base::StringRefU8(piece.c_str(), piece.length());
 }

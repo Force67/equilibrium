@@ -24,8 +24,8 @@ class IOUring {
 
   bool SubmitReadFile(HANDLE fileHandle,
                       void* buffer,
-                      UINT32 size,
-                      UINT64 offset,
+                      u32 size,
+                      u64 offset,
                       CompletionCallback callback);
 
  private:

@@ -76,6 +76,55 @@ mem_size StringSearch(const TChar* haystack,
   return kStringNotFoundPos;
 }
 
+template <typename TChar>
+mem_size StringSearchNotOf(const TChar* haystack,
+                           const mem_size size,
+                           const TChar* needle,
+                           const mem_size start_pos,
+                           const mem_size needle_size) {
+  DCHECK(haystack, "haystack is null");
+  DCHECK(needle, "needle is null");
+  DCHECK(size, "size is null");
+  DCHECK(needle_size, "needle_size is null");
+
+  const TChar* haystackEnd = haystack + size;
+  for (const TChar* curPos = haystack + start_pos; curPos < haystackEnd;
+       ++curPos) {
+    bool found = true;
+    for (mem_size i = 0; i < needle_size; ++i) {
+      if (*curPos == needle[i]) {
+        found = false;
+        break;
+      }
+    }
+    if (found) {
+      return curPos - haystack;
+    }
+  }
+  return kStringNotFoundPos;
+}
+
+template <typename TChar>
+size_t StringSearchLastNotOf(const TChar* haystack,
+                             size_t size,
+                             const TChar* needle,
+                             size_t needle_size) {
+  const TChar* curPos = haystack + size - 1;  // Start at the end of the string
+  for (; curPos >= haystack; --curPos) {
+    bool found = true;
+    for (size_t i = 0; i < needle_size; ++i) {
+      if (*curPos == needle[i]) {
+        found = false;
+        break;
+      }
+    }
+    if (found) {
+      return curPos - haystack;
+    }
+  }
+  return kStringNotFoundPos;
+}
+
 auto Min(auto a, auto b) {
   return (b < a) ? b : a;
 }
