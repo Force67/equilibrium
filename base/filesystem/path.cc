@@ -157,10 +157,6 @@ Path Path::Extension() const {
   return {};
 }
 
-Path GetExecutablePath() {
-  return {};
-}
-
 // Life isn't easy on Linux.  We have to deal with the fact that many apis take only
 // a ascii char as parameter.
 // This is a horrible hack, defeating the point of storing stuff in utf8 internally,

@@ -7,7 +7,7 @@ namespace gpu::vulkan {
 
 bool VulkanDeviceQueue::Initialize() {
 
-
+        
   float queuePriority = 0.f;
   VkDeviceQueueCreateInfo queueCreateInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,

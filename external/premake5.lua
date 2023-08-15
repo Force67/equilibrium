@@ -15,6 +15,15 @@ project("tracysdk")
     --"tracy/public/TracyClient.cpp",
   --})
 
+project("pugixml")
+  kind("StaticLib")
+  language("C++")
+  pubincludedirs("./pugixml/src")
+  files({
+    "pugixml/src/*.cpp",
+    "pugixml/src/*.hpp",
+  })
+
 project("mbedtls")
   kind("StaticLib")
   language("C")
