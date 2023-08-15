@@ -21,7 +21,9 @@ jobs:
       - name: Build
         shell: powershell
         run: |
-          .\build\premake_win.cmd
+          cd build
+          premake_win.cmd
+          cd ..
           $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
           cmd /c """$vcvarsall_path"" x86_amd64 & set" | foreach {
             if ($_ -match "=") {
