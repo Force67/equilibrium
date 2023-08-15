@@ -22,7 +22,7 @@ jobs:
         shell: powershell
         run: |
           cd build
-          premake_win.cmd
+          premake_win.bat
           cd ..
           $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
           cmd /c """$vcvarsall_path"" x86_amd64 & set" | foreach {
