@@ -21,8 +21,8 @@ jobs:
       - name: Build
         shell: powershell
         run: |
-          cd build
-          premake_win.bat
+          cd ${{github.workspace}}/build 
+          bin\win\premake5 --file=..\premake5.lua vs2022
           cd ..
           $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
           cmd /c """$vcvarsall_path"" x86_amd64 & set" | foreach {

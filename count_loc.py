@@ -21,6 +21,10 @@ def count_lines(filename, ext):
 
     return len([line for line in content.split('\n') if line.strip()])  # Count non-empty lines
 
+def pretty_format(n):
+    """Format large numbers by splitting digits by 3."""
+    return "{:,}".format(n).replace(',', "'")
+
 def main(directory="."):
     loc_by_language = {
         'C/C++': 0,
@@ -30,6 +34,10 @@ def main(directory="."):
 
     # Walk through the directory
     for dirpath, dirnames, filenames in os.walk(directory):
+        # Skip 'extern' directories
+        if 'extern' in dirnames:
+            dirnames.remove('extern')
+
         for filename in filenames:
             ext = os.path.splitext(filename)[1]
             if ext in ['.c', '.cpp', '.h', '.hpp']:
@@ -41,12 +49,8 @@ def main(directory="."):
 
     # Display results
     for lang, loc in loc_by_language.items():
-        print(f"{lang}: {loc} lines of code")
+        print(f"{lang}: {pretty_format(loc)} lines of code")
 
 if __name__ == "__main__":
     # By default, start with the current directory.
     main(".")
-
-
-
-
