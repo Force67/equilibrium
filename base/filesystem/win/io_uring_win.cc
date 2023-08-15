@@ -5,6 +5,8 @@
 #include "base/logging.h"
 #include "base/win/minwin.h"
 
+#pragma comment(lib, "onecoreuap")
+
 namespace {
 typedef enum IORING_VERSION {
   IORING_VERSION_INVALID,
