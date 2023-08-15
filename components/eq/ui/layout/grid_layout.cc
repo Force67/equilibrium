@@ -53,12 +53,12 @@ void GridLayout::Build() {
         offset.y += lastY;
       }
 
-      lastY = row_gap_ + e->bounds.y();
+      lastY = row_gap_ + e->bounds.y;
     }
 
     e->screen_pos.x = offset.x;
     e->screen_pos.y = offset.y;
-    offset.x += col_gap_ + e->bounds.x();
+    offset.x += col_gap_ + e->bounds.x;
   }
 }
 }  // namespace ui

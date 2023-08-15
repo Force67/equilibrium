@@ -19,8 +19,8 @@ class Element {
 
   size_t child_count() const { return children_.size(); }
 
-  ui::Point<f32> screen_pos;
-  ui::Point<f32> bounds;
+  ui::FPoint screen_pos;
+  ui::FPoint bounds;
 };
 
 class Layout {

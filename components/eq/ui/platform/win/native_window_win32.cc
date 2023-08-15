@@ -238,7 +238,7 @@ void NativeWindowWin32::HandleWindowMove() {
     // re-scale based on the actual desired bounds instead of the
     // current(scaled) bounds in order to avoid infinite scaling.
     const auto b = bounds();
-    ResizeBounds({b.x, b.y}, user_size_);
+    ResizeBounds({b.x(), b.y()}, user_size_);
 
     // fire dpi change event so UI can react.
     if (delegate_)
@@ -552,7 +552,7 @@ bool NativeWindowWin32::ResizeBounds(const ui::IPoint window_pos,
                   scaled_bounds.y, new_width, new_height, static_cast<UINT>(dpi_));
 
   const auto bounds =
-      SkIRect::MakeXYWH(window_pos.x(), window_pos.y(), new_width, new_height);
+      ui::IRect::MakeXYWH(window_pos.x, window_pos.y, new_width, new_height);
 
   request_resize_ = true;
   return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(), bounds.height(),

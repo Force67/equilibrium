@@ -20,9 +20,10 @@ struct VkInstance_Cxx {
   }
 
   inline void Make(const VkInstanceCreateInfo& instance_create_info) {
-    VkResult result = vkCreateInstance(&instance_create_info, nullptr, &instance);
+    VkResult result =
+        vkCreateInstance(&instance_create_info, nullptr, &instance);
     if (result != VK_SUCCESS) {
-      LOG_ERROR("vkCreateInstance() failed: {}", result);
+      LOG_ERROR("vkCreateInstance() failed: {}", static_cast<int>(result));
     }
   }
 

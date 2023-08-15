@@ -197,9 +197,9 @@ class BasicStringRef {
   }
 #endif
 
-  const TChar operator[](mem_size size) const {
-    BUGCHECK(size < length_, "Index out of bounds");
-    return data_[size];
+  const TChar operator[](mem_size offset) const {
+    BUGCHECK(offset < length_, "Index out of bounds");
+    return data_[offset];
   }
 
   base::BasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {

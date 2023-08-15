@@ -6,7 +6,8 @@
 #include "vulkan_instance.h"
 #include "vulkan_debug_utils.h"
 
-// view: https://github.com/SaschaWillems/Vulkan/blob/master/base/VulkanDebug.cpp
+// view:
+// https://github.com/SaschaWillems/Vulkan/blob/master/base/VulkanDebug.cpp
 namespace gpu::vulkan {
 namespace {
 base::LogLevel TranslateLogLevel(
@@ -25,14 +26,14 @@ base::LogLevel TranslateLogLevel(
   }
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL
-DebugMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-                       VkDebugUtilsMessageTypeFlagsEXT messageType,
-                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                       void* pUserData) {
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessengerCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData) {
   const auto translated_level = TranslateLogLevel(message_severity);
-  base::PrintLogMessage(translated_level, "[vk_debug_messenger]: {}\n",
-                        pCallbackData->pMessage);
+  base::PrintLogMessage(PROJECT_NAME, translated_level,
+                        "[vk_debug_messenger]: {}\n", pCallbackData->pMessage);
   return VK_FALSE;
 }
 }  // namespace
@@ -40,8 +41,8 @@ DebugMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 DebugMessenger::DebugMessenger(VulkanInstance& instance)
     : vulkan_instance_(instance) {
   const VkDebugUtilsMessengerCreateInfoEXT messenger_create_info{
-      .sType =
-          VkStructureType::VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+      .sType = VkStructureType::
+          VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
       .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
@@ -57,7 +58,7 @@ DebugMessenger::DebugMessenger(VulkanInstance& instance)
                                                &debug_messenger_ext_);
 
   if (result != VK_SUCCESS) {
-    LOG_ERROR("Failed to create debug utils messenger: {}", result);
+    LOG_ERROR("Failed to create debug utils messenger: {}", static_cast<int>(result));
     return;
   }
 }
