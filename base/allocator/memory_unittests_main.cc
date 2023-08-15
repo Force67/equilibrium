@@ -14,7 +14,7 @@
 using namespace base;
 
 void EQPageTableTest1() {
-  PageTable table;
+  PageTable table(2);
   u32 size = PageTable::current_page_size();
 
   void* page = table.RequestPage(base::PageProtectionFlags::RW);
