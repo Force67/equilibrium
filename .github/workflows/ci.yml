@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "main", "devel3" ]
+    branches: [ "main", "devel5" ]
   pull_request:
-    branches: [ "main", "devel3" ]
+    branches: [ "main", "devel5" ]
 
 jobs:
     MSVC:
