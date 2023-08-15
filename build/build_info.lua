@@ -32,7 +32,7 @@ blu.version = io_exec('git describe --tags ' .. io_exec('git rev-list --tags --m
 
 -- include_meta adds build metadata to a given project, in the form of macros
 -- and version info.
-function include_meta(ico_path)
+function include_meta(ico_path, asset_files)
   defines({
     ('GIT_BRANCH="' .. blu.git_branch .. '"'),
     ('GIT_COMMIT="' .. blu.git_commit .. '"'),
@@ -51,5 +51,11 @@ function include_meta(ico_path)
       (blu.builddir .. "/win_app.manifest")
     })
     defines('EQ_ICON="%{prj.name}.ico"')
+
+    if asset_files then
+      for index, asset_file in ipairs(asset_files) do
+        defines('EQ_ASSET_' .. index .. '="' .. asset_file .. '"')
+      end
+    end
   filter{}
 end

@@ -21,7 +21,7 @@ void Space::SetSize(float w, float h) {
   if (geom_.width != w || geom_.height != h) {
     geom_.width = w;
     geom_.height = h;
-    OnResize();
+    //OnResize();
   }
 }
 }

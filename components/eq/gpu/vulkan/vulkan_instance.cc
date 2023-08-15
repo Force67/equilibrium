@@ -78,7 +78,8 @@ VulkanInstance::~VulkanInstance() {}
 
 extern "C" int glad_vulkan_is_device_function(const char* name);
 
-GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer, const char* symbol_name) {
+GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer,
+                                       const char* symbol_name) {
   VulkanInstance* instance = nullptr;
   DCHECK(instance = reinterpret_cast<VulkanInstance*>(user_pointer));
 
@@ -88,8 +89,8 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer, const char* symbol_na
     result = instance->get_device_proc_(instance->device_, symbol_name);
 
   if (result == nullptr && instance->vk_instance_.instance != VK_NULL_HANDLE)
-    result =
-        instance->get_instance_proc_(instance->vk_instance_.instance, symbol_name);
+    result = instance->get_instance_proc_(instance->vk_instance_.instance,
+                                          symbol_name);
 
   if (result == nullptr)
     result = instance->vk_dll_.FindSymbol<PFN_vkVoidFunction>(symbol_name);
@@ -99,7 +100,7 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer, const char* symbol_na
 
 // needs to be called if a device is constructed too..
 void VulkanInstance::BindFunctionPointers() {
-  //DCHECK(vk_instance_, "VkInstance no longer valid");
+  // DCHECK(vk_instance_, "VkInstance no longer valid");
 
   if (!get_instance_proc_)
     get_instance_proc_ =
@@ -109,8 +110,8 @@ void VulkanInstance::BindFunctionPointers() {
         vk_dll_.FindSymbol<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr");
 
   if (get_instance_proc_ && get_device_proc_) {
-    i32 version =
-        gladLoadVulkanUserPtr(physical_device_, VulkanInstance::LoadSymbol, this);
+    i32 version = gladLoadVulkanUserPtr(physical_device_,
+                                        VulkanInstance::LoadSymbol, this);
   }
 }
 
@@ -175,7 +176,7 @@ bool VulkanInstance::Create() {
   messenger_.Make(*this);
 #endif
 
-   BindFunctionPointers();
+  BindFunctionPointers();
   return true;
 }
 }  // namespace gpu::vulkan

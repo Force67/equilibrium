@@ -3,7 +3,6 @@
 #pragma once
 
 //#include <ui/keycode.inl>
-#include <core/SkTypes.h>
 
 class SkCanvas;
 
@@ -19,9 +18,6 @@ class Space {
     float height = 0.f;
   };
 
-  virtual void onDraw(SkCanvas*){};
-  virtual bool onChar(SkUnichar) { return false; }
-
   float width() const { return geom_.width; }
   float height() const { return geom_.height; }
 
@@ -30,10 +26,6 @@ class Space {
   Space(const Space&) = delete;
   Space& operator=(const Space&) = delete;
 
-  virtual void OnResize();
-
-  virtual void onDrawBackground(SkCanvas*);
-  virtual void onDrawContent(SkCanvas*) = 0;
   virtual bool onAnimate(double /*nanos*/) { return false; }
   virtual void onOnceBeforeDraw() {}
 

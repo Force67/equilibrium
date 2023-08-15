@@ -12,7 +12,7 @@
 #include <base/strings/string_ref.h>
 #include <base/memory/unique_pointer.h>
 
-#include <ui/primitives/rect.h>
+#include "../primitives/rect.h"
 
 namespace ui {
 

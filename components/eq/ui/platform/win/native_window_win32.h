@@ -4,9 +4,9 @@
 #pragma once
 
 #include <Windows.h>
-#include <ui/primitives/rect.h>
-#include <ui/primitives/point.h>
-#include <ui/platform/native_window.h>
+#include <eq/ui/primitives/rect.h>
+#include <eq/ui/primitives/point.h>
+#include <eq/ui/platform/native_window.h>
 
 namespace ui {
 

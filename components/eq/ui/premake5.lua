@@ -11,7 +11,6 @@ local function include_ui()
   -- define our own imgui config file.
   pubdefines({
     "IMGUI_USER_CONFIG=<eq/ui/imgui/imgui_config.h>",
-    "SK_USER_CONFIG_HEADER=<eq/ui/skia/skia_config.h>"
   })
 end
 

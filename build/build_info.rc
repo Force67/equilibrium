@@ -32,4 +32,14 @@ BEGIN
     END
 END
 
+#ifdef EQ_ICON
 102 ICON EQ_ICON
+#endif
+
+#ifdef EQ_ASSET_1
+103 BITMAP EQ_ASSET_1
+#endif
+
+#ifdef EQ_ASSET_2
+104 BITMAP EQ_ASSET_2
+#endif
