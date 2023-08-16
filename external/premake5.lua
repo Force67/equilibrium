@@ -20,9 +20,11 @@ project("pugixml")
   language("C++")
   pubincludedirs("./pugixml/src")
   files({
-    "pugixml/src/*.cpp",
-    "pugixml/src/*.hpp",
+    "pugixml/src/pugixml.cpp",
+    "pugixml/src/pugixml.hpp",
+    "pugixml/src/pugiconfig.hpp"
   })
+  os.copyfile("_override/pugixml/pugiconfig.hpp", "pugixml/src/pugiconfig.hpp")
 
 project("mbedtls")
   kind("StaticLib")
