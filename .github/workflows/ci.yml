@@ -19,7 +19,7 @@ jobs:
           submodules: 'recursive'
           fetch-depth: '0'
       - name: Build
-        shell: powershell
+        shell: pwsh
         run: |
           .\build\bin\win\premake5 --file=premake5.lua vs2022
           $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
@@ -30,14 +30,14 @@ jobs:
           }
           msbuild .\out\vs2022\Equilibrium.sln /t:'base\base:Rebuild;base\base_memory_unittests:Rebuild;base\base_unittests:Rebuild' /p:Configuration=${{ matrix.config }} /p:Platform=x64 -m
       - name: Test
-        shell: powershell
+        shell: pwsh
         run: Get-ChildItem -Path (Resolve-Path .\out\vs*\bin\*\equilibrium\) -Filter *.exe | ForEach-Object $_ { $p = @(); $p += '--gtest_color=no '; $p += '--gtest_output=xml:.\tests\' + $_.Name.Replace('.exe','') + '.xml'; &$_.PSPath $p; }
       - name: Setup tmate debug session
         if: failure()
         uses: mxschmitt/action-tmate@v3
       - name: Convert Gtest to JUnit
         if: success() || failure()
-        shell: powershell
+        shell: pwsh
         run: |
           $xsl = New-Object System.Xml.Xsl.XslCompiledTransform
           $xsl.Load("${{github.workspace}}\.github\gtest_to_junit.xsl")
