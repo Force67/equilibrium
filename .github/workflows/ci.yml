@@ -1,71 +1,78 @@
 name: CI
 
 on:
+  workflow_dispatch: 
+    inputs:
+      remote_debug:
+        type: boolean
+        description: 'Run TMate if Building or Testing fails. (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
   push:
-    branches: [ "main", "devel5", "ci-fix" ]
+    branches: [ "main", "devel5"]
   pull_request:
-    branches: [ "main", "devel5", "ci-fix" ]
+    branches: [ "main", "devel5" ]
 
 jobs:
-    MSVC:
-      runs-on: windows-latest
-      strategy:
-        matrix:
-          config: [Debug, Shipping]
-      steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-          fetch-depth: '0'
-      - name: Build
-        shell: pwsh
-        run: |
-          .\build\bin\win\premake5 --file=premake5.lua vs2022
-          $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
-          cmd.exe /c """$vcvarsall_path"" x86_amd64 & set" | foreach {
-            if ($_ -match "=") {
-              $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
-            }
+  MSVC:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        config: [Debug, Shipping]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+        fetch-depth: '0'
+    - name: Build
+      shell: pwsh
+      run: |
+        .\build\bin\win\premake5 --file=premake5.lua vs2022
+        $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
+        cmd.exe /c """$vcvarsall_path"" x86_amd64 & set" | foreach {
+          if ($_ -match "=") {
+            $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
           }
-          msbuild .\out\vs2022\Equilibrium.sln /t:'base\base:Rebuild;base\base_memory_unittests:Rebuild;base\base_unittests:Rebuild' /p:Configuration=${{ matrix.config }} /p:Platform=x64 -m
-      - name: Test
-        shell: pwsh
-        run: Get-ChildItem -Path (Resolve-Path .\out\vs*\bin\*\equilibrium\) -Filter *.exe | ForEach-Object $_ { $p = @(); $p += '--gtest_color=no '; $p += '--gtest_output=xml:.\tests\' + $_.Name.Replace('.exe','') + '.xml'; &$_.PSPath $p; }
-      - name: Setup tmate debug session
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
-      - name: Convert Gtest to JUnit
-        if: success() || failure()
-        shell: pwsh
-        run: |
-          $xsl = New-Object System.Xml.Xsl.XslCompiledTransform
-          $xsl.Load("${{github.workspace}}\.github\gtest_to_junit.xsl")
-          Get-ChildItem -Path .\tests\ -Filter *.xml | Where-Object { !$_.Name.StartsWith('convert') } | ForEach-Object $_ { $xsl.Transform($_.FullName,($_.Directory.FullName  + '\convert-' + $_.Name)); }
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        if: success() || failure()
-        with:
-          name: test-results
-          path: .\tests\convert-*.xml
+        }
+        msbuild .\out\vs2022\Equilibrium.sln /t:'base\base:Rebuild;base\base_memory_unittests:Rebuild;base\base_unittests:Rebuild' /p:Configuration=${{ matrix.config }} /p:Platform=x64 -m
+    - name: Test
+      shell: pwsh
+      run: Get-ChildItem -Path (Resolve-Path .\out\vs*\bin\*\equilibrium\) -Filter *.exe | ForEach-Object $_ { $p = @(); $p += '--gtest_color=no '; $p += '--gtest_output=xml:.\tests\' + $_.Name.Replace('.exe','') + '.xml'; &$_.PSPath $p; }
+    - name: Convert Gtest to JUnit
+      if:  ${{ !cancelled() }}
+      shell: pwsh
+      run: |
+        $xsl = New-Object System.Xml.Xsl.XslCompiledTransform
+        $xsl.Load("${{github.workspace}}\.github\gtest_to_junit.xsl")
+        Get-ChildItem -Path .\tests\ -Filter *.xml | Where-Object { !$_.Name.StartsWith('convert') } | ForEach-Object $_ { $xsl.Transform($_.FullName,($_.Directory.FullName  + '\convert-' + $_.Name)); }
+    - name: Setup tmate debug session
+      if: ${{ failure() && github.event_name == 'workflow_dispatch' && inputs.remote_debug}}
+      uses: mxschmitt/action-tmate@v3          
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      if:  ${{ !cancelled() }}
+      with:
+        name: test-results
+        path: .\tests\convert-*.xml
 
-    Linux:
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          config: [Debug, Shipping]
-      steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-          fetch-depth: '0'
-      - name: Setup C++ environment
-        uses: aminya/setup-cpp@v1
-        with:
-          compiler: llvm
-      - name: Build
-        run: |
-          ./build/premake_linux.sh ${{ matrix.config }}
-          cd out/gmake2
-          make
+  Linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config: [Debug, Shipping]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+        fetch-depth: '0'
+    - name: Setup C++ environment
+      uses: aminya/setup-cpp@v1
+      with:
+        compiler: llvm
+    - name: Build
+      run: |
+        ./build/premake_linux.sh ${{ matrix.config }}
+        cd out/gmake2
+        make
