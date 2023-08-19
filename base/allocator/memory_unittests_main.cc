@@ -23,12 +23,9 @@ void EQPageTableTest1() {
 
 void TrackerTest1() {
   auto& tracker = base::memory_tracker();
-
   // demonstates the use of the tracker for debugging
   char* obj = new char[512];
-
-  auto current_context = current_memory_category();
-  mem_size store = tracker.memory_sizes[kGeneralMemory];
+  mem_size store = tracker.memory_sizes[kGeneralMemory].load();
   // somehow this is thread local now?
   BUGCHECK(store == 512);
 
@@ -54,7 +51,7 @@ void TrackerTest2() {
 }
 
 void TestMemoryCategories() {
-  for (auto i = 0; i < 255; i++) {
+  for (auto i = 0; i < 254; i++) {
     base::AddMemoryCategory("TEST");
   }
 

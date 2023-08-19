@@ -64,12 +64,27 @@ void RemoveMemoryCategory(MemoryCategory id) {
   }
 }
 
+static constinit bool HACK_INITED{false};
+
 void MemoryTracker::TrackOperation(void* pointer, pointer_diff size) {
+  // pretty expensive to test for mistakes here
   // DCHECK(current_token != kInvalidCategory, "Category not set");
-  //  DCHECK(pointer_diff((memory_sizes[current_token] + size) /*atomic op*/) < 0,
+  //  DCHECK(pointer_diff((memory_sizes[current_token] + size) /*atomic op*/) <
+  //  0,
   //         "Underflow into tracking storage");
 
-  memory_sizes[current_token] += size;
+  if (!HACK_INITED) {
+    WipeStats();
+    HACK_INITED = true;
+  }
+
+  memory_sizes[current_token].fetch_add(size);
+}
+
+void MemoryTracker::WipeStats() {
+  memset(&token_bucket, kInvalidCategory, sizeof(token_bucket));
+  memset(&name_bucket, 0xA, sizeof(name_bucket));
+  memset(&memory_sizes, 0, sizeof(memory_sizes));
 }
 
 MemoryCategory current_memory_category() {

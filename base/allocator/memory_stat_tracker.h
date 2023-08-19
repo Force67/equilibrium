@@ -15,12 +15,16 @@ using MemoryCategory = u8;
 
 constexpr MemoryCategory kTrackingLimit = 255;
 constexpr MemoryCategory kGeneralMemory{base::MinMax<MemoryCategory>::max() - 1};
-constexpr MemoryCategory kInvalidCategory{0};
+constexpr MemoryCategory kInvalidCategory{kTrackingLimit};
 
 // this is not a proper class since we want to allow constinit for the MC
 struct MemoryTracker {
+  MemoryTracker() { DEBUG_TRAP; };
+
   // since a negative complement gets added with a + anyway, we simply only ever add
   void TrackOperation(void* pointer, pointer_diff size /*signed number*/);
+
+  void WipeStats();
 
   // 0xfff... means that the entry is unused,
   // 0 means that we fall under the general category,
@@ -30,8 +34,8 @@ struct MemoryTracker {
   MemoryCategory token_bucket[kTrackingLimit]{
       kInvalidCategory};  // wouldnd a bitset suffice, as the index would indicate
                           // the offset?
-  const char* name_bucket[kTrackingLimit]{"JESSICA"};
-  base::Atomic<mem_size> memory_sizes[kTrackingLimit]{1337};
+  const char* name_bucket[kTrackingLimit]{"<noname>"};
+  base::Atomic<mem_size> memory_sizes[kTrackingLimit]{0};
 };
 
 MemoryCategory current_memory_category(); 
