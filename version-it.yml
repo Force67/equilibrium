@@ -1,0 +1,51 @@
+run-on-branches:
+- main
+- coderelease
+
+versioning-scheme: semantic
+first-version: 0.0.1
+
+changelog-exporters:
+  template-path: build/versioning_templates
+  output-path: build
+
+calver-enable-branch: true
+
+# heading titles for a given changelog label 
+changelog-sections:
+- title: Added
+  labels:
+  - feature
+  - enhancement
+- title: Changed
+  labels:
+  - refactor
+  - improvement
+  - style
+  - tweak
+- title: Fixed
+  labels:
+  - bug
+  - fix
+
+change-type-map:
+- label: wip
+  action: null
+- label: test
+  action: null
+- label: chore
+  action: null
+- label: refactor
+  action: minor
+- label: feat
+  action: minor
+- label: perf
+  action: minor
+- label: tweak
+  action: patch
+- label: fix
+  action: patch
+- label: docs
+  action: patch
+- label: style
+  action: patch
