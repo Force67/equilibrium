@@ -45,7 +45,7 @@ BASE_EXPORT bool CreateDirectory(const Path& full_path);
 
 BASE_EXPORT bool DirectoryExists(const Path& path);
 
-BASE_EXPORT [[nodiscard]] bool PathExists(const Path& path);
+[[nodiscard]] BASE_EXPORT bool PathExists(const Path& path);
 
 BASE_EXPORT bool CreateNewTempDirectory(const Path::BufferType& prefix,
                                         Path* new_temp_path);
