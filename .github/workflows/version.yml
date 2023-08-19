@@ -1,22 +1,23 @@
-   
-name: Release
-"on":
+name: Generate version
+
+on:
   push:
     branches:
-      - main
-      - beta
-      - prerel
+      - coderelease
+      
 jobs:
-  release:
-    name: release
+  my-job:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
-          cache: npm
-          node-version: 16
-      - run: npm ci
-      - run: npx semantic-release
+          fetch-depth: 0 # Fetch all history, including tags'
+          set-safe-directory: 'true'
+      - name: Set it again
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: Tag stuff with version-it
+        uses: Force67/version.it@main
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          ACCESS_TOKEN: ${{ secrets.GH_TOKEN }}
