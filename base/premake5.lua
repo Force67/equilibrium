@@ -76,6 +76,7 @@ project("base_unittests")
 -- found in components, so we have to manually add the test project
 project("base_memory_unittests")
   kind("ConsoleApp")
+  staticruntime("on")
   files({
     "allocator/**.cc",
     "allocator/**.h",

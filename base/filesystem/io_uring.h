@@ -5,6 +5,7 @@
 #include <base/containers/vector.h>
 #include <base/functional/function.h>
 
+#if BASE_SUPPORTS_IO_URING
 namespace base {
 class IOUring {
  public:
@@ -33,3 +34,4 @@ class IOUring {
   base::Vector<Operation> pending_queue_;
 };
 }  // namespace base
+#endif

@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
+#if BASE_SUPPORTS_IO_URING
 #include "base/arch.h"
 #include "base/logging.h"
 #include "base/win/minwin.h"
@@ -39,11 +40,12 @@ typedef struct IORING_CREATE_FLAGS {
 extern "C" __declspec(dllimport) HRESULT
     QueryIoRingCapabilities(IORING_CAPABILITIES* capabilities);
 
-extern "C" __declspec(dllimport) HRESULT CreateIoRing(IORING_VERSION ioringVersion,
-                                                      IORING_CREATE_FLAGS flags,
-                                                      u32 submissionQueueSize,
-                                                      u32 completionQueueSize,
-                                                      void* h);
+extern "C" __declspec(dllimport) HRESULT
+    CreateIoRing(IORING_VERSION ioringVersion,
+                 IORING_CREATE_FLAGS flags,
+                 u32 submissionQueueSize,
+                 u32 completionQueueSize,
+                 void* h);
 
 extern "C" __declspec(dllimport) HRESULT CloseIoRing(void* ioRing);
 
@@ -91,7 +93,8 @@ typedef struct IORING_BUFFER_REF {
       : Kind(IORING_REF_KIND::IORING_REF_RAW), Buffer(address) {}
 
   explicit IORING_BUFFER_REF(IORING_REGISTERED_BUFFER registeredBuffer)
-      : Kind(IORING_REF_KIND::IORING_REF_REGISTERED), Buffer(registeredBuffer) {}
+      : Kind(IORING_REF_KIND::IORING_REF_REGISTERED),
+        Buffer(registeredBuffer) {}
 
   IORING_BUFFER_REF(u32 index, u32 offset)
       : IORING_BUFFER_REF(IORING_REGISTERED_BUFFER{index, offset}) {}
@@ -148,8 +151,8 @@ bool IOUring::Create() {
     return false;
   }
   IORING_CREATE_FLAGS flags{};
-  if (FAILED(
-          ::CreateIoRing(IORING_VERSION_3, flags, 0x10000, 0x20000, ring_handle_))) {
+  if (FAILED(::CreateIoRing(IORING_VERSION_3, flags, 0x10000, 0x20000,
+                            ring_handle_))) {
     LOG_ERROR("Failed to create IO ring.");
     return false;
   }
@@ -158,9 +161,9 @@ bool IOUring::Create() {
 
 void IOUring::Destroy() {
   if (ring_handle_) {
-    // Before destroying the IO ring, you might want to ensure there are no pending
-    // operations. Depending on your use case, you might also want to check
-    // completions or other states.
+    // Before destroying the IO ring, you might want to ensure there are no
+    // pending operations. Depending on your use case, you might also want to
+    // check completions or other states.
     if (FAILED(::CloseIoRing(ring_handle_))) {
       LOG_ERROR("Failed to close IO ring.");
     }
@@ -178,7 +181,7 @@ bool IOUring::SubmitReadFile(HANDLE fileHandle,
                              CompletionCallback callback) {
   IORING_HANDLE_REF fileRef(fileHandle);
   IORING_BUFFER_REF bufferRef(buffer);
-  #if 0
+#if 0
   Operation op{buffer, base::move(callback)};
   HRESULT result = ::BuildIoRingReadFile(
       ring_handle_, fileRef, bufferRef, size, offset, op.extra_data, IOSQE_FLAGS_NONE);
@@ -187,7 +190,7 @@ bool IOUring::SubmitReadFile(HANDLE fileHandle,
     return false;
   }
   pending_queue_.push_back(op);
-  #endif
+#endif
   return true;
 }
 
@@ -209,3 +212,4 @@ void IOUring::WaitForCompletions() {
 }
 
 }  // namespace base
+#endif

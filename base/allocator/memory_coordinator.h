@@ -22,7 +22,7 @@
 
 namespace base {
 
-MemoryTracker& memory_tracker();
+BASE_EXPORT MemoryTracker& memory_tracker();
 
 // do not instantiate any complex routers.
 // goal is to have these folded in the ::new/alloc operators
@@ -110,7 +110,7 @@ using MemoryCoordinator = MCInstance<DefaultCRTRouter>;
 #endif
 
 // get the global instance
-MemoryCoordinator& memory_coordinator();
+BASE_EXPORT MemoryCoordinator& memory_coordinator();
 }  // namespace base
 
 #endif
