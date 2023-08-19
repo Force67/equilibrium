@@ -134,8 +134,8 @@ class BasicStringRef {
   static constexpr inline BasicStringRef<TChar> null_ref() {
     // thanks to constinit we can ensure no ugly c++ guard is generated around this,
     // so while not pretty, this is OK
-    constinit TChar null_array[] = {0};
-    constinit BasicStringRef<TChar> null_ref{null_array, 0,
+    static constinit TChar null_array[] = {0};
+    static constinit BasicStringRef<TChar> null_ref{null_array, 0,
                                              false /*disallow .c_str()*/};
     return null_ref;
   }
