@@ -17,10 +17,10 @@ TEST(CommandLine, ParseFromString) {
   EXPECT_EQ(line[3].length(), 2);
   EXPECT_EQ(line[4].length(), 2);
 
-  EXPECT_TRUE(line.FindSwitch(u8"-a"));
-  EXPECT_TRUE(line.FindSwitch(u8"-b"));
-  EXPECT_TRUE(line.FindSwitch(u8"-c"));
-  EXPECT_TRUE(line.FindSwitch(u8"-d"));
+  EXPECT_TRUE(line.FindSwitch(u8"a"));
+  EXPECT_TRUE(line.FindSwitch(u8"b"));
+  EXPECT_TRUE(line.FindSwitch(u8"c"));
+  EXPECT_TRUE(line.FindSwitch(u8"d"));
 }
 
 TEST(CommandLine, ParseFromStringUTF8OnlyCharsTest) {

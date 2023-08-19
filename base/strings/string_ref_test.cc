@@ -10,19 +10,18 @@ using namespace base;
 TEST(BasicStringRefTest, Construction) {
   std::string test_str = "Hello, world!";
   StringRef str_ref(test_str);
-
-  EXPECT_EQ(str_ref.length(), test_str.length());
-  EXPECT_EQ(str_ref.data(), test_str.data());
   EXPECT_TRUE(str_ref.IsNullTerminated());
+  EXPECT_EQ(str_ref.length(), test_str.length());
+  EXPECT_STREQ(str_ref.data(), test_str.data());
 }
 
 TEST(BasicStringRefTest, ConstexprConstruction) {
   std::string test_str = "Hello, world!";
   constexpr StringRef str_ref("Hello, world!");
 
-  EXPECT_EQ(str_ref.length(), test_str.length());
-  EXPECT_EQ(str_ref.data(), test_str.data());
   EXPECT_TRUE(str_ref.IsNullTerminated());
+  EXPECT_EQ(str_ref.length(), test_str.length());
+  EXPECT_STREQ(str_ref.data(), test_str.data());
 }
 
 TEST(BasicStringRefTest, NullTermination) {
