@@ -2,8 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "window.h"
-#include <core/SkCanvas.h>
-
 namespace ui {
 
 /*

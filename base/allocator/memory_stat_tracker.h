@@ -19,7 +19,7 @@ constexpr MemoryCategory kInvalidCategory{kTrackingLimit};
 
 // this is not a proper class since we want to allow constinit for the MC
 struct MemoryTracker {
-  MemoryTracker() { DEBUG_TRAP; };
+  MemoryTracker() {  };
 
   // since a negative complement gets added with a + anyway, we simply only ever add
   void TrackOperation(void* pointer, pointer_diff size /*signed number*/);

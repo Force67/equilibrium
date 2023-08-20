@@ -4,8 +4,6 @@
 
 #include "key.h"
 
-#include <core/SkSurface.h>
-
 // https://github.com/google/skia/blob/main/tools/sk_app/VulkanWindowContext.h
 // https://github.com/google/skia/blob/main/example/HelloWorld.cpp
 // https://github.com/skiftOS/skift/blob/82ac3e77cb52c46b3982e60bda7a3679e0d0c211/userspace/libs/libwidget/Window.cpp
