@@ -29,12 +29,8 @@ jobs:
       shell: pwsh
       run: |
         .\build\bin\win\premake5 --file=premake5.lua vs2022
-        $vcvarsall_path = .\build\bin\win\vswhere.exe -find VC\Auxiliary\Build\vcvarsall.bat
-        cmd.exe /c """$vcvarsall_path"" x86_amd64 & set" | foreach {
-          if ($_ -match "=") {
-            $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
-          }
-        }
+        Import-Module (& .\build\bin\win\vswhere.exe -find Common7\Tools\Microsoft.VisualStudio.DevShell.dll)
+        Enter-VsDevShell -VsInstallPath (& .\build\bin\win\vswhere.exe -property installationPath) -Arch amd64 -SkipAutomaticLocation
         msbuild .\out\vs2022\Equilibrium.sln /t:'base\base:Rebuild;base\base_memory_unittests:Rebuild;base\base_unittests:Rebuild' /p:Configuration=${{ matrix.config }} /p:Platform=x64 -m
     - name: Test
       shell: pwsh
