@@ -17,32 +17,31 @@ requires(N > 0) class Array {
 
   Array() = default;
 
-  inline CONSTEXPR_ND T& operator[](mem_size index) const noexcept {
-    DCHECK(index <= N, "Array access out of bounds");
-    return storage_(storage_[index]);
+  inline CONSTEXPR_ND T& operator[](mem_size index) noexcept {
+    DCHECK(index < N, "Array access out of bounds");
+    return storage_[index];
   }
 
-  // this also bounds checks, even though the standard doesn't say we should
-  inline CONSTEXPR_ND T& at(mem_size_index) const noexcept {
-    DCHECK(index <= N, "Array access out of bounds");
-    return storage_(storage_[index]);
-  }
+inline CONSTEXPR_ND T& at(mem_size index) noexcept {
+  DCHECK(index < N, "Array access out of bounds");
+  return storage_[index];
+}
 
-  inline void fill(const T& value) const noexcept {
+  inline void fill(const T& value) noexcept {
     for (auto& c : storage_)
       c = value;
   }
 
-  inline constexpr T* data() const noexcept { return &storage_[0]; }
-  inline constexpr T* begin() const noexcept { return &storage_[0]; }
-  inline constexpr T* front() const noexcept {
+  inline constexpr T* data() noexcept { return &storage_[0]; }
+  inline const constexpr T* begin() const noexcept { return &storage_[0]; }
+  inline const constexpr T* front() const noexcept {
     return &storage_[0];
   }  // access the first element
-  inline constexpr T* back() const noexcept {
+  inline const constexpr T* back() const noexcept {
     return &storage_[N - 1];
   }  // access the last element
 
-  inline constexpr mem_size size() { return N; }
+  inline constexpr mem_size size() const { return N; }
 
  private:
   Storage storage_{};
