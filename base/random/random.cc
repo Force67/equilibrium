@@ -2,8 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // we base all of our random generators on xoshiro, see https://prng.di.unimi.it/
 
-#include <random>
-#include "base/random.h"
+#include "random.h"
 #include "base/external/xoshiro256ss/xoshiro256ss.h"
 
 namespace base {

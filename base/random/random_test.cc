@@ -1,7 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <base/random.h>
+#include "random.h"
 #include <gtest/gtest.h>
 
 #define EXPECT_IN_RANGE(v, min, max) \
