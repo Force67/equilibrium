@@ -25,7 +25,6 @@ bool NewMemoryCoordinator::Create() {
 
 void NewMemoryCoordinator::Destroy() {
   new_memory_coordinator().~NewMemoryCoordinator();
-
   // no memset, as we don't know if it depends on the CRT in possible implementations
   for (mem_size i = 0; i < sizeof(detail::new_mc_data); i++) {
     detail::new_mc_data[i] = 0xFF;

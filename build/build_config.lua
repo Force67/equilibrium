@@ -13,6 +13,7 @@ filter("system:linux")
   defines({
     "OS_LINUX",
     "OS_POSIX"}) -- we also define the POSIX alias here)
+  buildoptions("-std=c++2b")
 filter("system:macosx")
   defines("OS_MACOS")
 filter{}
