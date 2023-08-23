@@ -8,23 +8,19 @@
 
 namespace base {
 
-  uint64_t SourceTrueRandomSeed() {
-  	HCRYPTPROV hProvider = 0;
-  if (!::CryptAcquireContext(&hProvider, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
-    // Handle error
+u64 SourceTrueRandomSeed() {
+  HCRYPTPROV hProvider = 0;
+  if (!::CryptAcquireContext(&hProvider, 0, 0, PROV_RSA_FULL,
+                             CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
     return 0;
   }
-
-  uint64_t seed;
-  BOOL result = ::CryptGenRandom(hProvider, sizeof(seed), (BYTE*)&seed);
-
+  u64 seed = 0;
+  BOOL result =
+      ::CryptGenRandom(hProvider, sizeof(seed), reinterpret_cast<BYTE*>(&seed));
   ::CryptReleaseContext(hProvider, 0);
-
-  if (!result) {
-    // Handle error
+  if (!result)
     return 0;
-  }
 
   return seed;
 }
-}
+}  // namespace base

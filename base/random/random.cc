@@ -3,6 +3,7 @@
 // we base all of our random generators on xoshiro, see https://prng.di.unimi.it/
 
 #include "random.h"
+#include <random>
 #include "base/external/xoshiro256ss/xoshiro256ss.h"
 
 namespace base {

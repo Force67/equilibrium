@@ -8,7 +8,7 @@
 
 namespace base {
 
-  uint64_t SourceTrueRandomSeed() {
+  u64 SourceTrueRandomSeed() {
 		 int fd = ::open("/dev/urandom", O_RDONLY);
   if (fd == -1) {
     // Handle error
