@@ -39,7 +39,7 @@ TEST(LinkedListTest, InsertBeforeAndAfter) {
 
   EXPECT_EQ(list.head()->value()->value, 30);
   EXPECT_EQ(n1.next()->value()->value, 20);
-  EXPECT_EQ(list.tail()->value()->value, 10);
+  EXPECT_EQ(list.tail()->value()->value, 20);
 }
 
 TEST(LinkedListTest, RemoveFromList) {

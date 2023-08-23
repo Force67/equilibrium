@@ -64,7 +64,7 @@ i32 CommandLine::FindSwitchIndex(const base::StringRefU8 switch_name) {
     if (piece[0] != u8'-' && piece[1] != u8'-')
       continue;
     auto matches = [&](mem_size offset) {
-      return piece.compare(offset, switch_name.length(), switch_name.data());
+      return piece.compare(offset, switch_name.length(), switch_name.data()) == 0;
     };
     if (matches(1) || matches(2)) {
       return i;

@@ -20,7 +20,6 @@ u64 SourceTrueRandomSeed() {
   ::CryptReleaseContext(hProvider, 0);
   if (!result)
     return 0;
-
   return seed;
 }
 }  // namespace base
