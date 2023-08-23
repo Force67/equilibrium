@@ -4,7 +4,7 @@
 #include "base/filesystem/path.h"
 #include "base/filesystem/file_util.h"
 
-#include "base/random.h"
+#include "base/random/random.h"
 #include "base/logging.h"
 
 #include <windows.h>
