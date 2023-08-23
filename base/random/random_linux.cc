@@ -11,16 +11,14 @@ namespace base {
   u64 SourceTrueRandomSeed() {
 		 int fd = ::open("/dev/urandom", O_RDONLY);
   if (fd == -1) {
-    // Handle error
     return 0;
   }
 
-  uint64_t seed;
+  u64 seed;
   ssize_t result = ::read(fd, &seed, sizeof(seed));
   ::close(fd);
 
   if (result != sizeof(seed)) {
-    // Handle error
     return 0;
   }
 
