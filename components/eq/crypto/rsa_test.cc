@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <gtest/gtest.h>
-#include <base/random.h>
+#include <base/random/random.h>
 
 #include "rsa.h"	
 #include "mbed_raii_wrappers.h"	// for mbed::RsaKey
