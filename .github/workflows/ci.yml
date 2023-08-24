@@ -25,10 +25,12 @@ jobs:
       with:
         submodules: 'recursive'
         fetch-depth: '0'
+    - name: Premake
+      shell: pwsh
+      run: .\build\bin\win\premake5 --file=premake5.lua vs2022
     - name: Build
       shell: pwsh
       run: |
-        .\build\bin\win\premake5 --file=premake5.lua vs2022
         Import-Module (& .\build\bin\win\vswhere.exe -find Common7\Tools\Microsoft.VisualStudio.DevShell.dll)
         Enter-VsDevShell -VsInstallPath (& .\build\bin\win\vswhere.exe -property installationPath) -Arch amd64 -SkipAutomaticLocation
         msbuild .\out\vs2022\Equilibrium.sln /t:'base\base:Rebuild;base\base_memory_unittests:Rebuild;base\base_unittests:Rebuild' /p:Configuration=${{ matrix.config }} /p:Platform=x64 -m
@@ -67,8 +69,9 @@ jobs:
       uses: aminya/setup-cpp@v1
       with:
         compiler: gcc-13
+    - name: Premake
+      run: ./build/premake_linux.sh ${{ matrix.config }}
     - name: Build
       run: |
-        ./build/premake_linux.sh ${{ matrix.config }}
         cd out/gmake2
         make
