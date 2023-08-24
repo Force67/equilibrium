@@ -17,6 +17,7 @@ end
 
 -- pull in root dependencies
 -- by order of importance.
+include('os_extensions.lua')
 include('sdk.lua')
 include('build_config.lua')
 include('platform_files.lua')
