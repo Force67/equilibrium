@@ -3,6 +3,8 @@
 
 #include "base/filesystem/path.h"
 #include "text/code_convert.h"
+#include <base/text/code_point_validation.h>
+#include <base/text/code_convert.h>
 
 namespace base {
 Path::Path(const char* ascii_only) {
@@ -38,5 +40,12 @@ void Path::Normalize(BufferType& buffer) {
       c = BASE_PATH_SEP_MACRO;
     }
   }
+}
+
+base::String Path::ToAsciiString() const {
+  DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
+                               base::CountStringLength(path_buf_.c_str())),
+         "Path must be ASCII only");
+  return base::WideToASCII(path_buf_);
 }
 }  // namespace base

@@ -156,16 +156,4 @@ Path Path::Extension() const {
 #endif
   return {};
 }
-
-// Life isn't easy on Linux.  We have to deal with the fact that many apis take only
-// a ascii char as parameter.
-// This is a horrible hack, defeating the point of storing stuff in utf8 internally,
-// but for now it's the only way.
-base::String Path::ToAsciiString() const {
-  DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
-                               base::CountStringLength(path_buf_.c_str())),
-         "Path must be ASCII only");
-
-  return base::String(reinterpret_cast<const char*>(path_buf_.c_str()));
-}
 }  // namespace base
