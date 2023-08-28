@@ -59,8 +59,6 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Shipping]
-    env:
-      TEST_BINARY_NAME: base_unittests_x86_64
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -80,4 +78,4 @@ jobs:
         cd out/gmake2
         make
     - name: Test
-      run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/$TEST_BINARY_NAME${{ env.TEST_BINARY_SUFFIX }}
+      run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/base_unittests_x86_64${{ env.TEST_BINARY_SUFFIX }}
