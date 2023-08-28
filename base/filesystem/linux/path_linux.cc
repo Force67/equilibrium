@@ -1,6 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-#include "filesystem/path.h
+#include "filesystem/path.h"
+#include "text/code_point_validation.h"
 
 namespace base {
 // Life isn't easy on Linux.  We have to deal with the fact that many apis take
