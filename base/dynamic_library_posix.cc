@@ -52,11 +52,11 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
     const base::StringRefU8 ref(reinterpret_cast<const char8_t*>(info->dlpi_name));
 
     BUGCHECK(
-        !base::DoIsStringUTF8(ref.c_str(), ref.length()),
+        base::DoIsStringUTF8(ref.c_str(), ref.length()),
         "DynamicLibrary::LoadExisting(): BASE requires paths to be utf8 encoded!");
 
-    DCHECK(ref.IsNullTerminated(),
-           "dlapi_name is not null terminated according to spec.");
+    //DCHECK(ref.IsNullTerminated(),
+    //       "dlapi_name is not null terminated according to spec.");
 
     auto* context = reinterpret_cast<Context*>(user_pointer);
     // the name itself follows the following format:

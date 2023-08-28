@@ -27,6 +27,20 @@ Path::Path(const base::StringRefW wide_text) {
 }
 
 void Path::Normalize(BufferType& buffer) {
-  IMPOSSIBLE;
+  for (std::size_t i = 0; i < buffer.size(); ++i) {
+    auto& c = buffer[i];
+    bool matches = (c == u8'/');
+
+    if (matches && i + 1 < buffer.size()) {  // Corrected the index bound check
+      if (buffer[i + 1] == u8'/') {
+        buffer.erase(buffer.begin() + i + 1);
+        --i;  // Decrement i to re-check this index in next loop iteration
+      }
+    }
+
+    if (matches) {
+      c = BASE_PATH_SEP_MACRO;
+    }
+  }
 }
 }  // namespace base

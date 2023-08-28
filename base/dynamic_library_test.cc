@@ -15,7 +15,7 @@ TEST(DynamicLibrary, EmptyLoad) {
 TEST(DynamicLibrary, Load) {
   const base::DynamicLibrary lib(
 #if defined(OS_LINUX)
-	  "/lib/x86_64-linux-gnu/libstdc++.so"
+	  "libstdc++.so"
 #elif defined(OS_WIN)
 	  "iphlpapi.dll"
 #endif

@@ -10,18 +10,20 @@
 namespace base {
 bool GetEnvironmentVariable(const base::StringRefU8 variable_name,
                             base::StringU8& out) {
-  IMPOSSIBLE;
+  const char* value = getenv(reinterpret_cast<const char*>(variable_name.c_str()));
+  if (value) {
+    out = base::StringU8(reinterpret_cast<const char8_t*>(value));
+    return true;
+  }
   return false;
 }
 
 bool SetEnvironmentVariable(const base::StringRefU8 name,
                             const base::StringRefU8 value) {
-  IMPOSSIBLE;
-  return false;
+  return setenv(reinterpret_cast<const char*>(name.c_str()), reinterpret_cast<const char*>(value.c_str()), 1) == 0;
 }
 
 bool DeleteEnvironmentVariable(const base::StringRefU8 variable_name) {
-  IMPOSSIBLE;
-  return false;
+  return unsetenv(reinterpret_cast<const char*>(variable_name.c_str())) == 0;
 }
 }  // namespace base
