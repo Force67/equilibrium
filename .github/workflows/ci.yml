@@ -66,7 +66,7 @@ jobs:
         submodules: 'recursive'
         fetch-depth: '0'
     - name: Setup Dynamic Test Binary Name
-      run: echo "TEST_BINARY_SUFFIX=$(if [[ '${{ matrix.config }}' == 'Debug' ]]; then echo '_d'; else echo ''; fi)" >> $GITHUB_ENV
+      run: echo "TEST_BINARY_NAME=$(if [[ '${{ matrix.config }}' == 'Debug' ]]; then echo 'base_unittests_x86_64_d'; else echo 'base_unittests'; fi)" >> $GITHUB_ENV
     - name: Setup C++ environment
       uses: aminya/setup-cpp@v1
       with:
@@ -79,4 +79,4 @@ jobs:
         CONFIG_LOWER=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]')
         make config=$CONFIG_LOWER
     - name: Test
-      run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/base_unittests_x86_64${{ env.TEST_BINARY_SUFFIX }}
+      run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/${{ env.TEST_BINARY_NAME }}
