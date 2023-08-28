@@ -59,12 +59,16 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Shipping]
+    env:
+      TEST_BINARY_NAME: base_unittests_x86_64
     steps:
     - name: Checkout
       uses: actions/checkout@v3
       with:
         submodules: 'recursive'
         fetch-depth: '0'
+    - name: Setup Dynamic Test Binary Name
+      run: echo "TEST_BINARY_SUFFIX=$(if [[ '${{ matrix.config }}' == 'Debug' ]]; then echo '_d'; else echo ''; fi)" >> $GITHUB_EN
     - name: Setup C++ environment
       uses: aminya/setup-cpp@v1
       with:
@@ -75,3 +79,5 @@ jobs:
       run: |
         cd out/gmake2
         make
+    - name: Test
+      run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/$TEST_BINARY_NAME${{ env.TEST_BINARY_SUFFIX }}
