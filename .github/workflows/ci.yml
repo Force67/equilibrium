@@ -76,6 +76,7 @@ jobs:
     - name: Build
       run: |
         cd out/gmake2
-        make config=${{ matrix.config }}
+        CONFIG_LOWER=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]')
+        make config=$CONFIG_LOWER
     - name: Test
       run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/base_unittests_x86_64${{ env.TEST_BINARY_SUFFIX }}
