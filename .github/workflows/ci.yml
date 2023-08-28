@@ -68,7 +68,7 @@ jobs:
         submodules: 'recursive'
         fetch-depth: '0'
     - name: Setup Dynamic Test Binary Name
-      run: echo "TEST_BINARY_SUFFIX=$(if [[ '${{ matrix.config }}' == 'Debug' ]]; then echo '_d'; else echo ''; fi)" >> $GITHUB_EN
+      run: echo "TEST_BINARY_SUFFIX=$(if [[ '${{ matrix.config }}' == 'Debug' ]]; then echo '_d'; else echo ''; fi)" >> $GITHUB_ENV
     - name: Setup C++ environment
       uses: aminya/setup-cpp@v1
       with:
