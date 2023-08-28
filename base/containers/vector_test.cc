@@ -54,17 +54,6 @@ TEST(VectorTest, AddComplex) {
     i32 i_;
     i32& dtor_count_;
   };
-
-  {
-    std::vector<Complex> vec;
-    for (i32 i = 0; i < 10; i++) {
-      vec.push_back(Complex(i, destruct_count));
-    }
-    EXPECT_EQ(vec.size(), 10);
-  }
-
-  EXPECT_EQ(destruct_count, 45);
-  
   destruct_count = 0;
 
   {

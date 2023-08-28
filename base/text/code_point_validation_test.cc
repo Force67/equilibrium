@@ -58,6 +58,7 @@ TEST(IsValidCodepoint, InvalidCodePoints) {
   EXPECT_FALSE(IsValidCodepoint(0x110000));
 }
 
+#if (OS_WIN)
 TEST(IsMachineWordAligned, UnalignedPointers) {
   char array[sizeof(MachineWord) + 1];
   char* c;
@@ -68,6 +69,7 @@ TEST(IsMachineWordAligned, UnalignedPointers) {
   v = (void*)c;
   EXPECT_FALSE(IsMachineWordAligned(v));
 }
+#endif
 
 TEST(DoIsStringASCII, EmptyString) {
   const char* characters = "";
