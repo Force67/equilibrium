@@ -76,6 +76,6 @@ jobs:
     - name: Build
       run: |
         cd out/gmake2
-        make
+        make config=${{ matrix.config }}
     - name: Test
       run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/base_unittests_x86_64${{ env.TEST_BINARY_SUFFIX }}
