@@ -10,6 +10,7 @@ namespace ui {
 
 class MessagePumpWin {
  public:
+  MessagePumpWin() = default;
   // https://stackoverflow.com/questions/2850186/why-peekmessage-before-getmessage
   bool UpdateBlocking();
   bool Peek();

@@ -1,0 +1,1 @@
+bin\win\premake5 --file="../premake5.lua" export-compile-commands --export-compile-config=debug

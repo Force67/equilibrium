@@ -340,7 +340,9 @@ void NativeWindowWin32::HandleDestroy() {
     // last man standing, exit the message loop, we need to verify the window
     // count in order to make sure we don't exit while other windows still might
     // be active.
-    PostQuitMessage(0);
+    ::PostQuitMessage(0);
+    //::SendMessageW(hwnd_, WM_QUIT, 0, 0);
+    //::PostMessageW(hwnd_, WM_QUIT, 0, 0);
   }
   window_count--;
 }
