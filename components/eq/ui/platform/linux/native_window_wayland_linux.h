@@ -21,6 +21,8 @@ class NativeWindowWayland : public NativeWindow {
             const CreateFlags,
             u8 icon_id = 102) override;
 
+  void Destroy();
+
   bool SetTitle(const base::StringRefU8) override;
   void SendCommand(Command) override;
 

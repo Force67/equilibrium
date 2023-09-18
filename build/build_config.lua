@@ -75,6 +75,7 @@ filter{}
 -- fully optimized build, ready to be shipped to the user
 filter("configurations:Shipping")
   runtime("Release")
+  symbols("On")
   --optimize("Full") https://stackoverflow.com/questions/5063334/what-is-the-difference-between-the-ox-and-o2-compiler-options
   -- read also: https://github.com/ulfjack/ryu/pull/70#issuecomment-412168459 for further info on why we use O2
   optimize("Speed")
