@@ -273,26 +273,26 @@ _Acquires_exclusive_lock_(*SRWLock) VOID WINAPI
     AcquireSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
 
 // Needed to support protobuf's GetMessage macro magic.
-WINUSERAPI BOOL WINAPI GetMessageW(_Out_ LPMSG lpMsg,
-                                   _In_opt_ HWND hWnd,
-                                   _In_ UINT wMsgFilterMin,
-                                   _In_ UINT wMsgFilterMax);
+WINUSERAPI BOOL WINAPI GetMessageW(LPMSG lpMsg,
+                                   HWND hWnd,
+                                   UINT wMsgFilterMin,
+                                   UINT wMsgFilterMax);
 
 // Needed for thread_local_storage.h
-WINBASEAPI LPVOID WINAPI TlsGetValue(_In_ DWORD dwTlsIndex);
+WINBASEAPI LPVOID WINAPI TlsGetValue(DWORD dwTlsIndex);
 
-WINBASEAPI BOOL WINAPI TlsSetValue(_In_ DWORD dwTlsIndex,
-                                   _In_opt_ LPVOID lpTlsValue);
+WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex,
+                                   LPVOID lpTlsValue);
 
 // Needed for scoped_handle.h
 WINBASEAPI _Check_return_ _Post_equals_last_error_ DWORD WINAPI GetLastError(VOID);
 
-WINBASEAPI VOID WINAPI SetLastError(_In_ DWORD dwErrCode);
+WINBASEAPI VOID WINAPI SetLastError(DWORD dwErrCode);
 
-WINBASEAPI BOOL WINAPI TerminateProcess(_In_ HANDLE hProcess, _In_ UINT uExitCode);
+WINBASEAPI BOOL WINAPI TerminateProcess(HANDLE hProcess, UINT uExitCode);
 
 // Support for a deleter for LocalAlloc memory.
-WINBASEAPI HLOCAL WINAPI LocalFree(_In_ HLOCAL hMem);
+WINBASEAPI HLOCAL WINAPI LocalFree(HLOCAL hMem);
 
 #ifdef __cplusplus
 }

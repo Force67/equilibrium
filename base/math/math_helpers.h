@@ -9,7 +9,7 @@ inline u32 CountLeadingZeros(u32 val) {
   if (val == 0)
     return 32;
 
-#if __has_builtin(__builtin_clz)
+#if defined(__GNUC__) || defined(__clang__)
   return __builtin_clz(val);
 #elif defined(_MSC_VER)
   unsigned long index;
@@ -22,7 +22,7 @@ inline u64 CountLeadingZeros(u64 val) {
   if (val == 0)
     return 64;
 
-#if __has_builtin(__builtin_clzll)
+#if defined (__GNUC__) || defined(__clang__)
   return __builtin_clzll(val);
 #elif defined(_MSC_VER)
   unsigned long index;

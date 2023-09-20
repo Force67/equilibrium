@@ -18,7 +18,7 @@ void* ReAllocate(void* former, mem_size new_size) {
   return memory_coordinator().ReAllocate(former, new_size);
 }
 
-void Free(void* block) {
+void Free(void* block) {  
   if (block != nullptr)
     memory_coordinator().Free(block);
 }

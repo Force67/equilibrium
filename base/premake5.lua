@@ -20,6 +20,7 @@ local function base_project()
   filter("configurations:Profile")
     dependencies("tracysdk")
   filter{}
+  warnings("High")
 
   dependencies({
     "googlemock",

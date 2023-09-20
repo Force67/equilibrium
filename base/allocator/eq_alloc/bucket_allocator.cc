@@ -92,7 +92,8 @@ void* BucketAllocator::ReAllocate(void* former_block,
     return former_block;
   }
 
-  // Otherwise, we need to allocate a new block and copy data from the former block
+  // Otherwise, we need to allocate a new block and copy data from the former
+  // block
   void* new_block = Allocate(new_size, user_alignment);
 
   if (new_block == nullptr) {
@@ -148,14 +149,15 @@ bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
   // Track the end of the previous bucket in the loop
   u32 prev_end_offset = 0;
 
-  for (auto i = 0; i < tag.bucket_count.load(); i++) {
-    const auto bucket =
-        (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(Bucket) * (i + 1))))
-            .load();
+  for (u32 i = 0; i < tag.bucket_count.load(); i++) {
+    const auto bucket = (*reinterpret_cast<AtomicBucket*>(
+                             tag.end() - (sizeof(Bucket) * (i + 1))))
+                            .load();
 
     if (bucket.IsinUse()) {
       if (bucket.offset_ < prev_end_offset) {
-        // The current bucket starts before the previous one ends, so they intersect
+        // The current bucket starts before the previous one ends, so they
+        // intersect
         return true;
       }
       // Update the end of the previous bucket for the next iteration
@@ -167,8 +169,9 @@ bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:base/atomic_sequence_num.h;bpv=1;bpt=1
-BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size,
-                                                         byte*& page_start) {
+BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(
+    mem_size requested_size,
+    byte*& page_start) {
   for (base::LinkNode<HeaderNode>* node = page_list_.head();
        node != page_list_.end(); node = node->next()) {
     PageTag& tag = node->value()->tag;
@@ -177,15 +180,16 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
     byte* page_end = tag.end();
 
     if (tag.bucket_count == 0) {
-      Bucket* free_bucket =
-          new (page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
-              Bucket(/*offset*/ 0, /*size*/ requested_size, /*flags*/ Bucket::kUsed);
+      Bucket* free_bucket = new (
+          page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1)))
+          Bucket(/*offset*/ 0, /*size*/ requested_size,
+                 /*flags*/ Bucket::kUsed);
       node->value()->tag.bucket_count++;
       return free_bucket;
     }
 
-    // best case, we can reclaim a previously reserved bucket, and its associated
-    // memory.
+    // best case, we can reclaim a previously reserved bucket, and its
+    // associated memory.
     byte* data_start = tag.data();
     for (mem_size i = 0; i < tag.bucket_count; i++) {
       Bucket* buck =
@@ -200,14 +204,15 @@ BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(mem_size requested_size
     }
     // TODO: are there any gaps in between buckets?!
 
-    // this is not super smart, we put the end directly below the last metadataentry
+    // this is not super smart, we put the end directly below the last
+    // metadataentry
     byte* data_end =
         page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count + 1));
     // get the last metadata entry:
     Bucket* last_buck = reinterpret_cast<Bucket*>(
         page_end - (sizeof(Bucket) * (node->value()->tag.bucket_count)));
-    if ((data_end - ((data_start + last_buck->offset_ + last_buck->size_))) <
-        requested_size) {
+    u64 last_size = data_end - (data_start + last_buck->offset_ + last_buck->size_);
+    if (last_size < requested_size) {
       DEBUG_TRAP;
       return nullptr;
     }
@@ -238,9 +243,10 @@ BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
     for (auto i = 0; i < node->value()->tag.bucket_count; i++) {
       Bucket* buck =
           reinterpret_cast<Bucket*>(page_end - (sizeof(Bucket) * (i + 1)));
-      if (address >= (reinterpret_cast<pointer_size>(page_start) + buck->offset_) &&
-          address < (reinterpret_cast<pointer_size>(page_start) + (buck->offset_ +
-                     buck->size_))) {
+      if (address >=
+              (reinterpret_cast<pointer_size>(page_start) + buck->offset_) &&
+          address < (reinterpret_cast<pointer_size>(page_start) +
+                     (buck->offset_ + buck->size_))) {
         return buck;
       }
     }

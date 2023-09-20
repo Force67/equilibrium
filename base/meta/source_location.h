@@ -24,7 +24,7 @@ mem_size consteval CountStrlen(const char* str) {
 }
 
 // Small utility function to trim down the source path of any function
-consteval const char* const TrimSourcePath(const char* const str,
+consteval const char* TrimSourcePath(const char* const str,
                                            const char* const lastslash = nullptr) {
   return *str ? TrimSourcePath(str + 1,
                                ((*str == '/' || *str == '\\')

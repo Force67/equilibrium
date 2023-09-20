@@ -24,7 +24,7 @@ Path::Path(const base::StringRefW wide_text) {
 }
 
 void Path::Normalize(BufferType& buffer) {
-  for (auto i = 0; i < buffer.size(); i++) {
+  for (mem_size i = 0; i < buffer.size(); i++) {
     auto& c = buffer[i];
     bool matches = c == L'/';
 

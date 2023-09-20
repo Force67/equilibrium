@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#define FMT_HEADER_ONLY
 #define FMT_ENABLE_WIDE
 #include <fmt/xchar.h>
 #include <fmt/printf.h>

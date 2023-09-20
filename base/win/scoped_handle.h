@@ -140,11 +140,21 @@ class DummyVerifierTraits {
   static void StartTracking(HANDLE handle,
                             const void* owner,
                             const void* pc1,
-                            const void* pc2) {}
+                            const void* pc2) {
+    (void)handle;
+    (void)owner;
+    (void)pc1;
+    (void)pc2;
+  }
   static void StopTracking(HANDLE handle,
                            const void* owner,
                            const void* pc1,
-                           const void* pc2) {}
+                           const void* pc2) {
+    (void)handle;
+    (void)owner;
+    (void)pc1;
+    (void)pc2;
+  }
 };
 
 // Performs actual run-time tracking.

@@ -21,7 +21,7 @@ std::unique_ptr<u8[]> LoadFile(const Path& path, i64* opt_size) {
 
   auto content = std::make_unique<u8[]>(length);
   file.Seek(base::File::Whence::FROM_BEGIN, 0);
-  size_t read =
+  i64 read =
       file.Read(0, reinterpret_cast<char*>(content.get()), static_cast<i32>(length));
   if (read == length) {
     return content;
