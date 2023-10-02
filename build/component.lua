@@ -56,3 +56,19 @@ function component2(name)
       dependencies("googlemock")
       links("base")
 end
+
+function shared_component2(name)
+  local start, final, match = name:find(":(.*)")
+  local p_name = match or name
+
+    project(p_name)
+      kind("SharedLib")
+      includedirs({
+        ".",        --< current dir
+        "../",      --< component dir
+        blu.rootdir,--< main dir for direct base access
+      })
+      -- each component links against google mock
+      dependencies("googlemock")
+      links("base_shared")
+end

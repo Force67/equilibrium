@@ -24,15 +24,18 @@ enum class LogLevel : uint32_t {
 const char* LogLevelToName(LogLevel level) noexcept;
 
 namespace detail {
-void WriteLogMessage(const char* channel_name,
+BASE_EXPORT void WriteLogMessage(const char* channel_name,
                      LogLevel,
                      const char*,
                      const fmt::format_args&);
-void WriteLogMessagef(const char* channel_name,
+BASE_EXPORT void WriteLogMessagef(
+    const char* channel_name,
                       LogLevel,
                       const char*,
                       const fmt::basic_format_args<fmt::printf_context>&);
-void WriteLogMessage(const char* channel_name, LogLevel, const char*);
+BASE_EXPORT void WriteLogMessage(const char* channel_name,
+                                LogLevel,
+                                const char*);
 }  // namespace detail
 
 using LogHandler = void (*)(void*, const char* channel_name, LogLevel, const char*);
