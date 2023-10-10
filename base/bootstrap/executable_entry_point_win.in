@@ -51,7 +51,7 @@ extern _PVFV __xt_a[];  // First Terminator
 extern _PVFV __xt_z[];  // Last Terminator
 }
 
-void InvokeCxxInitializers(_PVFV* first, _PVFV* last) {
+void InvokeCXXInitializers(_PVFV* first, _PVFV* last) {
   while (first != last) {
     if (*first)
       (*first)();
@@ -88,7 +88,7 @@ bool InvokeInitializerLists(bool& has_cctor) {
       if (InvokeCInitializers(__xi_a, __xi_z))  // _initterm_e
         return false;
 
-      InvokeCxxInitializers(__xc_a, __xc_z);  // _initterm
+      InvokeCXXInitializers(__xc_a, __xc_z);  // _initterm
 
       __scrt_current_native_startup_state = startup_state::initialized;
       break;

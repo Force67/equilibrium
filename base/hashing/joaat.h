@@ -19,4 +19,20 @@ inline u32 Joaat(const byte* data, mem_size length) {
   hash += (hash << 15);
   return hash;
 }
+
+// el speciale
+inline u16 Joaat16(const byte* data, mem_size length) {
+  u16 hash = 0;
+
+  for (auto i = 0; i < length; ++i) {
+    hash += data[i];
+    hash += (hash << 5);
+    hash ^= (hash >> 3);
+  }
+  // Final mixing steps
+  hash += (hash << 2);
+  hash ^= (hash >> 4);
+  hash += (hash << 7);
+  return hash;
+}
 }  // namespace base
