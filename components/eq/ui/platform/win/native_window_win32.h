@@ -32,7 +32,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   ~NativeWindowWin32();
 
   bool Init(handle parent,
-            const ui::IRect bounds,
+            const eq::ui::IRect bounds,
             const CreateFlags,
             u8 icon_id = 102) override;
   bool SetTitle(const base::StringRefU8) override;
@@ -41,7 +41,7 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   void SendCommand(Command) override;
 
   handle os_handle() const override;
-  const ui::IRect bounds() const override;
+  const eq::ui::IRect bounds() const override;
 
   void SetDelegate(WindowDelegateWin* new_delegate) { delegate_ = new_delegate; }
 

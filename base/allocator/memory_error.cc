@@ -20,7 +20,7 @@ constinit struct {
 }  // namespace
 
 namespace detail {
-void InvokeOutOfMemoryHandler(const base::SourceLocation& loc,
+void InvokeOutOfMemoryHandler(const base::SourceLocation&,
                               const char* reason) {
   // TODO: also give out the source_loc?
   // give redzone memory (a prereserved tiny segment for throwing the error.)

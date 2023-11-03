@@ -38,7 +38,7 @@ class NativeWindow {
   };
 
   virtual bool Init(handle native_parent_handle,
-                    const ui::IRect bounds,
+                    const eq::ui::IRect bounds,
                     const CreateFlags flags, uint8_t icon_id = 102) = 0;
 
   virtual void SetDelegate(Delegate*) = 0;
@@ -49,7 +49,7 @@ class NativeWindow {
   const base::StringRefU8 title() const { return title_; }
 
   // may return an empty rect if the getter function fails.
-  virtual const ui::IRect bounds() const = 0;
+  virtual const eq::ui::IRect bounds() const = 0;
   float dpi() const { return dpi_; }
 
   // visibility control

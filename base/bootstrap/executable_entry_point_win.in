@@ -38,6 +38,10 @@
 
 int eq_main();
 
+#ifdef ENABLE_BASE_CRT_BOOTSTRAP_EARLY_INIT
+void eq_pre_initializers();
+#endif
+
 namespace {
 // symbols defined by the compiler
 extern "C" {
@@ -128,6 +132,9 @@ __forceinline int ProtectedMain() {
 
   bool has_cctor = false;
   __try {
+  #if defined ENABLE_BASE_CRT_BOOTSTRAP_EARLY_INIT
+    eq_pre_initializers();
+  #endif
     if (!base::NewMemoryCoordinator::Create())
       return 254;
 

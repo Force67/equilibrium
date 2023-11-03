@@ -4,7 +4,7 @@
 
 #include <base/arch.h>
 
-namespace ui {
+namespace eq::ui {
 
 template <typename T = float>
 struct Rect {
@@ -13,19 +13,19 @@ struct Rect {
   T right;
   T bottom;
 
-  static Rect<T> MakeXYWH(T x, T y, T width, T height) {
+  static constexpr Rect<T> MakeXYWH(T x, T y, T width, T height) {
     return Rect<T>(x, y, x + width, y + height);
   }
 
   // Default constructor
-  Rect() : left(0), top(0), right(0), bottom(0) {}
+  constexpr Rect() : left(0), top(0), right(0), bottom(0) {}
 
   // Constructor using left, top, right, and bottom
-  Rect(T left, T top, T right, T bottom)
+  constexpr Rect(T left, T top, T right, T bottom)
       : left(left), top(top), right(right), bottom(bottom) {}
 
   // Constructor that sets all values to the same provided value
-  Rect(T fill_value)
+  constexpr Rect(T fill_value)
       : left(fill_value),
         top(fill_value),
         right(fill_value),

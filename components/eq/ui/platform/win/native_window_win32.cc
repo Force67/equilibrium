@@ -348,7 +348,7 @@ void NativeWindowWin32::HandleDestroy() {
 }
 
 bool NativeWindowWin32::Init(handle parent_handle,
-                             const ui::IRect suggested_bounds,
+                             const eq::ui::IRect suggested_bounds,
                              const CreateFlags flags,
                              u8 icon_id) {
   // Note  As of Windows 8, DWM composition is always enabled. If an app
@@ -406,7 +406,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
     DCHECK(::IsWindow(parent));
   }
 
-  ui::IRect bounds;
+  eq::ui::IRect bounds;
   if (suggested_bounds.empty())
     bounds = {CW_USEDEFAULT};
   else
@@ -540,7 +540,7 @@ NativeWindowWin32::handle NativeWindowWin32::os_handle() const {
   return hwnd_;
 }
 
-const ui::IRect NativeWindowWin32::bounds() const {
+const eq::ui::IRect NativeWindowWin32::bounds() const {
   RECT r{};
   ::GetWindowRect(hwnd_, &r);
   return {r.left, r.top, r.right, r.bottom};
@@ -566,7 +566,7 @@ bool NativeWindowWin32::ResizeBounds(const ui::IPoint window_pos,
                   static_cast<UINT>(dpi_));
 
   const auto bounds =
-      ui::IRect::MakeXYWH(window_pos.x, window_pos.y, new_width, new_height);
+      eq::ui::IRect::MakeXYWH(window_pos.x, window_pos.y, new_width, new_height);
 
   request_resize_ = true;
   return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(),
