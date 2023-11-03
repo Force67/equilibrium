@@ -37,3 +37,6 @@
 [submodule "external/pugixml"]
 	path = external/pugixml
 	url = https://github.com/zeux/pugixml.git
+[submodule "build/emscripten"]
+	path = build/emscripten
+	url = https://github.com/Force67/premake-emscripten
