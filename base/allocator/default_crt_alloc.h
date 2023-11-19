@@ -1,23 +1,25 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-// if neither EQAlloc or any other custom allocators are used we default to this one.
+// if neither EQAlloc or any other custom allocators are used we default to this
+// one.
 #pragma once
 
 #include <malloc.h>
 
 #include <base/arch.h>
 #include <cstdlib>
-//#include <base/allocator/allocator_primitives.h>  //< for MemoryBlock struct
+// #include <base/allocator/allocator_primitives.h>  //< for MemoryBlock struct
 
 namespace base {
 
 class DefaultCRTRouter {
  public:
-  void* Allocate(mem_size size) { 
-      //if (size == 112)
-      //__debugbreak();
-      return ::malloc(size); }
+  void* Allocate(mem_size size) {
+    // if (size == 112)
+    //__debugbreak();
+    return ::malloc(size);
+  }
   void* AllocateAligned(mem_size size, mem_size alignment) {
 // If alignment is not a power of 2 or size is zero, this function invokes the
 // invalid parameter handler, as described in Parameter Validation. If execution

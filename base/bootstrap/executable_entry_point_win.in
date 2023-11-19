@@ -55,6 +55,16 @@ extern _PVFV __xt_a[];  // First Terminator
 extern _PVFV __xt_z[];  // Last Terminator
 }
 
+// When both the PGO instrumentation library and the CRT are statically linked,
+// PGO will initialize itself in XIAB.  We do most pre-C initialization before
+// PGO is initialized, but defer some initialization steps to after.  See the
+// commentary in post_pgo_initialization for details.
+
+// TODO: for some reason the CRT ignores this
+_CRTALLOC(".CRT$XIAA") static _PIFV pre_c_initializer    = pre_c_initialization;
+_CRTALLOC(".CRT$XIAC") static _PIFV post_pgo_initializer = post_pgo_initialization;
+_CRTALLOC(".CRT$XCAA") static _PVFV pre_cpp_initializer  = pre_cpp_initialization;
+
 void InvokeCXXInitializers(_PVFV* first, _PVFV* last) {
   while (first != last) {
     if (*first)
@@ -82,6 +92,11 @@ bool InvokeInitializerLists(bool& has_cctor) {
   bool const is_nested = __scrt_acquire_startup_lock();
   using startup_state = __scrt_native_startup_state;
 
+  // this is a major hack...
+  pre_c_initialization();
+  pre_cpp_initialization();
+  post_pgo_initialization();
+
   switch (__scrt_current_native_startup_state) {
     case startup_state::initializing:
       __scrt_fastfail(FAST_FAIL_FATAL_APP_EXIT);
@@ -89,7 +104,7 @@ bool InvokeInitializerLists(bool& has_cctor) {
     case startup_state::uninitialized: {
       __scrt_current_native_startup_state = startup_state::initializing;
 
-      if (InvokeCInitializers(__xi_a, __xi_z))  // _initterm_e
+      if (InvokeCInitializers(__xi_a, __xi_z) != 0)  // _initterm_e
         return false;
 
       InvokeCXXInitializers(__xc_a, __xc_z);  // _initterm
