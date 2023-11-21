@@ -4,6 +4,7 @@
 
 #include <base/arch.h>
 #include <base/strings/string_ref.h>
+#include <base/functional/function_ref.h>
 
 namespace base {
 
@@ -18,7 +19,8 @@ class Thread {
 
   enum class Priority { kLow, kNormal, kHigh, kVeryHigh };
 
-  explicit Thread(const base::StringRef name, const Priority = Priority::kNormal);
+  explicit Thread(const base::StringRef name,
+                  base::FunctionRef<void()> functor, const Priority = Priority::kNormal);
 
   virtual u32 Run();
 
@@ -37,12 +39,10 @@ class Thread {
   Handle Spawn();
 
  private:
-  // raw underlying implementation defined handle
   Handle handle_data_{};
-  // tid of the thread this thread was created on
   u32 parent_thread_index_{0};
-  // name of the thread
   base::String thread_name_;
+  base::FunctionRef<void()> run_functor_;
 };
 
 // core threading primitives

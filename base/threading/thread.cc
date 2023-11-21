@@ -5,8 +5,10 @@
 
 namespace base {
 
-Thread::Thread(const base::StringRef ref, const Thread::Priority prio)
-    : thread_name_(ref.c_str(), ref.length()) {
+Thread::Thread(const base::StringRef ref,
+               base::FunctionRef<void()> functor,
+               const Thread::Priority prio)
+    : thread_name_(ref.c_str(), ref.length()), run_functor_(functor) {
   parent_thread_index_ = base::GetCurrentThreadIndex();
 
   handle_data_ = Thread::Spawn();
@@ -14,9 +16,8 @@ Thread::Thread(const base::StringRef ref, const Thread::Priority prio)
     base::SetThreadPriority(handle_data_, prio);
 }
 
-// right now, the user has to implement it.
 u32 Thread::Run() {
-  DEBUG_TRAP;
+  run_functor_();
   return 0;
 }
 
