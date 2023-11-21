@@ -63,6 +63,7 @@ class RedBlackTree2 {
     y->right = x;
     x->parent = y;
   }
+
   void FixInsert(Node* k) {
     while (k != root_ && k->parent->color == RED) {
       if (k->parent == k->parent->parent->left) {
@@ -105,6 +106,61 @@ class RedBlackTree2 {
     }
     root_->color = BLACK;
   }
+
+  void FixDelete(Node* x) {
+    while (x != root_ && x->color == BLACK) {
+      if (x == x->parent->left) {
+        Node* w = x->parent->right;
+        if (w->color == RED) {
+          w->color = BLACK;
+          x->parent->color = RED;
+          RotateLeft(x->parent);
+          w = x->parent->right;
+        }
+        if (w->left->color == BLACK && w->right->color == BLACK) {
+          w->color = RED;
+          x = x->parent;
+        } else {
+          if (w->right->color == BLACK) {
+            w->left->color = BLACK;
+            w->color = RED;
+            RotateRight(w);
+            w = x->parent->right;
+          }
+          w->color = x->parent->color;
+          x->parent->color = BLACK;
+          w->right->color = BLACK;
+          RotateLeft(x->parent);
+          x = root_;
+        }
+      } else {
+        // Similar code for the right child
+      }
+    }
+    x->color = BLACK;
+  }
+
+
+  void Transplant(Node* u, Node* v) {
+    if (u->parent == nullptr) {
+      root_ = v;
+    } else if (u == u->parent->left) {
+      u->parent->left = v;
+    } else {
+      u->parent->right = v;
+    }
+    if (v != nullptr) {
+      v->parent = u->parent;
+    }
+  }
+
+  Node* Minimum(Node* node) const {
+    while (node->left != nullptr) {
+      node = node->left;
+    }
+    return node;
+  }
+
   Node* SearchTree(Node* node, const T& value) const {
     if (node == nullptr || value == node->value) {
       return node;
@@ -172,6 +228,52 @@ class RedBlackTree2 {
     }
 
     FixInsert(node);
+  }
+
+  bool Erase(const T& value) {
+    Node* nodeToDelete = SearchTree(root_, value);
+    if (!nodeToDelete)
+      return false;  // Node not found
+
+    Node* x;
+    Node* y = nodeToDelete;  // Temporary pointer y
+    NodeColor originalColor = y->color;
+
+    // If the node to be deleted has fewer than two children:
+    if (!nodeToDelete->left) {
+      x = nodeToDelete->right;
+      Transplant(nodeToDelete, nodeToDelete->right);
+    } else if (!nodeToDelete->right) {
+      x = nodeToDelete->left;
+      Transplant(nodeToDelete, nodeToDelete->left);
+    } else {
+      // Node has two children, find its in-order successor
+      y = Minimum(nodeToDelete->right);
+      originalColor = y->color;
+      x = y->right;
+
+      if (y->parent == nodeToDelete) {
+        if (x)
+          x->parent = y;
+      } else {
+        Transplant(y, y->right);
+        y->right = nodeToDelete->right;
+        y->right->parent = y;
+      }
+
+      Transplant(nodeToDelete, y);
+      y->left = nodeToDelete->left;
+      y->left->parent = y;
+      y->color = nodeToDelete->color;
+    }
+
+    delete nodeToDelete;
+
+    if (originalColor == BLACK) {
+      // Fix up the tree
+      FixDelete(x);
+    }
+    return true;
   }
 
   bool Search(const T& value) const {

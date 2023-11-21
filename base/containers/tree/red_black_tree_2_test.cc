@@ -131,4 +131,77 @@ TEST_F(RedBlackTree2Test, SearchNonExistent) {
   tree.Insert(30);
   EXPECT_FALSE(tree.Search(40));
 }
+
+TEST_F(RedBlackTree2Test, EraseTest) {
+  // Insert some elements
+  tree.Insert(10);
+  tree.Insert(20);
+  tree.Insert(30);
+  tree.Insert(40);
+  tree.Insert(50);
+
+  // Remove an element and check if it's correctly deleted
+  tree.Erase(30);
+  EXPECT_FALSE(tree.Search(30));
+
+  // Check if the tree maintains Red-Black properties after deletion
+  EXPECT_TRUE(CheckPropertiesWrapper());
+}
+
+TEST_F(RedBlackTree2Test, EraseRootTest) {
+  // Insert elements
+  tree.Insert(25);
+  tree.Insert(15);
+  tree.Insert(30);
+
+  // Remove the root
+  tree.Erase(25);
+  EXPECT_FALSE(tree.Search(25));
+
+  // Check if the tree maintains Red-Black properties after deleting root
+  EXPECT_TRUE(CheckPropertiesWrapper());
+}
+
+TEST_F(RedBlackTree2Test, EraseRedNodeTest) {
+  // Insert elements
+  tree.Insert(40);
+  tree.Insert(30);
+  tree.Insert(50);
+  tree.Insert(35);
+
+  // Remove a red node
+  tree.Erase(35);
+  EXPECT_FALSE(tree.Search(35));
+
+  // Check if the tree maintains Red-Black properties after deleting a red node
+  EXPECT_TRUE(CheckPropertiesWrapper());
+}
+
+TEST_F(RedBlackTree2Test, EraseBlackNodeTest) {
+  // Insert elements
+  tree.Insert(50);
+  tree.Insert(30);
+  tree.Insert(70);
+  tree.Insert(20);
+  tree.Insert(40);
+
+  // Remove a black node
+  tree.Erase(20);
+  EXPECT_FALSE(tree.Search(20));
+
+  // Check if the tree maintains Red-Black properties after deleting a black
+  // node
+  EXPECT_TRUE(CheckPropertiesWrapper());
+}
+
+TEST_F(RedBlackTree2Test, EraseNonexistentTest) {
+  // Insert elements
+  tree.Insert(10);
+  tree.Insert(20);
+  tree.Insert(30);
+
+  // Try to remove a non-existent element
+  tree.Erase(100);
+  EXPECT_TRUE(CheckPropertiesWrapper());
+}
 }  // namespace
