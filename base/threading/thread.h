@@ -4,7 +4,7 @@
 
 #include <base/arch.h>
 #include <base/strings/string_ref.h>
-#include <base/functional/function_ref.h>
+#include <base/functional/function.h>
 
 namespace base {
 
@@ -20,7 +20,8 @@ class Thread {
   enum class Priority { kLow, kNormal, kHigh, kVeryHigh };
 
   explicit Thread(const base::StringRef name,
-                  base::FunctionRef<void()> functor, const Priority = Priority::kNormal);
+                  base::Function<void()> functor,
+                  const Priority = Priority::kNormal);
 
   virtual u32 Run();
 
@@ -42,7 +43,7 @@ class Thread {
   Handle handle_data_{};
   u32 parent_thread_index_{0};
   base::String thread_name_;
-  base::FunctionRef<void()> run_functor_;
+  base::Function<void()> run_functor_;
 };
 
 // core threading primitives

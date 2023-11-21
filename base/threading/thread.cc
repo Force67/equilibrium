@@ -6,9 +6,10 @@
 namespace base {
 
 Thread::Thread(const base::StringRef ref,
-               base::FunctionRef<void()> functor,
+               base::Function<void()> functor,
                const Thread::Priority prio)
-    : thread_name_(ref.c_str(), ref.length()), run_functor_(functor) {
+    : thread_name_(ref.c_str(), ref.length()),
+      run_functor_(base::move(functor)) {
   parent_thread_index_ = base::GetCurrentThreadIndex();
 
   handle_data_ = Thread::Spawn();

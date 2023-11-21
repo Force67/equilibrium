@@ -1,72 +1,98 @@
-// Copyright (C) 2022 Vincent Hengel.
-// For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
 #include <base/memory/move.h>
+#include <memory>
 
 namespace base {
+template <typename>
+struct Function;  // intentionally not defined
 
 template <typename T>
-class Function;
+struct Decay {
+  using type = T;  // This should be more complex in a full implementation
+};
 
-template <class R, class... Args>
-class Function<R(Args...)> {
-  // Internal function type used to pass a closure object.
-  // using InternalFunctionType = R(void*, Args...);
-  typedef R InternalFunctionType(void*, Args&&... args);
-  // using InternalFunctionType = R(*)(void*, Args&&... args);
-  //  Internal function type used to delete a closure object.
-  typedef void InternalDeleterFunctionType(void*);
+/*
+Usage:
+  MyClass myObject;
+  Function<int(int)> myFunc(&myObject, &MyClass::memberFunction);
+  int result = myFunc(2);
 
- public:
-  explicit Function(std::nullptr_t) {
-    functor_ = [](void*, Args&&...) -> R {
-      if constexpr (std::is_same<R, void>::value == false) {
-        return R{};
-      }
-    };
+  Function<int(int)> myFreeFunc(&freefn);
+  result = myFreeFunc(12);
 
-    deleter_ = [](void*) {};
+  Function<int(int)> ref = base::move(myFunc);
+  result = ref(2);
+*/
+template <typename R, typename... Args>
+struct Function<R(Args...)> {
+  using Dispatcher = R (*)(void*, Args...);
+
+  Dispatcher m_Dispatcher;
+  std::unique_ptr<void, void (*)(void*)> m_Target;
+
+  // Custom deleter for unique_ptr
+  template <typename T>
+  static void Deleter(void* ptr) {
+    delete static_cast<T*>(ptr);
   }
 
-  // Constructs a function from any callable type (free function, captureless lambda,
-  // capturing lambda).
-  template <class T>
-  explicit Function(T&& closure) {
-    // convert the given (potentially capturing) closure to a captureless lambda by
-    // passing the closure as the context object
-    functor_ = [](void* closure, Args&&... args) -> R {
-      T* realClosure = static_cast<T*>(closure);
-      return (*realClosure)(base::forward<Args>(args)...);
-    };
-
-    // make sure to allocate and move the closure object onto the heap, as it will
-    // very likely be out-of-scope when this function is called
-    closure_context_ = new T(base::forward<T>(closure));
-
-    // create a deleter function that is capable of deleting the heap-allocated
-    // closure object
-    deleter_ = [](void* closure) {
-      T* realClosure = static_cast<T*>(closure);
-      delete realClosure;
-    };
+  template <typename S>
+  static R Dispatch(void* target, Args... args) {
+    return (*static_cast<S*>(target))(base::forward<Args>(args)...);
   }
 
-  // Deletes allocated resources.
-  ~Function(void) { (*deleter_)(closure_context_); }
+  // Custom structure to hold class instance and member function pointer
+  template <typename C, typename MF>
+  struct MemberFuncHolder {
+    C* object;
+    MF memberFuncPtr;
 
-  // Invokes the underlying callable function object.
-  inline R operator()(Args... args) const {
-    return (*functor_)(closure_context_, base::forward<Args>(args)...);
+    MemberFuncHolder(C* obj, MF mfPtr) : object(obj), memberFuncPtr(mfPtr) {}
+  };
+
+  // Dispatch for member functions
+  template <typename C, typename MF>
+  static R MemberDispatch(void* target, Args... args) {
+    auto holder = static_cast<MemberFuncHolder<C, MF>*>(target);
+    return (holder->object->*holder->memberFuncPtr)(
+        base::forward<Args>(args)...);
   }
 
- private:
-  InternalFunctionType* functor_ = nullptr;
-  InternalDeleterFunctionType* deleter_ = nullptr;
-  void* closure_context_ = nullptr;
+  // Constructor for functors and free functions
+  template <typename T>
+  Function(T&& target)
+      : m_Dispatcher(&Dispatch<typename Decay<T>::type>),
+        m_Target(new typename Decay<T>::type(base::forward<T>(target)),
+                 &Deleter<typename Decay<T>::type>) {}
 
-  BASE_NOCOPYMOVE(Function);
-  // LC_DISABLE_COPY_ASSIGNMENT(Function);
-  // LC_DISABLE_MOVE_ASSIGNMENT(Function);
+  // Constructor for member functions
+  template <typename C, typename MF>
+  Function(C* object, MF memberFuncPtr)
+      : m_Dispatcher(reinterpret_cast<Dispatcher>(&MemberDispatch<C, MF>)),
+        m_Target(new MemberFuncHolder<C, MF>(object, memberFuncPtr),
+                 &Deleter<MemberFuncHolder<C, MF>>) {}
+
+  // Move constructor and assignment
+  Function(Function&& other) noexcept
+      : m_Dispatcher(other.m_Dispatcher),
+        m_Target(base::move(other.m_Target)) {}
+
+  Function& operator=(Function&& other) noexcept {
+    if (this != &other) {
+      m_Dispatcher = other.m_Dispatcher;
+      m_Target = base::move(other.m_Target);
+    }
+    return *this;
+  }
+
+  // Call operator
+  R operator()(Args... args) const {
+    return m_Dispatcher(m_Target.get(), base::forward<Args>(args)...);
+  }
+
+  // Delete copy semantics
+  Function(const Function&) = delete;
+  Function& operator=(const Function&) = delete;
 };
 }  // namespace base
