@@ -9,8 +9,17 @@
 
 namespace base {
 template <typename T>
+struct RBComparator {
+  static bool less_than(const T& lhs, const T& rhs) { return lhs < rhs; }
+  static bool equals(const T& lhs, const T& rhs) { return lhs == rhs; }
+};
+
+template <typename T, typename TComparator = RBComparator<T>>
 class RedBlackTree2 {
  public:
+  using Comparator = TComparator;
+
+     // use as Compare(left,right)
   enum NodeColor { RED, BLACK };
   struct Node {
     T value;
@@ -162,11 +171,11 @@ class RedBlackTree2 {
   }
 
   Node* SearchTree(Node* node, const T& value) const {
-    if (node == nullptr || value == node->value) {
+    if (node == nullptr || Comparator::equals(value, node->value)) {
       return node;
     }
 
-    if (value < node->value) {
+    if (Comparator::less_than(value, node->value)) {
       return SearchTree(node->left, value);
     } else {
       return SearchTree(node->right, value);
@@ -202,7 +211,7 @@ class RedBlackTree2 {
 
     while (x != nullptr) {
       y = x;
-      if (node->value < x->value) {
+      if (Comparator::less_than(node->value, x->value)) {
         x = x->left;
       } else {
         x = x->right;
@@ -212,7 +221,7 @@ class RedBlackTree2 {
     node->parent = y;
     if (y == nullptr) {
       root_ = node;
-    } else if (node->value < y->value) {
+    } else if (Comparator::less_than(node->value, y->value)) {
       y->left = node;
     } else {
       y->right = node;
@@ -269,7 +278,7 @@ class RedBlackTree2 {
 
     delete nodeToDelete;
 
-    if (originalColor == BLACK) {
+    if (originalColor == BLACK && x != nullptr) {
       // Fix up the tree
       FixDelete(x);
     }
