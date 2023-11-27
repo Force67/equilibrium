@@ -38,7 +38,7 @@ class FunctionRef<TReturn(Args...)> final {
   }
 
   TReturn operator()(Args... args) noexcept {
-      #if 0
+#if 0
     if (object_) {
       // Member function call
       return erased_function_(object_, member_function_,
@@ -47,8 +47,8 @@ class FunctionRef<TReturn(Args...)> final {
       // Regular function call
       return erased_function_(nullptr, functor_, std::forward<Args>(args)...);
     }
-    #endif
-    return;
+#endif
+    return {};
   }
 
  private:
