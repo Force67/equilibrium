@@ -9,20 +9,24 @@
 
 namespace base {
 
+template <typename T, T InvalidValue, T MaxValue>
 class IdSet {
  public:
-  using id_type = i32;
+  using id_type = T;
 
   IdSet() : next_id_(0) {}
 
   id_type GenerateId() {
-    // If there are released IDs, reuse them
+    // reclaim released ids
     if (!released_ids_.empty()) {
       int id = *released_ids_.begin();
       released_ids_.Remove(id);
       return id;
     }
-    // Otherwise, use the next available ID
+    // otherwise, use the next id
+    if (next_id_ + 1 == MaxValue) {
+      return InvalidValue;
+    }
     return next_id_++;
   }
 

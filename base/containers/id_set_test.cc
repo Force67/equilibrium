@@ -2,15 +2,17 @@
 #include "id_set.h"
 #include <gtest/gtest.h>
 
+using TheIdSet = base::IdSet<u32, 0xFFFFFFFF,  0xFFFFFFFF - 1>;
+
 TEST(IdSetTest, GenerateSequentialIds) {
-  base::IdSet id_set;
+  TheIdSet id_set;
   EXPECT_EQ(id_set.GenerateId(), 0);
   EXPECT_EQ(id_set.GenerateId(), 1);
   EXPECT_EQ(id_set.GenerateId(), 2);
 }
 
 TEST(IdSetTest, ReuseReleasedIds) {
-  base::IdSet id_set;
+  TheIdSet id_set;
   auto id1 = id_set.GenerateId();
   auto id2 = id_set.GenerateId();
   id_set.ReleaseId(id1);
@@ -22,7 +24,7 @@ TEST(IdSetTest, ReuseReleasedIds) {
 }
 
 TEST(IdSetTest, ReleaseLastGeneratedId) {
-  base::IdSet id_set;
+  TheIdSet id_set;
   auto id1 = id_set.GenerateId();
   id_set.ReleaseId(id1);
   EXPECT_EQ(id_set.GenerateId(),
@@ -30,7 +32,7 @@ TEST(IdSetTest, ReleaseLastGeneratedId) {
 }
 
 TEST(IdSetTest, GenerateLargeNumberOfIds) {
-  base::IdSet id_set;
+  TheIdSet id_set;
   for (int i = 0; i < 1000; ++i) {
     EXPECT_EQ(id_set.GenerateId(), i);
   }
