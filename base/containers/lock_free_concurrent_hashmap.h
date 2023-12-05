@@ -7,6 +7,44 @@
 #include <base/memory/move.h>
 
 namespace base {
+// LockFreeHashMap is a concurrent hash map implementation that provides
+// lock-free
+// operations for insertion, deletion, and lookup. It's designed to handle
+// high-concurrency scenarios efficiently by minimizing blocking and
+// synchronization.
+//
+// How it Works:
+// - The map consists of a fixed number of buckets, with each bucket containing
+// a
+//   singly linked list of nodes.
+// - Each node stores a key-value pair, similar to a standard hash map.
+// - Insertion, deletion, and lookup operations are performed using atomic
+// operations,
+//   ensuring that the map can be safely used by multiple threads without
+//   explicit locks.
+// - The hash function determines the bucket index for each key, and the node is
+// then
+//   inserted into the corresponding bucket's linked list.
+//
+// Ordering:
+// - This implementation does not maintain the order of insertion. The elements
+// in each
+//   bucket follow the order in which they were inserted, but this order is not
+//   preserved across the entire map.
+// - The iteration order will follow the sequence of buckets and then the linked
+// list within
+//   each bucket, but this is not indicative of insertion order.
+// - Due to its concurrent nature and bucket-based storage, the insertion order
+// is not
+//   deterministic, especially under high-concurrency scenarios.
+//
+// Note:
+// - This class is suitable for scenarios where concurrent access to a hash map
+// is required
+//   and the order of elements is not a concern.
+// - It provides efficient key-based lookup and modification operations with
+// minimized
+//   contention among threads.
 template <typename Key, typename Value>
 class LockFreeHashMap {
  public:
@@ -67,7 +105,8 @@ class LockFreeHashMap {
     std::pair<Key, Value> keyValue;
     base::Atomic<Node*> next;
 
-    Node(Key k, Value &&v) : keyValue(std::make_pair(k, base::move(v))), next(nullptr) {}
+    Node(Key k, Value&& v)
+        : keyValue(std::make_pair(k, base::move(v))), next(nullptr) {}
   };
 
   base::Atomic<Node*>* buckets;

@@ -21,7 +21,10 @@ class Thread {
 
   explicit Thread(const base::StringRef name,
                   base::Function<void()> functor,
+                  bool start_now = false,
                   const Priority = Priority::kNormal);
+
+  bool Start(const Priority);
 
   virtual u32 Run();
 

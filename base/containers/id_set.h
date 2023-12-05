@@ -16,15 +16,12 @@ class IdSet {
   IdSet() : next_id_(0) {}
 
   id_type GenerateId() {
-#if 0
     // If there are released IDs, reuse them
     if (!released_ids_.empty()) {
       int id = *released_ids_.begin();
-      released_ids_.Remove(released_ids_.begin());
+      released_ids_.Remove(id);
       return id;
     }
-#endif
-
     // Otherwise, use the next available ID
     return next_id_++;
   }
