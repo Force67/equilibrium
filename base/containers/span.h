@@ -3,8 +3,9 @@
 //
 // A span provides a safe way to iterate over and index into objects that are
 // arranged back-to-back in memory. Such as objects stored in a built-in array,
-// base::array , or base::Vector . If you typically access a sequence of back-to-back
-// objects using a pointer and an index, a span is a safer, lightweight alternative.
+// base::array , or base::Vector . If you typically access a sequence of
+// back-to-back objects using a pointer and an index, a span is a safer,
+// lightweight alternative.
 
 #pragma once
 
@@ -22,7 +23,8 @@ class Span {
   // TODO: this allows to create a span from a span, which is not intended
   // behaviour, disable that
   template <class TT>
-  constexpr Span(TT& container) noexcept requires HasContainerTraits<TT>
+  constexpr Span(TT& container) noexcept
+    requires HasContainerTraits<TT>
       : Span(container.data(), container.size()) {}
 
   template <mem_size N>
@@ -64,7 +66,9 @@ class Span {
 
 // adapter for containers.
 template <class TContainer>
-auto MakeSpan(TContainer& container) requires HasContainerTraits<TContainer> {
+auto MakeSpan(TContainer& container)
+  requires HasContainerTraits<TContainer>
+{
   return base::Span(container.data(), container.size());
 }
 }  // namespace base

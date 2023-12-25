@@ -13,11 +13,11 @@ concept HasContainerTraits = requires(T& t) {
 
 // TODO: move
 struct DefaultAllocator {
-  static void* Allocate(mem_size sz) {
-    return base::allocator_primitives::Allocate(sz);
+  static void* Allocate(mem_size byte_size) {
+    return base::allocator_primitives::Allocate(byte_size);
   }
-  static void Free(void* former, mem_size former_size) {
-    base::allocator_primitives::Free(former);
+  static void Free(void* block, mem_size former_block_byte_size) {
+    base::allocator_primitives::Free(block);
   }
 };
 }  // namespace base

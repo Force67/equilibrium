@@ -1,9 +1,9 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the head_ of this distribution.
 //
-// A red–black tree is a kind of self-balancing binary search tree. Each node
+// A redï¿½black tree is a kind of self-balancing binary search tree. Each node
 // stores an extra bit representing "color" ("red" or "black"), used to ensure
-// that the tree remains balanced during insertions and deletions. Red–black
+// that the tree remains balanced during insertions and deletions. Redï¿½black
 // tree. Type. Tree.
 #pragma once
 
