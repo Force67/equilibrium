@@ -83,10 +83,14 @@ void PrintfLogMessage(const char* channel_name,
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kWarning, __VA_ARGS__)
 #define LOG_ERROR(...) \
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kError, __VA_ARGS__)
+#define LOG_FATAL(...) \
+  ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kFatal, __VA_ARGS__)
 #define LOG_CHANNEL_INFO(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kInfo, __VA_ARGS__)
 #define LOG_CHANNEL_WARNING(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kWarning, __VA_ARGS__)
 #define LOG_CHANNEL_ERROR(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kError, __VA_ARGS__)
+#define LOG_CHANNEL_FATAL(c, ...) \
+  ::base::PrintLogMessage(c, ::base::LogLevel::kFatal, __VA_ARGS__)
   
