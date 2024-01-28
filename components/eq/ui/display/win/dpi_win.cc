@@ -9,13 +9,13 @@
 
 #pragma comment(lib, "Shcore")
 
-namespace ui {
+namespace eq::ui {
 
 HMONITOR GetCurrentMonitorHandle(HWND hwnd) {
   return MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 }
 
-ui::FPoint GetMonitorDpi(HMONITOR monitor_handle) {
+eq::ui::FPoint GetMonitorDpi(HMONITOR monitor_handle) {
   // https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getscalefactorformonitor
   // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
   // usage with skia:
@@ -35,15 +35,15 @@ ui::FPoint GetMonitorDpi(HMONITOR monitor_handle) {
 
 // TODO: this is not UWP compatible!
 // https://github.com/chromium/chromium/blob/72ceeed2ebcd505b8d8205ed7354e862b871995e/ui/display/win/screen_win.cc#L66
-ui::FPoint GetCurrentDpi(void* os_window) {
+eq::ui::FPoint GetCurrentDpi(void* os_window) {
   HMONITOR monitor_handle =
       GetCurrentMonitorHandle(static_cast<HWND>(os_window));
   return GetMonitorDpi(monitor_handle);
 }
 
-ui::FPoint GetCurrentDpiScalingFactor(void* os_window) {
+eq::ui::FPoint GetCurrentDpiScalingFactor(void* os_window) {
   auto raw_dpi = GetCurrentDpi(os_window);
   constexpr float kDefaultDpi = static_cast<float>(USER_DEFAULT_SCREEN_DPI);
   return {raw_dpi.x / kDefaultDpi, raw_dpi.y / kDefaultDpi};
 }
-}  // namespace ui
+}  // namespace eq::ui

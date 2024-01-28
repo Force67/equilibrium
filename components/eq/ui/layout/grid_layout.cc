@@ -4,7 +4,7 @@
 #include <base/check.h>
 #include "grid_layout.h"
 
-namespace ui {
+namespace eq::ui {
 
 GridLayout::GridLayout() {
   gap(10.f);
@@ -27,7 +27,8 @@ void GridLayout::Build() {
       // poor man's gcd
       if (j % CS == 0) {
         cc = 0;
-        if (j > 0) rc++;
+        if (j > 0)
+          rc++;
       } else
         cc++;
 
@@ -61,4 +62,4 @@ void GridLayout::Build() {
     offset.x += col_gap_ + e->bounds.x;
   }
 }
-}  // namespace ui
+}  // namespace eq::ui

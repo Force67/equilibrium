@@ -4,7 +4,7 @@
 
 #include "layout.h"
 
-namespace ui {
+namespace eq::ui {
 // follows the css grid spec:
 // READ: https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Grids
 class Flexbox final : public Layout, public Element {
@@ -21,12 +21,7 @@ class Flexbox final : public Layout, public Element {
     KSpaceEvenly
   };
 
-  enum class AlignItems {
-      kStrech,
-      kFlexStart,
-      kFlexEnd,
-      kCenter
-  };
+  enum class AlignItems { kStrech, kFlexStart, kFlexEnd, kCenter };
 
   void Build() override;
 
@@ -36,4 +31,4 @@ class Flexbox final : public Layout, public Element {
   JustifyContent justify_content_;
   AlignItems item_alignment_;
 };
-}  // namespace ui
+}  // namespace eq::ui

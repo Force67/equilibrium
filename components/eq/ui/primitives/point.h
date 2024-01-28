@@ -5,7 +5,7 @@
 #include <cmath>
 #include <base/arch.h>
 
-namespace ui {
+namespace eq::ui {
 template <typename T = f32>
 struct Point {
   T x, y;

@@ -126,7 +126,10 @@ project("imgui")
     "glfw/include",
   })
   pubdefines({
-    "GLEW_STATIC"
+    "GLEW_STATIC",
+    --"IMGUI_ENABLE_STB_TRUETYPE",
+
+    --"IMGUI_ENABLE_FREETYPE"
   })
   files({
     "imgui/imgui.cpp",

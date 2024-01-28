@@ -4,7 +4,7 @@
 
 #include "layout.h"
 
-namespace ui {
+namespace eq::ui {
 // follows the css grid spec:
 // READ: https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Grids
 class GridLayout final : public Layout, public Element {
@@ -49,11 +49,10 @@ class GridLayout final : public Layout, public Element {
   void Build() override;
 
  private:
-
  private:
   std::vector<f32> columns_;
   std::vector<f32> rows_;
   f32 row_gap_;
   f32 col_gap_;
 };
-}  // namespace ui
+}  // namespace eq::ui

@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include "message_pump_win.h"
 
-namespace ui {
+namespace eq::ui {
 bool MessagePumpWin::UpdateBlocking() {
   return ::GetMessageW(&msg_, nullptr, 0, 0) != 0;
 }
@@ -18,4 +18,4 @@ void MessagePumpWin::Pump() {
   ::TranslateMessage(&msg_);
   ::DispatchMessageW(&msg_);
 }
-}  // namespace ui
+}  // namespace eq::ui

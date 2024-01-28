@@ -8,7 +8,7 @@
 #include "win/native_window_win32.h"
 #endif
 
-namespace ui {
+namespace eq::ui {
 base::UniquePointer<NativeWindow> MakeWindow(const base::StringRefU8 title,
                                              NativeWindow::Delegate* d) {
   // TODO(Vince): a bunch of compositor logic for linux

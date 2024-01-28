@@ -7,6 +7,7 @@
 #include <base/meta/source_location.h>
 
 #define TK_UNUSED(expr) (void)expr
+#define BASE_RECORD_CHECKS
 
 #ifdef BUGCHECK
 #error Something else defined BUGCHECK

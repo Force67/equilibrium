@@ -6,7 +6,7 @@
 #include <Windows.h>
 #include <base/win/minwin.h>
 
-namespace ui {
+namespace eq::ui {
 
 class MessagePumpWin {
  public:
@@ -22,4 +22,4 @@ class MessagePumpWin {
  private:
   MSG msg_{};
 };
-}  // namespace ui
+}  // namespace eq::ui

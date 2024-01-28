@@ -28,7 +28,7 @@
 #define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 #endif
 
-namespace ui {
+namespace eq::ui {
 
 namespace {
 base::Atomic<u32> window_count = 0;
@@ -389,7 +389,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
   if ((flags & NativeWindow::CreateFlags::kCustomBorder) &&
       (window_style_ & kWindowDefaultStyle)) {
     is_custom_styled_ = true;
-    window_style_ = 0x80000000; // WS_POPUP
+    window_style_ = 0x80000000;  // WS_POPUP
     LOG_DEBUG(
         "Win32Window: fancy border is enabled. OS Window border handling is "
         "disabled.");
@@ -565,8 +565,8 @@ bool NativeWindowWin32::ResizeBounds(const ui::IPoint window_pos,
                   scaled_bounds.y, new_width, new_height,
                   static_cast<UINT>(dpi_));
 
-  const auto bounds =
-      eq::ui::IRect::MakeXYWH(window_pos.x, window_pos.y, new_width, new_height);
+  const auto bounds = eq::ui::IRect::MakeXYWH(window_pos.x, window_pos.y,
+                                              new_width, new_height);
 
   request_resize_ = true;
   return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(),
@@ -597,4 +597,4 @@ void NativeWindowWin32::ExtendClientFrame(RECT& r) {
 bool NativeWindowWin32::IsCustomWindowBorderEnabled() const {
   return is_custom_styled_;
 }
-}  // namespace ui
+}  // namespace eq::ui

@@ -5,7 +5,7 @@
 #include <ui/primitives/point.h>
 #include "grid_layout.h"
 
-namespace ui {
+namespace eq::ui {
 namespace {
 TEST(GridLayout, LayoutNoChildren) {
   GridLayout g;
@@ -51,7 +51,7 @@ TEST(GridLayout, LayoutWithChildren) {
   EXPECT_EQ(g.children_[1]->screen_pos, ui::FPoint::Make(10.f + 10.f, 0.f));
   EXPECT_EQ(g.children_[2]->screen_pos,
             ui::FPoint::Make(10.f + 20.f + 10.f + 10.f, 0.f));
-  
+
   EXPECT_EQ(g.children_[3]->screen_pos, ui::FPoint::Make(0.f, 60.f + 10.f));
   EXPECT_EQ(g.children_[4]->screen_pos,
             ui::FPoint::Make(10.f + 10.f, 60.f + 10.f));
@@ -59,4 +59,4 @@ TEST(GridLayout, LayoutWithChildren) {
             ui::FPoint::Make(10.f + 20.f + 10.f + 10.f, 60.f + 10.f));
 }
 }  // namespace
-}  // namespace ui
+}  // namespace eq::ui

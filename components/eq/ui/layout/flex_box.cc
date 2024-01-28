@@ -4,13 +4,12 @@
 #include <base/check.h>
 #include "flex_box.h"
 
-namespace ui {
+namespace eq::ui {
 
 void Flexbox::Build() {
   switch (flex_direction_) {
     case FlexDirection::kRow:
     case FlexDirection::kRowReverse: {
-
       break;
     }
     case FlexDirection::kColumn:
@@ -21,4 +20,4 @@ void Flexbox::Build() {
       IMPOSSIBLE;
   }
 }
-}  // namespace ui
+}  // namespace eq::ui

@@ -8,7 +8,7 @@
 #include <eq/ui/primitives/point.h>
 #include <eq/ui/platform/native_window.h>
 
-namespace ui {
+namespace eq::ui {
 
 class WindowDelegateWin : public NativeWindow::Delegate {
  public:
@@ -25,7 +25,7 @@ class WindowDelegateWin : public NativeWindow::Delegate {
   virtual void OnDisplayChanged(NativeWindow::handle native_handle) = 0;
 };
 
-class NativeWindowWin32 final : public ui::NativeWindow {
+class NativeWindowWin32 final : public eq::ui::NativeWindow {
  public:
   explicit NativeWindowWin32(base::StringRefU8 name,
                              WindowDelegateWin* delegate = nullptr);
@@ -36,14 +36,16 @@ class NativeWindowWin32 final : public ui::NativeWindow {
             const CreateFlags,
             u8 icon_id = 102) override;
   bool SetTitle(const base::StringRefU8) override;
-  void SetDelegate(ui::NativeWindow::Delegate*);
+  void SetDelegate(eq::ui::NativeWindow::Delegate*);
 
   void SendCommand(Command) override;
 
   handle os_handle() const override;
   const eq::ui::IRect bounds() const override;
 
-  void SetDelegate(WindowDelegateWin* new_delegate) { delegate_ = new_delegate; }
+  void SetDelegate(WindowDelegateWin* new_delegate) {
+    delegate_ = new_delegate;
+  }
 
  private:
   // static item.
@@ -57,10 +59,11 @@ class NativeWindowWin32 final : public ui::NativeWindow {
 
   void HandleDestroy();
   void HandleWindowMove();
-  void HandleWindowResize(const ui::IPoint new_size);
-  LRESULT HandleWindowHittest(const ui::IPoint);
+  void HandleWindowResize(const eq::ui::IPoint new_size);
+  LRESULT HandleWindowHittest(const eq::ui::IPoint);
 
-  bool ResizeBounds(const ui::IPoint window_pos, const ui::IPoint in_dimension);
+  bool ResizeBounds(const eq::ui::IPoint window_pos,
+                    const eq::ui::IPoint in_dimension);
   void ExtendClientFrame(RECT&);
 
   bool IsCustomWindowBorderEnabled() const;
@@ -71,9 +74,9 @@ class NativeWindowWin32 final : public ui::NativeWindow {
   UINT class_style_;
   HWND hwnd_ = nullptr;
   HMONITOR tracked_monitor_ = nullptr;
-  ui::IPoint user_size_{};
+  eq::ui::IPoint user_size_{};
   bool request_resize_{false};
   bool is_custom_styled_{false};
   WindowDelegateWin* delegate_;
 };
-}  // namespace ui
+}  // namespace eq::ui

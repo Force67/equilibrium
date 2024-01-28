@@ -5,13 +5,13 @@
 
 #include <base/win/minwin.h>
 
-namespace ui {
+namespace eq::ui {
 constexpr f32 kDefaultWindowsDPI = 96.f;
 
 HMONITOR GetCurrentMonitorHandle(HWND hwnd);
-ui::FPoint GetMonitorDpi(HMONITOR monitor_handle);
+eq::ui::FPoint GetMonitorDpi(HMONITOR monitor_handle);
 
-inline ui::FPoint GetDPIFactor(f32 dpi) {
+inline eq::ui::FPoint GetDPIFactor(f32 dpi) {
   return dpi / kDefaultWindowsDPI;
 }
 }  // namespace ui

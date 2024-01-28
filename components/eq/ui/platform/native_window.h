@@ -14,7 +14,7 @@
 
 #include "../primitives/rect.h"
 
-namespace ui {
+namespace eq::ui {
 
 class NativeWindow {
  public:

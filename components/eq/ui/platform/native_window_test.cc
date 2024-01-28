@@ -8,12 +8,12 @@
 
 namespace {
 TEST(NativeWindow, Create) {
-  ui::NativeWindowWin32 win_window(u8"WindowTest", nullptr);
-  EXPECT_TRUE(win_window.Init(HWND_DESKTOP, {}, ui::NativeWindow::CreateFlags::kNone));
+  eq::ui::NativeWindowWin32 win_window(u8"WindowTest", nullptr);
+  EXPECT_TRUE(win_window.Init(HWND_DESKTOP, {}, eq::ui::NativeWindow::CreateFlags::kNone));
 
   win_window.Show();
 
-  ui::MessagePumpWin mp;
+  eq::ui::MessagePumpWin mp;
  // while (mp.Update()) {
  //   mp.Pump();
  // }

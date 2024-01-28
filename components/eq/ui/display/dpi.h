@@ -3,10 +3,10 @@
 // High dpi scaling utilities.
 #pragma once
 
-#include <ui/primitives/point.h>
+#include <eq/ui/primitives/point.h>
 
-namespace ui {
+namespace eq::ui {
 
-ui::Point<f32> GetCurrentDpi(void* os_window);
-ui::Point<f32> GetCurrentDpiScalingFactor(void* os_window);
-}
+eq::ui::Point<f32> GetCurrentDpi(void* os_window);
+eq::ui::Point<f32> GetCurrentDpiScalingFactor(void* os_window);
+}  // namespace eq::ui

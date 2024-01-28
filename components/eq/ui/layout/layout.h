@@ -6,7 +6,7 @@
 #include <base/math/vec2.h>
 #include <ui/primitives/point.h>
 
-namespace ui {
+namespace eq::ui {
 
 class Element {
  public:
@@ -19,8 +19,8 @@ class Element {
 
   size_t child_count() const { return children_.size(); }
 
-  ui::FPoint screen_pos;
-  ui::FPoint bounds;
+  eq::ui::FPoint screen_pos;
+  eq::ui::FPoint bounds;
 };
 
 class Layout {
@@ -30,4 +30,4 @@ class Layout {
   // Sets the current layout
   virtual void Build() = 0;
 };
-}  // namespace ui
+}  // namespace eq::ui
