@@ -164,6 +164,84 @@ class Vector {
     return dest > end_ ? nullptr : dest;
   }
 
+  [[nodiscard]] T* find(const T& element_match) const {
+	mem_size left = 0;
+	mem_size right = size() - 1;
+
+	while (left <= right) {
+	  mem_size middle = left + (right - left) / 2;
+	  T& middle_element = *(begin() + middle);
+
+	  if (middle_element == element_match)
+		return &middle_element;
+	  else if (middle_element < element_match)
+		left = middle + 1;
+	  else
+		right = middle - 1;
+	}
+
+	return nullptr;
+  }
+
+  // single element at a specified position.
+  typename T* insert(T* pos, const T& value) {
+    auto index = pos - begin();
+    if (end_ == capacity_) {  // Need to grow the vector
+      size_t newCapacity = size() == 0 ? 1 : size() * kDefaultMult;
+      reserve(newCapacity);
+    }
+    if (pos != end_) {
+      // Shift elements to the right
+      for (auto it = end_; it != pos; --it) {
+        *it = base::move(*(it - 1));
+      }
+    }
+    // Construct the new element
+    ::new (static_cast<void*>(&*pos)) T(value);
+    ++end_;
+    return begin() + index;
+  }
+
+  // multiple elements of the same value at a specified position.
+  void insert(T* pos, size_t count, const T& value) {
+    if (count == 0)
+      return;
+    auto index = pos - begin();
+    while (size() + count > capacity()) {  // Ensure capacity
+      reserve(size() == 0 ? count : size() * kDefaultMult);
+    }
+    // Move existing elements to make space
+    for (auto it = end_ + count - 1; it >= pos + count; --it) {
+      *it = base::move(*(it - count));
+    }
+    // Insert new elements
+    for (auto it = pos; it != pos + count; ++it) {
+	  ::new (static_cast<void*>(&*it)) T(value);
+	}
+    end_ += count;
+  }
+
+  // range of elements at a specified position.
+  template <class InputIt>
+  void insert(T* pos, InputIt first, InputIt last) {
+    auto distance = first - last;
+    if (distance <= 0)
+      return;
+    auto index = pos - begin();
+    while (size() + distance > capacity()) {  // Ensure capacity
+      reserve(size() == 0 ? distance : size() * kDefaultMult);
+    }
+    // Move existing elements to make space
+    for (auto it = end_ + distance - 1; it >= pos + distance; --it) {
+      *it = base::move(*(it - distance));
+    }
+    
+    // Copy new elements
+    memcpy(pos, first, distance * sizeof(T));
+    //std::copy(first, last, pos);
+    end_ += distance;
+  }
+
   bool erase(mem_size pos) {
     T* dest = &data_[pos];
     if (dest == (end_ - 1)) {
@@ -178,6 +256,23 @@ class Vector {
 
     // if we remove in the middle, we memmove the upper objects down by one place.
     memmove(dest, source, end_ - source);
+    --end_;
+    end_->~T();
+    return true;
+  }
+
+   bool erase(T* element_ptr) {
+    if (element_ptr < data_ || element_ptr >= end_) {
+      return false;  // Pointer is out of bounds
+    }
+
+    // Move the elements after the erased element
+    T* next = element_ptr + 1;
+    if (next != end_) {
+      std::move(next, end_, element_ptr);
+    }
+
+    // Destroy the last element since it is now a duplicate
     --end_;
     end_->~T();
     return true;

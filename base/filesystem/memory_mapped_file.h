@@ -5,6 +5,9 @@
 #include <base/memory/move.h>
 #include <base/filesystem/file.h>
 
+#include <base/containers/span.h>
+#include <base/containers/vector.h>
+
 #if defined(OS_WIN)
 #include <base/win/scoped_handle.h>
 #endif
@@ -22,8 +25,32 @@ class MemoryMappedFile {
   bool Map();
 
   bool ReMap(u64 offset, mem_size mapped_bytes);
+
+  // Reads data from the memory-mapped file.
+  base::Vector<byte> Read(u64 offset, mem_size size) {
+    base::Vector<byte> data;
+    if (offset + size > file_size_ || !memory_view_address_) {
+      // Handle error: either out of bounds or memory not mapped
+      return {};
+    }
+    data.resize(size);
+    memcpy(data.data(), static_cast<byte*>(memory_view_address_) + offset,
+           size);
+    return data;
+  }
+
+  // Writes data to the memory-mapped file.
+  bool Write(u64 offset, const base::Span<byte> data) {
+    if (offset + data.size() > file_size_ || !memory_view_address_) {
+      return false;
+    }
+    memcpy(static_cast<byte*>(memory_view_address_) + offset, data.data(),
+           data.size());
+    return true;
+  }
+
  private:
-	 // TODO: review order of destructors!
+  // TODO: review order of destructors!
   base::File& parent_file_;
   mem_size file_size_{0};
 

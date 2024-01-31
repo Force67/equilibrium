@@ -219,4 +219,66 @@ TEST(VectorTest, ShrinkToFit) {
   EXPECT_EQ(vec.size(), 10);
   EXPECT_EQ(vec.capacity(), 10);
 }
+
+TEST(VectorFindTest, FindExistingElement) {
+  base::Vector<i32> vec;
+  for (i32 i = 0; i < 10; i++) {
+    vec.push_back(i * 2);  // Fill with even numbers
+  }
+
+  auto* found = vec.find(4);
+  ASSERT_NE(found, nullptr);
+  EXPECT_EQ(*found, 4);
+}
+
+TEST(VectorFindTest, FindNonExistingElement) {
+  base::Vector<i32> vec;
+  for (i32 i = 0; i < 10; i++) {
+    vec.push_back(i * 2);  // Fill with even numbers
+  }
+
+  auto* notFound = vec.find(3);  // 3 is not in the vector
+  EXPECT_EQ(notFound, nullptr);
+}
+
+TEST(VectorFindTest, FindFirstElement) {
+  base::Vector<i32> vec;
+  for (i32 i = 0; i < 10; i++) {
+    vec.push_back(i);
+  }
+
+  auto* found = vec.find(0);
+  ASSERT_NE(found, nullptr);
+  EXPECT_EQ(*found, 0);
+}
+
+TEST(VectorFindTest, FindLastElement) {
+  base::Vector<i32> vec;
+  for (i32 i = 0; i < 10; i++) {
+    vec.push_back(i);
+  }
+
+  auto* found = vec.find(9);
+  ASSERT_NE(found, nullptr);
+  EXPECT_EQ(*found, 9);
+}
+
+TEST(VectorFindTest, FindMiddleElement) {
+  base::Vector<i32> vec;
+  for (i32 i = 0; i < 10; i++) {
+    vec.push_back(i);
+  }
+
+  auto* found = vec.find(5);
+  ASSERT_NE(found, nullptr);
+  EXPECT_EQ(*found, 5);
+}
+
+TEST(VectorFindTest, EmptyVectorFind) {
+  base::Vector<i32> vec;
+
+  auto* notFound = vec.find(1);  // Vector is empty
+  EXPECT_EQ(notFound, nullptr);
+}
+
 }  // namespace

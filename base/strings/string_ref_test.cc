@@ -17,6 +17,8 @@ TEST(BasicStringRefTest, Construction) {
 
 TEST(BasicStringRefTest, ConstexprConstruction) {
   std::string test_str = "Hello, world!";
+
+  // TODO: fix constexpr construction
   constexpr StringRef str_ref("Hello, world!");
 
   EXPECT_TRUE(str_ref.IsNullTerminated());

@@ -3,7 +3,7 @@
 
 #include <base/logging.h>
 #include <base/filesystem/memory_mapped_file.h>
-// https://github.com/frozenca/BTree/blob/main/fc_mmfile.h
+
 namespace base {
 
 bool MemoryMappedFile::Map() {
@@ -11,17 +11,19 @@ bool MemoryMappedFile::Map() {
   if (file_size_ == -1)
     return false;
 
+  // weird af: In Windows, when a file is created, it does not automatically
+  // allocate space on the disk unless it's written to. Therefore, trying to map
+  // a newly created but empty (zero-length) file will fail because
+  // memory-mapped files require the underlying file to have a non-zero size.
+  parent_file_.Write(0, "", 1);
+
+  auto handle = parent_file_.underlying_platform_file().Get();
+
   memory_handle_.Set(
-      ::CreateFileMapping(parent_file_.underlying_platform_file().Get(), nullptr,
-                          PAGE_READONLY, 0, 0, nullptr));
+      ::CreateFileMappingW(handle, nullptr, PAGE_READWRITE, 0, 0, nullptr));
 
-  if (!memory_handle_.IsValid())
-    return false;
-
-  return true;
+  return memory_handle_.IsValid();
 }
-
-// https://github.com/apfeltee/memorymapped/blob/master/impl.win32.cpp
 
 bool MemoryMappedFile::ReMap(u64 offset, mem_size mapped_bytes) {
   DCHECK(!memory_handle_.IsValid(), "Attempted to remap existing view");
