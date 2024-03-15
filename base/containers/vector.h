@@ -184,7 +184,7 @@ class Vector {
   }
 
   // single element at a specified position.
-  typename T* insert(T* pos, const T& value) {
+  T* insert(T* pos, const T& value) {
     auto index = pos - begin();
     if (end_ == capacity_) {  // Need to grow the vector
       size_t newCapacity = size() == 0 ? 1 : size() * kDefaultMult;

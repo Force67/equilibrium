@@ -53,10 +53,14 @@ class MemoryMappedFile {
   // TODO: review order of destructors!
   base::File& parent_file_;
   mem_size file_size_{0};
+  void* memory_view_address_{nullptr};
 
 #if defined(OS_WIN)
   win::ScopedHandle memory_handle_;
-  void* memory_view_address_{nullptr};
+#endif
+
+#if defined (OS_POSIX)
+   int fd_{0}; // implementation defined
 #endif
 };
 }  // namespace base

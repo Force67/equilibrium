@@ -355,6 +355,7 @@ class BASE_EXPORT File {
 #endif
 
   auto& underlying_platform_file() const { return file_; }
+  const Path& path() const { return path_; }
 
  private:
   // Creates or opens the given file. Only called if |path| has no

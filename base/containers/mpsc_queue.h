@@ -120,7 +120,6 @@ class MPSCQueue {
                ->next.load(std::memory_order_acquire) == nullptr;
   }
 
- private:
   struct Node {
     T value;
     std::atomic<Node*> next;
@@ -132,7 +131,7 @@ class MPSCQueue {
     explicit Node(Args&&... args)
         : value(std::forward<Args>(args)...), next(nullptr) {}
   };
-
+ private:
   std::atomic<Node*> head_;
   std::atomic<Node*> tail_;
 };

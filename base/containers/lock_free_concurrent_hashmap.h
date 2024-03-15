@@ -100,7 +100,6 @@ class LockFreeHashMap {
 
   Iterator end() { return Iterator(this, bucketCount, nullptr); }
 
- private:
   struct Node {
     std::pair<Key, Value> keyValue;
     base::Atomic<Node*> next;
@@ -108,7 +107,7 @@ class LockFreeHashMap {
     Node(Key k, Value&& v)
         : keyValue(std::make_pair(k, base::move(v))), next(nullptr) {}
   };
-
+ private:
   base::Atomic<Node*>* buckets;
   size_t bucketCount;
 
