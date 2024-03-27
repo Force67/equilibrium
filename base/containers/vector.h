@@ -269,7 +269,7 @@ class Vector {
     // Move the elements after the erased element
     T* next = element_ptr + 1;
     if (next != end_) {
-      std::move(next, end_, element_ptr);
+      base::move(next, end_, element_ptr);
     }
 
     // Destroy the last element since it is now a duplicate

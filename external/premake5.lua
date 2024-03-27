@@ -68,6 +68,23 @@ project("fmtlib")
   })
   pic("On")
 
+project("nanofmt")
+  language("C++")
+  kind("StaticLib")
+  pubincludedirs({
+    "./nanofmt/include"
+  })
+  includedirs({
+    "nanofmt/source"
+  })
+  files({
+    "nanofmt/source/charconv.cpp",
+    "nanofmt/source/format.cpp",
+    "nanofmt/source/numeric_utils.h",
+    "nanofmt/source/parse_utils.h"
+  })
+  pic("On")
+
 project("googlemock")
   language("C++")
   kind("StaticLib")

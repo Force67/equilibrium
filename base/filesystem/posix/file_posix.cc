@@ -367,14 +367,15 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
 
   int mode = S_IRUSR | S_IWUSR;
 
-  BUGCHECK(!base::DoIsStringUTF8(path.c_str(), path.length()),
+  const auto utf8_index = base::IsStringUTF8AndReportIdx(path.c_str(), path.length());
+  BUGCHECK(utf8_index == 0,
            "File::DoInitialize(): BASE requires paths to be utf8 encoded!");
 
   // decay to a regular char type cause the api requires it, by no means that means
   // that the api doesn't accept utf8 tho, they merely treat the paths as arrays of
   // bytes and do a poor mans bitcast
-  char* utf8_path_buf = nullptr;
-  memcpy(reinterpret_cast<void*>(utf8_path_buf), path.c_str(), path.length());
+  char* utf8_path_buf = (char*)path.c_str();
+  //memcpy(reinterpret_cast<void*>(utf8_path_buf), path.c_str(), sizeof(char*));
   DCHECK(utf8_path_buf, "File::DoInitialize(): Failed to convert path type");
 
   int descriptor = HANDLE_EINTR(open(utf8_path_buf, open_flags, mode));

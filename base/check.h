@@ -8,7 +8,6 @@
 
 #define TK_UNUSED(expr) (void)expr
 #define BASE_RECORD_CHECKS
-
 #ifdef BUGCHECK
 #error Something else defined BUGCHECK
 #endif
