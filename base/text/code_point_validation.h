@@ -33,6 +33,22 @@ inline bool DoIsStringUTF8(const Char* str, mem_size length) {
   return true;
 }
 
+template <typename Char>
+inline arch_types::mem_size IsStringUTF8AndReportIdx(const Char* str, arch_types::mem_size length) {
+  const u8* src = reinterpret_cast<const u8*>(str);
+  arch_types::mem_size char_index = 0;
+
+  while (char_index < length) {
+    base_icu::UChar32 code_point;
+    arch_types::mem_size old_char_index = char_index;
+    CBU8_NEXT(src, char_index, length, code_point);
+    if (!IsValidUTF8Character(code_point))
+      return old_char_index;
+  }
+
+  return 0;
+}
+
 inline bool IsValidCodepoint(uint32_t code_point) {
   // Excludes code points that are not Unicode scalar values, i.e.
   // surrogate code points ([0xD800, 0xDFFF]). Additionally, excludes

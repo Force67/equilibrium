@@ -40,3 +40,6 @@
 [submodule "build/emscripten"]
 	path = build/emscripten
 	url = https://github.com/Force67/premake-emscripten
+[submodule "external/nanofmt"]
+	path = external/nanofmt
+	url = https://github.com/seanmiddleditch/nanofmt

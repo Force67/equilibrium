@@ -54,7 +54,7 @@ class BasicStringRef {
                                                    : StringRefFlags::kNone;
   }
 
-  // construct from compiletime
+  // construct at compiletime
   constexpr BasicStringRef(const TChar* data,
                            mem_size length,
                            bool is_null_terminated)

@@ -88,7 +88,7 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) CONST_ND {
   BUGCHECK(index < base::MinMax<u16>::max(),
            "CommandLine::operator[]: Index out of bounds");
   const auto& piece = pieces_[index];
-  return base::StringRefU8(piece.c_str(), piece.length());
+  return base::StringRefU8(piece.c_str(), piece.length(), true); // No +1 as nterm doesnt count as character
 }
 
 base::StringRefU8 CommandLine::at(const mem_size index) {
@@ -96,7 +96,7 @@ base::StringRefU8 CommandLine::at(const mem_size index) {
   if (index > cap || index == -1)
     return u8"";
   const auto& piece = pieces_[index];
-  return base::StringRefU8(piece.c_str(), piece.length());
+  return base::StringRefU8(piece.c_str(), piece.length(), true); // No +1 as nterm doesnt count as character
 }
 
 xsize CommandLine::FindPositionalArgumentsIndex() {
