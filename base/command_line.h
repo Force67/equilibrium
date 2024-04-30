@@ -48,7 +48,7 @@ class CommandLine {
 
   // get an argument at a given index, note that index 0 is usually the
   // executable path
-  base::StringRefU8 operator[](const mem_size index);
+  base::StringRefU8 operator[](const mem_size index) CONST_ND;
 
   // failsafe access at index n
   base::StringRefU8 at(const mem_size index);
@@ -113,7 +113,7 @@ class CommandLine {
   // optional arguments
   xsize FindPositionalArgumentsIndex();
 
-  const xsize parameter_count() { return pieces_.size(); }
+  const xsize parameter_count() const { return pieces_.size(); }
 
   // cxx iterator
   auto begin() { return pieces_.begin(); }

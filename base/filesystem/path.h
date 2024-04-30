@@ -81,7 +81,9 @@ class BASE_EXPORT Path {
   }
 
   // append another path to this path, and insert a seperator in between of them
-  void Append(const Path&);
+  Path& Append(const Path&);
+
+
 
   // modifies the buffer to the internal path notation e.g. backslashes on windows or
   // forward slashes on *nix

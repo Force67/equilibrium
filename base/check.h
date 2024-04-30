@@ -72,10 +72,12 @@ void SetCheckHandler(CheckHandler*);
 
 // constexpr if no dcheck
 #define CONSTEXPR_ND
+#define CONST_ND
 
 #else
 #define DCHECK(x, ...)
 #define CONSTEXPR_ND constexpr
+#define CONST_ND const
 #endif
 
 // BugChecks indicate a hard programmer error and are compiled into shipping builds

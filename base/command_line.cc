@@ -82,8 +82,8 @@ base::StringRefU8 CommandLine::ExtractSwitchValue(
   return u8"";  // Default return: switch not found
 }
 
-base::StringRefU8 CommandLine::operator[](const mem_size index) {
-  auto cap = pieces_.size();
+base::StringRefU8 CommandLine::operator[](const mem_size index) CONST_ND {
+  const mem_size cap = pieces_.size();
   BUGCHECK(index < cap, "CommandLine::operator[]: Access out of bounds");
   BUGCHECK(index < base::MinMax<u16>::max(),
            "CommandLine::operator[]: Index out of bounds");
