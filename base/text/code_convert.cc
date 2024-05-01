@@ -187,10 +187,13 @@ bool DoUTFConversion(const wchar_t* src,
 template <typename InputString, typename DestString>
 bool UTFConversion(const InputString& src_str, DestString* dest_str) {
   if (IsStringASCII(src_str)) {
-    dest_str->assign(
-        reinterpret_cast<const DestString::value_type*>(src_str.begin()),
-        reinterpret_cast<const DestString::value_type*>(src_str.end()));
-    return true;
+      // Converting between ASCII, wide, and UTF-16
+      dest_str->resize(src_str.size());
+      for (size_t i = 0; i < src_str.size(); i++) {
+        (*dest_str)[i] =
+            static_cast<typename DestString::value_type>(src_str[i]);
+      }
+      return true;
   }
 
   dest_str->resize(src_str.length() *
@@ -326,28 +329,56 @@ base::StringU8 WideToUTF8(const base::StringRefW wide) {
 }
 
 base::StringU16 ASCIIToUTF16(const base::StringRef ascii) {
-  BUGCHECK(IsStringASCII(ascii));
-  return base::StringU16(reinterpret_cast<const char16_t*>(ascii.begin()),
-                         reinterpret_cast<const char16_t*>(ascii.end()));
+  DCHECK(IsStringASCII(ascii));
+
+  base::StringU16 utf16String;
+  utf16String.reserve(ascii.size());  // Optimize memory allocation
+
+  for (char c : ascii) {
+    utf16String.push_back(static_cast<char16_t>(c));
+  }
+
+  return utf16String;
 }
 
 base::String UTF16ToASCII(const base::StringRefU16 utf16) {
   BUGCHECK(IsStringASCII(utf16));
-  return base::String(reinterpret_cast<const char*>(utf16.begin()),
-                      reinterpret_cast<const char*>(utf16.end()));
+
+  base::String result;
+  result.reserve(utf16.length());  // Optimize memory allocation
+  for (char16_t c : utf16) {
+    // Only copy the lower 8 bits, as the upper 8 bits will always be 0
+    result.push_back(static_cast<char>(c));
+  }
+  return result;
 }
 
 #if defined(WCHAR_T_IS_UTF16)
 base::StringW ASCIIToWide(const base::StringRef ascii) {
-  BUGCHECK(IsStringASCII(ascii));
-  return base::StringW(reinterpret_cast<const wchar_t*>(ascii.begin()),
-                       reinterpret_cast<const wchar_t*>(ascii.end()));
+  DCHECK(IsStringASCII(ascii));
+
+  base::StringW wideString;
+  wideString.reserve(ascii.size());  // Optimize memory allocation
+
+  for (char c : ascii) {
+    wideString.push_back(static_cast<wchar_t>(c));
+  }
+
+  return wideString;
 }
 
 base::String WideToASCII(const base::StringRefW wide) {
-  BUGCHECK(IsStringASCII(wide));
-  return base::String(reinterpret_cast<const char*>(wide.begin()),
-                      reinterpret_cast<const char*>(wide.end()));
+  DCHECK(IsStringASCII(wide));
+
+  base::String asciiString;
+  asciiString.reserve(wide.size());  // Optimize memory allocation
+
+  for (wchar_t wc : wide) {
+    // Only copy the lower 8 bits, as the upper bits will always be 0
+    asciiString.push_back(static_cast<char>(wc));
+  }
+
+  return asciiString;
 }
 #endif  // defined(WCHAR_T_IS_UTF16)
 
