@@ -13,6 +13,8 @@
 #include <base/containers/container_traits.h>
 #include <base/strings/char_algorithms.h>
 
+#include <algorithm>
+
 // TODO: small string optimization
 
 namespace base {
@@ -85,7 +87,7 @@ class BasicBaseString {
 
   // Returns a pointer to the underlying character array.
   const character_type* c_str() const noexcept { return data_; }
-  character_type* data() noexcept { return data_; }
+  character_type* data() const noexcept { return data_; }
 
   // begin and end
   const character_type* begin() const noexcept { return data_; }
@@ -208,6 +210,10 @@ class BasicBaseString {
       data_ = other.data_;
       size_ = other.size_;
       capacity_ = other.capacity_;
+      // condem the other
+      other.data_ = nullptr;
+      other.size_ = 0;
+      other.capacity_ = 0;
     }
     return *this;
   }
@@ -219,7 +225,24 @@ class BasicBaseString {
   int compare(size_t pos,
               size_t len,
               const BasicBaseString& str) const noexcept {
-    return memcmp(data_, str.c_str(), str.size());
+    // Check if the requested substring is within the bounds of the current
+    // string
+    if (pos > size_) {
+      return 0;  // Treat as an empty string
+    }
+
+    size_t rlen =
+        std::min(len, size_ - pos);  // Length of the substring to compare
+
+    // Compare the substring with the provided string
+    int result = memcmp(data_ + pos, str.data(), std::min(rlen, str.size()));
+    #if 0
+    // If the substrings are equal, compare the remaining characters
+    if (result == 0) {
+      result = rlen < str.size() ? -1 : (rlen == str.size() ? 0 : 1);
+    }
+    #endif
+    return result;
   }
   int compare(size_t pos,
               size_t len,
@@ -320,13 +343,13 @@ class BasicBaseString {
 
   // replace functions ========================================
   void erase(mem_size pos, mem_size count = npos) {
-    BUGCHECK(pos > size_, "Invalid position");
+    BUGCHECK(pos < size_, "Invalid position");
 
     if (count == npos) {
       count = size_ - pos;
     }
 
-    BUGCHECK(pos + count > size_, "Invalid count");
+    BUGCHECK(pos + count <= size_, "Invalid count");
 
     mem_size new_size = size_ - count;
     memmove(data_ + pos, data_ + pos + count,
@@ -416,6 +439,33 @@ class BasicBaseString {
   mem_size size_ = 0;
   mem_size capacity_ = 0;
 };
+
+template <typename CharT, typename Alloc>
+BasicBaseString<CharT, Alloc> operator+(
+    const BasicBaseString<CharT, Alloc>& lhs,
+    const BasicBaseString<CharT, Alloc>& rhs) {
+  BasicBaseString<CharT, Alloc> result(lhs);
+  result += rhs;
+  return result;
+}
+
+template <typename CharT, typename Alloc>
+BasicBaseString<CharT, Alloc> operator+(
+    const BasicBaseString<CharT, Alloc>& lhs,
+    const CharT* rhs) {
+  BasicBaseString<CharT, Alloc> result(lhs);
+  result += rhs;
+  return result;
+}
+
+template <typename CharT, typename Alloc>
+BasicBaseString<CharT, Alloc> operator+(
+    const CharT* lhs,
+    const BasicBaseString<CharT, Alloc>& rhs) {
+  BasicBaseString<CharT, Alloc> result(lhs);
+  result += rhs;
+  return result;
+}
 
 #if 0
 // define our core string types.
