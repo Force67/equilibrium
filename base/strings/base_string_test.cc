@@ -137,6 +137,227 @@ TYPED_TEST(BaseStringTest, Concatenation) {
   ASSERT_EQ(base_str.size(), std_str_from_c_str_twice.size());
   ASSERT_EQ(base_str.compare(std_str_from_c_str_twice), 0);
 }
+
+TEST(BaseStringTest, PushBack) {
+  using BaseStringType = typename base::BasicBaseString<char>;
+  using StdStringType = typename std::basic_string<char>;
+
+  // Push back a character
+  BaseStringType base_str;
+  base_str.push_back('a');
+  StdStringType std_str_from_c_str("a");
+  ASSERT_EQ(base_str.size(), std_str_from_c_str.size());
+  ASSERT_EQ(base_str.compare(std_str_from_c_str), 0);
+
+  // Push back multiple characters
+  base_str.push_back('b');
+  base_str.push_back('c');
+  std_str_from_c_str = "abc";
+  ASSERT_EQ(base_str.size(), std_str_from_c_str.size());
+  ASSERT_EQ(base_str.compare(std_str_from_c_str), 0);
+
+  const char kAlphabet[] = "abcdefghijklmnopqrstuvwxyz";
+  for (int i = 0; i < 26; ++i) {
+    base_str.push_back(kAlphabet[i]);
+    std_str_from_c_str += kAlphabet[i];
+  }
+  ASSERT_EQ(base_str.size(), std_str_from_c_str.size());
+
+  // Push back a character with reallocation
+  for (int i = 0; i < 100; ++i) {
+    base_str.push_back('d');
+    std_str_from_c_str += 'd';
+  }
+  ASSERT_EQ(base_str.size(), std_str_from_c_str.size());
+  ASSERT_EQ(base_str.compare(std_str_from_c_str), 0);
+
+  // Push back an empty string
+  base_str.push_back('\0');
+  std_str_from_c_str += '\0';
+  ASSERT_EQ(base_str.size(), std_str_from_c_str.size());
+  ASSERT_EQ(base_str.compare(std_str_from_c_str), 0);
+
+  // Push back a string with maximum capacity
+  BaseStringType max_base_str;
+  StdStringType max_std_str;
+  const size_t max_size = 0xFFFF;
+  for (size_t i = 0; i < max_size; ++i) {
+    max_base_str.push_back('a');
+    max_std_str += 'a';
+  }
+  ASSERT_EQ(max_base_str.size(), max_std_str.size());
+  ASSERT_EQ(max_base_str.compare(max_std_str), 0);
+}
+
+TEST(BaseStringTest, Append) {
+  using BaseStringType = typename base::BasicBaseString<char>;
+  using StdStringType = typename std::basic_string<char>;
+
+  // Append an empty string
+  BaseStringType base_str("hello");
+  StdStringType std_str("hello");
+  base_str.append("");
+  ASSERT_EQ(base_str.size(), std_str.size());
+  ASSERT_EQ(base_str.compare(std_str), 0);
+
+  // Append a non-empty string
+  base_str.append(" world");
+  std_str += " world";
+  ASSERT_EQ(base_str.size(), std_str.size());
+  ASSERT_EQ(base_str.compare(std_str), 0);
+
+  // Append a string with reallocation
+  base_str.append("123456789");
+  std_str += "123456789";
+  ASSERT_EQ(base_str.size(), std_str.size());
+  ASSERT_EQ(base_str.compare(std_str), 0);
+
+  // Append a string to an empty string
+  BaseStringType empty_base_str;
+  StdStringType empty_std_str;
+  empty_base_str.append("test");
+  empty_std_str = "test";
+  ASSERT_EQ(empty_base_str.size(), empty_std_str.size());
+  ASSERT_EQ(empty_base_str.compare(empty_std_str), 0);
+
+  // Append a string with maximum capacity
+  BaseStringType max_base_str;
+  StdStringType max_std_str;
+  const size_t max_size = 0xFFFF;
+  for (size_t i = 0; i < max_size; ++i) {
+    max_base_str.append("a");
+    max_std_str += "a";
+  }
+  ASSERT_EQ(max_base_str.size(), max_std_str.size());
+  ASSERT_EQ(max_base_str.compare(max_std_str), 0);
+}
+
+TEST(BaseStringTest, CopyConstructorTorture) {
+  using BaseStringType = typename base::BasicBaseString<char>;
+  using StdStringType = typename std::basic_string<char>;
+
+  const std::string long_string(1024 * 1024, 'a');  // 1 MB string
+
+  // Copy constructor for empty string
+  BaseStringType empty_base_str;
+  StdStringType empty_std_str;
+  BaseStringType base_copy_empty(empty_base_str);
+  StdStringType std_copy_empty(empty_std_str);
+  ASSERT_EQ(base_copy_empty.size(), std_copy_empty.size());
+  ASSERT_EQ(base_copy_empty.compare(std_copy_empty), 0);
+
+  // Copy constructor for small string
+  BaseStringType small_base_str("hello");
+  StdStringType small_std_str("hello");
+  BaseStringType base_copy_small(small_base_str);
+  StdStringType std_copy_small(small_std_str);
+  ASSERT_EQ(base_copy_small.size(), std_copy_small.size());
+  ASSERT_EQ(base_copy_small.compare(std_copy_small), 0);
+
+  // Copy constructor for large string (with reallocation)
+  BaseStringType large_base_str(long_string);
+  StdStringType large_std_str(long_string);
+  BaseStringType base_copy_large(large_base_str);
+  StdStringType std_copy_large(large_std_str);
+  ASSERT_EQ(base_copy_large.size(), std_copy_large.size());
+  ASSERT_EQ(base_copy_large.compare(std_copy_large), 0);
+
+  // Copy constructor for self-assignment
+  BaseStringType self_assign_base_str("test");
+  StdStringType self_assign_std_str("test");
+  BaseStringType base_copy_self(self_assign_base_str);
+  self_assign_base_str = base_copy_self;
+  StdStringType std_copy_self(self_assign_std_str);
+  self_assign_std_str = std_copy_self;
+  ASSERT_EQ(self_assign_base_str.size(), self_assign_std_str.size());
+  ASSERT_EQ(self_assign_base_str.compare(self_assign_std_str), 0);
+
+  // Copy constructor for null-terminated string
+  const char* null_terminated = "null\0terminated";
+  BaseStringType base_null_terminated(null_terminated, 15);
+  StdStringType std_null_terminated(null_terminated, 15);
+  BaseStringType base_copy_null(base_null_terminated);
+  StdStringType std_copy_null(std_null_terminated);
+  ASSERT_EQ(base_copy_null.size(), std_copy_null.size());
+  ASSERT_EQ(base_copy_null.compare(std_copy_null), 0);
+}
+
+#if 1
+TEST(BaseStringTest, SplitBySpaces) {
+  using BaseStringType = typename base::BasicBaseString<char>;
+  using StdStringType = typename std::basic_string<char>;
+
+  // Split a string with spaces
+  const BaseStringType base_str("arg1 arg2   arg3");
+  StdStringType std_str("arg1 arg2   arg3");
+  std::vector<BaseStringType> base_pieces;
+  std::vector<StdStringType> std_pieces;
+
+  BaseStringType current_base_arg;
+  StdStringType current_std_arg;
+
+  for (auto c : base_str) {
+    if (c == ' ') {
+      if (!current_base_arg.empty()) {
+        base_pieces.push_back(current_base_arg);
+        std_pieces.push_back(current_std_arg);
+        current_base_arg.clear();
+        current_std_arg.clear();
+      }
+    } else {
+      current_base_arg.push_back(c);
+      current_std_arg.push_back(c);
+    }
+  }
+
+  if (!current_base_arg.empty()) {
+    base_pieces.push_back(current_base_arg);
+    std_pieces.push_back(current_std_arg);
+  }
+
+  ASSERT_EQ(base_pieces.size(), std_pieces.size());
+  ASSERT_EQ(base_pieces.size(), 3U);
+  ASSERT_STREQ(base_pieces[0].c_str(), "arg1");
+  ASSERT_STREQ(base_pieces[1].c_str(), "arg2");
+  ASSERT_STREQ(base_pieces[2].c_str(), "arg3");
+
+  // Split a string with tabs, newlines, and carriage returns
+  const BaseStringType base_str2("arg1\targ2\narg3\rarg4");
+  std_str = "arg1\targ2\narg3\rarg4";
+  base_pieces.clear();
+  std_pieces.clear();
+
+  current_base_arg.clear();
+  current_std_arg.clear();
+
+  for (auto c : base_str) {
+    if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+      if (!current_base_arg.empty()) {
+        base_pieces.push_back(current_base_arg);
+        std_pieces.push_back(current_std_arg);
+        current_base_arg.clear();
+        current_std_arg.clear();
+      }
+    } else {
+      current_base_arg.push_back(c);
+      current_std_arg.push_back(c);
+    }
+  }
+
+  if (!current_base_arg.empty()) {
+    base_pieces.push_back(current_base_arg);
+    std_pieces.push_back(current_std_arg);
+  }
+
+  ASSERT_EQ(base_pieces.size(), std_pieces.size());
+  ASSERT_EQ(base_pieces.size(), 4U);
+  ASSERT_EQ(base_pieces[0], "arg1");
+  ASSERT_EQ(base_pieces[1], "arg2");
+  ASSERT_EQ(base_pieces[2], "arg3");
+  ASSERT_EQ(base_pieces[3], "arg4");
+}
+#endif
+
 #if 0
 TYPED_TEST(BaseStringTest, Substring) {
   using BaseStringType = typename TestFixture::BaseStringType;

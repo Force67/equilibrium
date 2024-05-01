@@ -35,31 +35,49 @@ class BasicBaseString {
 
   BasicBaseString() noexcept = default;
 
+  // construct from a string
   explicit BasicBaseString(const character_type* str) { assign(str); }
   explicit BasicBaseString(const character_type* str,
                            mem_size len_in_characters) {
     assign(str, len_in_characters);
   }
+
+  // construct from string with range
   explicit BasicBaseString(const character_type* begin,
                            const character_type* end) {
     assign(begin, end - begin);
   }
 
+  // construct from a character array
   template <mem_size N>
   explicit BasicBaseString(const character_type (&arr)[N]) {
     assign(arr, N - 1);
   }
 
+  // copy constructor
   BasicBaseString(const BasicBaseString& other) {
-    assign(other.data_, other.size_);
+    if (this != &other) {
+      assign(other.c_str(), other.size());
+    }
   }
 
+
+  template <class TOther>
+    requires(  //! std::same_as<TOther, BaseString> &&
+                base::HasStringTraits<TOther, value_type>)
+  BasicBaseString(const TOther& other) {
+   // if (this != &other) {
+    assign(other.c_str(), other.size());
+    //}
+  }
+
+  // move constructor
   BasicBaseString(BasicBaseString&& other) noexcept {
     data_ = other.data_;
     size_ = other.size_;
     capacity_ = other.capacity_;
   }
-  ~BasicBaseString() { deallocate(); }
+  ~BasicBaseString() { DeAllocate(); }
 
   // Returns a pointer to the underlying character array.
   const character_type* c_str() const noexcept { return data_; }
@@ -91,15 +109,15 @@ class BasicBaseString {
   // Increases the capacity of the BasicBaseString to a value greater than or
   // equal to the given size.
   void reserve(mem_size new_capacity) {
-    if (new_capacity > capacity_) {
-      reallocate(new_capacity);
+    if (new_capacity >= capacity_) {
+      Reallocate(new_capacity);
     }
   }
 
   // Resizes the BasicBaseString to the specified length.
   void resize(mem_size new_size) {
-    if (new_size > capacity_) {
-      reallocate(new_size);
+    if (new_size >= capacity_) {
+      Reallocate(new_size);
     }
     size_ = new_size;
     data_[size_] = '\0';
@@ -115,7 +133,7 @@ class BasicBaseString {
     return *this;
   }
   BasicBaseString& operator+=(character_type c) {
-    append(&c, 1);
+    push_back(c);
     return *this;
   }
 
@@ -125,28 +143,41 @@ class BasicBaseString {
   }
   void append(const character_type* str, mem_size len_in_characters) {
     mem_size new_size = size_ + len_in_characters;
-    if (new_size > capacity_) {
-      reallocate(new_size + 1);  // takes charactersize
+    if (new_size + 1 > capacity_) {
+      Reallocate(new_size);
     }
     memcpy(data_ + size_, str, len_in_characters * sizeof(character_type));
     size_ = new_size;
     data_[size_] = '\0';
   }
+  void append(const character_type* str) {
+	append(str, base::CountStringLength(str));
+  }
+
   void push_back(character_type c) {
-    if (size_ + 1 > capacity_) {
-      reallocate(size_ + 1);
+    const auto new_size = size_ + 1;
+    if (new_size >= capacity_) {
+      Reallocate(new_size);
     }
-    data_[size_] = c;
-    size_++;
-    data_[size_] = '\0';
+    data_[size_] = c;  // append the character
+    size_ = new_size;  // all allocd data is zerod, so it doesnt matter.
   }
 
   // assignment functions ========================================
   void assign(const character_type* str, mem_size len_in_characters) {
-    deallocate();
-    allocate(len_in_characters + 1);
+    if (str == nullptr || len_in_characters == 0) {
+	  return;
+	}
+    // make sure we have enough space
+    if (len_in_characters >= capacity_) {
+      Reallocate(len_in_characters);
+    }
+    // if the new string is smaller than the old one, we can just copy it
+    else if (len_in_characters < capacity_) {
+	  memset(data_, 0, capacity_ * sizeof(character_type));
+	}
+
     memcpy(data_, str, len_in_characters * sizeof(character_type));
-    capacity_ = len_in_characters;
     size_ = len_in_characters;
     data_[size_] = '\0';
   }
@@ -244,15 +275,15 @@ class BasicBaseString {
 
   // access operator
   character_type& operator[](mem_size index) {
-    BUGCHECK(index >= size_, "Index out of bounds");
+    BUGCHECK(index < size_, "Index out of bounds");
     return data_[index];
   }
   const character_type& operator[](mem_size index) const {
-    BUGCHECK(index >= size_, "Index out of bounds");
+    BUGCHECK(index < size_, "Index out of bounds");
     return data_[index];
   }
   character_type* at(mem_size index) {
-    BUGCHECK(index >= size_, "Index out of bounds");
+    BUGCHECK(index < size_, "Index out of bounds");
     return data_ + index;
   }
 
@@ -306,7 +337,7 @@ class BasicBaseString {
 
   void clear() {
     size_ = 0;
-    data_[0] = '\0';
+    memset(data_, 0, capacity_ * sizeof(character_type));
   }
 
   static constexpr mem_size npos = base::MinMax<mem_size>::max();
@@ -326,35 +357,55 @@ class BasicBaseString {
 
   void shrink_to_fit() {
     if (size_ < capacity_) {
-      reallocate(size_ + 1);
+      Reallocate(
+          size_);  // this aint it at the moment implement true shrink pls
+      capacity_ = size_;
     }
   }
 
  private:
   // Allocates memory for the BasicBaseString.
-  void allocate(mem_size new_capacity_in_characters) {
+  void Allocate(mem_size new_capacity_in_characters) {
+    new_capacity_in_characters++;  // +1 for the nterm
     data_ = static_cast<character_type*>(TAllocator::Allocate(
         new_capacity_in_characters * sizeof(character_type)));
+    memset(data_, 0, new_capacity_in_characters * sizeof(character_type));
   }
 
   // Deallocates the memory used by the BasicBaseString.
-  void deallocate() {
+  void DeAllocate() {
     if (data_)
-      TAllocator::Free(data_, (capacity_ * sizeof(character_type)) + 1);
+      TAllocator::Free(data_, (capacity_ * sizeof(character_type)));
     data_ = nullptr;
     size_ = 0;
     capacity_ = 0;
   }
 
   // Reallocates the memory used by the BasicBaseString to the given capacity.
-  void reallocate(mem_size new_capacity_in_characters) {
-    character_type* new_data =
-        static_cast<character_type*>(TAllocator::Allocate(
-            new_capacity_in_characters * sizeof(character_type)));
-    memcpy(new_data, data_, size_ * sizeof(character_type));
-    TAllocator::Free(data_, capacity_ * sizeof(character_type));
+  void Reallocate(mem_size new_capacity_in_characters) {
+    new_capacity_in_characters++;  // +1 for the nterm
+    const mem_size old_size = size_;
+    mem_size new_capacity =
+        new_capacity_in_characters +
+        (new_capacity_in_characters / 2);  // Use a growth factor
+    character_type* new_data = static_cast<character_type*>(
+        TAllocator::Allocate(new_capacity * sizeof(character_type)));
+    // users are fucking stupid
+    memset(new_data, 0, new_capacity * sizeof(character_type));
+    // for instance if the user pushes back on an empty string
+    if (data_ == nullptr) {
+      data_ = new_data;
+      capacity_ = new_capacity;
+      return;
+    }
+    // move the old data to the new location
+    memcpy(new_data, data_, old_size * sizeof(character_type));
+    // free the old data buffer and nterm
+    TAllocator::Free(data_, (capacity_ * sizeof(character_type)));
+
+    // assign
     data_ = new_data;
-    capacity_ = new_capacity_in_characters - 1;  // hackfix;
+    capacity_ = new_capacity;
   }
 
   character_type* data_ = nullptr;

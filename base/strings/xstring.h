@@ -33,7 +33,7 @@
 
 #if 0
 #include <base/strings/base_string.h>
-#define BASE_STRING(x) base::BaseString<x>
+#define BASE_STRING(x) base::BasicBaseString<x>
 #endif
 
 namespace base {
