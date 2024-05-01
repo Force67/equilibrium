@@ -76,6 +76,10 @@ class BasicBaseString {
     data_ = other.data_;
     size_ = other.size_;
     capacity_ = other.capacity_;
+    // condem the other
+    other.data_ = nullptr;
+    other.size_ = 0;
+    other.capacity_ = 0;
   }
   ~BasicBaseString() { DeAllocate(); }
 
