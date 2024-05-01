@@ -12,6 +12,7 @@
 #include <base/strings/char_algorithms.h>
 
 #include <base/hashing/fnv1a.h>
+#include <base/strings/base_string.h>
 
 namespace base {
 
@@ -36,7 +37,10 @@ class BasicStringRef {
   BasicStringRef() = delete;
 
   // construct from base::String<T>
-  BasicStringRef(const BASE_STRING(TChar) & str)
+  template <class TOther>
+    requires(  //! std::same_as<TOther, BaseString> &&
+                base::HasStringTraits<TOther, value_type>)
+  BasicStringRef(const TOther & str)
       : data_(str.c_str()),
         length_(static_cast<u32>(str.length())),
         tags_(StringRefFlags::kIsNullTerm) {
@@ -202,12 +206,12 @@ class BasicStringRef {
     return data_[offset];
   }
 
-  base::BasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
+  base::XBasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
     BUGCHECK(pos < length_, "Position is out of bounds");
     if (count > length_ - pos) {
       count = length_ - pos;
     }
-    return base::BasicString<TChar>(&data_[pos], count);
+    return base::XBasicString<TChar>(&data_[pos], count);
   }
 
   BasicStringRef<TChar> subslice(mem_size pos = 0, mem_size count = npos) const {
@@ -260,9 +264,9 @@ inline base::StringRefU32 operator""_s(const char32_t* s, size_t length) {
 }
 
 template <typename T>
-base::BasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
+base::XBasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
                                     bool no_nterm = false) {
-  base::BasicString<T> strong(slice.data(), slice.length() + (!no_nterm ? 1 : 0));
+  base::XBasicString<T> strong(slice.data(), slice.length() + (!no_nterm ? 1 : 0));
   if (!no_nterm)
     strong[slice.length()] = 0;
   return strong;

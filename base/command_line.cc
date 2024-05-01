@@ -45,12 +45,13 @@ void CommandLine::ParseFromString(const base::StringRefU8 command_line) {
 void CommandLine::FromArray(int count, char** args) {
   for (int i = 0; i < count; i++) {
     char* arg = args[i];
-    pieces_.push_back(reinterpret_cast<char8_t*>(arg));
+    const base::StringU8 arg_str(reinterpret_cast<char8_t*>(arg));
+    pieces_.push_back(arg_str);
   }
 }
 
 bool CommandLine::HasItem(const base::StringRefU8 switch_name) {
-  return pieces_.Contains(switch_name.c_str());
+  return pieces_.Contains(base::StringU8(switch_name.c_str()));
 }
 
 i32 CommandLine::FindSwitchIndex(const base::StringRefU8 switch_name) {

@@ -28,7 +28,8 @@ bool ScopedTempDir::CreateUniqueTempDir() {
 
   // This "scoped_dir" prefix is only used on Windows and serves as a template
   // for the unique name.
-  if (!CreateNewTempDirectory(kScopedDirPrefix, &path_))
+  const Path::BufferType prefix(kScopedDirPrefix);
+  if (!CreateNewTempDirectory(prefix, &path_))
     return false;
 
   return true;
@@ -43,7 +44,8 @@ bool ScopedTempDir::CreateUniqueTempDirUnderPath(const Path& base_path) {
     return false;
 
   // Create a new, uniquely named directory under |base_path|.
-  if (!CreateTemporaryDirInDir(base_path, kScopedDirPrefix, &path_))
+  const Path::BufferType prefix(kScopedDirPrefix);
+  if (!CreateTemporaryDirInDir(base_path, prefix, &path_))
     return false;
 
   return true;

@@ -124,9 +124,9 @@ DWORD DoDeleteFile(const Path& path, bool recursive) {
     return ::DeleteFile(path.c_str()) ? ERROR_SUCCESS
                                               : ReturnLastErrorOrSuccessOnNotFound();
   }
-
+  const Path::BufferType pattern(BASE_PATH_LITERAL("*"));
   if (recursive) {
-    const DWORD error_code = DeleteFileRecursive(path, BASE_PATH_LITERAL("*"), true);
+    const DWORD error_code = DeleteFileRecursive(path, pattern, true);
     DCHECK(static_cast<LONG>(error_code) != ERROR_FILE_NOT_FOUND);
     DCHECK(static_cast<LONG>(error_code) != ERROR_PATH_NOT_FOUND);
     if (error_code != ERROR_SUCCESS)

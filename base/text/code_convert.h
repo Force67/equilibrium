@@ -5,6 +5,7 @@
 #include <base/export.h>
 #include <base/compiler.h>
 #include <base/strings/string_ref.h>
+#include <string>
 
 namespace base {
 

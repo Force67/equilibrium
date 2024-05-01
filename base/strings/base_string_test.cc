@@ -7,6 +7,7 @@
 namespace {
 
 static const char kTestSentence[] = "Hello, world!";
+static const char8_t kTestSentence8[] = u8"Hello, world!";
 static const wchar_t kTestSentenceW[] = L"Hello, world!";
 static const char16_t kTestSentence16[] = u"Hello, world!";
 static const char32_t kTestSentence32[] = U"Hello, world!";
@@ -14,12 +15,14 @@ static const char32_t kTestSentence32[] = U"Hello, world!";
 template <typename CharType>
 class BaseStringTest : public ::testing::Test {
  public:
-  using BaseStringType = base::BaseString<CharType>;
+  using BaseStringType = base::BasicBaseString<CharType>;
   using StdStringType = std::basic_string<CharType>;
 
   static const CharType* GetTestSentence() {
     if constexpr (std::is_same_v<CharType, char>) {
       return &kTestSentence[0];
+    } else if constexpr (std::is_same_v<CharType, char8_t>) {
+      return &kTestSentence8[0];
     } else if constexpr (std::is_same_v<CharType, wchar_t>) {
       return &kTestSentenceW[0];
     } else if constexpr (std::is_same_v<CharType, char16_t>) {
@@ -29,10 +32,11 @@ class BaseStringTest : public ::testing::Test {
     }
   }
 
-  
   static const CharType* GetAnotherTestSentence() {
     if constexpr (std::is_same_v<CharType, char>) {
       return "Goodbye, world!";
+    } else if constexpr (std::is_same_v<CharType, char8_t>) {
+      return u8"Goodbye, world!";
     } else if constexpr (std::is_same_v<CharType, wchar_t>) {
       return L"Goodbye, world!";
     } else if constexpr (std::is_same_v<CharType, char16_t>) {
@@ -43,7 +47,7 @@ class BaseStringTest : public ::testing::Test {
   }
 };
 
-using CharTypes = ::testing::Types<char, wchar_t, char16_t, char32_t>;
+using CharTypes = ::testing::Types<char, char8_t, wchar_t, char16_t, char32_t>;
 TYPED_TEST_SUITE(BaseStringTest, CharTypes);
 
 TYPED_TEST(BaseStringTest, Construction) {

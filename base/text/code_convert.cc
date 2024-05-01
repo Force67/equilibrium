@@ -21,8 +21,8 @@ constexpr base_icu::UChar32 kErrorCodePoint = 0xFFFD;
 
 template <typename SrcChar, typename DestChar>
 struct SizeCoefficient {
-  //static_assert(sizeof(SrcChar) < sizeof(DestChar),
-  //              "Default case: from a smaller encoding to the bigger one");
+  // static_assert(sizeof(SrcChar) < sizeof(DestChar),
+  //               "Default case: from a smaller encoding to the bigger one");
 
   // ASCII symbols are encoded by one codeunit in all encodings.
   static constexpr int value = 1;
@@ -45,9 +45,9 @@ constexpr int size_coefficient_v =
 // Convenience typedef that checks whether the passed in type is integral (i.e.
 // bool, char, int or their extended versions) and is of the correct size.
 template <typename Char, size_t N>
-using EnableIfBitsAre =
-    std::enable_if_t<std::is_integral<Char>::value && CHAR_BIT * sizeof(Char) == N,
-                     bool>;
+using EnableIfBitsAre = std::enable_if_t<std::is_integral<Char>::value &&
+                                             CHAR_BIT * sizeof(Char) == N,
+                                         bool>;
 
 template <typename Char, EnableIfBitsAre<Char, 8> = true>
 void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
@@ -64,7 +64,7 @@ void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
   out[(*size)++] = code_point;
 }
 
-template<typename Char>
+template <typename Char>
 bool IsStringASCII(const base::BasicStringRef<Char> str) {
   return DoIsStringASCII(str.data(), str.length());
 }
@@ -187,7 +187,9 @@ bool DoUTFConversion(const wchar_t* src,
 template <typename InputString, typename DestString>
 bool UTFConversion(const InputString& src_str, DestString* dest_str) {
   if (IsStringASCII(src_str)) {
-    dest_str->assign(src_str.begin(), src_str.end());
+    dest_str->assign(
+        reinterpret_cast<const DestString::value_type*>(src_str.begin()),
+        reinterpret_cast<const DestString::value_type*>(src_str.end()));
     return true;
   }
 
@@ -242,25 +244,29 @@ base::StringU8 UTF16ToUTF8(base::StringRefU16 utf16) {
 
 #if defined(WCHAR_T_IS_UTF16)
 // When wide == UTF-16 the conversions are a NOP.
+// they are the same on this selected platform, so we can just copy the data.
 
 bool WideToUTF16(const wchar_t* src, size_t src_len, base::StringU16* output) {
-  output->assign(src, src + src_len);
+  output->assign(reinterpret_cast<const char16_t*>(src),
+                 reinterpret_cast<const char16_t*>(src + src_len));
   return true;
 }
 
 base::StringU16 WideToUTF16(base::StringRefW wide) {
-  return base::StringU16(wide.begin(), wide.end());
+  return base::StringU16(reinterpret_cast<const char16_t*>(wide.begin()),
+                         reinterpret_cast<const char16_t*>(wide.end()));
 }
 
 bool UTF16ToWide(const char16_t* src, size_t src_len, base::StringW* output) {
-  output->assign(src, src + src_len);
+  output->assign(reinterpret_cast<const wchar_t*>(src),
+                 reinterpret_cast<const wchar_t*>(src + src_len));
   return true;
 }
 
 #elif defined(WCHAR_T_IS_UTF32)
 
 bool WideToUTF16(const wchar_t* src, size_t src_len, base::StringU16* output) {
-  //return UTFConversion(base::StringRefW(src, src_len), output);
+  // return UTFConversion(base::StringRefW(src, src_len), output);
   return false;
 }
 
@@ -269,7 +275,7 @@ base::StringU16 WideToUTF16(base::StringRefW wide) {
   DEBUG_TRAP;
   // Ignore the success flag of this call, it will do the best it can for
   // invalid input, which is what we want here.
-  //WideToUTF16(wide.data(), wide.length(), &ret);
+  // WideToUTF16(wide.data(), wide.length(), &ret);
   return ret;
 }
 
@@ -321,23 +327,27 @@ base::StringU8 WideToUTF8(const base::StringRefW wide) {
 
 base::StringU16 ASCIIToUTF16(const base::StringRef ascii) {
   BUGCHECK(IsStringASCII(ascii));
-  return base::StringU16(ascii.begin(), ascii.end());
+  return base::StringU16(reinterpret_cast<const char16_t*>(ascii.begin()),
+                         reinterpret_cast<const char16_t*>(ascii.end()));
 }
 
 base::String UTF16ToASCII(const base::StringRefU16 utf16) {
   BUGCHECK(IsStringASCII(utf16));
-  return base::String(utf16.begin(), utf16.end());
+  return base::String(reinterpret_cast<const char*>(utf16.begin()),
+                      reinterpret_cast<const char*>(utf16.end()));
 }
 
 #if defined(WCHAR_T_IS_UTF16)
 base::StringW ASCIIToWide(const base::StringRef ascii) {
   BUGCHECK(IsStringASCII(ascii));
-  return base::StringW(ascii.begin(), ascii.end());
+  return base::StringW(reinterpret_cast<const wchar_t*>(ascii.begin()),
+                       reinterpret_cast<const wchar_t*>(ascii.end()));
 }
 
 base::String WideToASCII(const base::StringRefW wide) {
   BUGCHECK(IsStringASCII(wide));
-  return base::String(wide.begin(), wide.end());
+  return base::String(reinterpret_cast<const char*>(wide.begin()),
+                      reinterpret_cast<const char*>(wide.end()));
 }
 #endif  // defined(WCHAR_T_IS_UTF16)
 

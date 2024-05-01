@@ -31,14 +31,19 @@
 #define BASE_STRING(x) base::basic_eqi_string<x>
 #endif
 
+#if 0
+#include <base/strings/base_string.h>
+#define BASE_STRING(x) base::BaseString<x>
+#endif
+
 namespace base {
 template <typename T>
-using BasicString = BASE_STRING(T);
+using XBasicString = BASE_STRING(T);
 // define our core string types.
-using String = BasicString<char>;
-using StringW = BasicString<wchar_t>;
+using String = XBasicString<char>;
+using StringW = XBasicString<wchar_t>;
 // UTF Strings
-using StringU8 = BasicString<char8_t>;
-using StringU16 = BasicString<char16_t>;
-using StringU32 = BasicString<char32_t>;
+using StringU8 = XBasicString<char8_t>;
+using StringU16 = XBasicString<char16_t>;
+using StringU32 = XBasicString<char32_t>;
 }  // namespace base

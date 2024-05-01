@@ -54,7 +54,7 @@ class BASE_EXPORT Path {
   // The character used to identify a file extension.
   static constexpr CharType kExtensionSeparator = BASE_PATH_LITERAL('.');
 
-  using BufferType = base::BasicString<CharType>;
+  using BufferType = base::XBasicString<CharType>;
 
   Path() = default;
 
