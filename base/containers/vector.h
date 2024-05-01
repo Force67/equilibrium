@@ -165,6 +165,9 @@ class Vector {
   }
 
   [[nodiscard]] T* find(const T& element_match) const {
+    if (empty()) [[unlikely]]
+	  return nullptr;
+
 	mem_size left = 0;
 	mem_size right = size() - 1;
 
