@@ -63,12 +63,11 @@ class BasicBaseString {
     }
   }
 
-
   template <class TOther>
     requires(  //! std::same_as<TOther, BaseString> &&
-                base::HasStringTraits<TOther, value_type>)
+        base::HasStringTraits<TOther, value_type>)
   BasicBaseString(const TOther& other) {
-   // if (this != &other) {
+    // if (this != &other) {
     assign(other.c_str(), other.size());
     //}
   }
@@ -146,18 +145,19 @@ class BasicBaseString {
   // Appends the given BasicBaseString to the end of this BasicBaseString.
   void append(const BasicBaseString& other) {
     append(other.data_, other.size_);
-  }
+  } 
   void append(const character_type* str, mem_size len_in_characters) {
     mem_size new_size = size_ + len_in_characters;
-    if (new_size + 1 > capacity_) {
+    if (new_size > capacity_) {
       Reallocate(new_size);
     }
-    memcpy(data_ + size_, str, len_in_characters * sizeof(character_type));
+    memcpy(data_ + (size_ * sizeof(character_type)), str,
+           len_in_characters * sizeof(character_type));
     size_ = new_size;
     data_[size_] = '\0';
   }
   void append(const character_type* str) {
-	append(str, base::CountStringLength(str));
+    append(str, base::CountStringLength(str));
   }
 
   void push_back(character_type c) {
@@ -172,16 +172,16 @@ class BasicBaseString {
   // assignment functions ========================================
   void assign(const character_type* str, mem_size len_in_characters) {
     if (str == nullptr || len_in_characters == 0) {
-	  return;
-	}
+      return;
+    }
     // make sure we have enough space
     if (len_in_characters >= capacity_) {
       Reallocate(len_in_characters);
     }
     // if the new string is smaller than the old one, we can just copy it
     else if (len_in_characters < capacity_) {
-	  memset(data_, 0, capacity_ * sizeof(character_type));
-	}
+      memset(data_, 0, capacity_ * sizeof(character_type));
+    }
 
     memcpy(data_, str, len_in_characters * sizeof(character_type));
     size_ = len_in_characters;
@@ -225,10 +225,14 @@ class BasicBaseString {
   int compare(size_t pos,
               size_t len,
               const BasicBaseString& str) const noexcept {
+    if (pos == 0 && len == 0)
+      return 0;
+
     // Check if the requested substring is within the bounds of the current
     // string
     if (pos > size_) {
-      return 0;  // Treat as an empty string
+      return str.empty() ? 0 : -1;  // If the substring is beyond the end of the
+                                    // string, compare with an empty string
     }
 
     size_t rlen =
@@ -236,18 +240,52 @@ class BasicBaseString {
 
     // Compare the substring with the provided string
     int result = memcmp(data_ + pos, str.data(), std::min(rlen, str.size()));
-    #if 0
+
     // If the substrings are equal, compare the remaining characters
     if (result == 0) {
-      result = rlen < str.size() ? -1 : (rlen == str.size() ? 0 : 1);
+      if (rlen < str.size()) {
+        result = -1;
+      } else if (rlen > str.size()) {
+        result = 1;
+      } else {
+        result = 0;
+      }
     }
-    #endif
     return result;
   }
   int compare(size_t pos,
               size_t len,
               const character_type* str) const noexcept {
-    return memcmp(data_, str, len);
+    // Check if the requested substring is within the bounds of the current
+    // string
+    if (pos > size_) {
+      // If the substring is beyond the end of the string, compare with a
+      // null-terminated string
+      int result = memcmp("", str, 1);
+      return result == 0 ? 0 : -1;
+    }
+
+    size_t rlen =
+        std::min(len, size_ - pos);  // Length of the substring to compare
+
+    // Compare the substring with the provided string
+    int result = memcmp(data_ + pos, str, rlen);
+
+    // If the substrings are equal, compare the remaining characters
+    if (result == 0) {
+      size_t str_len = 0;
+      while (str[str_len] != 0) {
+        str_len++;
+      }
+      if (rlen < str_len) {
+        result = -1;
+      } else if (rlen > str_len) {
+        result = 1;
+      } else {
+        result = 0;
+      }
+    }
+    return result;
   }
   int compare(const character_type* str) const noexcept {
     return memcmp(data_, str, base::CountStringLength(str));

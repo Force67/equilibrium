@@ -12,7 +12,7 @@
 // anyway, its a future optimization/portability point
 #define BASE_USE_STDSTRING
 
-#if 1
+#if 0
 
 //#define BASE_USE_STDSTRING
 #ifndef BASE_USE_STDSTRING
@@ -31,7 +31,7 @@
 #define BASE_STRING(x) base::basic_eqi_string<x>
 #endif
 
-#if 0
+#if 1
 #include <base/strings/base_string.h>
 #define BASE_STRING(x) base::BasicBaseString<x>
 #endif

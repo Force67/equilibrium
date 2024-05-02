@@ -129,7 +129,7 @@ TEST(BaseStringTest, CompareSubstring) {
   ASSERT_EQ(str1.compare(7, 5, str2), 0);
 
   // Substring starts outside the string
-  ASSERT_EQ(str1.compare(14, 1, str2), 0);
+  ASSERT_EQ(str1.compare(14, 1, str2), -1);
 
   // Substring length exceeds string length
   ASSERT_EQ(str1.compare(7, 10, str2), 1);
