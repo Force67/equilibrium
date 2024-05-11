@@ -53,9 +53,9 @@ Path::Path(const BufferType& path) : path_buf_(path) {
   Normalize(path_buf_);
 }
 
-Path& Path::Append(const Path& other) {
-  path_buf_.push_back(BASE_PATH_SEP_MACRO);
-  path_buf_.append(other.path_buf_.c_str(), other.path_buf_.length());
+Path& Path::Append(const Path& other) { //C://
+  path_buf_.push_back(BASE_PATH_SEP_MACRO); //C:////
+  path_buf_.append(other.path_buf_.c_str(), other.path_buf_.length()); //C:////other
   Normalize(path_buf_); // ensure the path is normalized
   return *this;
 }

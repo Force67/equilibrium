@@ -5,7 +5,6 @@
 #include "base_string.h"
 
 namespace {
-
 static const char kTestSentence[] = "Hello, world!";
 static const char8_t kTestSentence8[] = u8"Hello, world!";
 static const wchar_t kTestSentenceW[] = L"Hello, world!";
@@ -144,7 +143,7 @@ TEST(BaseStringTest, CompareSubstring) {
   const BaseStringType str3("Hello, Universe!");
   ASSERT_NE(str1.compare(0, str1.size(), str3), 0);
 }
-
+#if 1
 TYPED_TEST(BaseStringTest, Concatenation) {
   using BaseStringType = typename TestFixture::BaseStringType;
   using StdStringType = typename TestFixture::StdStringType;
@@ -166,7 +165,8 @@ TYPED_TEST(BaseStringTest, Concatenation) {
   ASSERT_EQ(base_str.size(), std_str_from_c_str_twice.size());
   ASSERT_EQ(base_str.compare(std_str_from_c_str_twice), 0);
 }
-
+#endif
+#if 1
 TEST(BaseStringTest, PushBack) {
   using BaseStringType = typename base::BasicBaseString<char>;
   using StdStringType = typename std::basic_string<char>;
@@ -386,10 +386,10 @@ TEST(BaseStringTest, SplitBySpaces) {
 }
 
 TEST(BaseStringTest, ErasingCharacters) {
-  using BaseStringType = typename base::BasicBaseString<char>;
-  using StdStringType = typename std::basic_string<char>;
+  using BaseStringType = typename base::BasicBaseString<wchar_t>;
+  using StdStringType = typename std::basic_string<wchar_t>;
 
-  const std::string test_string = "Hello, World!";
+  const std::wstring test_string = L"Hello, World!";
 
   // Erase single character
   BaseStringType base_str1(test_string);
@@ -438,5 +438,7 @@ TYPED_TEST(BaseStringTest, Substring) {
   ASSERT_EQ(substring.size(), std_str_from_c_str.size());
   ASSERT_EQ(substring.compare(std_str_from_c_str), 0);
 }
+#endif
+
 #endif
 }  // namespace
