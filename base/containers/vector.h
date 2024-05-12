@@ -18,12 +18,13 @@ namespace base {
 
 enum class VectorReservePolicy {
   kForPushback,  // < This optimization allows you to utilize push_back without
-                 // immediately increasing the capacity, reserving additional space
-                 // only when necessary.
-  kForData,      // < This reserve operation functions similarly to what you're
-             // accustomed to with std::vector. It preallocates capacity, effectively
-             // simulating the insertion of a number of "empty" elements. If you
-             // intend to copy data, especially using .data(), opt for this approach.
+                 // immediately increasing the capacity, reserving additional
+                 // space only when necessary.
+  kForData,  // < This reserve operation functions similarly to what you're
+             // accustomed to with std::vector. It preallocates capacity,
+             // effectively simulating the insertion of a number of "empty"
+             // elements. If you intend to copy data, especially using .data(),
+             // opt for this approach.
 };
 
 template <typename T, class TAllocator = base::DefaultAllocator>
@@ -106,9 +107,10 @@ class Vector {
 
   // increase internal capacity
   void reserve(mem_size new_reserved_capacity) {
-    DCHECK(new_reserved_capacity != 0 && capacity() != 0,
-           "Vector::reserve: Use resize instead of resize for populating an empty "
-           "Vector");
+    DCHECK(
+        new_reserved_capacity != 0 && capacity() != 0,
+        "Vector::reserve: Use resize instead of resize for populating an empty "
+        "Vector");
 
     if (new_reserved_capacity > capacity()) [[likely]]
       GrowCapacity(capacity(), new_reserved_capacity);
@@ -166,24 +168,24 @@ class Vector {
 
   [[nodiscard]] T* find(const T& element_match) const {
     if (empty()) [[unlikely]]
-	  return nullptr;
+      return nullptr;
 
-	mem_size left = 0;
-	mem_size right = size() - 1;
+    mem_size left = 0;
+    mem_size right = size() - 1;
 
-	while (left <= right) {
-	  mem_size middle = left + (right - left) / 2;
-	  T& middle_element = *(begin() + middle);
+    while (left <= right) {
+      mem_size middle = left + (right - left) / 2;
+      T& middle_element = *(begin() + middle);
 
-	  if (middle_element == element_match)
-		return &middle_element;
-	  else if (middle_element < element_match)
-		left = middle + 1;
-	  else
-		right = middle - 1;
-	}
+      if (middle_element == element_match)
+        return &middle_element;
+      else if (middle_element < element_match)
+        left = middle + 1;
+      else
+        right = middle - 1;
+    }
 
-	return nullptr;
+    return nullptr;
   }
 
   // single element at a specified position.
@@ -219,8 +221,8 @@ class Vector {
     }
     // Insert new elements
     for (auto it = pos; it != pos + count; ++it) {
-	  ::new (static_cast<void*>(&*it)) T(value);
-	}
+      ::new (static_cast<void*>(&*it)) T(value);
+    }
     end_ += count;
   }
 
@@ -238,10 +240,10 @@ class Vector {
     for (auto it = end_ + distance - 1; it >= pos + distance; --it) {
       *it = base::move(*(it - distance));
     }
-    
+
     // Copy new elements
     memcpy(pos, first, distance * sizeof(T));
-    //std::copy(first, last, pos);
+    // std::copy(first, last, pos);
     end_ += distance;
   }
 
@@ -257,14 +259,15 @@ class Vector {
     if (dest > end_ || source > end_)
       return false;
 
-    // if we remove in the middle, we memmove the upper objects down by one place.
+    // if we remove in the middle, we memmove the upper objects down by one
+    // place.
     memmove(dest, source, end_ - source);
     --end_;
     end_->~T();
     return true;
   }
 
-   bool erase(T* element_ptr) {
+  bool erase(T* element_ptr) {
     if (element_ptr < data_ || element_ptr >= end_) {
       return false;  // Pointer is out of bounds
     }
@@ -347,6 +350,22 @@ class Vector {
     }
 
     return false;
+  }
+
+  template <typename TFunc>
+  void ForEach(TFunc&& func) {
+    for (auto* it = begin(); it != end(); ++it) {
+      func(*it);
+    }
+  }
+
+  template <typename TFunc>
+  T* FindIf(TFunc&& func) {
+    for (auto* it = begin(); it != end(); ++it) {
+      if (func(*it))
+        return it;
+    }
+    return nullptr;
   }
 
  private:

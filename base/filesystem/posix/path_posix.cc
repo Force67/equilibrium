@@ -26,6 +26,15 @@ Path::Path(const base::StringRefW wide_text) {
   Normalize(path_buf_);
 }
 
+bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
+  DCHECK(base::DoIsStringASCII(ascii_only, base::CountStringLength(ascii_only)),
+         "Extension must be ASCII only");
+  if (ascii_only[0] != '.' && ensure_dot) {
+    path_buf_ += '.';
+  }
+  path_buf_ += base::String(ascii_only);
+}
+
 void Path::Normalize(BufferType& buffer) {
   for (std::size_t i = 0; i < buffer.size(); ++i) {
     auto& c = buffer[i];

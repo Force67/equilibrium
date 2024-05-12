@@ -11,7 +11,7 @@ namespace base {
 #if defined(OS_WIN)
 #define BASE_PATH_SEP_MACRO L'\\'
 #define BASE_PATH_LITERAL(x) L##x
-#endif
+#endif 
 
 #if defined(OS_POSIX)
 #define BASE_PATH_SEP_MACRO '/'
@@ -59,12 +59,12 @@ class BASE_EXPORT Path {
   Path() = default;
 
   // all of these will CHECK if the desired encoding is violated
-  Path(const char* ascii_only);
+  /*implicit*/ Path(const char* ascii_only); // implicit to allow: path / blah.c_str()
   Path(const base::StringRefU8);
   Path(const base::StringRefW);
-  Path(const BufferType& path);
+  explicit Path(const BufferType& path);
   // from other.
-  Path(const Path& other);
+  /*implicit*/ Path(const Path& other);
 
   // append operations
   friend Path operator/(const Path& lhs, const Path& rhs);
@@ -83,7 +83,7 @@ class BASE_EXPORT Path {
   // append another path to this path, and insert a seperator in between of them
   Path& Append(const Path&);
 
-
+  bool AppendExtension(const char* ascii_only, const bool ensure_dot = true);
 
   // modifies the buffer to the internal path notation e.g. backslashes on windows or
   // forward slashes on *nix

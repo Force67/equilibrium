@@ -38,7 +38,7 @@ class BasicBaseString {
   BasicBaseString() noexcept = default;
 
   // construct from a string
-  explicit BasicBaseString(const character_type* str) { assign(str); }
+  /*implicit*/ BasicBaseString(const character_type* str) { assign(str); }
   explicit BasicBaseString(const character_type* str,
                            mem_size len_in_characters) {
     assign(str, len_in_characters);
@@ -52,7 +52,7 @@ class BasicBaseString {
 
   // construct from a character array
   template <mem_size N>
-  explicit BasicBaseString(const character_type (&arr)[N]) {
+  /*implicit*/ BasicBaseString(const character_type (&arr)[N]) {
     assign(arr, N - 1);
   }
 
@@ -170,6 +170,16 @@ class BasicBaseString {
     }
     append(str, base::CountStringLength(str));
   }
+  void append(const mem_size n, const character_type c) {
+     mem_size new_size = size_in_chars_ + n;
+	if (new_size >= cap_in_chars_) {
+	  Reallocate(new_size);
+	}
+	memset(&data_[size_in_chars_], c, n * sizeof(character_type));
+	size_in_chars_ = new_size;
+	data_[size_in_chars_] = '\0';
+  }
+
 
   void push_back(character_type c) {
     const auto new_size = size_in_chars_ + 1;
@@ -364,9 +374,16 @@ class BasicBaseString {
     BUGCHECK(index < size_in_chars_, "Index out of bounds");
     return data_[index];
   }
-  character_type* at(mem_size index) {
+  character_type& at(mem_size index) {
     BUGCHECK(index < size_in_chars_, "Index out of bounds");
-    return data_ + index;
+    return data_[index];
+  }
+
+  character_type* at_if(mem_size index) {
+	if (index < size_in_chars_) {
+	  return data_ + index;
+	}
+	return nullptr;
   }
 
   // search functions ========================================

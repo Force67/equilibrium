@@ -23,14 +23,26 @@ Path::Path(const base::StringRefW wide_text) {
   Normalize(path_buf_);
 }
 
+bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
+  const auto ext = base::ASCIIToWide(ascii_only);
+  if (ext.empty()) {
+    return false;
+  }
+  if (ext[0] != L'.' && ensure_dot) {
+    path_buf_ += L'.';
+  }
+  path_buf_ += ext;
+  return true;
+}
+
 void Path::Normalize(BufferType& buffer) {
   for (mem_size i = 0; i < buffer.size(); i++) {
     auto& c = buffer[i];
     bool matches = c == L'/';
 
-    // windows folk like to put two forward slashes in their path names, so we have
-    // to check if the next character also contains a forward slash, and if so,
-    // remove it
+    // windows folk like to put two forward slashes in their path names, so we
+    // have to check if the next character also contains a forward slash, and if
+    // so, remove it
     if (matches && i + 1 <= buffer.size()) {
       if (buffer[i + 1] == L'/') {
         buffer.erase(buffer.begin() + (i + 1));

@@ -72,6 +72,19 @@ TYPED_TEST(BaseStringTest, Construction) {
   ASSERT_EQ(base_str_copy.compare(base_str_from_c_str), 0);
 }
 
+TEST(BaseStringTest, ConstructFromArray) {
+  using BaseStringType = base::BasicBaseString<char8_t>;
+  using StdStringType = std::basic_string<char8_t>;
+
+  const char8_t kTestSentence8[] = u8"Hello, world!";
+  const char8_t kTestSentence8Copy[] = u8"Hello, world!";
+  const char8_t kTestSentence8Copy2[] = u8"Hello, world!";
+  const char8_t kTestSentence8Copy3[] = u8"Hello, world!";
+
+  const BaseStringType base_str(kTestSentence8);
+  BaseStringType base_str_copy(kTestSentence8Copy);
+}
+
 TYPED_TEST(BaseStringTest, Assignment) {
   using BaseStringType = typename TestFixture::BaseStringType;
   using StdStringType = typename TestFixture::StdStringType;
@@ -143,7 +156,7 @@ TEST(BaseStringTest, CompareSubstring) {
   const BaseStringType str3("Hello, Universe!");
   ASSERT_NE(str1.compare(0, str1.size(), str3), 0);
 }
-#if 1
+
 TYPED_TEST(BaseStringTest, Concatenation) {
   using BaseStringType = typename TestFixture::BaseStringType;
   using StdStringType = typename TestFixture::StdStringType;
@@ -165,7 +178,7 @@ TYPED_TEST(BaseStringTest, Concatenation) {
   ASSERT_EQ(base_str.size(), std_str_from_c_str_twice.size());
   ASSERT_EQ(base_str.compare(std_str_from_c_str_twice), 0);
 }
-#endif
+
 #if 1
 TEST(BaseStringTest, PushBack) {
   using BaseStringType = typename base::BasicBaseString<char>;
