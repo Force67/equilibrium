@@ -5,6 +5,7 @@
 #include <cstdint> // for uint32_t
 #include <cstring> // for memset
 #include "base/allocator/page_protection.h"
+#include "virtual_memory.h"
 
 namespace base {
 
@@ -75,4 +76,41 @@ PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtection
     return result;
 }
 
+uint32_t FetchCurrentPageSize() {
+  long page_size = sysconf(_SC_PAGESIZE);
+  if (page_size == -1) {
+    return 4096;  // Default page size on many systems
+  }
+  return static_cast<uint32_t>(page_size);
+}
+
+byte* VirtualMemoryReserve(void* address, mem_size size) {
+  int flags = MAP_ANONYMOUS | MAP_PRIVATE;
+  if (address) {
+    flags |= MAP_FIXED;
+  }
+  return reinterpret_cast<byte*>(mmap(address, size, PROT_NONE, flags, -1, 0));
+}
+
+byte* VirtualMemoryAllocate(void* address,
+                            mem_size size,
+                            PageProtectionFlags protection) {
+  int prot = static_cast<int>(protection);
+  int flags = MAP_ANONYMOUS | MAP_PRIVATE;
+  if (address) {
+    flags |= MAP_FIXED;
+  }
+  return reinterpret_cast<byte*>(mmap(address, size, prot, flags, -1, 0));
+}
+
+bool VirtualMemoryFree(void* address, mem_size size) {
+  return munmap(address, size) == 0;
+}
+
+bool VirtualMemoryProtect(void* address,
+                          mem_size size,
+                          PageProtectionFlags protection) {
+  int prot = static_cast<int>(protection);
+  return mprotect(address, size, prot) == 0;
+}
 } // namespace base

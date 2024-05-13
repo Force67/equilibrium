@@ -24,7 +24,7 @@ Path::Path(const base::StringRefW wide_text) {
 }
 
 bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
-  const auto ext = base::ASCIIToWide(ascii_only);
+  const base::StringW ext = base::ASCIIToWide(ascii_only);
   if (ext.empty()) {
     return false;
   }

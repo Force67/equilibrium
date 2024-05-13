@@ -3,6 +3,9 @@
 
 #include <base/check.h>
 #include <base/allocator/eq_alloc/page_table.h>
+#include <base/allocator/eq_alloc/eq_allocation_constants.h>
+
+#include <base/allocator/virtual_memory.h>
 #include "arch.h"
 #include "compiler.h"
 
@@ -11,6 +14,13 @@ namespace base {
 namespace {
 constexpr mem_size kPageGrowByRatio = 2;
 
+#if (OS_WIN)
+constexpr u32 kIdealPageSize = eq_allocation_constants::kPageThreshold;
+constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
+#else
+constexpr u32 kIdealPageSize = static_cast<u32>(64_kib);
+constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
+#endif
 class spin_lock {
   static constexpr int UNLOCKED = 0;
   static constexpr int LOCKED = 1;
@@ -43,20 +53,30 @@ PageTable::PageTable(mem_size reserve_count) {
 }
 
 mem_size PageTable::ReserveAddressSpace() {
-  auto *address_space = Reserve(nullptr, nullptr, 1_tib);
-  first_page_ = reinterpret_cast<pointer_size>(address_space);
+  first_page_ = reinterpret_cast<pointer_size>(
+      base::VirtualMemoryReserve(nullptr, 1_tib));
+  if (!first_page_)
+    DEBUG_TRAP;
   return 1_tib;
 }
 
-void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
+void* PageTable::RequestPage(PageProtectionFlags page_flags,
+                             mem_size* size_out) {
   ScopedSpinLock _;
+  (void)_;
 
   if (!freelist_) {
-    void* block = Allocate(reinterpret_cast<void*>(first_page_.load()), ideal_page_size(),
-                           page_flags,
-                           0xFF, true);
-    if (block && size_out)
-      *size_out = ideal_page_size();
+    byte* block =
+        base::VirtualMemoryAllocate(reinterpret_cast<void*>(first_page_.load()),
+                                    kIdealPageSize, page_flags, false);
+    if (!block)
+      DEBUG_TRAP;
+    if (block) {
+      ::memset(block, 0xFF, kIdealPageSize);
+
+      if (size_out)
+        *size_out = kIdealPageSize;
+    }
     return block;
   }
 
@@ -65,26 +85,21 @@ void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out)
   freelist_ = freelist_->next;
 
   if (size_out)
-    *size_out = ideal_page_size();
+    *size_out = kIdealPageSize;
   return static_cast<void*>(freePage);
 }
 
-bool PageTable::ReleasePage(void* page_pointer) {
-  if (!page_pointer)
-    return false;
-
-  // Deallocate the page, return false if it fails.
-  if (!DeAllocate(page_pointer))
-    return false;
-
+mem_size PageTable::ReleasePage(void* page_pointer) {
+  // Deallocate the page
+  if (!page_pointer || !base::VirtualMemoryFree(page_pointer, kIdealPageSize))
+    return 0u;
   // Insert the freed page into the freelist.
-
   // TODO: dont we have to adjust offset for freelist??!
   FreeListEntry* freePage = static_cast<FreeListEntry*>(page_pointer);
   freePage->next = freelist_;
   freelist_ = freePage;
 
-  return true;
+  return kIdealPageSize;
 }
 
 PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
@@ -96,10 +111,11 @@ PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
     }
   }
 #endif
+  DEBUG_TRAP;
   return nullptr;
 }
 
-bool PageTable::Free(void* block) {
+bool PageTable::FreeBlock(void* block) {
   // TODO: OS Free it
   PageEntry* entry = FindBackingPage(block);
   if (!entry)

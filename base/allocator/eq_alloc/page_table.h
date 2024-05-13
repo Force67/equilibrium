@@ -9,7 +9,7 @@
 #include <base/memory/memory_literals.h>
 
 #include <base/allocator/memory_range.h>
-#include <base/allocator/page_protection.h>
+#include <base/allocator/virtual_memory.h>
 
 namespace base {
 using namespace memory_literals;
@@ -22,19 +22,11 @@ class PageTable {
   struct Options {
     bool zero_pages{true};
   };
-
-  // os page size
-  static u32 current_page_size();
-  // the ideal page size, we will use
-  static u32 ideal_page_size();
-  // where we will align the pages to, for instance if this returns 1mib, each 64kib
-  // page would be allocated at 1mib steps
-  static u32 page_boundary_alignment();
-
   void* RequestPage(PageProtectionFlags page_flags,
                     mem_size* size_optional_out = nullptr);
 
-  bool ReleasePage(void* address);
+  // returns the page size or 0 if the page was not found
+  mem_size ReleasePage(void* address);
 
   uintptr_t PageOffset(void* address) {
     auto b = reinterpret_cast<uintptr_t>(address);
@@ -46,23 +38,7 @@ class PageTable {
  private:
   mem_size ReserveAddressSpace();
   
-  byte* Reserve(void* requested_range_start_address,
-                void* requested_range_end_address,
-                mem_size block_size);
-
-  // initialize_with should be an optional...
-  void* Allocate(void* requested_range_start_address,
-                 mem_size block_size,
-                 base::PageProtectionFlags,
-                 byte initalize_with,
-                 bool use_initialize);
-  bool DeAllocate(void* block_address);
-
-  bool ChangePageProtection(void* block_address,
-                            mem_size block_size,
-                            base::PageProtectionFlags new_protection_flags);
-
-  bool Free(void* address);
+  bool FreeBlock(void* block_address);
 
  private:
   // a single page can only ever be owned by one allocator.

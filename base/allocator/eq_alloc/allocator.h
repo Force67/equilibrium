@@ -32,10 +32,11 @@ class Allocator {
     return nullptr;
   }
 
-  virtual bool Free(void* block) {
+  // returns the amount of memory that was freed.
+  virtual mem_size Free(void* block) {
     (void)block;
     IMPOSSIBLE;
-    return false;
+    return 0u;
   }
 };
 }  // namespace base

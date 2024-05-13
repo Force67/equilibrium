@@ -42,7 +42,7 @@ struct EQMemoryRouter {
     void* block = nullptr;
     MemoryScope::allocator_handle allocator_id = MemoryScope::allocator_handle();
     if (allocator_id != MemoryScope::NoOverride) {
-      block = allocators_[allocator_id]->Allocate(size, 1042);
+      block = allocators_[allocator_id]->Allocate(size, 1024);
     } else if (size <= eq_allocation_constants::kBucketThreshold) {
       allocator_id = AllocatorID::kBucketAllocator;
       block = allocators_[AllocatorID::kBucketAllocator]->Allocate(size, 4);
@@ -130,15 +130,11 @@ struct EQMemoryRouter {
 
   STRONG_INLINE mem_size Free(void* block) {
     auto& page_tab = *page_table();
-    const mem_size bytes_freed{block_size(page_tab, block)};
-
     auto* allocator = FindOwningAllocator(page_tab, block);
     DCHECK(allocator, "Free(): Orphaned memory?");
-
-    if (!allocator || !allocator->Free(block))
-      return 0u;
-
-    return bytes_freed;
+    if (!allocator)
+	  return 0u;
+    return allocator->Free(block);
   }
 
   STRONG_INLINE bool Deallocate(void* block, mem_size size, mem_size alignment) {

@@ -23,7 +23,7 @@ class BucketAllocator final : public Allocator {
   void* ReAllocate(void* former_block,
                    mem_size new_size,
                    mem_size user_alignment = 0) override;
-  bool Free(void* block) override;
+  mem_size Free(void* block) override;
 
  private:
   void* AcquireMemory(mem_size size, byte* hint = nullptr);

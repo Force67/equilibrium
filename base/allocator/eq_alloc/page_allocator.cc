@@ -21,7 +21,7 @@ void* PageAllocator::ReAllocate(void* former_block, mem_size new_size, mem_size)
     return nullptr;
 }
 
-bool PageAllocator::Free(void* block) {
+mem_size PageAllocator::Free(void* block) {
   return page_table_.ReleasePage(block);
 }
 }  // namespace base

@@ -27,15 +27,13 @@ BucketAllocator::BucketAllocator(PageTable& t) : page_table_(t) {
          "No initial page for the bucket allocator to work with!");
 }
 
-void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
+void* BucketAllocator::Allocate(mem_size requested_size, mem_size alignment) {
   // this case should be validated by the memory router.
 #if defined(BASE_MEM_CORE_DEBUG)
   // cant handle this...
-  if (size > eq_allocation_constants::kBucketThreshold ||
-      user_alignment > eq_allocation_constants::kBucketThreshold)
+  if (requested_size > eq_allocation_constants::kBucketThreshold ||
+      alignment > eq_allocation_constants::kBucketThreshold)
     return nullptr;
-#endif
-#if 0
   if ((alignment & (alignment - 1)) != 0) {
     // alignment is not a power of 2
     DEBUG_TRAP;
@@ -44,8 +42,8 @@ void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
 #endif
 
   // align to a sensible boundary
-  size += sizeof(Bucket);
-  size = base::Align(size, alignment);
+  requested_size += sizeof(Bucket);
+  requested_size = base::Align(requested_size, alignment);
 
   {
     base::NonOwningScopedLockGuard _(lock_);
@@ -54,7 +52,7 @@ void* BucketAllocator::Allocate(mem_size size, mem_size alignment) {
     i32 attempts = 0;
     byte* page_hint = nullptr;
     do {
-      if (void* block = AcquireMemory(size, page_hint))
+      if (void* block = AcquireMemory(requested_size, page_hint))
         return block;
       if (!TryAcquireNewPage(page_table_, page_hint))
         attempts++;
@@ -254,12 +252,13 @@ BucketAllocator::Bucket* BucketAllocator::FindBucket(pointer_size address) {
   return nullptr;
 }
 
-bool BucketAllocator::Free(void* pointer) {
+mem_size BucketAllocator::Free(void* pointer) {
   if (Bucket* b = FindBucket(reinterpret_cast<pointer_size>(pointer))) {
+    const auto size = b->size_;
     b->flags_ = Bucket::kReleased;
-    return true;
+    return size;
   }
   DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
-  return false;
+  return 0u;
 }
 }  // namespace base

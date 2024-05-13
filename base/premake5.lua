@@ -89,3 +89,7 @@ project("base_memory_unittests")
     "threading/spinning_mutex.cc"
   })
   base_project()
+  defines({
+    "BASE_STRIP_BUGCHECK",
+    "BASE_MEM_CORE_DEBUG" -- enable additional debug verifications in the mem subsystem
+  })

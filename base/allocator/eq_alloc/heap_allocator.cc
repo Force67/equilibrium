@@ -13,7 +13,7 @@ void* HeapAllocator::ReAllocate(void* former_block, mem_size new_size, mem_size)
   return nullptr;
 }
 
-bool HeapAllocator::Free(void* block) {
-  return false;
+mem_size HeapAllocator::Free(void* block) {
+  return 0u;
 }
 }  // namespace base
