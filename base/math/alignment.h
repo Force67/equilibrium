@@ -36,6 +36,7 @@ constexpr inline T Align(const T n, const T to) {
   // multiple functions gets inlined.
   return ((n + to - 1) & ~(to - 1U));
 }
+static_assert(Align(69, 1024) == 1024, "Alignment failed");
 
 // align to skew
 template <typename T>
@@ -43,6 +44,8 @@ constexpr inline T Align(const T n, const T to, T skew) {
   skew %= to;
   return ((n + to - 1 - skew) & ~(to - 1U)) + skew;
 }
+static_assert(Align(69, 1024, 1) == 1025, "Alignment failed");
+
 
 template <typename T>
 inline pointer_size AlignAddress(const void* address, T align) {
@@ -57,4 +60,5 @@ template <typename T>
 constexpr inline bool IsAligned(T lhs, const mem_size byte_size) {
   return byte_size % lhs == 0;
 }
+static_assert(IsAligned(4, 16), "Alignment failed");
 }  // namespace base

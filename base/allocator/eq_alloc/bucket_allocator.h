@@ -26,7 +26,9 @@ class BucketAllocator final : public Allocator {
   mem_size Free(void* block) override;
 
  private:
-  void* AcquireMemory(mem_size size, byte* hint = nullptr);
+  void* AcquireMemory(mem_size user_size,
+                      mem_size size,
+                      byte* hint = nullptr);
 
  private:
   PageTable& page_table_;
@@ -34,19 +36,44 @@ class BucketAllocator final : public Allocator {
 
   struct Bucket {
     u32 offset_{0};  // offset starting from page_base
-    u16 size_{0};
 
     enum Flags : u16 {
       kNone,
       kReleased = 1 << 1,
       kUsed = 1 << 2,
     };
-    u16 flags_{kUsed};
+    union Value {
+      struct {
+        // 11 bits to store a value up to 1024, max
+        // would be 2047
+        u32 user_size : 11;     // this is the allocation without alignment
+        u32 aligned_size : 11;  // the actual size of the allocation
+        u32 flags : 10;
+      };
+      u32 raw;
 
-    explicit Bucket(u32 offset, u16 size, Flags flags)
-        : offset_(offset), size_(size), flags_(flags) {}
+      Value() : raw(0) {}
+      explicit Value(uint32_t val) : raw(val) {}
+    };
+    Value value_;
 
-    inline bool IsinUse() const { return flags_ & Flags::kUsed; }
+    explicit Bucket(u32 offset, u16 user_size, u16 size, Flags flags)
+        : offset_(offset) {
+      value_.user_size = user_size;
+      value_.aligned_size = size;
+      value_.flags = flags;
+    }
+
+    inline bool IsinUse() const { return value_.flags & Flags::kUsed; }
+    inline bool IsFree() const { return value_.flags & Flags::kReleased; }
+    inline void SetFree() { value_.flags = Flags::kReleased; }
+    inline void SetUsed() { value_.flags = Flags::kUsed; }
+
+    inline void SetUserSize(u32 size) { value_.user_size = size; }
+    inline void SetSize(u32 size) { value_.aligned_size = size; }
+
+    inline u32 user_size() const { return value_.user_size; }
+    inline u32 size() const { return value_.aligned_size; }
   };
   static_assert(sizeof(Bucket) == sizeof(pointer_size), "Bucket is too fat");
 
@@ -88,10 +115,10 @@ class BucketAllocator final : public Allocator {
   struct PageTag {
     base::Atomic<mem_size> ref_count;  // TODO: impl it
     base::Atomic<mem_size> bucket_count;
-    mem_size
-        page_size;  // not really needed atm since we know the size is always 65k,
-                    // but if we wanna go for a hybrid model, it might be worth it
-                    //
+    mem_size page_size;  // not really needed atm since we know the size is
+                         // always 65k, but if we wanna go for a hybrid model,
+                         // it might be worth it
+                         //
 
     // better dont ask. we need to do it since we loose 16 bytes to our ancestor
     // aswell
@@ -132,6 +159,6 @@ class BucketAllocator final : public Allocator {
   }
 
   // void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
-  Bucket* FindFreeBucket(mem_size requested_size, byte*&);
+  Bucket* FindFreeBucket(mem_size actual_size, mem_size aligned_size, byte*&);
 };
 }  // namespace base
