@@ -16,4 +16,8 @@ void* HeapAllocator::ReAllocate(void* former_block, mem_size new_size, mem_size)
 mem_size HeapAllocator::Free(void* block) {
   return 0u;
 }
+
+mem_size HeapAllocator::QueryAllocationSize(void* block) {
+  return 0u;
+}
 }  // namespace base

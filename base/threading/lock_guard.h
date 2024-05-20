@@ -7,8 +7,6 @@ namespace base {
 template <class T>
 class ScopedLockGuard {
  public:
-  ScopedLockGuard(T& t) : lock_(t) {}
-
   inline ScopedLockGuard() { lock_.Acquire(); }
   inline ~ScopedLockGuard() { lock_.Release(); }
 

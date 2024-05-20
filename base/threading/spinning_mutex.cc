@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <base/threading/spinning_mutex.h>
+#include <base/math/value_bounds.h>
 #include "check.h"
 
 #if (OS_WIN)
@@ -12,13 +13,6 @@
 #if (OS_LINUX)
 #define PA_YIELD_PROCESSOR __asm__ __volatile__("pause")
 #endif
-
-namespace {
-template <class T>
-const T& XX_min(const T& a, const T& b) {
-  return (b < a) ? b : a;
-}
-}  // namespace
 
 namespace base {
 
@@ -56,7 +50,7 @@ void SpinningMutex::AcquireSpinThenBlock() {
       tries++;
     }
     constexpr int kMaxBackoff = 16;
-    backoff = XX_min(kMaxBackoff, backoff << 1);
+    backoff = base::Min(kMaxBackoff, backoff << 1);
   } while (tries < kSpinCount);
 
   LockSlow();

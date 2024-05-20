@@ -14,5 +14,7 @@ class HeapAllocator final : public Allocator {
                    mem_size user_alignment = 1024) override;
 
   mem_size Free(void* block) override;
+
+  mem_size QueryAllocationSize(void* block) override;
 };
 }  // namespace base

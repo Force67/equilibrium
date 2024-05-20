@@ -25,6 +25,8 @@ class BucketAllocator final : public Allocator {
                    mem_size user_alignment = 0) override;
   mem_size Free(void* block) override;
 
+  mem_size QueryAllocationSize(void* block) override;
+
  private:
   void* AcquireMemory(mem_size user_size,
                       mem_size size,
@@ -159,6 +161,6 @@ class BucketAllocator final : public Allocator {
   }
 
   // void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
-  Bucket* FindFreeBucket(mem_size actual_size, mem_size aligned_size, byte*&);
+  Bucket* FindAndClaimFreeBucket(mem_size actual_size, mem_size aligned_size, byte*&);
 };
 }  // namespace base

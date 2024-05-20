@@ -20,6 +20,8 @@ class PageAllocator final : public Allocator {
 
   mem_size Free(void* block) override;
 
+  mem_size QueryAllocationSize(void* block) override;
+
  private:
   PageTable& page_table_;
 };

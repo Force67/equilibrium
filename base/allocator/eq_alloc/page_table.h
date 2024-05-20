@@ -11,6 +11,8 @@
 #include <base/allocator/memory_range.h>
 #include <base/allocator/virtual_memory.h>
 
+#include <base/enum_traits.h>
+
 namespace base {
 using namespace memory_literals;
 
@@ -18,6 +20,7 @@ using namespace memory_literals;
 class PageTable {
  public:
   explicit PageTable(mem_size reserve_count);
+  ~PageTable();
 
   struct Options {
     bool zero_pages{true};
@@ -30,24 +33,33 @@ class PageTable {
 
   uintptr_t PageOffset(void* address) {
     auto b = reinterpret_cast<uintptr_t>(address);
-    DCHECK(first_page_ != 0, "First page not set");
-    //DCHECK(b >= first_page_, "Page out of bounds");
-    return b - first_page_;
+    DCHECK(address_space_ != 0, "First page not set");
+    // DCHECK(b >= first_page_, "Page out of bounds");
+    return b - address_space_;
   }
 
  private:
   mem_size ReserveAddressSpace();
-  
-  bool FreeBlock(void* block_address);
 
  private:
-  // a single page can only ever be owned by one allocator.
-  // we cant store the page entries in the pages themselves because this could get
-  // quite wasteful with 64kib, so we need to maintain the records in a list of small
-  // pages
+  // do we even need a size parameter if every page is 64k?
+  // do we even need an address if they are a continuous array? (e.g aligned to
+  // a 1mib boundary?)
+  // metadata page layout:
+  // +-------------------------------------------------------------------+
+  // | growing forwards: PageEntry 1 | PageEntry 2 | PageEntry 3 | ...   |
+  // +-------------------------------------------------------------------+
   struct PageEntry {
+    enum Flags : u32 {
+      IN_USE = 1 << 0,
+      FREE = 1 << 1,
+    };
+    u32 flags{Flags::IN_USE};
+    u32 size;
     pointer_size address;
-    mem_size size;  // refcount
+
+    PageEntry(pointer_size address, mem_size size)
+        : address(address), size(size) {}
 
     inline bool Contains(pointer_size block) const {
       return address >= block && block <= (address + size);
@@ -58,18 +70,16 @@ class PageTable {
     }
 
     void* pointer() const { return reinterpret_cast<void*>(address); }
+
+    inline bool available() const { return flags & Flags::FREE; }
   };
   static_assert(sizeof(PageEntry) == 2 * sizeof(pointer_size),
                 "PageEntry alignment is invalid");
 
-  struct FreeListEntry {
-    FreeListEntry* next;
-  };
-  FreeListEntry* freelist_ = nullptr;
+  base::Atomic<pointer_size> metadata_page_;
+  base::Atomic<mem_size> page_reserve_count_;
 
-  // do we even need a size parameter if every page is 64k?
-  // do we even need an address if they are a continuous array? (e.g aligned to a
-  // 1mib boundary?)
+  PageEntry* FindFreePage() const;
 
   // TODO: set class for these schenanigans?
   PageEntry* FindBackingPage(void* address);
@@ -79,11 +89,12 @@ class PageTable {
   // https://github.com/SerenityOS/serenity/blob/master/Kernel/Memory/PageDirectory.cpp
   //  pageDictionary
 
-  base::Atomic<pointer_size> first_page_;
-  base::Atomic<pointer_size> last_page_;
-  base::Atomic<pointer_size> current_page_;
-
-  base::Atomic<mem_size> metadata_page_count_;
-  base::Atomic<mem_size> current_page_count_;
+  // page base pointers
+  // overall page layout:
+  // +-----------------------Page-Space (1-Tib)--------------------------+
+  // | Page 1 | Page 2 | Page 3 | ... | Reserved | Reserved | Reserved   |
+  // +-------------------------------------------------------------------+
+  pointer_size address_space_;
+  mem_size current_page_count_;
 };
 }  // namespace base

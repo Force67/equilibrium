@@ -17,10 +17,6 @@ namespace {
 // more than 3 would waste too many cycles
 constexpr i32 kPageAcquireAttempts = 3;
 
-bool IntersectsReasonable(mem_size given, mem_size exepected) {
-  return given <= base::NextPowerOf2(exepected);
-}
-
 bool IsValidAllocation(mem_size size, mem_size alignment) {
   return size <= eq_allocation_constants::kBucketThreshold &&
          alignment <= eq_allocation_constants::kBucketThreshold &&
@@ -42,11 +38,12 @@ void* BucketAllocator::Allocate(mem_size requested_size, mem_size alignment) {
     return nullptr;
   }
 #endif
-
-  const auto aligned_size =
-      base::Min(base::NextPowerOf2(requested_size),
-                eq_allocation_constants::kBucketThreshold);
-
+  // align to pointer size which is next multiple of 8, so
+  // 5 -> 8
+  // 8 -> 8
+  // 9 -> 16
+  // and so on
+  const auto aligned_size = (requested_size + 7) & ~7;
   {
     i32 attempts = 0;
     byte* page_hint = nullptr;
@@ -65,47 +62,39 @@ void* BucketAllocator::Allocate(mem_size requested_size, mem_size alignment) {
 void* BucketAllocator::ReAllocate(void* former_block,
                                   mem_size new_size,
                                   mem_size user_alignment) {
-  if (former_block == nullptr) {
-    // if former_block is null, then it behaves the same as Allocate
+  if (former_block == nullptr)
     return Allocate(new_size, user_alignment);
-  }
-
   if (new_size == 0) {
-    // if new_size is zero, then it behaves the same as Free
     Free(former_block);
     return nullptr;
   }
 
   pointer_size former_address = reinterpret_cast<pointer_size>(former_block);
   Bucket* former_bucket = FindBucket(former_address);
-
   if (former_bucket == nullptr) {
     // The former block wasn't allocated by this allocator
     return nullptr;
   }
-
+  // in case the size was shrunk reuse the former block, but update the tracking info
   const mem_size former_size = former_bucket->size();
-
   if (former_size >= new_size) {
-    // If the former block is large enough, simply return it
+    former_bucket->SetUserSize(new_size);
     return former_block;
   }
+  // however.. if the size was increased, we need to allocate a new block
+
 
   // Otherwise, we need to allocate a new block and copy data from the former
   // block
   void* new_block = Allocate(new_size, user_alignment);
-
   if (new_block == nullptr) {
     // Failed to allocate memory
-    // Maybe log an error here
     DEBUG_TRAP;
     return former_block;  // Return the former_block to avoid losing it
   }
 
   // Copy data from the former block to the new block
   memcpy(new_block, former_block, former_size);
-
-  // Free the former block
   Free(former_block);
 
   return new_block;
@@ -121,7 +110,7 @@ void* BucketAllocator::AcquireMemory(mem_size user_size,
   }
 
   byte* page_head = nullptr;
-  if (Bucket* bucket = FindFreeBucket(user_size, size, page_head)) {
+  if (Bucket* bucket = FindAndClaimFreeBucket(user_size, size, page_head)) {
     // return user memory
     return reinterpret_cast<void*>((page_head + sizeof(HeaderNode)) +
                                    bucket->offset_);
@@ -170,7 +159,7 @@ bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:base/atomic_sequence_num.h;bpv=1;bpt=1
-BucketAllocator::Bucket* BucketAllocator::FindFreeBucket(
+BucketAllocator::Bucket* BucketAllocator::FindAndClaimFreeBucket(
     mem_size user_size,
     mem_size size, /*aligned size here is the full size*/
     byte*& page_start) {
@@ -265,6 +254,13 @@ mem_size BucketAllocator::Free(void* pointer) {
     return size;
   }
   DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
+  return 0u;
+}
+
+mem_size BucketAllocator::QueryAllocationSize(void* block) {
+  if (Bucket* b = FindBucket(reinterpret_cast<pointer_size>(block))) {
+    return b->user_size();
+  }
   return 0u;
 }
 }  // namespace base

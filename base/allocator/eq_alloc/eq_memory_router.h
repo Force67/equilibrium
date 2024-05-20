@@ -36,6 +36,7 @@ struct EQMemoryRouter {
     return size << 1;
   }
 
+  // Implements Allocator interface
   STRONG_INLINE void* Allocate(const mem_size size) {
     PageTable& page_tab = *page_table();
 
@@ -61,6 +62,7 @@ struct EQMemoryRouter {
     allocator_mapping_table_[index] = allocator_id;
     return block;
   }
+
 
   STRONG_INLINE void* AllocateAligned(mem_size size, mem_size alignment) {
     // Adjust the size to include extra space for alignment correction and storing
@@ -93,10 +95,11 @@ struct EQMemoryRouter {
                                  const mem_size new_size,
                                  pointer_diff& diff_out) {
     auto& page_tab = *page_table();
-    diff_out = new_size - block_size(page_tab, former);
-
     auto* allocator = FindOwningAllocator(page_tab, former);
     DCHECK(allocator, "ReAllocate(): Orphaned memory?");
+
+    const auto former_size = allocator->QueryAllocationSize(former);
+    diff_out = new_size - former_size;
 
     return allocator->ReAllocate(former, new_size);
   }
@@ -145,8 +148,6 @@ struct EQMemoryRouter {
   }
 
  private:
-  mem_size block_size(PageTable& tab, void* block) { return 0; }
-
   Allocator* FindOwningAllocator(base::PageTable& page_table, void* block) {
     // the limit for an index is 1048576
     auto index = page_table.PageOffset(block) >> kMibShift;

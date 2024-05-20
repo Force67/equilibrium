@@ -16,12 +16,16 @@ class Allocator {
   virtual ~Allocator() = default;
 
   // with the hopes that the compiler will devirutalize this.
-  virtual void* Allocate(mem_size, mem_size user_alignment = 1024) {
+  virtual void* Allocate(mem_size size, mem_size user_alignment = 1024) {
+    (void)size;
     (void)user_alignment;
     IMPOSSIBLE;
     return nullptr;
   }
 
+  // re-allocate a block of memory.
+  // e.g if the block is already allocated, it will be copied to a new location.
+  // if the block is not allocated, it will be allocated.
   virtual void* ReAllocate(void* former_block,
                            mem_size new_size,
                            mem_size user_alignment = 1024) {
@@ -37,6 +41,13 @@ class Allocator {
     (void)block;
     IMPOSSIBLE;
     return 0u;
+  }
+
+  // returns the amount of memory that is allocated by the block.
+  virtual mem_size QueryAllocationSize(void* block) {
+	(void)block;
+	IMPOSSIBLE;
+	return 0u;
   }
 };
 }  // namespace base

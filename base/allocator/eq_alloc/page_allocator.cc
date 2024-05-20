@@ -24,4 +24,9 @@ void* PageAllocator::ReAllocate(void* former_block, mem_size new_size, mem_size)
 mem_size PageAllocator::Free(void* block) {
   return page_table_.ReleasePage(block);
 }
+
+mem_size PageAllocator::QueryAllocationSize(void* block) {
+  (void)block;
+  return base::eq_allocation_constants::kPageSize;
+}
 }  // namespace base

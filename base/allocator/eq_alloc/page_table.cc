@@ -9,6 +9,9 @@
 #include "arch.h"
 #include "compiler.h"
 
+#include <base/threading/spinning_mutex.h>
+#include <base/threading/lock_guard.h>
+
 namespace base {
 
 namespace {
@@ -21,107 +24,111 @@ constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
 constexpr u32 kIdealPageSize = static_cast<u32>(64_kib);
 constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
 #endif
-class spin_lock {
-  static constexpr int UNLOCKED = 0;
-  static constexpr int LOCKED = 1;
-
-  base::Atomic<int> m_value = 0;
-
- public:
-  void lock() {
-    while (true) {
-      int expected = UNLOCKED;
-      if (m_value.compare_exchange_weak(expected, LOCKED))
-        break;
-    }
-  }
-
-  void unlock() { m_value.store(UNLOCKED); }
-};
-
-class ScopedSpinLock : spin_lock {
- public:
-  ScopedSpinLock() { spin_lock::lock(); }
-
-  ~ScopedSpinLock() { spin_lock::unlock(); }
-};
 }  // namespace
 
-PageTable::PageTable(mem_size reserve_count) {
-  // ReservePages(0, reserve_count);
+PageTable::PageTable(mem_size reserve_count)
+    : page_reserve_count_(reserve_count) {
   ReserveAddressSpace();
 }
 
+PageTable::~PageTable() {
+  // Free all pages
+  PageEntry* entry = reinterpret_cast<PageEntry*>(metadata_page_.load());
+  for (size_t i = 0; i < current_page_count_; i++) {
+    if (!entry->available()) {
+      base::VirtualMemoryFree(reinterpret_cast<void*>(entry->address),
+                              entry->size);
+    }
+    entry++;
+  }
+  base::VirtualMemoryFree(reinterpret_cast<void*>(metadata_page_.load()), 0);
+  // base::VirtualMemoryFree(reinterpret_cast<void*>(first_page_.load()), 0);
+}
+
 mem_size PageTable::ReserveAddressSpace() {
-  first_page_ = reinterpret_cast<pointer_size>(
+  address_space_ = reinterpret_cast<pointer_size>(
       base::VirtualMemoryReserve(nullptr, 1_tib));
-  if (!first_page_)
+  if (!address_space_)
     DEBUG_TRAP;
+  // we also need to allocate a management page.
+  if (!metadata_page_) {
+    const auto memory_size = (sizeof(PageEntry) * page_reserve_count_);
+    metadata_page_ = reinterpret_cast<pointer_size>(base::VirtualMemoryAllocate(
+        nullptr, memory_size, PageProtectionFlags::RW));
+    PageEntry* entry = reinterpret_cast<PageEntry*>(metadata_page_.load());
+    for (size_t i = 0; i < page_reserve_count_; i++) {
+      entry->flags = PageEntry::Flags::FREE;
+      entry->address = address_space_ + (kIdealPageSize * i);
+      entry++;
+    }
+  }
   return 1_tib;
 }
 
-void* PageTable::RequestPage(PageProtectionFlags page_flags,
-                             mem_size* size_out) {
-  ScopedSpinLock _;
-  (void)_;
-
-  if (!freelist_) {
-    byte* block =
-        base::VirtualMemoryAllocate(reinterpret_cast<void*>(first_page_.load()),
-                                    kIdealPageSize, page_flags, false);
-    if (!block)
-      DEBUG_TRAP;
-    if (block) {
-      ::memset(block, 0xFF, kIdealPageSize);
-
-      if (size_out)
-        *size_out = kIdealPageSize;
-    }
-    return block;
+PageTable::PageEntry* PageTable::FindFreePage() const {
+  PageEntry* entry = reinterpret_cast<PageEntry*>(metadata_page_.load());
+  for (size_t i = 0; i < page_reserve_count_; i++) {
+    if (entry->available())
+      return entry;
+    entry++;
   }
-
-  // Pop a page from the freelist.
-  FreeListEntry* freePage = freelist_;
-  freelist_ = freelist_->next;
-
-  if (size_out)
-    *size_out = kIdealPageSize;
-  return static_cast<void*>(freePage);
-}
-
-mem_size PageTable::ReleasePage(void* page_pointer) {
-  // Deallocate the page
-  if (!page_pointer || !base::VirtualMemoryFree(page_pointer, kIdealPageSize))
-    return 0u;
-  // Insert the freed page into the freelist.
-  // TODO: dont we have to adjust offset for freelist??!
-  FreeListEntry* freePage = static_cast<FreeListEntry*>(page_pointer);
-  freePage->next = freelist_;
-  freelist_ = freePage;
-
-  return kIdealPageSize;
+  return nullptr;
 }
 
 PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
-#if 0
-  for (auto i = 0; i < 12; i++) {
-    auto& e = page_entries_[i];
-    if (e.Contains(block)) {
-      return &e;
-    }
+  PageEntry* entry = reinterpret_cast<PageEntry*>(metadata_page_.load());
+  for (size_t i = 0; i < page_reserve_count_; i++) {
+    if (entry->address == reinterpret_cast<pointer_size>(block))
+      return entry;
+    entry++;
   }
-#endif
   DEBUG_TRAP;
   return nullptr;
 }
 
-bool PageTable::FreeBlock(void* block) {
-  // TODO: OS Free it
-  PageEntry* entry = FindBackingPage(block);
-  if (!entry)
-    return false;
+static byte* AllocatePage(void* at_address, PageProtectionFlags page_flags) {
+  byte* block = reinterpret_cast<byte*>(base::VirtualMemoryAllocate(
+      at_address, kIdealPageSize, page_flags, false));
+  if (!block)
+    DEBUG_TRAP;
+  // whoa, we didn't get the address we wanted in the reserved block. Did you
+  // call reserve?
+  if (block != at_address)
+    DEBUG_TRAP;
+  ::memset(block, 0xFF, kIdealPageSize);  // not really ideal, but for safety
+  return block;
+}
 
-  entry->size = 0;
-  return true;
+void* PageTable::RequestPage(PageProtectionFlags page_flags,
+                             mem_size* size_out) {
+  base::ScopedLockGuard<base::SpinningMutex> _;
+  (void)_;
+  // do we have any free pages?
+  if (PageEntry* entry = FindFreePage()) {
+    if (entry->address == 0u)
+      DEBUG_TRAP;
+    byte* block =
+        AllocatePage(reinterpret_cast<void*>(entry->address), page_flags);
+    entry->size = kIdealPageSize;
+    entry->flags = PageEntry::Flags::IN_USE;
+    entry->address = reinterpret_cast<pointer_size>(block);
+    if (size_out)
+      *size_out = entry->size;
+    current_page_count_++;
+    return static_cast<void*>(block);
+  }
+  return nullptr;
+}
+
+mem_size PageTable::ReleasePage(void* page_pointer) {
+  base::ScopedLockGuard<base::SpinningMutex> _;
+  // Deallocate the page memory
+  if (!page_pointer || !base::VirtualMemoryFree(page_pointer, kIdealPageSize))
+    return 0u;
+  // Mark the page as free
+  PageEntry* entry = FindBackingPage(page_pointer);
+  entry->flags = PageEntry::Flags::FREE;
+  current_page_count_--;
+  return kIdealPageSize;
 }
 }  // namespace base

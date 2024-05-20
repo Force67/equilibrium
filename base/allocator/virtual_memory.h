@@ -48,6 +48,7 @@ byte* VirtualMemoryReserve(void* address, mem_size size);
 // files on disk) for the specified reserved memory pages.
 // If you already reserved memory with VirtualMemoryReserve, this will work fine
 // too.
+// On Windows the returned pages are also zeroed.
 byte* VirtualMemoryAllocate(void* address,
                             mem_size size,
                             PageProtectionFlags protection, const bool reserve = true);
