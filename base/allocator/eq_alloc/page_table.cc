@@ -17,37 +17,33 @@ namespace base {
 namespace {
 constexpr mem_size kPageGrowByRatio = 2;
 
-#if (OS_WIN)
-constexpr u32 kIdealPageSize = eq_allocation_constants::kPageThreshold;
-constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
-#else
-constexpr u32 kIdealPageSize = static_cast<u32>(64_kib);
-constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
-#endif
 }  // namespace
 
-PageTable::PageTable(mem_size reserve_count)
+PageTable::PageTable(const mem_size space_size,
+                     const mem_size page_size,
+                     const mem_size reserve_count)
     : page_reserve_count_(reserve_count) {
-  ReserveAddressSpace();
+  ReserveAddressSpace(space_size, page_size);
 }
 
 PageTable::~PageTable() {
-  // Free all pages
-  PageEntry* entry = reinterpret_cast<PageEntry*>(metadata_page_.load());
-  for (size_t i = 0; i < current_page_count_; i++) {
-    if (!entry->available()) {
-      base::VirtualMemoryFree(reinterpret_cast<void*>(entry->address),
-                              entry->size);
-    }
-    entry++;
+  // just yeet the entire address space
+  if (address_space_) {
+    base::VirtualMemoryFree(reinterpret_cast<void*>(address_space_),
+                            space_size_);
   }
-  base::VirtualMemoryFree(reinterpret_cast<void*>(metadata_page_.load()), 0);
-  // base::VirtualMemoryFree(reinterpret_cast<void*>(first_page_.load()), 0);
+  // and the metadata page
+  if (metadata_page_) {
+	base::VirtualMemoryFree(reinterpret_cast<void*>(metadata_page_.load()), 0);
+  }
 }
 
-mem_size PageTable::ReserveAddressSpace() {
+bool PageTable::ReserveAddressSpace(const mem_size address_space_size,
+                                    const mem_size page_size) {
+  space_size_ = address_space_size;
+  page_size_ = page_size;
   address_space_ = reinterpret_cast<pointer_size>(
-      base::VirtualMemoryReserve(nullptr, 1_tib));
+      base::VirtualMemoryReserve(nullptr, address_space_size));
   if (!address_space_)
     DEBUG_TRAP;
   // we also need to allocate a management page.
@@ -58,11 +54,11 @@ mem_size PageTable::ReserveAddressSpace() {
     PageEntry* entry = reinterpret_cast<PageEntry*>(metadata_page_.load());
     for (size_t i = 0; i < page_reserve_count_; i++) {
       entry->flags = PageEntry::Flags::FREE;
-      entry->address = address_space_ + (kIdealPageSize * i);
+      entry->address = address_space_ + (page_size * i);
       entry++;
     }
   }
-  return 1_tib;
+  return true;
 }
 
 PageTable::PageEntry* PageTable::FindFreePage() const {
@@ -86,16 +82,18 @@ PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
   return nullptr;
 }
 
-static byte* AllocatePage(void* at_address, PageProtectionFlags page_flags) {
-  byte* block = reinterpret_cast<byte*>(base::VirtualMemoryAllocate(
-      at_address, kIdealPageSize, page_flags, false));
+static byte* AllocatePage(void* at_address,
+                          mem_size page_size,
+                          PageProtectionFlags page_flags) {
+  byte* block = reinterpret_cast<byte*>(
+      base::VirtualMemoryAllocate(at_address, page_size, page_flags, false));
   if (!block)
     DEBUG_TRAP;
   // whoa, we didn't get the address we wanted in the reserved block. Did you
   // call reserve?
   if (block != at_address)
     DEBUG_TRAP;
-  ::memset(block, 0xFF, kIdealPageSize);  // not really ideal, but for safety
+  ::memset(block, 0xFF, page_size);  // not really ideal, but for safety
   return block;
 }
 
@@ -107,9 +105,9 @@ void* PageTable::RequestPage(PageProtectionFlags page_flags,
   if (PageEntry* entry = FindFreePage()) {
     if (entry->address == 0u)
       DEBUG_TRAP;
-    byte* block =
-        AllocatePage(reinterpret_cast<void*>(entry->address), page_flags);
-    entry->size = kIdealPageSize;
+    byte* block = AllocatePage(reinterpret_cast<void*>(entry->address),
+                               page_size_, page_flags);
+    entry->size = page_size_;
     entry->flags = PageEntry::Flags::IN_USE;
     entry->address = reinterpret_cast<pointer_size>(block);
     if (size_out)
@@ -123,12 +121,12 @@ void* PageTable::RequestPage(PageProtectionFlags page_flags,
 mem_size PageTable::ReleasePage(void* page_pointer) {
   base::ScopedLockGuard<base::SpinningMutex> _;
   // Deallocate the page memory
-  if (!page_pointer || !base::VirtualMemoryFree(page_pointer, kIdealPageSize))
+  if (!page_pointer || !base::VirtualMemoryFree(page_pointer, page_size_))
     return 0u;
   // Mark the page as free
   PageEntry* entry = FindBackingPage(page_pointer);
   entry->flags = PageEntry::Flags::FREE;
   current_page_count_--;
-  return kIdealPageSize;
+  return page_size_;
 }
 }  // namespace base

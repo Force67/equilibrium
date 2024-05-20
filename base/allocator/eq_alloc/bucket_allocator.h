@@ -15,7 +15,7 @@ namespace base {
 class BucketAllocator final : public Allocator {
   friend struct EQMemoryRouter;
 
- protected:
+  public:
   explicit BucketAllocator(PageTable&);
 
   void* Allocate(mem_size size, mem_size alignment = 0) override;
@@ -36,7 +36,7 @@ class BucketAllocator final : public Allocator {
   PageTable& page_table_;
   base::SpinningMutex lock_;
 
-  struct Bucket {
+  struct BucketInfo {
     u32 offset_{0};  // offset starting from page_base
 
     enum Flags : u16 {
@@ -59,7 +59,7 @@ class BucketAllocator final : public Allocator {
     };
     Value value_;
 
-    explicit Bucket(u32 offset, u16 user_size, u16 size, Flags flags)
+    explicit BucketInfo(u32 offset, u16 user_size, u16 size, Flags flags)
         : offset_(offset) {
       value_.user_size = user_size;
       value_.aligned_size = size;
@@ -77,19 +77,20 @@ class BucketAllocator final : public Allocator {
     inline u32 user_size() const { return value_.user_size; }
     inline u32 size() const { return value_.aligned_size; }
   };
-  static_assert(sizeof(Bucket) == sizeof(pointer_size), "Bucket is too fat");
+  static_assert(sizeof(BucketInfo) == sizeof(pointer_size),
+                "Bucket is too fat");
 
   union BucketStore {
-    Bucket bucket;
+    BucketInfo bucket;
     pointer_size as_pointer;
   };
   using BucketPointer = base::Atomic<BucketStore>;
-  using AtomicBucket = base::Atomic<Bucket>;
+  using AtomicBucket = base::Atomic<BucketInfo>;
 
-  static_assert(sizeof(Bucket) == sizeof(pointer_size),
+  static_assert(sizeof(BucketInfo) == sizeof(pointer_size),
                 "Bucket must fit into atomic/register space");
 
-  Bucket* FindBucket(pointer_size address);
+  BucketInfo* FindBucket(pointer_size address);
 
   // (Bucket) Page Memory layout:
   // +-------------------------------------------------------------------+
@@ -161,6 +162,8 @@ class BucketAllocator final : public Allocator {
   }
 
   // void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
-  Bucket* FindAndClaimFreeBucket(mem_size actual_size, mem_size aligned_size, byte*&);
+  BucketInfo* FindAndClaimFreeBucket(mem_size actual_size,
+                                     mem_size aligned_size,
+                                     byte*&);
 };
 }  // namespace base

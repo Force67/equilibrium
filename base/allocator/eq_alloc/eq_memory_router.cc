@@ -12,23 +12,32 @@
 namespace base {
 
 namespace {
-alignas(BucketAllocator) byte bucket_allocator_storage[sizeof(BucketAllocator)]{};
+alignas(BucketAllocator) byte
+    bucket_allocator_storage[sizeof(BucketAllocator)]{};
 alignas(PageAllocator) byte page_allocator_storage[sizeof(PageAllocator)]{};
 alignas(HeapAllocator) byte heap_allocator_storage[sizeof(HeapAllocator)]{};
+#if (OS_WIN)
+constexpr u32 kIdealPageSize = eq_allocation_constants::kPageThreshold;
+constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
+#else
+constexpr u32 kIdealPageSize = static_cast<u32>(64_kib);
+constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
+#endif
 }  // namespace
 
 // TODO: maybe refactor this in some complex obj init instantiate shit
 PageTable* EQMemoryRouter::page_table() {
   if (!page_table_data_[0]) {
-      // with 5 pages?
-    PageTable* table = new (&page_table_data_[4]) PageTable(5);
+    // with 5 pages?
+    PageTable* table = new (&page_table_data_[sizeof(UINT_MAX)])
+        PageTable(1_tib /*This should be a base compile opt later on..*/,
+                  kIdealPageSize, 5);
     InitializeAllocators(*table);
-
     // tombstone this so never ever ever there can be more than one pagetable.
     *reinterpret_cast<uint32_t*>(&page_table_data_[0]) = UINT32_MAX;
     return table;
   }
-  return reinterpret_cast<PageTable*>(&page_table_data_[4]);
+  return reinterpret_cast<PageTable*>(&page_table_data_[sizeof(UINT_MAX)]);
 }
 
 void EQMemoryRouter::InitializeAllocators(PageTable& page_table) {

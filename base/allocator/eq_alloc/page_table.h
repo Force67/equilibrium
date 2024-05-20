@@ -19,7 +19,9 @@ using namespace memory_literals;
 // page table only manages pages, not blocks within these pages.
 class PageTable {
  public:
-  explicit PageTable(mem_size reserve_count);
+  explicit PageTable(const mem_size space_size,
+                     const mem_size page_size,
+                     const mem_size reserve_count);
   ~PageTable();
 
   struct Options {
@@ -38,8 +40,12 @@ class PageTable {
     return b - address_space_;
   }
 
+  mem_size page_size() const { return page_size_; }
+  mem_size space_size() const { return space_size_; }
+
  private:
-  mem_size ReserveAddressSpace();
+  bool ReserveAddressSpace(const mem_size address_space_size,
+                           const mem_size page_size);
 
  private:
   // do we even need a size parameter if every page is 64k?
@@ -95,6 +101,8 @@ class PageTable {
   // | Page 1 | Page 2 | Page 3 | ... | Reserved | Reserved | Reserved   |
   // +-------------------------------------------------------------------+
   pointer_size address_space_;
+  mem_size space_size_;
+  mem_size page_size_;
   mem_size current_page_count_;
 };
 }  // namespace base
