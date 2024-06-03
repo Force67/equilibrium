@@ -128,7 +128,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
 
       // Update the metadata for the new block
       BucketInfo* new_bucket =
-          new (page_hint + page_end - page_head - sizeof(BucketInfo))
+          new (page_hint + static_cast<pointer_size>(page_end - page_head - sizeof(BucketInfo)))
               BucketInfo(
                   /*offset*/ 0, new_size, aligned_new_size, BucketInfo::kUsed);
       new_bucket->SetUserSize(new_size);
