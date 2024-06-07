@@ -4,7 +4,7 @@
 #include <sys/mman.h>
 #include <cstdint> // for uint32_t
 #include <cstring> // for memset
-#include "base/allocator/page_protection.h"
+#include <unistd.h> // for sysconf
 #include "virtual_memory.h"
 
 namespace base {
@@ -43,7 +43,7 @@ NativePageProtectionType TranslateToNativePageProtection(const PageProtectionFla
 PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtectionType flags) {
     PageProtectionFlags result = PageProtectionFlags::NONE;
 
-    switch (flags & PROT_READ | PROT_WRITE | PROT_EXEC) {
+    switch (flags & (PROT_READ | PROT_WRITE | PROT_EXEC)) {
         case PROT_EXEC:
             result = PageProtectionFlags::X;
             break;
@@ -77,7 +77,7 @@ PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtection
 }
 
 uint32_t FetchCurrentPageSize() {
-  long page_size = sysconf(_SC_PAGESIZE);
+  long page_size = ::sysconf(_SC_PAGESIZE);
   if (page_size == -1) {
     return 4096;  // Default page size on many systems
   }
@@ -89,7 +89,7 @@ byte* VirtualMemoryReserve(void* address, mem_size size) {
   if (address) {
     flags |= MAP_FIXED;
   }
-  return reinterpret_cast<byte*>(mmap(address, size, PROT_NONE, flags, -1, 0));
+  return reinterpret_cast<byte*>(::mmap(address, size, PROT_NONE, flags, -1, 0));
 }
 
 byte* VirtualMemoryAllocate(void* address,
@@ -100,17 +100,17 @@ byte* VirtualMemoryAllocate(void* address,
   if (address) {
     flags |= MAP_FIXED;
   }
-  return reinterpret_cast<byte*>(mmap(address, size, prot, flags, -1, 0));
+  return reinterpret_cast<byte*>(::mmap(address, size, prot, flags, -1, 0));
 }
 
 bool VirtualMemoryFree(void* address, mem_size size) {
-  return munmap(address, size) == 0;
+  return ::munmap(address, size) == 0;
 }
 
 bool VirtualMemoryProtect(void* address,
                           mem_size size,
                           PageProtectionFlags protection) {
   int prot = static_cast<int>(protection);
-  return mprotect(address, size, prot) == 0;
+  return ::mprotect(address, size, prot) == 0;
 }
 } // namespace base

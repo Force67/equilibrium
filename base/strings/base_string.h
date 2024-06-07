@@ -240,7 +240,7 @@ class BasicBaseString {
     return *this;
   }
 
-  // equality comparisions
+ // equality comparisions
   int compare(const character_type* str, mem_size len) const noexcept {
     return memcmp(data_, str, len);
   }
@@ -388,6 +388,15 @@ class BasicBaseString {
 
   // search functions ========================================
   // Finds the last occurrence of any of the characters in the given string.
+  mem_size find(const character_type c) {
+    for (mem_size i = 0; i < size_in_chars_; ++i) {
+      if (data_[i] == c) {
+        return i;
+      }
+    }
+    return npos;
+  }
+  
   mem_size find_last_of(const BasicBaseString& other) const {
     return find_last_of(other.data_, other.size());
   }
@@ -478,6 +487,28 @@ Note: The first character is denoted by a value of 0 (not 1).*/
       cap_in_chars_ = size_in_chars_;
     }
   }
+
+  // insert functions ====
+  void insert(mem_size pos, mem_size n, character_type character) {
+    // Check if the position is within the valid range
+    BUGCHECK(pos <= size_in_chars_, "Invalid position");
+
+    // Adjust the size of the string to make room for the new characters
+    mem_size new_size = size_in_chars_ + n;
+    if (new_size >= cap_in_chars_) {
+        Reallocate(new_size);
+    }
+
+    // Shift the characters after the insertion point to make room
+    memmove(data_ + pos + n, data_ + pos, (size_in_chars_ - pos) * sizeof(character_type));
+
+    // Insert the new characters
+    memset(data_ + pos, character, n * sizeof(character_type));
+
+    // Update the size of the string
+    size_in_chars_ = new_size;
+    data_[size_in_chars_] = '\0';  // Ensure null termination
+}
 
  private:
   // Allocates memory for the BasicBaseString.

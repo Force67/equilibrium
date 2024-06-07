@@ -12,6 +12,8 @@
 #include <base/threading/spinning_mutex.h>
 #include <base/threading/lock_guard.h>
 
+#include <cstring>
+
 namespace base {
 
 namespace {
@@ -93,7 +95,7 @@ static byte* AllocatePage(void* at_address,
   // call reserve?
   if (block != at_address)
     DEBUG_TRAP;
-  ::memset(block, 0xFF, page_size);  // not really ideal, but for safety
+  memset(block, 0xFF, page_size);  // not really ideal, but for safety
   return block;
 }
 
