@@ -94,11 +94,14 @@ byte* VirtualMemoryReserve(void* address, mem_size size) {
 
 byte* VirtualMemoryAllocate(void* address,
                             mem_size size,
-                            PageProtectionFlags protection) {
+                            PageProtectionFlags protection, const bool reserve) {
   int prot = static_cast<int>(protection);
   int flags = MAP_ANONYMOUS | MAP_PRIVATE;
   if (address) {
     flags |= MAP_FIXED;
+  }
+  if (reserve) {
+    flags |= MAP_NORESERVE; // Don't commit physical memory yet
   }
   return reinterpret_cast<byte*>(::mmap(address, size, prot, flags, -1, 0));
 }
