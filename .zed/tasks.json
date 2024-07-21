@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Sync with GF",
+    "command": "echo f $ZED_FILE > /home/gf2_control_pipe.dat && echo l $ZED_ROW > /home/gf2_control_pipe.dat",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true,
+    // What to do with the terminal pane and tab, after the command was started:
+    // * `always` — always show the terminal pane, add and focus the corresponding task's tab in it (default)
+    // * `never` — avoid changing current terminal pane focus, but still add/reuse the task's tab there
+    "reveal": "never"
+  }
+]
