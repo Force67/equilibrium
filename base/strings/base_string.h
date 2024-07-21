@@ -13,6 +13,7 @@
 #include <base/containers/container_traits.h>
 #include <base/strings/char_algorithms.h>
 
+#include <cstring>
 #include <algorithm>
 
 // TODO: small string optimization
@@ -396,7 +397,7 @@ class BasicBaseString {
     }
     return npos;
   }
-  
+
   mem_size find_last_of(const BasicBaseString& other) const {
     return find_last_of(other.data_, other.size());
   }

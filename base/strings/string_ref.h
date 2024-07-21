@@ -294,6 +294,7 @@ base::XBasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
 }
 }  // namespace base
 
+#if 0
 namespace std {
 template <typename TChar>
 struct hash<base::BasicStringRef<TChar>> {
@@ -304,3 +305,4 @@ struct hash<base::BasicStringRef<TChar>> {
   }
 };
 }  // namespace std
+#endif
