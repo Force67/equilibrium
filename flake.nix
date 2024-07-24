@@ -20,6 +20,7 @@
       {
         devShells.default = pkgs.mkShell {
           name = "equilibrium dev shell";
+          LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
           buildInputs = with pkgs; [
               gnumake   # to build premake outputs
               gcc14     # gcc compiler
