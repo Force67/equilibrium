@@ -81,7 +81,7 @@ jobs:
     # Build - again with nix develop, just to source env, should be instant.
     - name: Build
       run: |
-        CONFIG_LOWER=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]'
+        CONFIG_LOWER=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]')
         nix develop
         echo $CXX
         gcc -v
