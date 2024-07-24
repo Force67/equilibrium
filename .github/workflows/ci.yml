@@ -71,7 +71,6 @@ jobs:
       uses: cachix/install-nix-action@v27
       with:
         github_access_token: ${{ secrets.GH_TOKEN }}
-    - run: nix build
     - run: nix flake check
     - name: Premake
       run: ./build/premake_linux.sh ${{ matrix.config }}
