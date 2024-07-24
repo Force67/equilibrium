@@ -37,12 +37,19 @@
             export CXX=${pkgs.gcc14}/bin/g++
             export LD=${pkgs.gcc14}/bin/gcc
 
+            # Use gcc for linking
+            export LDFLAGS="-fuse-ld=gcc"
+
+            # Modify PATH to prioritize gcc14
+            export PATH="${pkgs.gcc14}/bin:$PATH"
+
             # Create aliases for manual testing
             alias gcc='${pkgs.gcc14}/bin/gcc'
             alias g++='${pkgs.gcc14}/bin/g++'
+            alias ld='${pkgs.gcc14}/bin/gcc'
 
             echo 'Welcome to the equilibrium dev shell'
-            '';
+          '';
         };
       });
 }
