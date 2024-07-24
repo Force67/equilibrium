@@ -81,11 +81,10 @@ jobs:
     # Build - again with nix develop, just to source env, should be instant.
     - name: Build
       run: |
-        nix develop
-        echo $(CXX)
-        gcc -v
-        cd out/gmake2
         CONFIG_LOWER=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]'
-        make config=$CONFIG_LOWER -j$(nproc)
+        nix develop
+        echo $CXX
+        gcc -v
+        make -C ./out/gmake2 config=$CONFIG_LOWER -j$(nproc)
     - name: Test
       run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/${{ env.TEST_BINARY_NAME }}
