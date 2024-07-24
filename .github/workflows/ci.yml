@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
     inputs:
       remote_debug:
         type: boolean
@@ -46,7 +46,7 @@ jobs:
         Get-ChildItem -Path .\tests\ -Filter *.xml | Where-Object { !$_.Name.StartsWith('convert') } | ForEach-Object $_ { $xsl.Transform($_.FullName,($_.Directory.FullName  + '\convert-' + $_.Name)); }
     - name: Setup tmate debug session
       if: ${{ failure() && github.event_name == 'workflow_dispatch' && inputs.remote_debug}}
-      uses: mxschmitt/action-tmate@v3          
+      uses: mxschmitt/action-tmate@v3
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       if:  ${{ !cancelled() }}
@@ -67,14 +67,17 @@ jobs:
         fetch-depth: '0'
     - name: Setup Dynamic Test Binary Name
       run: echo "TEST_BINARY_NAME=$(if [[ '${{ matrix.config }}' == 'Debug' ]]; then echo 'base_unittests_x86_64_d'; else echo 'base_unittests'; fi)" >> $GITHUB_ENV
-    - name: Setup C++ environment
-      uses: aminya/setup-cpp@v1
+    - name: Setup development environment
+      uses: cachix/install-nix-action@v27
       with:
-        compiler: gcc-13
+        github_access_token: ${{ secrets.GH_TOKEN }}
+    - run: nix build
+    - run: nix flake check
     - name: Premake
       run: ./build/premake_linux.sh ${{ matrix.config }}
     - name: Build
       run: |
+        nix develop
         cd out/gmake2
         CONFIG_LOWER=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]')
         make config=$CONFIG_LOWER
