@@ -15,6 +15,7 @@ defines({
     "OS_POSIX" })               -- we also define the POSIX alias here)
 buildoptions("-mwaitpkg -mrtm") -- Enable Intel(R) Transactional Synchronization Extensions (-mrtm) and WAITPKG instructions support (-mwaitpkg) on relevant processors
 defines("OS_MACOS")
+
 filter {}
 -- -std=c++2b
 
@@ -104,6 +105,9 @@ pic("On") -- generate position independent code
 
 filter("language:C++")
 cppdialect("C++20")
+
+filter { "language:C++", "system:linux" }
+buildoptions("-std=c++2b")
 
 ----  LEAVE FILTER BARRIER: NO FILTERS AFTER THIS POINT  ----
 filter {}

@@ -74,6 +74,11 @@ jobs:
     - run: nix flake check
     - name: Premake
       run: ./build/premake_linux.sh ${{ matrix.config }}
+    # Explicitly source the environment with nix develop to contain the output
+    # in its own step, so that it can be cached.
+    - name: Fetch build tools
+      run: nix develop
+    # Build - again with nix develop, just to source env, should be instant.
     - name: Build
       run: |
         nix develop
