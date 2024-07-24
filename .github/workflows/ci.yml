@@ -84,5 +84,6 @@ jobs:
     - name: Test
       run: |
         sudo apt update
-        sudo apt install libstdc++6
+        # ubuntu 22.04 comes with libstdc++
+        export LD_LIBRARY_PATH=$(dirname $(ldconfig -p | grep libstdc++.so.6 | head -n1 | awk '{print $4}')):$LD_LIBRARY_PATH && echo "LD_LIBRARY_PATH set to $LD_LIBRARY_PATH"
         ./out/gmake2/bin/${{ matrix.config }}/equilibrium/${{ env.TEST_BINARY_NAME }}
