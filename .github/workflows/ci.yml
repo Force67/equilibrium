@@ -84,6 +84,6 @@ jobs:
         nix develop
         cd out/gmake2
         CONFIG_LOWER=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]')
-        make config=$CONFIG_LOWER
+        make config=$CONFIG_LOWER -j$(nproc)
     - name: Test
       run: ./out/gmake2/bin/${{ matrix.config }}/equilibrium/${{ env.TEST_BINARY_NAME }}
