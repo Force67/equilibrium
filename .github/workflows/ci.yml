@@ -24,7 +24,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: 'recursive'
-        fetch-depth: '0'
+        fetch-depth: '1'
     - name: Premake
       shell: pwsh
       run: .\build\bin\win\premake5 --file=premake5.lua vs2022
@@ -64,7 +64,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: 'recursive'
-        fetch-depth: '0'
+        fetch-depth: '1'
     - name: Setup Dynamic Test Binary Name
       run: echo "TEST_BINARY_NAME=$(if [[ '${{ matrix.config }}' == 'Debug' ]]; then echo 'base_unittests_x86_64_d'; else echo 'base_unittests'; fi)" >> $GITHUB_ENV
     - name: Setup development environment
