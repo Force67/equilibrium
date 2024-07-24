@@ -24,6 +24,7 @@
               gnumake   # to build premake outputs
               gcc14     # gcc compiler
               libclang  # clang compiler
+              mold      # A much faster linker than the rest
 
               # Some optional python scripts require python with some packages
               (python3.withPackages (p: with p; [
@@ -32,24 +33,31 @@
               ]))
           ];
           shellHook = ''
-            # Configure env vars
-            export CC=${pkgs.gcc14}/bin/gcc
-            export CXX=${pkgs.gcc14}/bin/g++
-            export LD=${pkgs.gcc14}/bin/gcc
+             # Configure env vars
+             export CC="${pkgs.gcc14}/bin/gcc"
+             export CXX="${pkgs.gcc14}/bin/g++"
 
-            # Use gcc for linking
-            export LDFLAGS="-fuse-ld=gcc"
+             # Set up mold as the linker
+             export LD="${pkgs.mold}/bin/mold"
 
-            # Modify PATH to prioritize gcc14
-            export PATH="${pkgs.gcc14}/bin:$PATH"
+             # Create a directory for symlinks
+             mkdir -p $HOME/.local/bin
 
-            # Create aliases for manual testing
-            alias gcc='${pkgs.gcc14}/bin/gcc'
-            alias g++='${pkgs.gcc14}/bin/g++'
-            alias ld='${pkgs.gcc14}/bin/gcc'
+             # Create symlinks to mold
+             ln -sf ${pkgs.mold}/bin/mold $HOME/.local/bin/ld
+             ln -sf ${pkgs.mold}/bin/mold $HOME/.local/bin/ld.lld
 
-            echo 'Welcome to the equilibrium dev shell'
-          '';
+             # Modify PATH to prioritize our symlinks, gcc14, and mold
+             export PATH="$HOME/.local/bin:${pkgs.mold}/bin:${pkgs.gcc14}/bin:$PATH"
+
+             # Configure GCC to use mold
+             export LDFLAGS="-fuse-ld=mold"
+             export NIX_CFLAGS_LINK="-B${pkgs.mold}/lib"
+             export NIX_LDFLAGS="$NIX_LDFLAGS -fuse-ld=mold"
+
+             echo 'Welcome to the equilibrium dev shell'
+             echo 'Mold is set as the linker'
+           '';
         };
       });
 }
