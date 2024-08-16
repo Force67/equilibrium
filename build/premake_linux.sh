@@ -1,4 +1,17 @@
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+resolve_symlink() {
+  local script="$1"
+  local resolved_path="$script"
+
+  while [ -L "$resolved_path" ]; do
+    resolved_path=$(readlink -f "$resolved_path")
+  done
+
+  echo "$(dirname "$resolved_path")"
+}
+
+# Resolve the directory of the current script
+DIR=$(resolve_symlink "${BASH_SOURCE[0]}")
+
 PREMAKE_BIN="$DIR/bin/linux/premake5"
 PREMAKE_FILE="$DIR/../premake5.lua"
 
