@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        config: [Debug, Shipping]
+        config: [debug, shipping]
     steps:
     - name: Checkout
       uses: actions/checkout@v3
