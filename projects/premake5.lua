@@ -1,6 +1,6 @@
 
 
-local function build_symlinks_nix()
+local function build_symlinks_nix(v)
   if os.host() ~= "linux" then
     return
   end
