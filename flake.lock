@@ -18,6 +18,21 @@
         "type": "github"
       }
     },
+    "msvc-wine": {
+      "locked": {
+        "lastModified": 1711618918,
+        "narHash": "sha256-nQLD+vZZFvIG6rSHr2XxGSmdTxNLeyvIEMs9jFw/YX4=",
+        "owner": "roblabla",
+        "repo": "msvc-llvm-nix",
+        "rev": "c98ac7ea24ccb7d1c053d5683c8a47151bfb1b03",
+        "type": "github"
+      },
+      "original": {
+        "owner": "roblabla",
+        "repo": "msvc-llvm-nix",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1721562059,
@@ -37,6 +52,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "msvc-wine": "msvc-wine",
         "nixpkgs": "nixpkgs"
       }
     },
