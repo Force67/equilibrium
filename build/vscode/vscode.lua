@@ -115,7 +115,7 @@ function vscode.onWorkspace(wks)
             p.pop('],')
 
             p.w('"preLaunchTask": "make_%s",', prj.name)
-			p.w('"miDebuggerPath": "/usr/bin/gdb"')
+			p.w('"miDebuggerPath": "gdb"')
 
             if i ~= #wks.projects then
                 p.pop('},')
