@@ -78,3 +78,4 @@ rsbase/target/
 rsbase/Cargo.lock
 rsbase/**/*.rs.bk
 
+.vscode/tasks.json
