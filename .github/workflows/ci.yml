@@ -84,7 +84,10 @@ jobs:
     - name: Test
       run: |
         # ubuntu 22.04 comes with libstdc++
-        export LD_LIBRARY_PATH=$(dirname $(ldconfig -p | grep libstdc++.so.6 | head -n1 | awk '{print $4}')):$LD_LIBRARY_PATH && echo "LD_LIBRARY_PATH set to $LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH=$(dirname $(ldconfig -p | grep libstdc++.so.6 | head -n1 | awk '{print $4}')):$LD_LIBRARY_PATH
+        echo "LD_LIBRARY_PATH set to $LD_LIBRARY_PATH"
+
         config="${{ matrix.config }}"
-        capitalized="$(tr '[:lower:]' '[:upper:]' <<< ${config:0:1})${config:1}"
-        ./out/gmake2/bin/${{ capitalized }}/equilibrium/${{ env.TEST_BINARY_NAME }}
+        capitalized="$(echo "${config:0:1}" | tr '[:lower:]' '[:upper:]')${config:1}"
+
+        ./out/gmake2/bin/"$capitalized"/equilibrium/"${{ env.TEST_BINARY_NAME }}"
