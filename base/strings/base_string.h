@@ -161,7 +161,8 @@ class BasicBaseString {
     memcpy(&data_[size_in_chars_], str,
            added_character_count * sizeof(character_type));
     size_in_chars_ = new_size;
-    //data_[size_in_chars_] = '\0'; no point in zeroing as we realloc zerod anyway
+    // data_[size_in_chars_] = '\0'; no point in zeroing as we realloc zerod
+    // anyway
   }
   void append(const character_type* str) {
     if (!str ||
@@ -172,15 +173,23 @@ class BasicBaseString {
     append(str, base::CountStringLength(str));
   }
   void append(const mem_size n, const character_type c) {
-     mem_size new_size = size_in_chars_ + n;
-	if (new_size >= cap_in_chars_) {
-	  Reallocate(new_size);
-	}
-	memset(&data_[size_in_chars_], c, n * sizeof(character_type));
-	size_in_chars_ = new_size;
-	data_[size_in_chars_] = '\0';
+    mem_size new_size = size_in_chars_ + n;
+    if (new_size >= cap_in_chars_) {
+      Reallocate(new_size);
+    }
+    memset(&data_[size_in_chars_], c, n * sizeof(character_type));
+    size_in_chars_ = new_size;
+    data_[size_in_chars_] = '\0';
   }
-
+  void append(const character_type single_character) {
+    const mem_size new_size = size_in_chars_ + 1;
+    if (new_size >= cap_in_chars_) {
+      Reallocate(new_size);
+    }
+    data_[size_in_chars_] = single_character;
+    size_in_chars_ = new_size;
+    data_[size_in_chars_] = '\0';
+  }
 
   void push_back(character_type c) {
     const auto new_size = size_in_chars_ + 1;
@@ -241,7 +250,7 @@ class BasicBaseString {
     return *this;
   }
 
- // equality comparisions
+  // equality comparisions
   int compare(const character_type* str, mem_size len) const noexcept {
     return memcmp(data_, str, len);
   }
@@ -336,7 +345,8 @@ class BasicBaseString {
     requires(  //! std::same_as<TOther, BasicBaseString> &&
         HasStringTraits<TOther, value_type>)
   bool operator==(const TOther& other) const {
-    const bool result = memcmp(data_, other.c_str(), other.size() * sizeof(character_type)) == 0;
+    const bool result = memcmp(data_, other.c_str(),
+                               other.size() * sizeof(character_type)) == 0;
     return result;
   }
 
@@ -381,10 +391,10 @@ class BasicBaseString {
   }
 
   character_type* at_if(mem_size index) {
-	if (index < size_in_chars_) {
-	  return data_ + index;
-	}
-	return nullptr;
+    if (index < size_in_chars_) {
+      return data_ + index;
+    }
+    return nullptr;
   }
 
   // search functions ========================================
@@ -413,14 +423,15 @@ class BasicBaseString {
     return npos;
   }
   /*Position of the last character in the string to be considered in the search.
-Any value greater than, or equal to, the string length (including string::npos) means that the entire string is searched.
-Note: The first character is denoted by a value of 0 (not 1).*/
+Any value greater than, or equal to, the string length (including string::npos)
+means that the entire string is searched. Note: The first character is denoted
+by a value of 0 (not 1).*/
   mem_size find_last_of(const character_type* s,
                         mem_size pos,
                         mem_size n) const {
     if (pos >= size_in_chars_) {
-	  pos = size_in_chars_ - 1;
-	}
+      pos = size_in_chars_ - 1;
+    }
     for (mem_size i = pos; i != static_cast<mem_size>(-1); --i) {
       for (mem_size j = 0; j < n; ++j) {
         if (data_[i] == s[j]) {
@@ -497,11 +508,12 @@ Note: The first character is denoted by a value of 0 (not 1).*/
     // Adjust the size of the string to make room for the new characters
     mem_size new_size = size_in_chars_ + n;
     if (new_size >= cap_in_chars_) {
-        Reallocate(new_size);
+      Reallocate(new_size);
     }
 
     // Shift the characters after the insertion point to make room
-    memmove(data_ + pos + n, data_ + pos, (size_in_chars_ - pos) * sizeof(character_type));
+    memmove(data_ + pos + n, data_ + pos,
+            (size_in_chars_ - pos) * sizeof(character_type));
 
     // Insert the new characters
     memset(data_ + pos, character, n * sizeof(character_type));
@@ -509,7 +521,7 @@ Note: The first character is denoted by a value of 0 (not 1).*/
     // Update the size of the string
     size_in_chars_ = new_size;
     data_[size_in_chars_] = '\0';  // Ensure null termination
-}
+  }
 
  private:
   // Allocates memory for the BasicBaseString.
@@ -517,8 +529,7 @@ Note: The first character is denoted by a value of 0 (not 1).*/
     new_cap_in_chars_in_characters++;  // +1 for the nterm
     data_ = static_cast<character_type*>(TAllocator::Allocate(
         new_cap_in_chars_in_characters * sizeof(character_type)));
-    memset(data_, 0,
-           new_cap_in_chars_in_characters * sizeof(character_type));
+    memset(data_, 0, new_cap_in_chars_in_characters * sizeof(character_type));
   }
 
   // Deallocates the memory used by the BasicBaseString.
