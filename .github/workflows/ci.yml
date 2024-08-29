@@ -80,9 +80,11 @@ jobs:
       run: nix develop
     # Build - again with nix develop, just to source env, should be instant.
     - name: Build
-      run: nix develop .#linux --command bash -c 'gcc -v && make -C ./out/gmake2 config=$(echo "${{ matrix.config }}" | tr '[:upper:]' '[:lower:]') -j$(nproc)'
+      run: nix develop .#linux --command bash -c 'gcc -v && make -C ./out/gmake2 config=${{ matrix.config }} -j$(nproc)'
     - name: Test
       run: |
         # ubuntu 22.04 comes with libstdc++
         export LD_LIBRARY_PATH=$(dirname $(ldconfig -p | grep libstdc++.so.6 | head -n1 | awk '{print $4}')):$LD_LIBRARY_PATH && echo "LD_LIBRARY_PATH set to $LD_LIBRARY_PATH"
-        ./out/gmake2/bin/${{ matrix.config }}/equilibrium/${{ env.TEST_BINARY_NAME }}
+        config="${{ matrix.config }}"
+        capitalized="$(tr '[:lower:]' '[:upper:]' <<< ${config:0:1})${config:1}"
+        ./out/gmake2/bin/${{ capitalized }}/equilibrium/${{ env.TEST_BINARY_NAME }}
