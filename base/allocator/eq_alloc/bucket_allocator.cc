@@ -22,6 +22,16 @@ bool IsValidAllocation(mem_size size, mem_size alignment) {
          alignment <= eq_allocation_constants::kBucketThreshold &&
          (alignment & (alignment - 1)) == 0;
 }
+
+// align to pointer size which is next multiple of 8, so
+// 5 -> 8
+// 8 -> 8
+// 9 -> 16
+// and so on
+inline constexpr mem_size CalculateAlignedSize(mem_size size) {
+  constexpr auto alignment_size = sizeof(pointer_size) - 1;
+  return (size + alignment_size) & ~alignment_size;
+}
 }  // namespace
 
 BucketAllocator::BucketAllocator(PageTable& t) : page_table_(t) {
@@ -38,12 +48,8 @@ void* BucketAllocator::Allocate(mem_size requested_size, mem_size alignment) {
     return nullptr;
   }
 #endif
-  // align to pointer size which is next multiple of 8, so
-  // 5 -> 8
-  // 8 -> 8
-  // 9 -> 16
-  // and so on
-  const auto aligned_size = (requested_size + 7) & ~7;
+
+  const auto aligned_size = CalculateAlignedSize(requested_size);
   {
     i32 attempts = 0;
     byte* page_hint = nullptr;
@@ -87,9 +93,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
   // however.. if the size was increased, we can reuse the bucket metadata
   // entry, but we need to adjust it and allocate a new space for it in the data
   // area, so we cant just use Allocate() and Free()
-
-  // Align the new size to pointer size (next multiple of 8)
-  const auto aligned_new_size = (new_size + 7) & ~7;
+  const auto aligned_new_size = CalculateAlignedSize(new_size);
 
   // Try to find space in the current page
   byte* page_head = nullptr;
@@ -128,7 +132,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
 
       // Update the metadata for the new block
       BucketInfo* new_bucket =
-          new (page_hint + page_end - page_head - sizeof(BucketInfo))
+          new (page_hint + static_cast<pointer_size>(page_end - page_head - sizeof(BucketInfo)))
               BucketInfo(
                   /*offset*/ 0, new_size, aligned_new_size, BucketInfo::kUsed);
       new_bucket->SetUserSize(new_size);

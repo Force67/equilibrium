@@ -35,7 +35,6 @@ void SetLogHandler(LogHandler callback, void* user_pointer) noexcept {
   // reset by the user.
   if (!callback)
     callback = DefaultLogHandler;
-
   log_data = {user_pointer, callback};
 }
 

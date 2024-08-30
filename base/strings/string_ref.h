@@ -89,6 +89,16 @@ class BasicStringRef {
 #endif
   }
 
+  BasicStringRef<TChar>& operator=(BasicStringRef<TChar>&& other) noexcept {
+    if (this != &other) {
+      // Transfer ownership
+      // havent got time for this bs..
+      memcpy(this, &other, sizeof(BasicStringRef<TChar>));
+
+    }
+    return *this;
+  }
+
   bool compare(const TChar* rhs, mem_size character_count) const {
     return memcmp(data_, rhs, character_count * sizeof(TChar)) == 0;
   }
@@ -202,6 +212,8 @@ class BasicStringRef {
 #endif
 
   const TChar operator[](mem_size offset) const {
+    if (offset >= length_)
+        DEBUG_TRAP;
     BUGCHECK(offset < length_, "Index out of bounds");
     return data_[offset];
   }
@@ -224,6 +236,10 @@ class BasicStringRef {
       count = length_ - pos;
     }
     return BasicStringRef<TChar>(&data_[pos], count);
+  }
+
+  base::XBasicString<TChar> to_string() const {
+	return base::XBasicString<TChar>(data_, length_);
   }
 
  private:
