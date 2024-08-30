@@ -32,7 +32,7 @@ bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
   if (ascii_only[0] != '.' && ensure_dot) {
     path_buf_ += '.';
   }
-  path_buf_ += base::String(ascii_only);
+  path_buf_ += base::StringU8((const char8_t*)ascii_only);
 }
 
 void Path::Normalize(BufferType& buffer) {

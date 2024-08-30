@@ -56,6 +56,11 @@ function vscode.canBuild(prj)
     return prj.kind == 'ConsoleApp' or prj.kind == 'WindowedApp'
 end
 
+function vscode.fullProgramName(cfg)
+    -- no suffix needed - see https://github.com/premake/premake-core/blob/9c9b6fc4ca1937ce2ec2e40621a9bb273306906d/modules/vstudio/vs2010_vcxproj.lua#L3058
+    return cfg.buildtarget.prefix .. cfg.buildtarget.basename
+end
+
 function vscode.onWorkspace(wks)
     p.eol("\r\n")
     p.indent("  ")
@@ -83,7 +88,9 @@ function vscode.onWorkspace(wks)
                 error("u done fucked up")
             end
 
-			p.w('"program": "%s/%s",', vscode.mockAction(target_config.buildtarget.directory), prj.name)
+            local actualProgramName = vscode.fullProgramName(target_config)
+
+			p.w('"program": "%s/%s",', vscode.mockAction(target_config.buildtarget.directory), actualProgramName)
 			p.w('"args": [%s],', table.concat(target_config.debugargs, " "))
 			p.w('"stopAtEntry": false,')
 			p.w('"cwd": "%s",', vscode.mockAction(target_config.buildtarget.directory))
@@ -108,7 +115,7 @@ function vscode.onWorkspace(wks)
             p.pop('],')
 
             p.w('"preLaunchTask": "make_%s",', prj.name)
-			p.w('"miDebuggerPath": "/usr/bin/gdb"')
+			p.w('"miDebuggerPath": "gdb"')
 
             if i ~= #wks.projects then
                 p.pop('},')

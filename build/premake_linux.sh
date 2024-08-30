@@ -1,18 +1,55 @@
-#!/bin/bash
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+resolve_symlink() {
+  local script="$1"
+  local resolved_path="$script"
 
-if [[ $# -eq 0 ]] ; then
-    echo 'No target configuration provided (can be debug, release, etc.)'
-    exit 0
+  while [ -L "$resolved_path" ]; do
+    resolved_path=$(readlink -f "$resolved_path")
+  done
+
+  echo "$(dirname "$resolved_path")"
+}
+
+# Resolve the directory of the current script
+DIR=$(resolve_symlink "${BASH_SOURCE[0]}")
+
+PREMAKE_BIN="$DIR/bin/linux/premake5"
+PREMAKE_FILE="$DIR/../premake5.lua"
+
+if [[ $# -eq 0 ]]; then
+    echo 'No target configuration provided (e.g., debug, release, etc.).'
+    exit 1
 fi
 
-if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-  "$DIR/bin/linux/premake5" --file="$DIR/../premake5.lua" vscode --vscode-config=$1 --vscode-fakeaction=gmake2
+BUILD_MODE=$1
+
+if [[ "$BUILD_MODE" != "debug" && "$BUILD_MODE" != "release" && "$BUILD_MODE" != "shipping" ]]; then
+    echo "Invalid build mode: $BUILD_MODE. Allowed values are: debug, release."
+    exit 1
 fi
 
-if [[ "$TERM_PROGRAM" == "clion" ]]; then
-  echo 'hello from clion'
+if [[ ! -f "$PREMAKE_BIN" ]]; then
+    echo "Premake5 binary not found at $PREMAKE_BIN"
+    exit 1
 fi
 
-"$DIR/bin/linux/premake5" --file="$DIR/../premake5.lua" export-compile-commands --export-compile-config=$1
-"$DIR/bin/linux/premake5" --file="$DIR/../premake5.lua" gmake2
+run_premake() {
+    "$PREMAKE_BIN" --file="$PREMAKE_FILE" "$@"
+    if [[ $? -ne 0 ]]; then
+        echo "Premake5 command failed: $@"
+        exit 1
+    fi
+}
+
+case "$TERM_PROGRAM" in
+    vscode)
+        run_premake vscode --vscode-config=$BUILD_MODE --vscode-fakeaction=gmake2
+        ;;
+    clion)
+        echo 'Running in CLion'
+        ;;
+esac
+
+run_premake export-compile-commands --export-compile-config=$BUILD_MODE
+run_premake gmake2
+
+exit 0

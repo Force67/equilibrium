@@ -40,7 +40,7 @@ class BasicStringRef {
   template <class TOther>
     requires(  //! std::same_as<TOther, BaseString> &&
                 base::HasStringTraits<TOther, value_type>)
-  BasicStringRef(const TOther & str)
+  BasicStringRef(const TOther& str)
       : data_(str.c_str()),
         length_(static_cast<u32>(str.length())),
         tags_(StringRefFlags::kIsNullTerm) {
@@ -70,11 +70,12 @@ class BasicStringRef {
   // construct from raw string
   constexpr BasicStringRef(const TChar* data)
       : data_(data),
-        length_(static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
-    // if our length is greater than 0, it means we have hit the null barrier..., so
-    // we assume for now that we may advance by one to catch the actual null
-    // terminator, that would have been cut off otherwise, since the specification
-    // states that .length never shall include the null terminator
+        length_(
+            static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
+    // if our length is greater than 0, it means we have hit the null
+    // barrier..., so we assume for now that we may advance by one to catch the
+    // actual null terminator, that would have been cut off otherwise, since the
+    // specification states that .length never shall include the null terminator
     tags_ = base::FindNullTerminator(data, length_ > 0 ? length_ + 1 : 0)
                 ? StringRefFlags::kIsNullTerm
                 : StringRefFlags::kNone;
@@ -82,9 +83,9 @@ class BasicStringRef {
 
   constexpr ~BasicStringRef() {
 #if 0
-    if (tags_ & StringRefFlags::kInvalidateDeadRef) {
-      data_ = nullptr;
-      length_ = 0;
+      if (tags_ & StringRefFlags::kInvalidateDeadRef) {
+        data_ = nullptr;
+        length_ = 0;
     }
 #endif
   }
@@ -94,7 +95,6 @@ class BasicStringRef {
       // Transfer ownership
       // havent got time for this bs..
       memcpy(this, &other, sizeof(BasicStringRef<TChar>));
-
     }
     return *this;
   }
@@ -146,11 +146,11 @@ class BasicStringRef {
 
   // Use this in the rare case where you might have an empty string_ref;
   static constexpr inline BasicStringRef<TChar> null_ref() {
-    // thanks to constinit we can ensure no ugly c++ guard is generated around this,
-    // so while not pretty, this is OK
+    // thanks to constinit we can ensure no ugly c++ guard is generated around
+    // this, so while not pretty, this is OK
     static constinit TChar null_array[] = {0};
-    static constinit BasicStringRef<TChar> null_ref{null_array, 0,
-                                             false /*disallow .c_str()*/};
+    static constinit BasicStringRef<TChar> null_ref{
+        null_array, 0, false /*disallow .c_str()*/};
     return null_ref;
   }
 
@@ -158,13 +158,14 @@ class BasicStringRef {
     return tags_ & StringRefFlags::kIsNullTerm;
   }
 
-  // NOTE(Vince): fixes one of my biggest pet peeves with the STL, which is the fact
-  // that we cannot know if a referenced string is null terminated using
+  // NOTE(Vince): fixes one of my biggest pet peeves with the STL, which is the
+  // fact that we cannot know if a referenced string is null terminated using
   // std::string_view
   // Prefer using this over .data()
   inline const TChar* c_str() const {
-    BUGCHECK(tags_ & StringRefFlags::kIsNullTerm,
-             "String piece is not null terminated. c_str() is therefore illegal");
+    BUGCHECK(
+        tags_ & StringRefFlags::kIsNullTerm,
+        "String piece is not null terminated. c_str() is therefore illegal");
 
     // TODO: review the impact of this..
     // tags_ |= StringRefFlags::kInvalidateDeadRef;
@@ -213,12 +214,13 @@ class BasicStringRef {
 
   const TChar operator[](mem_size offset) const {
     if (offset >= length_)
-        DEBUG_TRAP;
+      DEBUG_TRAP;
     BUGCHECK(offset < length_, "Index out of bounds");
     return data_[offset];
   }
 
-  base::XBasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
+  base::XBasicString<TChar> substr(mem_size pos = 0,
+                                   mem_size count = npos) const {
     BUGCHECK(pos < length_, "Position is out of bounds");
     if (count > length_ - pos) {
       count = length_ - pos;
@@ -226,7 +228,8 @@ class BasicStringRef {
     return base::XBasicString<TChar>(&data_[pos], count);
   }
 
-  BasicStringRef<TChar> subslice(mem_size pos = 0, mem_size count = npos) const {
+  BasicStringRef<TChar> subslice(mem_size pos = 0,
+                                 mem_size count = npos) const {
     // Clamp pos to the length of the string.
     if (pos > length_) {
       pos = length_;
@@ -239,7 +242,7 @@ class BasicStringRef {
   }
 
   base::XBasicString<TChar> to_string() const {
-	return base::XBasicString<TChar>(data_, length_);
+    return base::XBasicString<TChar>(data_, length_);
   }
 
  private:
@@ -248,8 +251,8 @@ class BasicStringRef {
   StringRefFlags tags_;
 };
 
-// most common types, the U denotes utf-ness in order to adhere somewhat to the stl
-// naming conventions
+// most common types, the U denotes utf-ness in order to adhere somewhat to the
+// stl naming conventions
 using StringRef = BasicStringRef<char>;
 using StringRefW = BasicStringRef<wchar_t>;
 using StringRefU8 = BasicStringRef<char8_t>;
@@ -257,9 +260,10 @@ using StringRefU16 = BasicStringRef<char16_t>;
 using StringRefU32 = BasicStringRef<char32_t>;
 
 // construction helpers
-// The declaration of a literal operator shall have a parameter-declaration-clause
-// equivalent to one of the following: const char* const char*, std::size_t const
-// wchar_t*, std::size_t const char16_t*, std::size_t const char32_t*, std::size_t
+// The declaration of a literal operator shall have a
+// parameter-declaration-clause equivalent to one of the following: const char*
+// const char*, std::size_t const wchar_t*, std::size_t const char16_t*,
+// std::size_t const char32_t*, std::size_t
 inline base::StringRef operator""_s(const char* s) {
   return base::StringRef(s);
 }
@@ -281,14 +285,16 @@ inline base::StringRefU32 operator""_s(const char32_t* s, size_t length) {
 
 template <typename T>
 base::XBasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
-                                    bool no_nterm = false) {
-  base::XBasicString<T> strong(slice.data(), slice.length() + (!no_nterm ? 1 : 0));
+                                     bool no_nterm = false) {
+  base::XBasicString<T> strong(slice.data(),
+                               slice.length() + (!no_nterm ? 1 : 0));
   if (!no_nterm)
     strong[slice.length()] = 0;
   return strong;
 }
 }  // namespace base
 
+#if 0
 namespace std {
 template <typename TChar>
 struct hash<base::BasicStringRef<TChar>> {
@@ -299,3 +305,4 @@ struct hash<base::BasicStringRef<TChar>> {
   }
 };
 }  // namespace std
+#endif

@@ -3,8 +3,12 @@
 -- Implement dependency extension model for premake.
 local p = premake
 local api = p.api
--- sdktargetdirs must be set for anythging to happen at all.
+
+
+-- sdktargetdirs must be set for anything to happen at all.
 -- it points to a sub folder of the out dir.
+-- those are intended for shipping a set of source code files, alongside with build outputs, to a target directory or where you want them to be.
+
 -- e.g.supply "sdk" to get C:\Users\user\Projects\equilibrium\out\vs2022\bin\Debug\equilibrium\<sdk> on windows
 -- we don't want to resolve the one layer deep path as a directory here, so we keep it dumb by using a string kind...
 api.register({
