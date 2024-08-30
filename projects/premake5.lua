@@ -15,7 +15,7 @@ local function build_symlinks_nix(v)
   os.execute("ln -s " .. symlink_source .. " " .. symlink_target)
 end
 
-local function build_symlinks_win()
+local function build_symlinks_win(v)
   if os.host() ~= "windows" then
     return
   end
