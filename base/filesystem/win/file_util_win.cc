@@ -158,7 +158,7 @@ bool CreateDirectory(const Path& full_path) {
     if ((fileattr & FILE_ATTRIBUTE_DIRECTORY) != 0) {
       return true;
     }
-    LOG_WARNING("CreateDirectory(), conflicts with existing file.");
+    BASE_LOG_WARNING("CreateDirectory(), conflicts with existing file.");
     ::SetLastError(ERROR_FILE_EXISTS);
     return false;
   }
@@ -176,7 +176,7 @@ bool CreateDirectory(const Path& full_path) {
   }
 
   ::SetLastError(error_code);
-  LOG_WARNING("Failed to create directory");
+  BASE_LOG_WARNING("Failed to create directory");
   return false;
 }
 

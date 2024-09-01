@@ -41,7 +41,7 @@ bool MemoryMappedFile::ReMap(u64 offset, mem_size mapped_bytes) {
                       offset & 0xFFFFFFFF, mapped_bytes);
   if (!memory_view_address_) {
     memory_view_address_ = nullptr;
-    LOG_ERROR("MapViewOfFile() failed");
+    BASE_LOG_ERROR("MapViewOfFile() failed");
     return false;
   }
 

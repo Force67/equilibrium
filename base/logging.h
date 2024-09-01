@@ -9,10 +9,9 @@
 #include <base/export.h>
 #include <base/compiler.h>
 
-// TODO: support concept of spaces
 namespace base {
 
-enum class LogLevel : uint32_t {
+enum class LogLevel {
   kTrace,
   kDebug,
   kInfo,
@@ -62,35 +61,41 @@ void PrintfLogMessage(const char* channel_name,
 }
 }  // namespace base
 
+// old log api..
 #if defined(CONFIG_DEBUG)
-#define LOG_DEBUG(...) \
+#define BASE_LOG_DEBUG(...) \
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kDebug, __VA_ARGS__)
-#define LOG_TRACE(...) \
+#define BASE_LOG_TRACE(...) \
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kTrace, __VA_ARGS__)
-#define LOG_CHANNEL_DEBUG(c, ...) \
+// >>> new log api
+#define BASE_LOGD(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kDebug, __VA_ARGS__)
-#define LOG_CHANNEL_TRACE(c, ...) \
+#define BASE_LOGT(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kTrace, __VA_ARGS__)
+// <<< new log api
 #else
 #define LOG_DEBUG(...)
 #define LOG_TRACE(...)
-#define LOG_CHANNEL_DEBUG(...)
-#define LOG_CHANNEL_TRACE
+#define BASE_LOGD(...)
+#define BASE_LOGT(...)
 #endif
-#define LOG_INFO(...) \
+
+#define BASE_LOG_INFO(...) \
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kInfo, __VA_ARGS__)
-#define LOG_WARNING(...) \
+#define BASE_LOG_WARNING(...) \
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kWarning, __VA_ARGS__)
-#define LOG_ERROR(...) \
+#define BASE_LOG_ERROR(...) \
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kError, __VA_ARGS__)
-#define LOG_FATAL(...) \
+#define BASE_LOG_FATAL(...) \
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kFatal, __VA_ARGS__)
-#define LOG_CHANNEL_INFO(c, ...) \
+
+// >>> new log api
+#define BASE_LOGI(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kInfo, __VA_ARGS__)
-#define LOG_CHANNEL_WARNING(c, ...) \
+#define BASE_LOGW(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kWarning, __VA_ARGS__)
-#define LOG_CHANNEL_ERROR(c, ...) \
+#define BASE_LOGE(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kError, __VA_ARGS__)
-#define LOG_CHANNEL_FATAL(c, ...) \
+#define BASE_LOGF(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kFatal, __VA_ARGS__)
-  
+// <<< new log api
