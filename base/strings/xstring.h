@@ -46,4 +46,20 @@ using StringW = XBasicString<wchar_t>;
 using StringU8 = XBasicString<char8_t>;
 using StringU16 = XBasicString<char16_t>;
 using StringU32 = XBasicString<char32_t>;
+
+#ifdef HAS_BASE_STRING_TRAITS
+// This can lead to a saving of 8 bytes per string
+using SmallString = base::BasicBaseString<char, u32>;
+using SmallStringW = base::BasicBaseString<wchar_t, u32>;
+using SmallStringU8 = base::BasicBaseString<char8_t, u32>;
+using SmallStringU16 = base::BasicBaseString<char16_t, u32>;
+using SmallStringU32 = base::BasicBaseString<char32_t, u32>;
+
+// this is pretty useless on 64 bit systems due to alignment
+using SmallestString = base::BasicBaseString<char, u16>;
+using SmallestStringW = base::BasicBaseString<wchar_t, u16>;
+using SmallestStringU8 = base::BasicBaseString<char8_t, u16>;
+using SmallestStringU16 = base::BasicBaseString<char16_t, u16>;
+using SmallestStringU32 = base::BasicBaseString<char32_t, u16>;
+#endif
 }  // namespace base
