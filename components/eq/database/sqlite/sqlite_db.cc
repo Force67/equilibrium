@@ -18,7 +18,7 @@ static bool IsASCIIWhiteSpace(uint8_t c) {
 
 bool SqliteDb::SetGlobalConfig() {
   static auto errorHandler = [](void*, int line, const char* msg) {
-    LOG_ERROR("SqliteError <line {}> {}", line, msg);
+    BASE_LOG_ERROR("SqliteError <line {}> {}", line, msg);
   };
 
   return sqlite3_config(SQLITE_CONFIG_LOG, errorHandler, nullptr) == SQLITE_OK;
@@ -43,7 +43,7 @@ bool SqliteDb::Open(base::StringRef path) {
   if (rc != SQLITE_OK) {
     // cannot expand until handle is assigned.
     rc = sqlite3_extended_errcode(handle_);
-    LOG_ERROR("Failed to open db: {}", rc);
+    BASE_LOG_ERROR("Failed to open db: {}", rc);
 
     // TODO: detail
   }
@@ -58,7 +58,7 @@ void SqliteDb::Close() {
 
 bool SqliteDb::Execute(const char* sql) {
   if (!handle_) {
-    LOG_ERROR("Execute: Invalid database handle");
+    BASE_LOG_ERROR("Execute: Invalid database handle");
     return false;
   }
 

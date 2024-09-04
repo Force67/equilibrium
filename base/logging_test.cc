@@ -27,7 +27,7 @@ void LoggingTestSuite::SetUp() {
 void LoggingTestSuite::TearDown() {}
 
 TEST_F(LoggingTestSuite, WriteFmtLogMsg) {
-  LOG_INFO("hello {}", "world");
+  BASE_LOG_INFO("hello {}", "world");
   EXPECT_STREQ(last_msg_.c_str(), "hello world");
 }
 }  // namespace

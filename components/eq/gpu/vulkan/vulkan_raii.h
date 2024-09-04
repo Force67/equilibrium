@@ -23,7 +23,7 @@ struct VkInstance_Cxx {
     VkResult result =
         vkCreateInstance(&instance_create_info, nullptr, &instance);
     if (result != VK_SUCCESS) {
-      LOG_ERROR("vkCreateInstance() failed: {}", static_cast<int>(result));
+      BASE_LOG_ERROR("vkCreateInstance() failed: {}", static_cast<int>(result));
     }
   }
 

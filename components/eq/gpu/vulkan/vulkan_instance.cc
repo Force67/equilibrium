@@ -120,7 +120,7 @@ void VulkanInstance::BindFunctionPointers() {
 
 bool VulkanInstance::Create() {
   if (!LoadVulkanLibrary(vk_dll_)) {
-    LOG_ERROR("Failed to load vulkan library");
+    BASE_LOG_ERROR("Failed to load vulkan library");
     return false;
   }
 
