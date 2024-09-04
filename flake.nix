@@ -48,6 +48,7 @@
           export LDFLAGS="-fuse-ld=mold"
           export NIX_CFLAGS_LINK="-B${pkgs.mold}/lib"
           export NIX_LDFLAGS="$NIX_LDFLAGS -fuse-ld=mold"
+          export EQUILIBRIUM_NIX=1
           echo 'Linux build environment loaded'
           echo 'Mold is set as the linker'
         '';

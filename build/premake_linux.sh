@@ -9,6 +9,10 @@ resolve_symlink() {
   echo "$(dirname "$resolved_path")"
 }
 
+if [[ -z "$EQUILIBRIUM_NIX" ]]; then
+    echo 'warning: You have not invoked the build process from within a nix environment. This can cause compile issues.'
+fi
+
 # Resolve the directory of the current script
 DIR=$(resolve_symlink "${BASH_SOURCE[0]}")
 
