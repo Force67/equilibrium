@@ -121,7 +121,7 @@ static bool CreateTemporaryDirInDirImpl(const Path& base_dir,
   char* buffer = const_cast<char*>(sub_dir_string.c_str());
   char* dtemp = mkdtemp(buffer);
   if (!dtemp) {
-    LOG_DEBUG("mkdtemp failed");
+    BASE_LOG_DEBUG("mkdtemp failed");
     return false;
   }
   *new_dir = Path(dtemp);

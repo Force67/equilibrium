@@ -40,7 +40,7 @@ bool VulkanSwapChain::Create(VulkanSurface& surface,
                                      /*pAllocator=*/nullptr, &new_swap_chain);
 
   if (!new_swap_chain) {
-    LOG_DEBUG("Failed to create a swapchain");
+    BASE_LOG_DEBUG("Failed to create a swapchain");
     return false;
   }
 

@@ -58,7 +58,7 @@ DebugMessenger::DebugMessenger(VulkanInstance& instance)
                                                &debug_messenger_ext_);
 
   if (result != VK_SUCCESS) {
-    LOG_ERROR("Failed to create debug utils messenger: {}", static_cast<int>(result));
+    BASE_LOG_ERROR("Failed to create debug utils messenger: {}", static_cast<int>(result));
     return;
   }
 }

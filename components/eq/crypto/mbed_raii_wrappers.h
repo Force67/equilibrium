@@ -70,13 +70,13 @@ inline const char* TranslateMbedError(int e) {
 
 #define MBED_VERIFY_RESULT(result, name, return_what)    \
   if (result != 0) {                                     \
-    LOG_ERROR(#name ": {}", TranslateMbedError(result)); \
+    BASE_LOG_ERROR(#name ": {}", TranslateMbedError(result)); \
     return return_what;                                  \
   }
 
 #define MBED_VERIFY_RESULT2(result, name, return_what) \
   if (!result) {                                       \
-    LOG_ERROR(#name ": {}", #result);                  \
+    BASE_LOG_ERROR(#name ": {}", #result);                  \
     return return_what;                                \
   }
 

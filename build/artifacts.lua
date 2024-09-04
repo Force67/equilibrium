@@ -25,7 +25,6 @@ location(outdir)
 
 filter("language:C or C++")
   objdir(blu.objdir)
-  libdirs({blu.libdir})
   architecture("x86_64")
 filter{}
 
@@ -36,12 +35,19 @@ end
 
 blu.extdir = path.getabsolute(os.getcwd() .."/../external")
 
+-- This setting prevents all symbols from being exported by default
+-- This has to be applied to pretty much every project, since otherwise, the dependencies of a .so
+-- will still leak the symbols.
+visibility("Hidden")
+
 -- dont bloat output folder with libs
 filter("kind:not StaticLib")
   targetdir(blu.bindir)
+  libdirs({blu.bindir})
+
 filter("kind:StaticLib")
   targetdir(blu.libdir)
-
+  libdirs({blu.libdir})
 -- LEAVE FILTER BARRIER
 filter{}
 
