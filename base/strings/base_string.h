@@ -30,6 +30,165 @@ concept HasStringTraits = requires(T& t) {
   // { typename T::value_type{} } -> std::same_as<TEncoding>;
 };
 
+template <typename TChar, typename TSizeType>
+struct BaseStringStorage {
+  enum class Category : byte { Small, Medium, Large };
+
+  using character_type = TChar;
+  using size_type = TSizeType;
+
+  // Medium to large string - string must be allocated on the heap
+  struct MediumLargeStorage {
+    character_type* data_ = nullptr;
+    size_type size_in_chars_ = 0;
+    size_type cap_in_chars_ = 0;
+
+    // the last 3 bits are blocked off due to to us storing the category there.
+    static constexpr size_type kCategoryBits = 3;
+    static constexpr size_type kCapacityMask = ~(size_type(0b111));
+
+    void SetCapacity(size_type n) {
+      cap_in_chars_ = (n & kCapacityMask) | (cap_in_chars_ & ~kCapacityMask);
+    }
+
+    size_type capacity() const { return cap_in_chars_ & kCapacityMask; }
+    size_type size() const { return size_in_chars_; }
+  };
+
+  static constexpr size_type kSmallBufferSize = sizeof(MediumLargeStorage) - 1;
+  
+  union {
+    MediumLargeStorage ml_;
+    struct {
+      character_type buffer_[kSmallBufferSize];
+      byte size_and_category_;
+    } small_;
+  };
+
+  // Writeable buffer reference
+  character_type* data() {
+    switch (category()) {
+      case Category::Small:
+        return small_.buffer_;
+      case Category::Medium:
+      case Category::Large:
+        return ml_.data_;
+    }
+    __builtin_unreachable();
+  }
+
+  const character_type* data() const {
+    switch (category()) {
+      case Category::Small:
+        return small_.buffer_;
+      case Category::Medium:
+      case Category::Large:
+        return ml_.data_;
+    }
+    __builtin_unreachable();
+  }
+
+  size_type size() const {
+    switch (category()) {
+      case Category::Small:
+        return small_.size_and_category_ >> 3;
+      case Category::Medium:
+      case Category::Large:
+        return ml_.size_in_chars_;
+    }
+    __builtin_unreachable();
+  }
+
+  size_type capacity() const {
+    switch (category()) {
+      case Category::Small:
+        return kSmallBufferSize;
+      case Category::Medium:
+      case Category::Large:
+        return ml_.capacity();
+    }
+    __builtin_unreachable();
+  }
+
+  // the last 3 bits of the storage_ are used to store the category
+  static constexpr byte categoryMask = 0b111;
+  static constexpr byte categoryExtractMask = ~categoryMask;
+
+  Category category() const {
+    return static_cast<Category>(small_.size_and_category_ & categoryMask);
+  }
+
+  void AssignCategory(Category cat) {
+    small_.size_and_category_ &= categoryExtractMask;
+    small_.size_and_category_ |= static_cast<byte>(cat);
+  }
+
+  void SetSize(size_type size) {
+    switch (category()) {
+      case Category::Small:
+        small_.size_and_category_ = (size << 3) | (small_.size_and_category_ & categoryMask);
+        break;
+      case Category::Medium:
+      case Category::Large:
+        ml_.size_in_chars_ = size;
+        break;
+    }
+  }
+
+  // Constructor
+  BaseStringStorage() : small_{} {
+    AssignCategory(Category::Small);
+    SetSize(0);
+  }
+
+  // Destructor
+  ~BaseStringStorage() {
+    if (category() != Category::Small) {
+      delete[] ml_.data_;
+    }
+  }
+
+  // Copy constructor
+  BaseStringStorage(const BaseStringStorage& other) {
+    if (other.category() == Category::Small) {
+      small_ = other.small_;
+    } else {
+      new (&ml_) MediumLargeStorage(other.ml_);
+      ml_.data_ = new character_type[ml_.capacity()];
+      std::copy_n(other.ml_.data_, ml_.size_in_chars_, ml_.data_);
+    }
+  }
+
+  // Move constructor
+  BaseStringStorage(BaseStringStorage&& other) noexcept {
+    if (other.category() == Category::Small) {
+      small_ = other.small_;
+    } else {
+      new (&ml_) MediumLargeStorage(std::move(other.ml_));
+      other.AssignCategory(Category::Small);
+      other.SetSize(0);
+    }
+  }
+
+  // Copy assignment operator
+  BaseStringStorage& operator=(const BaseStringStorage& other) {
+    if (this != &other) {
+      this->~BaseStringStorage();
+      new (this) BaseStringStorage(other);
+    }
+    return *this;
+  }
+
+  // Move assignment operator
+  BaseStringStorage& operator=(BaseStringStorage&& other) noexcept {
+    if (this != &other) {
+      this->~BaseStringStorage();
+      new (this) BaseStringStorage(std::move(other));
+    }
+    return *this;
+  }
+};
+
 template <typename TChar,
           typename TSizeType = mem_size,
           class TAllocator = base::DefaultAllocator>
@@ -255,12 +414,12 @@ class BasicBaseString {
   }
 
   // equality comparisions
-  int compare(const character_type* str, size_type len) const noexcept {
+  auto compare(const character_type* str, size_type len) const noexcept {
     return memcmp(data_, str, len);
   }
-  int compare(size_type pos,
-              size_type len,
-              const BasicBaseString& str) const noexcept {
+  auto compare(size_type pos,
+               size_type len,
+               const BasicBaseString& str) const noexcept {
     if (pos == 0 && len == 0)
       return 0;
 
@@ -275,7 +434,7 @@ class BasicBaseString {
         len, size_in_chars_ - pos);  // Length of the substring to compare
 
     // Compare the substring with the provided string
-    int result = memcmp(data_ + pos, str.data(), std::min(rlen, str.size()));
+    auto result = memcmp(data_ + pos, str.data(), std::min(rlen, str.size()));
 
     // If the substrings are equal, compare the remaining characters
     if (result == 0) {
@@ -289,15 +448,15 @@ class BasicBaseString {
     }
     return result;
   }
-  int compare(size_type pos,
-              size_type len,
-              const character_type* str) const noexcept {
+  auto compare(size_type pos,
+               size_type len,
+               const character_type* str) const noexcept {
     // Check if the requested substring is within the bounds of the current
     // string
     if (pos > size_in_chars_) {
       // If the substring is beyond the end of the string, compare with a
       // null-terminated string
-      int result = memcmp("", str, 1);
+      auto result = memcmp("", str, 1);
       return result == 0 ? 0 : -1;
     }
 
@@ -305,7 +464,7 @@ class BasicBaseString {
         len, size_in_chars_ - pos);  // Length of the substring to compare
 
     // Compare the substring with the provided string
-    int result = memcmp(&data_[pos], str, rlen * sizeof(character_type));
+    auto result = memcmp(&data_[pos], str, rlen * sizeof(character_type));
 
     // If the substrings are equal, compare the remaining characters
     if (result == 0) {
@@ -323,12 +482,12 @@ class BasicBaseString {
     }
     return result;
   }
-  int compare(const character_type* str) const noexcept {
+  auto compare(const character_type* str) const noexcept {
     return memcmp(data_, str,
                   base::CountStringLength(str) * sizeof(character_type));
   }
   template <class TOther>
-  int compare(const TOther& other)
+  auto compare(const TOther& other)
     requires(base::HasStringTraits<TOther, value_type>)
   {
     return memcmp(data_, other.c_str(),
@@ -573,9 +732,7 @@ by a value of 0 (not 1).*/
     cap_in_chars_ = new_capacity;
   }
 
-  character_type* data_ = nullptr;
-  size_type size_in_chars_ = 0;
-  size_type cap_in_chars_ = 0;
+  BaseStringStorage<TChar, size_type> storage_;
 };
 
 template <typename CharT, typename Alloc>
