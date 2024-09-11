@@ -20,16 +20,22 @@ enum class VectorReservePolicy {
   kForPushback,  // < This optimization allows you to utilize push_back without
                  // immediately increasing the capacity, reserving additional
                  // space only when necessary.
-  kForData,  // < This reserve operation functions similarly to what you're
-             // accustomed to with std::vector. It preallocates capacity,
-             // effectively simulating the insertion of a number of "empty"
-             // elements. If you intend to copy data, especially using .data(),
-             // opt for this approach.
+  kForData,      // < This reserve operation functions similarly to what you're
+                 // accustomed to with std::vector. It preallocates capacity,
+                 // effectively simulating the insertion of a number of "empty"
+  // elements. If you intend to copy data, especially using .data(),
+  // opt for this approach.
 };
 
 template <typename T, class TAllocator = base::DefaultAllocator>
 class Vector {
  public:
+  using value_type = T;
+  using raw_value_type = base::remove_pointer<T>::type;
+  using allocator_type = TAllocator;
+  using value_reference = T&;
+  using const_value_reference = const T&;
+
   // indicates how much to overallocate
   constexpr static mem_size kDefaultMult = 2;
 
@@ -45,7 +51,7 @@ class Vector {
   }
 
   // from braces {}
-  Vector(std::initializer_list<T> list) {
+  Vector(std::initializer_list<value_type> list) {
     const auto size = list.size();
     data_ = Vector::Allocate(size);
     capacity_ = &data_[size];
@@ -87,7 +93,7 @@ class Vector {
     return *this;
   }
 
-  void resize(mem_size new_capacity, const T& value) {
+  void resize(mem_size new_capacity, const value_type& value) {
     if (new_capacity > size()) [[likely]]
       InsertValueAtEnd(new_capacity - size(), value);
     else {
@@ -144,26 +150,40 @@ class Vector {
     return size();
   }
 
-  void push_back(const T& value) {
+  void push_back(const value_type& value) {
     // cram it into pre over reserved space
     if (end_ < capacity_) [[likely]]
-      ::new (static_cast<void*>(end_++)) T(value);
+      ::new (static_cast<void*>(end_++)) value_type(value);
     else
       InsertAtEnd(value);
   }
 
-  template <typename... TArgs>
-  T& emplace_back(TArgs&&... args) {
+  void push_back(value_type&& value) {
     if (end_ < capacity_) [[likely]]
-      ::new (static_cast<void*>(end_++)) T(base::forward<TArgs>(args)...);
+      ::new (static_cast<void*>(end_++)) value_type(base::move(value));
+    else
+      InsertAtEnd(base::move(value));
+  }
+
+  template <typename... TArgs>
+  value_type& emplace_back(TArgs&&... args) {
+    if (end_ < capacity_) [[likely]]
+      ::new (static_cast<void*>(end_++))
+          value_type(base::forward<TArgs>(args)...);
     else
       InsertAtEnd(base::forward<TArgs>(args)...);
     return back();
   }
 
-  [[nodiscard]] T* at(mem_size pos) const {
-    T* dest = &data_[pos];
-    return dest > end_ ? nullptr : dest;
+  [[nodiscard]] constexpr raw_value_type* at(mem_size pos) const {
+    if (pos >= size()) {
+      return nullptr;
+    }
+    if constexpr (base::is_pointer<value_type>::value) {
+      return data_[pos];
+    } else {
+      return &data_[pos];
+    }
   }
 
   [[nodiscard]] T* find(const T& element_match) const {
@@ -192,8 +212,8 @@ class Vector {
   T* insert(T* pos, const T& value) {
     auto index = pos - begin();
     if (end_ == capacity_) {  // Need to grow the vector
-      size_t newCapacity = size() == 0 ? 1 : size() * kDefaultMult;
-      reserve(newCapacity);
+      mem_size new_cap = size() == 0 ? 1 : size() * kDefaultMult;
+      reserve(new_cap);
     }
     if (pos != end_) {
       // Shift elements to the right
@@ -322,7 +342,8 @@ class Vector {
 
   [[nodiscard]] T* begin() const { return data_; }
   [[nodiscard]] T* end() const { return end_; }
-  [[nodiscard]] T* data() const { return data_; }
+  [[nodiscard]] T* data() { return data_; }
+  [[nodiscard]] const T* data() const { return data_; }
 
   [[nodiscard]] bool empty() const { return data_ == nullptr || end_ == data_; }
   [[nodiscard]] mem_size size() const { return end_ - data_; }
@@ -330,7 +351,7 @@ class Vector {
 
   [[nodiscard]] CONSTEXPR_ND T& operator[](mem_size pos) const {
     DCHECK(pos <= size(), "Vector::[]: Access out of bounds");
-    return *(Vector::at(pos));
+    return data_[pos];
   }
 
   bool Contains(const T& element_match) const {

@@ -16,6 +16,31 @@ struct remove_reference<T&&> {
   using type = T;
 };
 
+template <typename T>
+struct remove_pointer {
+  using type = T;
+};
+
+template <typename T>
+struct remove_pointer<T*> {
+  using type = T;
+};
+
+template <typename T>
+struct remove_pointer<T* const> {
+  using type = T;
+};
+
+template <typename T>
+struct is_pointer {
+  static constexpr bool value = false;
+};
+
+template <typename T>
+struct is_pointer<T*> {
+  static constexpr bool value = true;
+};
+
 // typename remove_reference<T>::type&
 template <typename T>
 constexpr T&& forward(T& x) noexcept {
