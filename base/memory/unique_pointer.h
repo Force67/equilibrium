@@ -120,6 +120,11 @@ class UniquePointer {
     return pointer_;
   }
 
+  TType& operator*() const noexcept {
+    DCHECK(pointer_);
+    return *pointer_;
+  }
+
   // array access
   TType& operator[](mem_size index)
     requires(base::IsArray<T>)

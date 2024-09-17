@@ -35,6 +35,7 @@
           gcc14
           libclang
           mold
+          lldb_18
         ];
 
         linuxShellHook = ''
