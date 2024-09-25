@@ -2,7 +2,7 @@
 -- For licensing information see LICENSE at the root of this distribution.
 -- maps the system to extensions
 local system_extension_map = {
-    windows = { "win" },
+    windows = { "win", "win32" },
     linux = { "linux", "posix" },
     macosx = { "mac", "posix" }
 }

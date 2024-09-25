@@ -20,12 +20,7 @@ void Screen::RegisterSpace(Space* space) {
 }
 
 void Screen::UnRegisterSpace(Space* space) {
-  auto it = std::find_if(spaces_.begin(), spaces_.end(),
-                         [&](Space* s) { return s == space; });
 
-  if (it != spaces_.end()) {
-    spaces_.erase(it);
-  }
 }
 
 Screen* gamma_screen() {

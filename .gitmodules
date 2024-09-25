@@ -43,3 +43,6 @@
 [submodule "external/nanofmt"]
 	path = external/nanofmt
 	url = https://github.com/seanmiddleditch/nanofmt
+[submodule "external/wayland"]
+	path = external/wayland
+	url = https://github.com/hexops/wayland-headers

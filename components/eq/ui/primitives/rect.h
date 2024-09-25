@@ -42,13 +42,11 @@ struct Rect {
     return x >= left && x <= right && y >= top && y <= bottom;
   }
 
-  // workaround for now...
-  template <typename T>
+  // workaround for now..
   inline T custom_max(const T& a, const T& b) {
     return (a > b) ? a : b;
   }
 
-  template <typename T>
   inline T custom_min(const T& a, const T& b) {
     return (a < b) ? a : b;
   }

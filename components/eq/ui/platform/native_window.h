@@ -35,11 +35,13 @@ class NativeWindow {
   enum class CreateFlags : u32 {
     kNone = 0,
     kCustomBorder = 1 << 0,
+    kResizable = 1 << 1,
+    kMaximized = 1 << 2,
   };
 
   virtual bool Init(handle native_parent_handle,
                     const eq::ui::IRect bounds,
-                    const CreateFlags flags, uint8_t icon_id = 102) = 0;
+                    const CreateFlags flags, u8 icon_id = 102) = 0;
 
   virtual void SetDelegate(Delegate*) = 0;
 
@@ -63,6 +65,7 @@ class NativeWindow {
   // implementation specific commands
   enum class Command {
     kHide,
+    kClose,
     kNormal,
     kMinimized,
     kMaximized,

@@ -11,7 +11,7 @@
 
 #include <ui/display/dpi.h>
 #include <ui/display/win/dpi_win.h>
-#include "native_window_win32.h"
+#include "win32_window_win.h"
 
 #include <Windows.h>
 #include <VersionHelpers.h>

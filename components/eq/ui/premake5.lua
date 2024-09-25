@@ -9,9 +9,9 @@ local function include_ui()
   })
   includedirs("../../")
   -- define our own imgui config file.
-  pubdefines({
-    "IMGUI_USER_CONFIG=<eq/ui/imgui/imgui_config.h>",
-  })
+  filter{"system:linux"}
+    include_wayland()
+  filter {}
 end
 
 component2("eq_ui")

@@ -7,9 +7,9 @@ include("eq/database")
 include("eq/gpu")
 --include("eq/network")
 --include("eq/flutter_ui")
-if os.host() == "windows" then
+--if os.host() == "windows" then
   include("eq/ui")
-end
+--end
 
 -- we intentionally don't include the eq dir here, as the user should
 -- be forced to explicitly include it

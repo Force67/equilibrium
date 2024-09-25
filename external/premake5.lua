@@ -1,5 +1,7 @@
 -- Copyright (C) 2021 Vincent Hengel <github.com/Force67>.
 -- For licensing information see LICENSE at the root of this distribution.
+local extroot = os.getcwd()
+
 project("tracysdk")
   kind("StaticLib")
   language("C++")
@@ -250,4 +252,11 @@ project("musl")
 
 function include_musl()
   linkoptions({"-nostdlib", "-nostdinc", "-fno-builtin", "-fno-stack-protector"})
+end
+
+function include_wayland()
+  pubincludedirs({
+    extroot .. "/wayland/include",
+    extroot .. "/wayland/wayland-generated"
+  })
 end
