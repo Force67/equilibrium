@@ -195,6 +195,11 @@ class BasicStringRef {
     return base::StringSearch(data_, length(), s, pos, count);
   }
 
+  // individual character search
+  constexpr mem_size find(const TChar s, mem_size pos) const {
+    return base::StringSearch(data_, length(), &s, pos, 1);
+  }
+
   constexpr mem_size find_first_not_of(const TChar* s,
                                        mem_size pos,
                                        mem_size count) const {
