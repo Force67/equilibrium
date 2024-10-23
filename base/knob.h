@@ -1,53 +1,66 @@
-// Copyright (C) 2024 Vincent Hengel.
-// For licensing information see LICENSE at the root of this distribution.
-//
-// Feature flag implementation.
-
 #pragma once
 
 #include <base/arch.h>
 #include <base/memory/move.h>
-#include <new>
+#include <base/memory/cxx_lifetime.h>
 
 namespace base {
 
-// Just a utility struct for the generated code.
-struct KnobEntry {
-    const char* name;
-    base::BasicKnob* knob_obj;
-};
+  // Generic Prototype
+  struct BasicKnob {};
 
-struct BasicKnob {};
+  // Just a utility struct for the generated code.
+  struct KnobEntry {
+      const char* name;
+      base::BasicKnob* knob_obj;
+  };
 
-// Usage: global Knob<bool> MyBooleanOption;
-// Then run python /equilibrium/base/gen_knobs.py . knobs.h
-// It will generate:
-// - void InitializeAllKnobs()
-// - void DestructAllKnobs()
-// and void InitializeAllKnobsAndRegister(KnobEntry (&knob_list)[kKnobCount])
-template <typename T>
-struct Knob final : public BasicKnob {
-  using Type = T;
+  // Specialization for POD types
+  template<typename T, bool is_trivial = base::IsTrivial<T>>
+  struct Knob : public BasicKnob {
+    static_assert(is_trivial, "This specialization is for POD types only.");
 
-  template <typename... Args>
-  void Construct(Args&&... args) {
-    new (&data_) T(base::forward<Args>(args)...);
-  }
+    T data{};
 
-  void Destruct() {
-    reinterpret_cast<T*>(&data_)->~T();
-  }
+    // no-op
+    void Construct() {}
+    void Destruct() {}
 
-  T& value() {
-    return *reinterpret_cast<T*>(&data_);
-  }
+    T& value() {
+      return data;  // Direct access since it's POD
+    }
 
-  const T& value() const {
-    return *reinterpret_cast<const T*>(&data_);
-  }
+    const T& value() const {
+      return data;  // Direct access since it's POD
+    }
 
- private:
-  alignas(T) byte data_[sizeof(T)]{};
-};
+    operator bool() { return data; }
+  };
+
+  // Specialization for non-POD types
+  template <typename T>
+  struct Knob<T, false> : public BasicKnob {
+    using Type = T;
+
+    template <typename... Args>
+    void Construct(Args&&... args) {
+      new (&data_) T(base::forward<Args>(args)...);
+    }
+
+    void Destruct() {
+      reinterpret_cast<T*>(&data_)->~T();
+    }
+
+    T& value() {
+      return *reinterpret_cast<T*>(&data_);
+    }
+
+    const T& value() const {
+      return *reinterpret_cast<const T*>(&data_);
+    }
+
+  private:
+    alignas(T) byte data_[sizeof(T)]{};
+  };
 
 }  // namespace base
