@@ -35,6 +35,8 @@ class NativeWindowWayland : public NativeWindow {
   handle os_handle() const override;
   const ui::IRect bounds() const override;
 
+  void SetDelegate(eq::ui::NativeWindow::Delegate*) override;
+
  private:
   static void registry_listener(void* data,
                                 struct wl_registry* registry,
@@ -48,5 +50,6 @@ class NativeWindowWayland : public NativeWindow {
   wl_shell* shell_;
   wl_surface* surface_;
   wl_shell_surface* shell_surface_;
+  eq::ui::NativeWindow::Delegate* delegate_;
 };
 }  // namespace eq::ui

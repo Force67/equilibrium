@@ -8,9 +8,13 @@
 #include "win/native_window_win32.h"
 #endif
 
+#if defined (OS_LINUX)
+#include "linux/wayland_window_linux.h"
+#endif
+
 namespace {
 #if defined (OS_WIN)
-TEST(NativeWindow, Create) {
+TEST(NativeWindow, CreateWin32Window) {
   eq::ui::NativeWindowWin32 win_window(u8"WindowTest", nullptr);
   EXPECT_TRUE(win_window.Init(HWND_DESKTOP, {}, eq::ui::NativeWindow::CreateFlags::kNone));
 
@@ -22,4 +26,14 @@ TEST(NativeWindow, Create) {
  // }
 }
 #endif
+
+#if defined (OS_LINUX)
+TEST(NativeWindow, CreateWaylandWindow) {
+  eq::ui::NativeWindowWayland wl_window(u8"WindowTest");
+  EXPECT_TRUE(wl_window.Init(nullptr, {}, eq::ui::NativeWindow::CreateFlags::kNone));
+
+  wl_window.Show();
+}
+#endif
+
 }  // namespace

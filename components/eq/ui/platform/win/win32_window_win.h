@@ -36,7 +36,7 @@ class NativeWindowWin32 final : public eq::ui::NativeWindow {
             const CreateFlags,
             u8 icon_id = 102) override;
   bool SetTitle(const base::StringRefU8) override;
-  void SetDelegate(eq::ui::NativeWindow::Delegate*);
+  void SetDelegate(eq::ui::NativeWindow::Delegate*) override;
 
   void SendCommand(Command) override;
 

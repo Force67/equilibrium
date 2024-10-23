@@ -9,6 +9,9 @@
 
 #include "wayland_window_linux.h"
 
+// My stuff also uses https://wayland-book.com/xdg-shell-basics.html
+// https://discourse.nixos.org/t/how-can-i-resolve-this-libwayland-client-glfw-wayland-error/33824/3
+
 namespace eq::ui {
 void NativeWindowWayland::registry_listener(void* data,
                                             struct wl_registry* registry,
@@ -42,9 +45,7 @@ bool NativeWindowWayland::Init(handle native_parent_handle,
 
   registry_ = wl_display_get_registry(display_);
   static const struct wl_registry_listener registry_listeners = {
-	registry_listener,
-	NULL
-  };
+      registry_listener, NULL};
 
   wl_registry_add_listener(registry_, &registry_listeners, this);
   wl_display_dispatch(display_);
@@ -71,10 +72,10 @@ bool NativeWindowWayland::Init(handle native_parent_handle,
   wl_shell_surface_set_toplevel(shell_surface_);
 
   if (bounds.width() > 0 && bounds.height() > 0) {
-      #if 0
+#if 0
     wl_shell_surface_set_window_geometry(shell_surface_, bounds.x(), bounds.y(),
                                          bounds.width(), bounds.height());
-    #endif
+#endif
   }
 
   if (flags & CreateFlags::kResizable) {
@@ -126,6 +127,10 @@ bool NativeWindowWayland::SetTitle(const base::StringRefU8 name) {
     return true;
   }
   return false;
+}
+
+void NativeWindowWayland::SetDelegate(eq::ui::NativeWindow::Delegate* d) {
+  delegate_ = d;
 }
 
 void NativeWindowWayland::SendCommand(NativeWindow::Command command) {
