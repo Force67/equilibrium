@@ -17,11 +17,13 @@ namespace base {
 
   // Specialization for POD types
   template<typename T, bool is_trivial = base::IsTrivial<T>>
-  struct Knob : public BasicKnob {
+  struct Knob final : public BasicKnob {
     static_assert(is_trivial, "This specialization is for POD types only.");
-
-    T data{};
-
+    // POD Ctor
+    Knob(T val) : data(val) {}
+    // disable copy/move
+    Knob(const Knob&) = delete;
+    Knob(Knob&&) = delete;
     // no-op
     void Construct() {}
     void Destruct() {}
@@ -33,14 +35,19 @@ namespace base {
     const T& value() const {
       return data;  // Direct access since it's POD
     }
-
     operator bool() { return data; }
+
+    T data{};
   };
 
   // Specialization for non-POD types
   template <typename T>
-  struct Knob<T, false> : public BasicKnob {
+  struct Knob<T, false> final : public BasicKnob {
     using Type = T;
+
+    // disable copy/move
+    Knob(const Knob&) = delete;
+    Knob(Knob&&) = delete;
 
     template <typename... Args>
     void Construct(Args&&... args) {
