@@ -27,17 +27,17 @@ def generate_init_header(knobs: List[Tuple[str, str, str]], output_file: str):
         f.write("#pragma once\n\n")
         f.write("#include <base/knob.h>\n\n")
         f.write("namespace feature_flags {\n\n")
-        
+
         # Declare extern Knobs
         for knob_type, knob_name, _ in knobs:
             f.write(f"extern base::Knob<{knob_type}> {knob_name};\n")
-        
+
         f.write("\ninline void InitializeAllKnobs() {\n")
         for knob_type, knob_name, initializer in knobs:
-            if initializer:
-                f.write(f"    {knob_name}.Construct({initializer});\n")
-            else:
-                f.write(f"    {knob_name}.Construct();\n")
+            #if initializer:
+            #    f.write(f"    {knob_name}.Construct({initializer});\n")
+            #else:
+            f.write(f"    {knob_name}.Construct();\n")
         f.write("}\n\n")
 
         f.write("inline void DestructAllKnobs() {\n")
@@ -55,7 +55,8 @@ def generate_init_header(knobs: List[Tuple[str, str, str]], output_file: str):
         f.write("inline void InitializeAllKnobsAndRegister(KnobEntry (&knob_list)[kKnobCount]) {\n")
         f.write("    InitializeAllKnobs();\n")
         for i, (_, knob_name, _) in enumerate(knobs):
-            f.write(f'    knob_list[{i}] = KnobEntry{{"{knob_name}", &{knob_name}}};\n')
+            snake_case = re.sub(r'(?<!^)(?=[A-Z])', '_', knob_name).lower()
+            f.write(f'    knob_list[{i}] = KnobEntry{{"{snake_case}", &{knob_name}}};\n')
         f.write("}\n\n")
 
         f.write("}  // namespace feature_flags\n")

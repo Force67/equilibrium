@@ -56,6 +56,7 @@ class CommandLine {
   // simply checks if the command line has exactly these contents, somewhere
   bool HasItem(const base::StringRefU8 item_contents);
 
+  static constexpr i32 kNotFoundIndex = -1;
   // tries to match a switch in the command line, switches can either start with
   // - or -- and can contain values.
   // if found, returns the index in the pieces_ array.
@@ -63,12 +64,12 @@ class CommandLine {
   i32 FindSwitchIndex(const base::StringRefU8 switch_name);
 
   bool FindSwitch(const base::StringRefU8 switch_name) {
-    return FindSwitchIndex(switch_name) != -1;
+    return FindSwitchIndex(switch_name) != kNotFoundIndex;
   }
 
   base::StringRefU8 FindSwitchValue(const base::StringRefU8 switch_name) {
     i32 res = FindSwitchIndex(switch_name);
-    if (res == -1)
+    if (res == kNotFoundIndex)
       return u8"";
     return CommandLine::ExtractSwitchValue(at(res));
   }

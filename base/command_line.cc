@@ -71,7 +71,7 @@ i32 CommandLine::FindSwitchIndex(const base::StringRefU8 switch_name) {
       return i;
     }
   }
-  return -1;
+  return kNotFoundIndex;
 }
 
 base::StringRefU8 CommandLine::ExtractSwitchValue(
@@ -94,7 +94,7 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) CONST_ND {
 
 base::StringRefU8 CommandLine::at(const mem_size index) {
   auto cap = pieces_.size();
-  if (index > cap || index == -1)
+  if (index > cap || index == kNotFoundIndex)
     return u8"";
   const auto& piece = pieces_[index];
   return base::StringRefU8(piece.c_str(), piece.length(), true); // No +1 as nterm doesnt count as character
