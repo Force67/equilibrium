@@ -6,7 +6,6 @@
 #include <base/filesystem/scoped_file.h>
 #include "compiler.h"
 
-
 namespace {
 
 // We want to avoid any kind of allocations in our close() implementation, so we
@@ -25,12 +24,12 @@ bool CanTrack(int fd) {
 }
 
 void UpdateAndCheckFdOwnership(int fd, bool owned) {
-    #if 0
+#if 0
   if (CanTrack(fd) && g_is_fd_owned[fd].exchange(owned) == owned &&
       g_is_ownership_enforced) {
     CrashOnFdOwnershipViolation();
   }
-  #endif
+#endif
   DEBUG_TRAP;
 }
 
@@ -41,13 +40,13 @@ namespace internal {
 
 // static
 void ScopedFDCloseTraits::Acquire(const ScopedFD& owner, int fd) {
-  //UpdateAndCheckFdOwnership(fd, /*owned=*/true);
-  // TBP
+  // UpdateAndCheckFdOwnership(fd, /*owned=*/true);
+  //  TBP
 }
 
 // static
 void ScopedFDCloseTraits::Release(const ScopedFD& owner, int fd) {
-  //UpdateAndCheckFdOwnership(fd, /*owned=*/false);
+  // UpdateAndCheckFdOwnership(fd, /*owned=*/false);
 }
 
 }  // namespace internal

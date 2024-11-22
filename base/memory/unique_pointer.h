@@ -33,8 +33,7 @@ class UniquePointer {
   constexpr UniquePointer() noexcept : pointer_(nullptr) {}
 
   // move constructor exactly the same type
-  constexpr UniquePointer(UniquePointer&& rhs) noexcept
-      : pointer_(rhs.pointer_) {
+  constexpr UniquePointer(UniquePointer&& rhs) noexcept : pointer_(rhs.pointer_) {
     rhs.pointer_ = nullptr;
   }
 
@@ -143,8 +142,7 @@ class UniquePointer {
   TType* pointer_;
 };
 
-static_assert(sizeof(UniquePointer<u8>) == sizeof(void*),
-              "UniquePtr is misaligned");
+static_assert(sizeof(UniquePointer<u8>) == sizeof(void*), "UniquePtr is misaligned");
 
 template <typename T, typename... TArgs>
 [[nodiscard]] UniquePointer<T> MakeUnique(TArgs&&... args)

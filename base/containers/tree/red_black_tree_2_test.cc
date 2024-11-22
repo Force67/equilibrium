@@ -27,13 +27,12 @@ class RedBlackTree2Test : public ::testing::Test {
     return CheckBlackHeight(root) != 0;
   }
 
-    // Check if a node is red
+  // Check if a node is red
 
   bool IsRed(const base::RedBlackTree2<int>::Node* node) const {
-    return node != nullptr &&
-           node->color == base::RedBlackTree2<int>::NodeColor::RED;
+    return node != nullptr && node->color == base::RedBlackTree2<int>::NodeColor::RED;
   }
-    // Recursively verify Red-Black properties and compute black height
+  // Recursively verify Red-Black properties and compute black height
   bool VerifyProperties(const base::RedBlackTree2<int>::Node* node,
                         int& blackHeight,
                         int currentBlackHeight = 0) const {

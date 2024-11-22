@@ -51,8 +51,7 @@ class Optional {
   CONSTEXPR_ND T& value() noexcept {
     DCHECK(!is_empty_, "base::Optional::value(): tried to access empty value");
 #if defined(CONFIG_DEBUG)
-    DCHECK(has_checked_validity_,
-           "Validy wasn't checked before accessing value");
+    DCHECK(has_checked_validity_, "Validy wasn't checked before accessing value");
 #endif
     return *storage();
   }

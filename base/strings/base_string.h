@@ -44,14 +44,12 @@ class BasicBaseString {
 
   // construct from a string
   /*implicit*/ BasicBaseString(const character_type* str) { assign(str); }
-  explicit BasicBaseString(const character_type* str,
-                           size_type len_in_characters) {
+  explicit BasicBaseString(const character_type* str, size_type len_in_characters) {
     assign(str, len_in_characters);
   }
 
   // construct from string with range
-  explicit BasicBaseString(const character_type* begin,
-                           const character_type* end) {
+  explicit BasicBaseString(const character_type* begin, const character_type* end) {
     assign(begin, end - begin);
   }
 
@@ -93,6 +91,8 @@ class BasicBaseString {
   const character_type* c_str() const noexcept { return data_; }
   character_type* data() const noexcept { return data_; }
 
+  // const character_type front() const noexcept { return data_[0]; }
+
   // begin and end
   const character_type* begin() const noexcept { return data_; }
   const character_type* end() const noexcept { return data_ + size_in_chars_; }
@@ -100,19 +100,13 @@ class BasicBaseString {
   character_type* end() noexcept { return data_ + size_in_chars_; }
   const character_type* cbegin() const noexcept { return data_; }
   const character_type* cend() const noexcept { return data_ + size_in_chars_; }
-  const character_type* rbegin() const noexcept {
-    return data_ + size_in_chars_ - 1;
-  }
+  const character_type* rbegin() const noexcept { return data_ + size_in_chars_ - 1; }
   const character_type* rend() const noexcept { return data_ - 1; }
-  const character_type back() const noexcept {
-    return data_[size_in_chars_ - 1];
-  }
+  const character_type back() const noexcept { return data_[size_in_chars_ - 1]; }
 
   // Returns the length of the BasicBaseString.
   size_type size() const noexcept { return size_in_chars_; }
-  size_type byte_size() const noexcept {
-    return size_in_chars_ * sizeof(character_type);
-  }
+  size_type byte_size() const noexcept { return size_in_chars_ * sizeof(character_type); }
   size_type length() const noexcept { return size_in_chars_; }
   bool empty() const noexcept { return size_in_chars_ == 0; }
   bool not_empty() const noexcept { return size_in_chars_ != 0; }
@@ -154,24 +148,20 @@ class BasicBaseString {
   }
 
   // Appends the given BasicBaseString to the end of this BasicBaseString.
-  void append(const BasicBaseString& other) {
-    append(other.data_, other.size_in_chars_);
-  }
+  void append(const BasicBaseString& other) { append(other.data_, other.size_in_chars_); }
   void append(const character_type* str, size_type added_character_count) {
     size_type new_size = size_in_chars_ + added_character_count;
     if (new_size >= cap_in_chars_) {
       Reallocate(new_size);
     }
-    memcpy(&data_[size_in_chars_], str,
-           added_character_count * sizeof(character_type));
+    memcpy(&data_[size_in_chars_], str, added_character_count * sizeof(character_type));
     size_in_chars_ = new_size;
     // data_[size_in_chars_] = '\0'; no point in zeroing as we realloc zerod
     // anyway
   }
   void append(const character_type* str) {
     if (!str ||
-        str[0] ==
-            '\0') {  // counting the strlen would fail if we let this through
+        str[0] == '\0') {  // counting the strlen would fail if we let this through
       return;
     }
     append(str, base::CountStringLength(str));
@@ -201,8 +191,7 @@ class BasicBaseString {
       Reallocate(new_size);
     }
     data_[size_in_chars_] = c;  // append the character
-    size_in_chars_ =
-        new_size;  // all allocd data is zerod, so it doesnt matter.
+    size_in_chars_ = new_size;  // all allocd data is zerod, so it doesnt matter.
   }
 
   // assignment functions ========================================
@@ -226,9 +215,7 @@ class BasicBaseString {
   void assign(const character_type* begin, const character_type* end) {
     assign(begin, end - begin);
   }
-  void assign(const character_type* str) {
-    assign(str, base::CountStringLength(str));
-  }
+  void assign(const character_type* str) { assign(str, base::CountStringLength(str)); }
   BasicBaseString& operator=(const BasicBaseString& other) {
     if (this != &other) {
       assign(other.data_, other.size_in_chars_);
@@ -258,9 +245,7 @@ class BasicBaseString {
   int compare(const character_type* str, size_type len) const noexcept {
     return memcmp(data_, str, len);
   }
-  int compare(size_type pos,
-              size_type len,
-              const BasicBaseString& str) const noexcept {
+  int compare(size_type pos, size_type len, const BasicBaseString& str) const noexcept {
     if (pos == 0 && len == 0)
       return 0;
 
@@ -271,8 +256,8 @@ class BasicBaseString {
                                     // string, compare with an empty string
     }
 
-    size_type rlen = std::min(
-        len, size_in_chars_ - pos);  // Length of the substring to compare
+    size_type rlen =
+        std::min(len, size_in_chars_ - pos);  // Length of the substring to compare
 
     // Compare the substring with the provided string
     int result = memcmp(data_ + pos, str.data(), std::min(rlen, str.size()));
@@ -289,9 +274,7 @@ class BasicBaseString {
     }
     return result;
   }
-  int compare(size_type pos,
-              size_type len,
-              const character_type* str) const noexcept {
+  int compare(size_type pos, size_type len, const character_type* str) const noexcept {
     // Check if the requested substring is within the bounds of the current
     // string
     if (pos > size_in_chars_) {
@@ -301,8 +284,8 @@ class BasicBaseString {
       return result == 0 ? 0 : -1;
     }
 
-    size_type rlen = std::min(
-        len, size_in_chars_ - pos);  // Length of the substring to compare
+    size_type rlen =
+        std::min(len, size_in_chars_ - pos);  // Length of the substring to compare
 
     // Compare the substring with the provided string
     int result = memcmp(&data_[pos], str, rlen * sizeof(character_type));
@@ -324,23 +307,19 @@ class BasicBaseString {
     return result;
   }
   int compare(const character_type* str) const noexcept {
-    return memcmp(data_, str,
-                  base::CountStringLength(str) * sizeof(character_type));
+    return memcmp(data_, str, base::CountStringLength(str) * sizeof(character_type));
   }
   template <class TOther>
   int compare(const TOther& other)
     requires(base::HasStringTraits<TOther, value_type>)
   {
-    return memcmp(data_, other.c_str(),
-                  other.length() * sizeof(character_type));
+    return memcmp(data_, other.c_str(), other.length() * sizeof(character_type));
   }
   bool operator==(const character_type* str) const noexcept {
-    return memcmp(data_, str,
-                  base::CountStringLength(str) * sizeof(character_type)) == 0;
+    return memcmp(data_, str, base::CountStringLength(str) * sizeof(character_type)) == 0;
   }
   bool operator!=(const character_type* str) const noexcept {
-    return memcmp(data_, str,
-                  base::CountStringLength(str) * sizeof(character_type)) != 0;
+    return memcmp(data_, str, base::CountStringLength(str) * sizeof(character_type)) != 0;
   }
   /* bool operator==(const BasicBaseString& other) const noexcept {
         return memcmp(data_, other.data_, other.size_in_chars_) == 0;
@@ -349,34 +328,29 @@ class BasicBaseString {
     requires(  //! std::same_as<TOther, BasicBaseString> &&
         HasStringTraits<TOther, value_type>)
   bool operator==(const TOther& other) const {
-    const bool result = memcmp(data_, other.c_str(),
-                               other.size() * sizeof(character_type)) == 0;
+    const bool result =
+        memcmp(data_, other.c_str(), other.size() * sizeof(character_type)) == 0;
     return result;
   }
 
   // comparision operators
-  friend bool operator!=(const BasicBaseString& lhs,
-                         const BasicBaseString& rhs) {
+  friend bool operator!=(const BasicBaseString& lhs, const BasicBaseString& rhs) {
     return !(lhs == rhs);
   }
 
-  friend bool operator<(const BasicBaseString& lhs,
-                        const BasicBaseString& rhs) {
+  friend bool operator<(const BasicBaseString& lhs, const BasicBaseString& rhs) {
     return lhs.length() < rhs.length();
   }
 
-  friend bool operator<=(const BasicBaseString& lhs,
-                         const BasicBaseString& rhs) {
+  friend bool operator<=(const BasicBaseString& lhs, const BasicBaseString& rhs) {
     return !(rhs < lhs);
   }
 
-  friend bool operator>(const BasicBaseString& lhs,
-                        const BasicBaseString& rhs) {
+  friend bool operator>(const BasicBaseString& lhs, const BasicBaseString& rhs) {
     return rhs < lhs;
   }
 
-  friend bool operator>=(const BasicBaseString& lhs,
-                         const BasicBaseString& rhs) {
+  friend bool operator>=(const BasicBaseString& lhs, const BasicBaseString& rhs) {
     return !(lhs < rhs);
   }
 
@@ -417,8 +391,7 @@ class BasicBaseString {
   }
 
   size_type find_last_of(const character_type* str, size_type len) const {
-    for (size_type i = size_in_chars_ - 1; i != static_cast<size_type>(-1);
-         --i) {
+    for (size_type i = size_in_chars_ - 1; i != static_cast<size_type>(-1); --i) {
       for (size_type j = 0; j < len; ++j) {
         if (data_[i] == str[j]) {
           return i;
@@ -431,9 +404,7 @@ class BasicBaseString {
 Any value greater than, or equal to, the string length (including string::npos)
 means that the entire string is searched. Note: The first character is denoted
 by a value of 0 (not 1).*/
-  size_type find_last_of(const character_type* s,
-                         size_type pos,
-                         size_type n) const {
+  size_type find_last_of(const character_type* s, size_type pos, size_type n) const {
     if (pos >= size_in_chars_) {
       pos = size_in_chars_ - 1;
     }
@@ -461,12 +432,10 @@ by a value of 0 (not 1).*/
     BUGCHECK(count <= size_in_chars_ - pos_in_characters, "Invalid count");
 
     // Shift the characters after the deleted region
-    memmove(
-        reinterpret_cast<byte*>(data_) +
-            (pos_in_characters * sizeof(character_type)),
-        reinterpret_cast<byte*>(data_) +
-            ((pos_in_characters + count) * sizeof(character_type)),
-        (size_in_chars_ - pos_in_characters - count) * sizeof(character_type));
+    memmove(reinterpret_cast<byte*>(data_) + (pos_in_characters * sizeof(character_type)),
+            reinterpret_cast<byte*>(data_) +
+                ((pos_in_characters + count) * sizeof(character_type)),
+            (size_in_chars_ - pos_in_characters - count) * sizeof(character_type));
 
     // Update the size
     size_in_chars_ -= count;
@@ -532,8 +501,8 @@ by a value of 0 (not 1).*/
   // Allocates memory for the BasicBaseString.
   void Allocate(size_type new_cap_in_chars_in_characters) {
     new_cap_in_chars_in_characters++;  // +1 for the nterm
-    data_ = static_cast<character_type*>(TAllocator::Allocate(
-        new_cap_in_chars_in_characters * sizeof(character_type)));
+    data_ = static_cast<character_type*>(
+        TAllocator::Allocate(new_cap_in_chars_in_characters * sizeof(character_type)));
     memset(data_, 0, new_cap_in_chars_in_characters * sizeof(character_type));
   }
 
@@ -550,9 +519,8 @@ by a value of 0 (not 1).*/
   void Reallocate(size_type new_cap_in_chars_in_characters) {
     new_cap_in_chars_in_characters++;  // +1 for the nterm
     const size_type old_size = size_in_chars_;
-    size_type new_capacity =
-        new_cap_in_chars_in_characters +
-        (new_cap_in_chars_in_characters / 2);  // Use a growth factor
+    size_type new_capacity = new_cap_in_chars_in_characters +
+                             (new_cap_in_chars_in_characters / 2);  // Use a growth factor
     character_type* new_data = static_cast<character_type*>(
         TAllocator::Allocate(new_capacity * sizeof(character_type)));
     // users are fucking stupid
@@ -579,27 +547,24 @@ by a value of 0 (not 1).*/
 };
 
 template <typename CharT, typename Alloc>
-BasicBaseString<CharT, Alloc> operator+(
-    const BasicBaseString<CharT, Alloc>& lhs,
-    const BasicBaseString<CharT, Alloc>& rhs) {
+BasicBaseString<CharT, Alloc> operator+(const BasicBaseString<CharT, Alloc>& lhs,
+                                        const BasicBaseString<CharT, Alloc>& rhs) {
   BasicBaseString<CharT, Alloc> result(lhs);
   result += rhs;
   return result;
 }
 
 template <typename CharT, typename Alloc>
-BasicBaseString<CharT, Alloc> operator+(
-    const BasicBaseString<CharT, Alloc>& lhs,
-    const CharT* rhs) {
+BasicBaseString<CharT, Alloc> operator+(const BasicBaseString<CharT, Alloc>& lhs,
+                                        const CharT* rhs) {
   BasicBaseString<CharT, Alloc> result(lhs);
   result += rhs;
   return result;
 }
 
 template <typename CharT, typename Alloc>
-BasicBaseString<CharT, Alloc> operator+(
-    const CharT* lhs,
-    const BasicBaseString<CharT, Alloc>& rhs) {
+BasicBaseString<CharT, Alloc> operator+(const CharT* lhs,
+                                        const BasicBaseString<CharT, Alloc>& rhs) {
   BasicBaseString<CharT, Alloc> result(lhs);
   result += rhs;
   return result;

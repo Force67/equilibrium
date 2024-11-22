@@ -88,8 +88,7 @@ mem_size StringSearchNotOf(const TChar* haystack,
   DCHECK(needle_size, "needle_size is null");
 
   const TChar* haystackEnd = haystack + size;
-  for (const TChar* curPos = haystack + start_pos; curPos < haystackEnd;
-       ++curPos) {
+  for (const TChar* curPos = haystack + start_pos; curPos < haystackEnd; ++curPos) {
     bool found = true;
     for (mem_size i = 0; i < needle_size; ++i) {
       if (*curPos == needle[i]) {

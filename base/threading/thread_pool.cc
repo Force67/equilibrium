@@ -8,9 +8,9 @@ void ThreadPool::enqueue(base::Function<void()> task) {
   // Lock the task queue
   // Example: MyLock lock(queueMutex);
 
-  //taskQueue.push(task);
-  // Notify a waiting thread (using your condition variable equivalent)
-  // Example: condition.notifyOne();
+  // taskQueue.push(task);
+  //  Notify a waiting thread (using your condition variable equivalent)
+  //  Example: condition.notifyOne();
 }
 
 void ThreadPool::workerThreadFunction() {

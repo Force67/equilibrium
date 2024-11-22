@@ -16,16 +16,14 @@ class FunctionRef<TReturn(Args...)> final {
   template <typename Functor>
   FunctionRef(Functor&& functor)
       : object_(nullptr), functor_((void*)std::addressof(functor)) {
-    erased_function_ = [](void* obj, void* ptr,
-                          Args... args) -> decltype(auto) {
+    erased_function_ = [](void* obj, void* ptr, Args... args) -> decltype(auto) {
       return (*static_cast<Functor*>(ptr))(std::forward<Args>(args)...);
     };
   }
 
   // Special handling for member functions
   template <typename T, typename MemberFunction>
-  FunctionRef(T* instance, MemberFunction memberFunction)
-      : object_((void*)instance) {
+  FunctionRef(T* instance, MemberFunction memberFunction) : object_((void*)instance) {
     // Cast the member function to a type that can be stored in a void* pointer
     member_function_ = reinterpret_cast<member_function_type*>(&memberFunction);
 

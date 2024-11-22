@@ -21,9 +21,7 @@ struct BASE_EXPORT ScopedFDCloseTraits : public ScopedGenericOwnershipTracking {
 #else
 struct BASE_EXPORT ScopedFDCloseTraits {
 #endif
-  static int InvalidValue() {
-    return -1;
-  }
+  static int InvalidValue() { return -1; }
   static void Free(int fd);
 #if defined(OS_CHROMEOS) || defined(OS_LINUX)
   static void Acquire(const ScopedGeneric<int, ScopedFDCloseTraits>&, int);

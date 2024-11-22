@@ -41,22 +41,22 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
     const base::Path::BufferType& path_ref;
   } context{nullptr, path.path()};
 
-  static auto callback = [](struct dl_phdr_info* info, size_t size,
-                            void* user_pointer) {
-    // the first entry may point to a string entry that is empty, but the pointer to
-    // the empty string still may be valid, so we consider this in the check here
+  static auto callback = [](struct dl_phdr_info* info, size_t size, void* user_pointer) {
+    // the first entry may point to a string entry that is empty, but the
+    // pointer to the empty string still may be valid, so we consider this in
+    // the check here
     if (info->dlpi_name == nullptr || info->dlpi_name[0] == '\0')
       return 0;
 
     // According to the man pages, dlpi_name is null terminated
     const base::StringRefU8 ref(reinterpret_cast<const char8_t*>(info->dlpi_name));
 
-    BUGCHECK(
-        base::DoIsStringUTF8(ref.c_str(), ref.length()),
-        "DynamicLibrary::LoadExisting(): BASE requires paths to be utf8 encoded!");
+    BUGCHECK(base::DoIsStringUTF8(ref.c_str(), ref.length()),
+             "DynamicLibrary::LoadExisting(): BASE requires paths to be utf8 "
+             "encoded!");
 
-    //DCHECK(ref.IsNullTerminated(),
-    //       "dlapi_name is not null terminated according to spec.");
+    // DCHECK(ref.IsNullTerminated(),
+    //        "dlapi_name is not null terminated according to spec.");
 
     auto* context = reinterpret_cast<Context*>(user_pointer);
     // the name itself follows the following format:

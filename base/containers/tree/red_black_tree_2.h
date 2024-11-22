@@ -19,7 +19,7 @@ class RedBlackTree2 {
  public:
   using Comparator = TComparator;
 
-     // use as Compare(left,right)
+  // use as Compare(left,right)
   enum NodeColor { RED, BLACK };
   struct Node {
     T value;
@@ -27,11 +27,7 @@ class RedBlackTree2 {
     Node *left, *right, *parent;
 
     Node(T value)
-        : value(value),
-          color(RED),
-          left(nullptr),
-          right(nullptr),
-          parent(nullptr) {}
+        : value(value), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
   };
 
  private:
@@ -148,7 +144,6 @@ class RedBlackTree2 {
     }
     x->color = BLACK;
   }
-
 
   void Transplant(Node* u, Node* v) {
     if (u->parent == nullptr) {

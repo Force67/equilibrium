@@ -9,8 +9,7 @@ Thread::Thread(const base::StringRef ref,
                base::Function<void()> functor,
                bool start_now,
                const Thread::Priority prio)
-    : thread_name_(ref.c_str(), ref.length()),
-      run_functor_(base::move(functor)) {
+    : thread_name_(ref.c_str(), ref.length()), run_functor_(base::move(functor)) {
   parent_thread_index_ = base::GetCurrentThreadIndex();
 
   if (start_now) {

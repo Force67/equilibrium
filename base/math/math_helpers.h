@@ -22,7 +22,7 @@ inline u64 CountLeadingZeros(u64 val) {
   if (val == 0)
     return 64;
 
-#if defined (__GNUC__) || defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
   return __builtin_clzll(val);
 #elif defined(_MSC_VER)
   unsigned long index;

@@ -40,9 +40,7 @@ class Set {
       return *this;
     }
 
-    bool operator!=(const Iterator& other) const {
-      return current_ != other.current_;
-    }
+    bool operator!=(const Iterator& other) const { return current_ != other.current_; }
 
    private:
     typename RedBlackTree2<T>::Node* current_;

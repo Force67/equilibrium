@@ -31,12 +31,11 @@ PageTable::PageTable(const mem_size space_size,
 PageTable::~PageTable() {
   // just yeet the entire address space
   if (address_space_) {
-    base::VirtualMemoryFree(reinterpret_cast<void*>(address_space_),
-                            space_size_);
+    base::VirtualMemoryFree(reinterpret_cast<void*>(address_space_), space_size_);
   }
   // and the metadata page
   if (metadata_page_) {
-	base::VirtualMemoryFree(reinterpret_cast<void*>(metadata_page_.load()), 0);
+    base::VirtualMemoryFree(reinterpret_cast<void*>(metadata_page_.load()), 0);
   }
 }
 
@@ -51,8 +50,8 @@ bool PageTable::ReserveAddressSpace(const mem_size address_space_size,
   // we also need to allocate a management page.
   if (!metadata_page_) {
     const auto memory_size = (sizeof(PageEntry) * page_reserve_count_);
-    metadata_page_ = reinterpret_cast<pointer_size>(base::VirtualMemoryAllocate(
-        nullptr, memory_size, PageProtectionFlags::RW));
+    metadata_page_ = reinterpret_cast<pointer_size>(
+        base::VirtualMemoryAllocate(nullptr, memory_size, PageProtectionFlags::RW));
     PageEntry* entry = reinterpret_cast<PageEntry*>(metadata_page_.load());
     for (size_t i = 0; i < page_reserve_count_; i++) {
       entry->flags = PageEntry::Flags::FREE;
@@ -99,16 +98,15 @@ static byte* AllocatePage(void* at_address,
   return block;
 }
 
-void* PageTable::RequestPage(PageProtectionFlags page_flags,
-                             mem_size* size_out) {
+void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
   base::ScopedLockGuard<base::SpinningMutex> _;
   (void)_;
   // do we have any free pages?
   if (PageEntry* entry = FindFreePage()) {
     if (entry->address == 0u)
       DEBUG_TRAP;
-    byte* block = AllocatePage(reinterpret_cast<void*>(entry->address),
-                               page_size_, page_flags);
+    byte* block =
+        AllocatePage(reinterpret_cast<void*>(entry->address), page_size_, page_flags);
     entry->size = page_size_;
     entry->flags = PageEntry::Flags::IN_USE;
     entry->address = reinterpret_cast<pointer_size>(block);

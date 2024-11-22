@@ -3,9 +3,9 @@
 //
 // Heap allocation free version of C++11 std::function.
 // base::StaticFunction stores the closure in an internal buffer instead of heap
-// allocated memory. This is useful for low latency agent and thread pool systems.
-// Please note that the captured values can perfom allocations, for example
-// base::String.
+// allocated memory. This is useful for low latency agent and thread pool
+// systems. Please note that the captured values can perfom allocations, for
+// example base::String.
 
 #pragma once
 
@@ -102,8 +102,7 @@ class StaticFunction<R(Args...), MaxSize> {
   using Invoker = R (*)(void*, Args&&...);
   using Manager = void (*)(void*, void*, Operation);
   using Storage =
-      typename std::aligned_storage<MaxSize - sizeof(Invoker) - sizeof(Manager),
-                                    8>::type;
+      typename std::aligned_storage<MaxSize - sizeof(Invoker) - sizeof(Manager), 8>::type;
 
   template <typename F>
   static R invoke(void* data_, Args&&... args) {

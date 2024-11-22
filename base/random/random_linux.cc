@@ -8,8 +8,8 @@
 
 namespace base {
 
-  u64 SourceTrueRandomSeed() {
-		 int fd = ::open("/dev/urandom", O_RDONLY);
+u64 SourceTrueRandomSeed() {
+  int fd = ::open("/dev/urandom", O_RDONLY);
   if (fd == -1) {
     return 0;
   }
@@ -24,4 +24,4 @@ namespace base {
 
   return seed;
 }
-}
+}  // namespace base

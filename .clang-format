@@ -1,5 +1,5 @@
 ﻿BasedOnStyle: Chromium
 SortIncludes: 'false'
 Standard: Latest
-ColumnLimit: 80
+ColumnLimit: 90
 JavaImportGroups: ['android', 'androidx', 'com', 'dalvik', 'junit', 'org', 'com.google.android.apps.chrome', 'org.chromium', 'java', 'javax']

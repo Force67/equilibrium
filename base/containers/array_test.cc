@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 namespace base {
-  
+
 TEST(ArrayTest, DefaultConstructor) {
   Array<int, 5> arr;
   EXPECT_EQ(arr.size(), 5);
@@ -41,4 +41,4 @@ TEST(ArrayTest, DataAccessors) {
   EXPECT_EQ(*arr.back(), 30);
 }
 
-} // namespace base
+}  // namespace base

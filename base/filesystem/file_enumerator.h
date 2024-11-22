@@ -6,6 +6,5 @@ namespace base {
 
 class FileEnumerator {
  public:
-	
 };
 }  // namespace base

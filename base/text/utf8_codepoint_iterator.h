@@ -8,14 +8,15 @@
 // note that:
 // Character is an overloaded term that can mean many things.
 //
-// A code point is the atomic unit of information. Text is a sequence of code points.
-// Each code point is a number which is given meaning by the Unicode standard.
+// A code point is the atomic unit of information. Text is a sequence of code
+// points. Each code point is a number which is given meaning by the Unicode
+// standard.
 //
 // A code unit is the unit
 // of storage of a part of an encoded code point. In UTF-8 this means 8 bits, in
-// UTF-16 this means 16 bits. A single code unit may represent a full code point, or
-// part of a code point. For example, the snowman glyph (☃) is a single code point
-// but 3 UTF-8 code units, and 1 UTF-16 code unit.
+// UTF-16 this means 16 bits. A single code unit may represent a full code
+// point, or part of a code point. For example, the snowman glyph (☃) is a
+// single code point but 3 UTF-8 code units, and 1 UTF-16 code unit.
 
 namespace base {
 class UTF8CodePointIterator {

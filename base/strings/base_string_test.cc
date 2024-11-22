@@ -59,8 +59,7 @@ TYPED_TEST(BaseStringTest, Construction) {
   ASSERT_EQ(base_str.capacity(), 0);
 
   // Construction from C-style string
-  const typename BaseStringType::character_type* c_str =
-      this->GetTestSentence();
+  const typename BaseStringType::character_type* c_str = this->GetTestSentence();
   BaseStringType base_str_from_c_str(c_str);
   StdStringType std_str_from_c_str(c_str);
   ASSERT_EQ(base_str_from_c_str.size(), std_str_from_c_str.size());
@@ -90,8 +89,7 @@ TYPED_TEST(BaseStringTest, Assignment) {
   using StdStringType = typename TestFixture::StdStringType;
 
   // Assignment from C-style string
-  const typename BaseStringType::character_type* c_str =
-      this->GetTestSentence();
+  const typename BaseStringType::character_type* c_str = this->GetTestSentence();
   BaseStringType base_str;
   base_str.assign(c_str);
   StdStringType std_str_from_c_str(c_str);
@@ -111,8 +109,7 @@ TYPED_TEST(BaseStringTest, Equality) {
   using StdStringType = typename TestFixture::StdStringType;
 
   // Equality with C-style string
-  const typename BaseStringType::character_type* c_str =
-      this->GetTestSentence();
+  const typename BaseStringType::character_type* c_str = this->GetTestSentence();
   BaseStringType base_str(c_str);
   StdStringType std_str_from_c_str(c_str);
   ASSERT_TRUE(base_str == c_str);
@@ -162,8 +159,7 @@ TYPED_TEST(BaseStringTest, Concatenation) {
   using StdStringType = typename TestFixture::StdStringType;
 
   // Concatenation with C-style string
-  const typename BaseStringType::character_type* c_str =
-      this->GetTestSentence();
+  const typename BaseStringType::character_type* c_str = this->GetTestSentence();
   BaseStringType base_str;
   base_str += c_str;
   StdStringType std_str_from_c_str(c_str);
@@ -395,7 +391,7 @@ TEST(BaseStringTest, SplitBySpaces) {
   ASSERT_EQ(base_pieces[0], "arg1");
   ASSERT_EQ(base_pieces[1], "arg2");
   ASSERT_EQ(base_pieces[2], "arg3");
-  //ASSERT_EQ(base_pieces[3], "arg4");
+  // ASSERT_EQ(base_pieces[3], "arg4");
 }
 
 TEST(BaseStringTest, ErasingCharacters) {

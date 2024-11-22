@@ -31,15 +31,14 @@ MemoryBlock Allocate(mem_size size, AlignmentValue alignment);
 bool Deallocate(MemoryBlock block, AlignmentValue alignment);
 
 // replacement for ReAllocate.
-MemoryBlock TryExpand(MemoryBlock block,
-                      mem_size new_size,
-                      AlignmentValue alignment);
+MemoryBlock TryExpand(MemoryBlock block, mem_size new_size, AlignmentValue alignment);
 
 }  // namespace v2
 
-// implements "utopia alloc", a much more granular system that places *much* more
-// control in the hands of the user at the cost of increased complexity. If you only
-// want to use the crt allocator, you tend to not see a huge advantage from this.
+// implements "utopia alloc", a much more granular system that places *much*
+// more control in the hands of the user at the cost of increased complexity. If
+// you only want to use the crt allocator, you tend to not see a huge advantage
+// from this.
 namespace v3 {
 enum class AllocationFlags : u32 {
   None = 0,

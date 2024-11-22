@@ -15,11 +15,10 @@
 #include <base/arch.h>
 
 namespace base {
-inline u32 CRC32_SW(
-    const byte* data,
-    mem_size length,
-    const u32 polynomial = 0xEDB88320, /*Standard CRC-32 polynomial*/
-    const u32 prev_crc = 0xFFFFFFFF) {
+inline u32 CRC32_SW(const byte* data,
+                    mem_size length,
+                    const u32 polynomial = 0xEDB88320, /*Standard CRC-32 polynomial*/
+                    const u32 prev_crc = 0xFFFFFFFF) {
   u32 crc = prev_crc;
 
   for (mem_size i = 0; i < length; ++i) {

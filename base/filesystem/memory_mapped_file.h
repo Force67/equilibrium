@@ -34,8 +34,7 @@ class MemoryMappedFile {
       return {};
     }
     data.resize(size);
-    memcpy(data.data(), static_cast<byte*>(memory_view_address_) + offset,
-           size);
+    memcpy(data.data(), static_cast<byte*>(memory_view_address_) + offset, size);
     return data;
   }
 
@@ -44,8 +43,7 @@ class MemoryMappedFile {
     if (offset + data.size() > file_size_ || !memory_view_address_) {
       return false;
     }
-    memcpy(static_cast<byte*>(memory_view_address_) + offset, data.data(),
-           data.size());
+    memcpy(static_cast<byte*>(memory_view_address_) + offset, data.data(), data.size());
     return true;
   }
 
@@ -59,8 +57,8 @@ class MemoryMappedFile {
   win::ScopedHandle memory_handle_;
 #endif
 
-#if defined (OS_POSIX)
-   int fd_{0}; // implementation defined
+#if defined(OS_POSIX)
+  int fd_{0};  // implementation defined
 #endif
 };
 }  // namespace base

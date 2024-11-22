@@ -6,16 +6,16 @@
 #include <base/filesystem/common_directory_providers.h>
 
 namespace {
-extern "C" __declspec(dllimport) DWORD
-    GetModuleFileNameW(HMODULE hModule, wchar_t* lpFilename, DWORD nSize);
+extern "C" __declspec(dllimport) DWORD GetModuleFileNameW(HMODULE hModule,
+                                                          wchar_t* lpFilename,
+                                                          DWORD nSize);
 }
 
 namespace base {
 
 base::Optional<base::Path> FetchKnownPath(const KnownPath path_id) {
   // Start with a buffer of size MAX_PATH.
-  base::Vector<wchar_t> system_buffer(MAX_PATH,
-                                      base::VectorReservePolicy::kForData);
+  base::Vector<wchar_t> system_buffer(MAX_PATH, base::VectorReservePolicy::kForData);
 
   DWORD buffer_size = static_cast<DWORD>(system_buffer.size());
 
@@ -32,15 +32,13 @@ base::Optional<base::Path> FetchKnownPath(const KnownPath path_id) {
         buffer_size *= 2;
         system_buffer.resize(buffer_size);
 
-        return_length =
-            ::GetModuleFileNameW(nullptr, system_buffer.data(), buffer_size);
+        return_length = ::GetModuleFileNameW(nullptr, system_buffer.data(), buffer_size);
       }
 
       if (return_length == 0) {
         return {};
       }
-      return base::Path(
-          base::StringRefW(system_buffer.data(), system_buffer.size()));
+      return base::Path(base::StringRefW(system_buffer.data(), system_buffer.size()));
     }
   }
   return result;

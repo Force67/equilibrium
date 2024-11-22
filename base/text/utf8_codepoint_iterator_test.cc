@@ -48,7 +48,7 @@ TEST(UTF8CodePointIteratorTest, TestAdvance) {
   EXPECT_FALSE(iterator.end());
 
   EXPECT_EQ(iterator.array_pos(), 6 /*Remember, we didnt increment*/);
-  EXPECT_EQ(iterator.char_pos(), 4); // we didnt advance
+  EXPECT_EQ(iterator.char_pos(), 4);  // we didnt advance
   EXPECT_FALSE(iterator.end());
 }
 

@@ -20,8 +20,8 @@ TEST(StringSearch, StringSearch) {
 
 TEST(StringSearch, StringSearchWide) {
   constexpr wchar_t kTestStr[] = L"HelloWorldBlahBlah";
-  auto pos = base::StringSearch(kTestStr, sizeof(kTestStr) * sizeof(wchar_t),
-                                L"World", 0, 5);
+  auto pos =
+      base::StringSearch(kTestStr, sizeof(kTestStr) * sizeof(wchar_t), L"World", 0, 5);
 
   EXPECT_EQ(pos, 5);
 

@@ -12,8 +12,7 @@
 
 namespace base {
 namespace {
-base::Vector<base::StringU8> TokenizeCommandLine(
-    const base::StringRefU8 command_line) {
+base::Vector<base::StringU8> TokenizeCommandLine(const base::StringRefU8 command_line) {
   base::Vector<base::StringU8> tokens;
   size_t start = 0, end = 0;
   bool in_double_quotes = false;
@@ -56,8 +55,7 @@ base::Vector<base::StringU8> TokenizeCommandLine(
 }
 }  // namespace
 
-bool SpawnProcess(const Path& path_to_executable,
-                  const base::StringRefU8 command_line) {
+bool SpawnProcess(const Path& path_to_executable, const base::StringRefU8 command_line) {
   DCHECK(command_line[command_line.length() - 1] != '\0',
          "Command line must have a null terminator at the end");
 
@@ -68,10 +66,9 @@ bool SpawnProcess(const Path& path_to_executable,
   base::Vector<char*> pointers(tokens.size() + 1,
                                base::VectorReservePolicy::kForPushback);
   for (const base::StringU8& token : tokens) {
-    pointers.push_back(
-        const_cast<char*>(reinterpret_cast<const char*>(token.c_str())));
+    pointers.push_back(const_cast<char*>(reinterpret_cast<const char*>(token.c_str())));
   }
-  pointers.push_back(nullptr); // exec() expects a nullptr at the end
+  pointers.push_back(nullptr);  // exec() expects a nullptr at the end
 
   pid_t pid = fork();
   if (pid == -1) {

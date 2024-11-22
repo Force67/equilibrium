@@ -13,8 +13,8 @@ thread_local i16 current_allocator_id{MemoryScope::NoOverride};
 void MemoryScope::Enter(allocator_handle new_id) {
   previous_allocator_ = current_allocator_id;
   current_allocator_id = static_cast<allocator_id>(new_id);
-  // STILL We should check the thread id here, if the closure was somehow moved onto
-  // a different thread!!!!!!!!
+  // STILL We should check the thread id here, if the closure was somehow moved
+  // onto a different thread!!!!!!!!
 }
 
 MemoryScope::allocator_handle MemoryScope::current_allocator() {

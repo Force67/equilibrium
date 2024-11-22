@@ -88,9 +88,8 @@ const i32 GetNativeThreadPriority(Thread::Handle handle) {
 bool SetThreadName(Thread::Handle handle, const char* name) {
   // TODO: optimize for existing library case
   const base::DynamicLibrary kernel_base("kernelbase.dll");
-  auto set_thread_desc =
-      kernel_base.FindSymbol<HRESULT(WINAPI*)(void*, const wchar_t*)>(
-          "SetThreadDescription");
+  auto set_thread_desc = kernel_base.FindSymbol<HRESULT(WINAPI*)(void*, const wchar_t*)>(
+      "SetThreadDescription");
 
   if (!set_thread_desc)
     return false;

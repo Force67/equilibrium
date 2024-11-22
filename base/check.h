@@ -7,7 +7,7 @@
 #include <base/meta/source_location.h>
 
 #define TK_UNUSED(expr) (void)expr
-//#define BASE_RECORD_CHECKS
+// #define BASE_RECORD_CHECKS
 #ifdef BUGCHECK
 #error Something else defined BUGCHECK
 #endif
@@ -19,8 +19,8 @@
 namespace base {
 // implementation detail
 namespace detail {
-// Second parameter defaults to null, so the __VA_OPT__ macro can insert the param
-// if needed.
+// Second parameter defaults to null, so the __VA_OPT__ macro can insert the
+// param if needed.
 void DCheck(const SourceLocation&, const char* message = nullptr);
 void BugCheck(const SourceLocation&, const char* message = nullptr);
 }  // namespace detail
@@ -34,8 +34,8 @@ using CheckHandler = void(const char*, const char*, const char*, const char*);
 void SetCheckHandler(CheckHandler*);
 }  // namespace base
 
-// NOTE(Vince): do not apply the [[likely]] or [[unlikely]] attributes here, as these
-// actively harm optimization. See
+// NOTE(Vince): do not apply the [[likely]] or [[unlikely]] attributes here, as
+// these actively harm optimization. See
 // https://blog.aaronballman.com/2020/08/dont-use-the-likely-or-unlikely-attributes/
 
 // All checks follow the format:
@@ -79,8 +79,8 @@ void SetCheckHandler(CheckHandler*);
 #define CONST_ND const
 #endif
 
-// BugChecks indicate a hard programmer error and are compiled into shipping builds
-// aswell, as these need to be immedeatly fixed
+// BugChecks indicate a hard programmer error and are compiled into shipping
+// builds aswell, as these need to be immedeatly fixed
 #ifndef BASE_STRIP_BUGCHECK
 
 #if defined(BASE_RECORD_CHECKS)

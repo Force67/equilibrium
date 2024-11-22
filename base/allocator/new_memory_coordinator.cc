@@ -7,8 +7,8 @@ namespace base {
 
 namespace detail {
 // where the MC class lives.
-alignas(NewMemoryCoordinator) constinit byte
-    new_mc_data[sizeof(NewMemoryCoordinator)]{0xFF};
+alignas(NewMemoryCoordinator) constinit byte new_mc_data[sizeof(NewMemoryCoordinator)]{
+    0xFF};
 }  // namespace detail
 
 /*static*/ bool NewMemoryCoordinator::Create() {
@@ -25,7 +25,8 @@ alignas(NewMemoryCoordinator) constinit byte
 
 /*static*/ void NewMemoryCoordinator::Destroy() {
   new_memory_coordinator().~NewMemoryCoordinator();
-  // no memset, as we don't know if it depends on the CRT in possible implementations
+  // no memset, as we don't know if it depends on the CRT in possible
+  // implementations
   for (mem_size i = 0; i < sizeof(detail::new_mc_data); i++) {
     detail::new_mc_data[i] = 0xFF;
   }

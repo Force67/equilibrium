@@ -4,6 +4,4 @@
 
 #include <base/time/time.h>
 
-namespace base {
-
-}
+namespace base {}

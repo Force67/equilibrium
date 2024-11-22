@@ -17,8 +17,7 @@ mem_size FindDriveLetter(base::BasicStringRef<TChar> path) {
   // This is dependent on an ASCII-based character set, but that's a
   // reasonable assumption.  iswalpha can be too inclusive here.
   if (path.length() >= 2 && path[1] == L':' &&
-      ((path[0] >= L'A' && path[0] <= L'Z') ||
-       (path[0] >= L'a' && path[0] <= L'z'))) {
+      ((path[0] >= L'A' && path[0] <= L'Z') || (path[0] >= L'a' && path[0] <= L'z'))) {
     return 1;
   }
 #endif  // FILE_PATH_USES_DRIVE_LETTERS
@@ -53,10 +52,11 @@ Path::Path(const BufferType& path) : path_buf_(path) {
   Normalize(path_buf_);
 }
 
-Path& Path::Append(const Path& other) { //C://
-  path_buf_.push_back(BASE_PATH_SEP_MACRO); //C:////
-  path_buf_.append(other.path_buf_.c_str(), other.path_buf_.length()); //C:////other
-  Normalize(path_buf_); // ensure the path is normalized
+Path& Path::Append(const Path& other) {      // C://
+  path_buf_.push_back(BASE_PATH_SEP_MACRO);  // C:////
+  path_buf_.append(other.path_buf_.c_str(),
+                   other.path_buf_.length());  // C:////other
+  Normalize(path_buf_);                        // ensure the path is normalized
   return *this;
 }
 
@@ -136,8 +136,8 @@ Path Path::BaseName() const {
 
   // keep everything after the final separator, but if the pathname is only
   // one character and it's a separator, leave it alone.
-  auto last_separator = new_path.path_buf_.find_last_of(
-      kSeparators, BufferType::npos, kSeparatorsLength - 1);
+  auto last_separator = new_path.path_buf_.find_last_of(kSeparators, BufferType::npos,
+                                                        kSeparatorsLength - 1);
 
   if (last_separator != BufferType::npos &&
       last_separator < new_path.path_buf_.length() - 1) {

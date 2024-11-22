@@ -7,8 +7,7 @@
 
 namespace base {
 namespace detail {
-void InvokeOutOfMemoryHandler(const base::SourceLocation&,
-                              const char* reason = nullptr);
+void InvokeOutOfMemoryHandler(const base::SourceLocation&, const char* reason = nullptr);
 }
 
 using OutOfMemoryHandler = void(void*, const char*);

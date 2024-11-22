@@ -107,12 +107,9 @@ bool VirtualMemoryFree(void* address, mem_size size) {
   return ::VirtualFree(address, 0, MEM_RELEASE) != 0;
 }
 
-bool VirtualMemoryProtect(void* address,
-                          mem_size size,
-                          PageProtectionFlags protection) {
+bool VirtualMemoryProtect(void* address, mem_size size, PageProtectionFlags protection) {
   DWORD old_protection;
-  return ::VirtualProtect(address, size,
-                          TranslateToNativePageProtection(protection),
+  return ::VirtualProtect(address, size, TranslateToNativePageProtection(protection),
                           &old_protection) != 0;
 }
 }  // namespace base

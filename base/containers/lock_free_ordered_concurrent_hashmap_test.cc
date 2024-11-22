@@ -2,13 +2,11 @@
 #include "lock_free_ordered_concurrent_hashmap.h"
 #include <gtest/gtest.h>
 
-
 class OrderedLockFreeHashMapTest : public ::testing::Test {
  protected:
   base::OrderedLockFreeHashMap<int, std::string> map;
 
-  OrderedLockFreeHashMapTest()
-      : map(10) {}  // Assuming 10 buckets for simplicity
+  OrderedLockFreeHashMapTest() : map(10) {}  // Assuming 10 buckets for simplicity
 
   virtual ~OrderedLockFreeHashMapTest() {}
 };

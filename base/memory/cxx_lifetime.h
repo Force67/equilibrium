@@ -10,8 +10,7 @@ inline constexpr bool IsTrivial =
     __is_trivially_constructible(T) && __is_trivially_copyable(T);
 
 template <typename>
-inline constexpr bool IsArray =
-    false;  // determine whether type argument is an array
+inline constexpr bool IsArray = false;  // determine whether type argument is an array
 
 template <typename T, mem_size TSize>
 inline constexpr bool IsArray<T[TSize]> = true;
@@ -20,8 +19,7 @@ template <typename T>
 inline constexpr bool IsArray<T[]> = true;
 
 template <typename, typename>
-inline constexpr bool ISSame =
-    false;  // determine whether arguments are the same type
+inline constexpr bool ISSame = false;  // determine whether arguments are the same type
 template <typename T>
 inline constexpr bool ISSame<T, T> = true;
 
@@ -53,18 +51,17 @@ struct conditional<false, _Ty1, _Ty2> {
 template <bool _Test, class _Ty1, class _Ty2>
 using conditional_t = typename conditional<_Test, _Ty1, _Ty2>::type;
 
-//std::destroy_at(&str);
+// std::destroy_at(&str);
 
-	template <typename T>
+template <typename T>
 inline void destruct(T* p) {
   // https://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k(C4100)&rd=true
   // "C4100 can also be issued when code calls a destructor on a otherwise
   // unreferenced parameter
   //  of primitive type. This is a limitation of the Visual C++ compiler."
-  //EA_UNUSED(p);
+  // EA_UNUSED(p);
   p->~T();
 }
-
 
 template <typename TType>
 inline void DestructRange(TType first, TType last) {

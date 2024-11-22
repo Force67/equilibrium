@@ -9,14 +9,15 @@ namespace base {
 
 template <typename T>
 concept SmallCharOptimizable = requires(T a) {
-  {sizeof(T) == sizeof(byte)};
+  { sizeof(T) == sizeof(byte) };
 };
 
 template <typename T>
 inline mem_size Strcmp(const T* lhs,
                        const T* rhs,
-                       mem_size limit = MinMax<mem_size>::max()) requires
-    SmallCharOptimizable<T> {
+                       mem_size limit = MinMax<mem_size>::max())
+  requires SmallCharOptimizable<T>
+{
   T c1, c2;
 
   while (limit-- && (c1 = *lhs++) == (c2 = *rhs++)) {
@@ -29,8 +30,7 @@ inline mem_size Strcmp(const T* lhs,
   return (static_cast<u8>(c1) - static_cast<u8>(c2));
 }
 
-inline constexpr mem_size Strcmp(const char16_t* pString1,
-                                 const char16_t* pString2) {
+inline constexpr mem_size Strcmp(const char16_t* pString1, const char16_t* pString2) {
   static_assert(sizeof(int) > sizeof(u16), "Expected int to be greater than u16");
 
   char16_t c1, c2;
@@ -43,8 +43,7 @@ inline constexpr mem_size Strcmp(const char16_t* pString1,
 }
 
 // specialized for char32
-inline constexpr mem_size Strcmp(const char32_t* pString1,
-                                 const char32_t* pString2) {
+inline constexpr mem_size Strcmp(const char32_t* pString1, const char32_t* pString2) {
   char32_t c1, c2;
 
   while ((c1 = *pString1++) == (c2 = *pString2++)) {

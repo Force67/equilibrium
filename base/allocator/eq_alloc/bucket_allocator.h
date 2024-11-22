@@ -15,7 +15,7 @@ namespace base {
 class BucketAllocator final : public Allocator {
   friend struct EQMemoryRouter;
 
-  public:
+ public:
   explicit BucketAllocator(PageTable&);
 
   void* Allocate(mem_size size, mem_size alignment = 0) override;
@@ -28,9 +28,7 @@ class BucketAllocator final : public Allocator {
   mem_size QueryAllocationSize(void* block) override;
 
  private:
-  void* AcquireMemory(mem_size user_size,
-                      mem_size size,
-                      byte* hint = nullptr);
+  void* AcquireMemory(mem_size user_size, mem_size size, byte* hint = nullptr);
 
  private:
   PageTable& page_table_;
@@ -77,8 +75,7 @@ class BucketAllocator final : public Allocator {
     inline u32 user_size() const { return value_.user_size; }
     inline u32 size() const { return value_.aligned_size; }
   };
-  static_assert(sizeof(BucketInfo) == sizeof(pointer_size),
-                "Bucket is too fat");
+  static_assert(sizeof(BucketInfo) == sizeof(pointer_size), "Bucket is too fat");
 
   union BucketStore {
     BucketInfo bucket;
@@ -162,8 +159,6 @@ class BucketAllocator final : public Allocator {
   }
 
   // void TakeMemoryChunk(Bucket&, uint8_t* start_hint, mem_size req_size);
-  BucketInfo* FindAndClaimFreeBucket(mem_size actual_size,
-                                     mem_size aligned_size,
-                                     byte*&);
+  BucketInfo* FindAndClaimFreeBucket(mem_size actual_size, mem_size aligned_size, byte*&);
 };
 }  // namespace base

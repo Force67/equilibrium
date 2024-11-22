@@ -44,8 +44,7 @@ class PageTable {
   mem_size space_size() const { return space_size_; }
 
  private:
-  bool ReserveAddressSpace(const mem_size address_space_size,
-                           const mem_size page_size);
+  bool ReserveAddressSpace(const mem_size address_space_size, const mem_size page_size);
 
  private:
   // do we even need a size parameter if every page is 64k?
@@ -64,8 +63,7 @@ class PageTable {
     u32 size;
     pointer_size address;
 
-    PageEntry(pointer_size address, mem_size size)
-        : address(address), size(size) {}
+    PageEntry(pointer_size address, mem_size size) : address(address), size(size) {}
 
     inline bool Contains(pointer_size block) const {
       return address >= block && block <= (address + size);

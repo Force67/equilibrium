@@ -51,16 +51,15 @@ class pointer {
   constexpr explicit operator bool() const;
 };
 
-static_assert((sizeof(pointer) == sizeof(void*)) &&
-                  (alignof(pointer) == alignof(void*)),
+static_assert((sizeof(pointer) == sizeof(void*)) && (alignof(pointer) == alignof(void*)),
               "Hmm...");
 
-    template <typename T>
+template <typename T>
 STRONG_INLINE pointer::pointer(T* address) noexcept
     : value_(reinterpret_cast<std::uintptr_t>(address)) {}
 
 template <typename T, typename C>
-    STRONG_INLINE pointer::pointer(T C::*address) noexcept
+STRONG_INLINE pointer::pointer(T C::*address) noexcept
     : value_(bit_cast<std::uintptr_t>(address)) {}
 
 STRONG_INLINE constexpr pointer pointer::operator+(mem_size count) const {

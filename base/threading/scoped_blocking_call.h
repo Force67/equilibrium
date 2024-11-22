@@ -84,8 +84,9 @@ enum class BlockingType {
 // sequenced task, the thread pool size is incremented to compensate for the
 // blocked thread (more or less aggressively depending on BlockingType).
 
-struct Location{};
-#define FROM_HERE Location{}
+struct Location {};
+#define FROM_HERE \
+  Location {}
 
 class BASE_EXPORT ScopedBlockingCall {
  public:

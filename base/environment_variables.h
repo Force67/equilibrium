@@ -14,10 +14,8 @@
 
 namespace base {
 
-bool GetEnvironmentVariable(const base::StringRefU8 variable_name,
-                            base::StringU8& out);
-bool SetEnvironmentVariable(const base::StringRefU8 name,
-                            const base::StringRefU8 value);
+bool GetEnvironmentVariable(const base::StringRefU8 variable_name, base::StringU8& out);
+bool SetEnvironmentVariable(const base::StringRefU8 name, const base::StringRefU8 value);
 
 bool DeleteEnvironmentVariable(const base::StringRefU8 variable_name);
-}
+}  // namespace base

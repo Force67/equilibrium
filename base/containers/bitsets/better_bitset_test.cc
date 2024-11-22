@@ -9,8 +9,8 @@ namespace {
 using namespace base;
 
 TEST(BetterBitSet, Compare) {
-  base::BetterBitSet<4> a(9); // 1001
-  base::BetterBitSet<4> b(3); // 0011
+  base::BetterBitSet<4> a(9);  // 1001
+  base::BetterBitSet<4> b(3);  // 0011
   ASSERT_FALSE(a == b);
   ASSERT_TRUE(a != b);
 }
@@ -23,7 +23,7 @@ TEST(BetterBitSet, BitwiseAssignOP) {
   EXPECT_EQ(a.to_number(), 9);
   EXPECT_EQ(b.to_number(), 3);
 
-  a ^= b; // 1010
+  a ^= b;  // 1010
   EXPECT_EQ(a.to_number(), 10);
 
   // restore state
@@ -37,8 +37,8 @@ TEST(BetterBitSet, BitwiseAssignOP) {
   a = 2;
   b = 3;
 
-  a |= b; // OR 
-  EXPECT_EQ(a.to_number(), 3); // 11
+  a |= b;                       // OR
+  EXPECT_EQ(a.to_number(), 3);  // 11
 }
 
 TEST(BetterBitSet, BitwiseOP) {

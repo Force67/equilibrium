@@ -121,8 +121,8 @@ int File::Read(int64_t offset, char* data, int size) {
   int bytes_read = 0;
   int rv;
   do {
-    rv = HANDLE_EINTR(pread(file_.get(), data + bytes_read, size - bytes_read,
-                            offset + bytes_read));
+    rv = HANDLE_EINTR(
+        pread(file_.get(), data + bytes_read, size - bytes_read, offset + bytes_read));
     if (rv <= 0)
       break;
 
@@ -200,8 +200,7 @@ int File::WriteAtCurrentPos(const char* data, int size) {
   int bytes_written = 0;
   int rv;
   do {
-    rv =
-        HANDLE_EINTR(write(file_.get(), data + bytes_written, size - bytes_written));
+    rv = HANDLE_EINTR(write(file_.get(), data + bytes_written, size - bytes_written));
     if (rv <= 0)
       break;
 
@@ -371,11 +370,12 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
   BUGCHECK(utf8_index == 0,
            "File::DoInitialize(): BASE requires paths to be utf8 encoded!");
 
-  // decay to a regular char type cause the api requires it, by no means that means
-  // that the api doesn't accept utf8 tho, they merely treat the paths as arrays of
-  // bytes and do a poor mans bitcast
+  // decay to a regular char type cause the api requires it, by no means that
+  // means that the api doesn't accept utf8 tho, they merely treat the paths as
+  // arrays of bytes and do a poor mans bitcast
   char* utf8_path_buf = (char*)path.c_str();
-  //memcpy(reinterpret_cast<void*>(utf8_path_buf), path.c_str(), sizeof(char*));
+  // memcpy(reinterpret_cast<void*>(utf8_path_buf), path.c_str(),
+  // sizeof(char*));
   DCHECK(utf8_path_buf, "File::DoInitialize(): Failed to convert path type");
 
   int descriptor = HANDLE_EINTR(open(utf8_path_buf, open_flags, mode));

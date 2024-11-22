@@ -21,8 +21,7 @@ bool CreateTemporaryDirInDir(const Path& base_dir,
   Path path_to_create;
   for (int count = 0; count < 50; ++count) {
     // TODO(Vince): numeric conv functions
-    auto name =
-        fmt::format("scoped_dir_{}_{}", ::GetCurrentProcessId(), RandomUint());
+    auto name = fmt::format("scoped_dir_{}_{}", ::GetCurrentProcessId(), RandomUint());
 
     path_to_create = base_dir / name.c_str();
     if (::CreateDirectoryW(path_to_create.c_str(), nullptr)) {
@@ -60,7 +59,7 @@ DWORD ReturnLastErrorOrSuccessOnNotFound() {
 DWORD DeleteFileRecursive(const Path& path,
                           const Path::BufferType& pattern,
                           bool recursive) {
-    #if 0
+#if 0
   FileEnumerator traversal(
       path, false, FileEnumerator::FILES | FileEnumerator::DIRECTORIES, pattern);
   DWORD result = ERROR_SUCCESS;
@@ -93,7 +92,7 @@ DWORD DeleteFileRecursive(const Path& path,
       result = this_result;
   }
   return result;
-  #endif
+#endif
   return 0;
 }
 
@@ -113,8 +112,7 @@ DWORD DoDeleteFile(const Path& path, bool recursive) {
 
   // Clear the read-only bit if it is set.
   if ((attr & FILE_ATTRIBUTE_READONLY) &&
-      !::SetFileAttributes(path.c_str(),
-                           attr & ~DWORD{FILE_ATTRIBUTE_READONLY})) {
+      !::SetFileAttributes(path.c_str(), attr & ~DWORD{FILE_ATTRIBUTE_READONLY})) {
     // It's possible for |path| to be gone now under a race with other deleters.
     return ReturnLastErrorOrSuccessOnNotFound();
   }
@@ -122,7 +120,7 @@ DWORD DoDeleteFile(const Path& path, bool recursive) {
   // Perform a simple delete on anything that isn't a directory.
   if (!(attr & FILE_ATTRIBUTE_DIRECTORY)) {
     return ::DeleteFile(path.c_str()) ? ERROR_SUCCESS
-                                              : ReturnLastErrorOrSuccessOnNotFound();
+                                      : ReturnLastErrorOrSuccessOnNotFound();
   }
   const Path::BufferType pattern(BASE_PATH_LITERAL("*"));
   if (recursive) {
@@ -132,9 +130,8 @@ DWORD DoDeleteFile(const Path& path, bool recursive) {
     if (error_code != ERROR_SUCCESS)
       return error_code;
   }
-  return ::RemoveDirectory(path.c_str())
-             ? ERROR_SUCCESS
-             : ReturnLastErrorOrSuccessOnNotFound();
+  return ::RemoveDirectory(path.c_str()) ? ERROR_SUCCESS
+                                         : ReturnLastErrorOrSuccessOnNotFound();
 }
 
 bool DeleteFileOrSetLastError(const Path& path, bool recursive) {
@@ -145,7 +142,6 @@ bool DeleteFileOrSetLastError(const Path& path, bool recursive) {
   ::SetLastError(error);
   return false;
 }
-
 
 bool DeletePathRecursively(const Path& path) {
   return DeleteFileOrSetLastError(path, /*recursive=*/true);

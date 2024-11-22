@@ -1,6 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// we base all of our random generators on xoshiro, see https://prng.di.unimi.it/
+// we base all of our random generators on xoshiro, see
+// https://prng.di.unimi.it/
 
 #include "random.h"
 #include <random>

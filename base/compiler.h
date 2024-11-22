@@ -31,8 +31,7 @@
 #define SIMD_SSE2
 #endif
 
-#if defined(__SSE__) || (defined(_M_IX86_FP) && (_M_IX86_FP == 1)) || \
-    defined(SIMD_SSE2)
+#if defined(__SSE__) || (defined(_M_IX86_FP) && (_M_IX86_FP == 1)) || defined(SIMD_SSE2)
 #define SIMD_SSE
 #endif
 
@@ -98,7 +97,7 @@
 
 #if defined(__GNUC__)
 // be warned:
-// In C++, __FUNCTION__ and __PRETTY_FUNCTION__ have always been variables. 
+// In C++, __FUNCTION__ and __PRETTY_FUNCTION__ have always been variables.
 #define BASE_FUNC_NAME __func__
 #elif defined(_MSC_VER)
 #define BASE_FUNC_NAME __FUNCTION__
@@ -124,16 +123,13 @@
 #define FOLLY_POP_WARNING _Pragma("GCC diagnostic pop")
 #define FOLLY_GNU_DISABLE_WARNING_INTERNAL2(warningName) #warningName
 #define FOLLY_GNU_DISABLE_WARNING(warningName) \
-  _Pragma(                                     \
-      FOLLY_GNU_DISABLE_WARNING_INTERNAL2(GCC diagnostic ignored warningName))
+  _Pragma(FOLLY_GNU_DISABLE_WARNING_INTERNAL2(GCC diagnostic ignored warningName))
 #ifdef __clang__
-#define FOLLY_CLANG_DISABLE_WARNING(warningName) \
-  FOLLY_GNU_DISABLE_WARNING(warningName)
+#define FOLLY_CLANG_DISABLE_WARNING(warningName) FOLLY_GNU_DISABLE_WARNING(warningName)
 #define FOLLY_GCC_DISABLE_WARNING(warningName)
 #else
 #define FOLLY_CLANG_DISABLE_WARNING(warningName)
-#define FOLLY_GCC_DISABLE_WARNING(warningName) \
-  FOLLY_GNU_DISABLE_WARNING(warningName)
+#define FOLLY_GCC_DISABLE_WARNING(warningName) FOLLY_GNU_DISABLE_WARNING(warningName)
 #endif
 #define FOLLY_MSVC_DISABLE_WARNING(warningNumber)
 #elif defined(_MSC_VER)
@@ -177,4 +173,4 @@ constexpr auto kIsBigEndian = !kIsLittleEndian;
 }  // namespace base
 
 // TODO(Vince)
-//REG_DWORD_LITTLE_ENDIAN
+// REG_DWORD_LITTLE_ENDIAN

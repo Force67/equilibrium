@@ -34,7 +34,7 @@ TEST(CommandLine, ClearTest) {
 TEST(CommandLine, FindSwitchIndexTest) {
   base::CommandLine line;
   line.ParseFromString(u8"test.exe --foo=value");
-  
+
   EXPECT_EQ(line.FindSwitchIndex(u8"foo"), 1);
   EXPECT_EQ(line.FindSwitchIndex(u8"bar"), -1);
 }
@@ -42,7 +42,7 @@ TEST(CommandLine, FindSwitchIndexTest) {
 TEST(CommandLine, FindSwitchValueTest) {
   base::CommandLine line;
   line.ParseFromString(u8"test.exe --foo=value");
-  
+
   EXPECT_EQ(line.FindSwitchValue(u8"foo"), u8"value");
   EXPECT_EQ(line.FindSwitchValue(u8"bar"), u8"");
 }
@@ -90,7 +90,7 @@ TEST(CommandLine, ParseFromStringUTF8CharsTest) {
 }
 
 TEST(CommandLine, ParseFromStringUTF8OnlyCharsTest) {
-  //base::CommandLine line;
+  // base::CommandLine line;
 #if 0
   line.ParseFromString(u8"test.exe 往ガこ 往ガこ ん乇");
   

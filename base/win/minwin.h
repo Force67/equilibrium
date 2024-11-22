@@ -281,8 +281,7 @@ WINUSERAPI BOOL WINAPI GetMessageW(LPMSG lpMsg,
 // Needed for thread_local_storage.h
 WINBASEAPI LPVOID WINAPI TlsGetValue(DWORD dwTlsIndex);
 
-WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex,
-                                   LPVOID lpTlsValue);
+WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue);
 
 // Needed for scoped_handle.h
 WINBASEAPI _Check_return_ _Post_equals_last_error_ DWORD WINAPI GetLastError(VOID);

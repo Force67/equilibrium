@@ -49,9 +49,9 @@ TEST(LinkedListTest, RemoveFromList) {
   list.Append(&n1);
   list.Append(&n2);
   list.Append(&n3);
-  
+
   n2.RemoveFromList();
-  
+
   EXPECT_EQ(list.head()->value()->value, 10);
   EXPECT_EQ(list.tail()->value()->value, 30);
 }
@@ -65,4 +65,4 @@ TEST(LinkedListTest, AccessHeadTailEnd) {
   EXPECT_EQ(list.tail()->value()->value, 10);
   EXPECT_EQ(list.head()->next(), list.end());
 }
-} // namespace base
+}  // namespace base

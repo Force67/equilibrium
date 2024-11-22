@@ -67,13 +67,13 @@ bool ScopedTempDir::Delete() {
     return false;
 
   DCHECK(false);
-  #if 0
+#if 0
   bool ret = DeletePathRecursively(path_);
   if (ret) {
     // We only clear the path if deleted the directory.
     path_.clear();
   }
-  #endif
+#endif
 
   return false;
 }

@@ -74,13 +74,12 @@ i32 CommandLine::FindSwitchIndex(const base::StringRefU8 switch_name) {
   return kNotFoundIndex;
 }
 
-base::StringRefU8 CommandLine::ExtractSwitchValue(
-    const base::StringRefU8 item_contents) {
+base::StringRefU8 CommandLine::ExtractSwitchValue(const base::StringRefU8 item_contents) {
   // Find the '=' sign, if present
   mem_size eq_pos = item_contents.find(u8"=", 0, 1);
   if (eq_pos != base::StringRefU8::npos)
     return item_contents.subslice(eq_pos + 1);  // Return the value after '='
-  return u8"";  // Default return: switch not found
+  return u8"";                                  // Default return: switch not found
 }
 
 base::StringRefU8 CommandLine::operator[](const mem_size index) CONST_ND {
@@ -89,7 +88,8 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) CONST_ND {
   BUGCHECK(index < base::MinMax<u16>::max(),
            "CommandLine::operator[]: Index out of bounds");
   const auto& piece = pieces_[index];
-  return base::StringRefU8(piece.c_str(), piece.length(), true); // No +1 as nterm doesnt count as character
+  return base::StringRefU8(piece.c_str(), piece.length(),
+                           true);  // No +1 as nterm doesnt count as character
 }
 
 base::StringRefU8 CommandLine::at(const mem_size index) {
@@ -97,7 +97,8 @@ base::StringRefU8 CommandLine::at(const mem_size index) {
   if (index > cap || index == kNotFoundIndex)
     return u8"";
   const auto& piece = pieces_[index];
-  return base::StringRefU8(piece.c_str(), piece.length(), true); // No +1 as nterm doesnt count as character
+  return base::StringRefU8(piece.c_str(), piece.length(),
+                           true);  // No +1 as nterm doesnt count as character
 }
 
 xsize CommandLine::FindPositionalArgumentsIndex() {

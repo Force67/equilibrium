@@ -36,9 +36,8 @@ bool MemoryMappedFile::ReMap(u64 offset, mem_size mapped_bytes) {
     mapped_bytes = mem_size(file_size_ - offset);
 
   // get memory address
-  memory_view_address_ =
-      ::MapViewOfFile(memory_handle_.Get(), FILE_MAP_READ, offset >> 32,
-                      offset & 0xFFFFFFFF, mapped_bytes);
+  memory_view_address_ = ::MapViewOfFile(memory_handle_.Get(), FILE_MAP_READ,
+                                         offset >> 32, offset & 0xFFFFFFFF, mapped_bytes);
   if (!memory_view_address_) {
     memory_view_address_ = nullptr;
     BASE_LOG_ERROR("MapViewOfFile() failed");

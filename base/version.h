@@ -19,7 +19,8 @@ static_assert(MakeVersionKey<mem_size>(100, 1, 2, 3) == 10203);
 template <typename... Args>
 constexpr void ExtractFromVersionKey(auto base, auto key, Args&... args) {
   auto step = 1;
-  // this dummy exists because we dont have a nice way to do this in reverse yet:
+  // this dummy exists because we dont have a nice way to do this in reverse
+  // yet:
   // https://quuxplusone.github.io/blog/2020/05/07/assignment-operator-fold-expression/
   int dummy = 0;
   ((args = key / step % base, step *= base, dummy) = ... = 0);

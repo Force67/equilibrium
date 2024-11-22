@@ -62,9 +62,7 @@ class LockFreeHashMap {
    public:
     using KeyValuePair = std::pair<Key, Value>;
 
-    Iterator(const LockFreeHashMap<Key, Value>* map,
-             size_t bucketIndex,
-             Node* node)
+    Iterator(const LockFreeHashMap<Key, Value>* map, size_t bucketIndex, Node* node)
         : map(map), bucketIndex(bucketIndex), currentNode(node) {}
 
     Iterator& operator++() {
@@ -104,9 +102,9 @@ class LockFreeHashMap {
     std::pair<Key, Value> keyValue;
     base::Atomic<Node*> next;
 
-    Node(Key k, Value&& v)
-        : keyValue(std::make_pair(k, base::move(v))), next(nullptr) {}
+    Node(Key k, Value&& v) : keyValue(std::make_pair(k, base::move(v))), next(nullptr) {}
   };
+
  private:
   base::Atomic<Node*>* buckets;
   size_t bucketCount;

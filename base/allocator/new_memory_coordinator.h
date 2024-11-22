@@ -21,8 +21,8 @@ class NewMemoryCoordinator {
   static void Destroy();
 
  private:
-  // same as above applies also here, as well as to any methods being called from the
-  // ctor.
+  // same as above applies also here, as well as to any methods being called
+  // from the ctor.
   NewMemoryCoordinator();
   ~NewMemoryCoordinator();
 

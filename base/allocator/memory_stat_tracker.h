@@ -19,9 +19,10 @@ constexpr MemoryCategory kInvalidCategory{kTrackingLimit};
 
 // this is not a proper class since we want to allow constinit for the MC
 struct MemoryTracker {
-  MemoryTracker() {  };
+  MemoryTracker() {};
 
-  // since a negative complement gets added with a + anyway, we simply only ever add
+  // since a negative complement gets added with a + anyway, we simply only ever
+  // add
   void TrackOperation(void* pointer, pointer_diff size /*signed number*/);
 
   void WipeStats();
@@ -32,13 +33,13 @@ struct MemoryTracker {
 
   // is this even smart, or can we use a bitset?
   MemoryCategory token_bucket[kTrackingLimit]{
-      kInvalidCategory};  // wouldnd a bitset suffice, as the index would indicate
-                          // the offset?
+      kInvalidCategory};  // wouldnd a bitset suffice, as the index would
+                          // indicate the offset?
   const char* name_bucket[kTrackingLimit]{"<noname>"};
   base::Atomic<mem_size> memory_sizes[kTrackingLimit]{0};
 };
 
-MemoryCategory current_memory_category(); 
+MemoryCategory current_memory_category();
 
 STRONG_INLINE void SetMemoryTrackerInstance(MemoryTracker*);
 

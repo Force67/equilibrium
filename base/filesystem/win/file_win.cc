@@ -161,9 +161,8 @@ bool File::SetLength(int64_t length) {
   // TODO(rvargas): Emulating ftruncate details seem suspicious and it is not
   // promised by the interface (nor was promised by PlatformFile). See if this
   // implementation detail can be removed.
-  return (
-      (::SetEndOfFile(file_.Get()) != FALSE) &&
-      (::SetFilePointerEx(file_.Get(), file_pointer, NULL, FILE_BEGIN) != FALSE));
+  return ((::SetEndOfFile(file_.Get()) != FALSE) &&
+          (::SetFilePointerEx(file_.Get(), file_pointer, NULL, FILE_BEGIN) != FALSE));
 }
 
 bool File::GetInfo(Info* info) {
@@ -205,8 +204,8 @@ File::Error File::Lock(File::LockMode mode) {
 
   OVERLAPPED overlapped = {};
   BOOL result = ::LockFileEx(file_.Get(), LockFileFlagsForMode(mode), /*dwReserved=*/0,
-                           /*nNumberOfBytesToLockLow=*/MAXDWORD,
-                           /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
+                             /*nNumberOfBytesToLockLow=*/MAXDWORD,
+                             /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
   if (!result)
     return GetLastFileError();
   return FILE_OK;
@@ -217,8 +216,8 @@ File::Error File::Unlock() {
 
   OVERLAPPED overlapped = {};
   BOOL result = ::UnlockFileEx(file_.Get(), /*dwReserved=*/0,
-                             /*nNumberOfBytesToLockLow=*/MAXDWORD,
-                             /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
+                               /*nNumberOfBytesToLockLow=*/MAXDWORD,
+                               /*nNumberOfBytesToLockHigh=*/MAXDWORD, &overlapped);
   if (!result)
     return GetLastFileError();
   return FILE_OK;
@@ -367,8 +366,8 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
   if (flags & FLAG_WIN_SEQUENTIAL_SCAN)
     create_flags |= FILE_FLAG_SEQUENTIAL_SCAN;
 
-  file_.Set(CreateFileW(path.c_str(), access, sharing, NULL, disposition,
-                        create_flags, NULL));
+  file_.Set(
+      CreateFileW(path.c_str(), access, sharing, NULL, disposition, create_flags, NULL));
 
   if (file_.IsValid()) {
     error_details_ = FILE_OK;

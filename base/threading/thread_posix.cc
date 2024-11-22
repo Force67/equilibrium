@@ -30,8 +30,8 @@ Thread::Handle Thread::Spawn() {
     return {.pthread_ = handle};
   }
 
-  // handle may be garbrage when the thread creation fails, so we ensure that null is
-  // returned
+  // handle may be garbrage when the thread creation fails, so we ensure that
+  // null is returned
   BUGCHECK(ec, "pthread_create() error");
   return {.pthread_ = 0};
 }
@@ -49,7 +49,7 @@ const i32 GetNativeThreadPriority(Thread::Handle handle) {
 
   /* scheduling parameters of target thread */
   if (::pthread_getschedparam(handle.pthread_, &policy, &param) != 0)
-    return UINT_MAX; // invalid cast to i32
+    return UINT_MAX;  // invalid cast to i32
 
   return param.sched_priority;
 }

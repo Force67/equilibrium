@@ -7,8 +7,8 @@
 #include <base/compiler.h>
 
 namespace base {
-// A source location contains format text and the file name, that is truncated at
-// compile time.
+// A source location contains format text and the file name, that is truncated
+// at compile time.
 struct SourceLocation {
   const char* format;
   const char* file;
@@ -25,11 +25,10 @@ mem_size consteval CountStrlen(const char* str) {
 
 // Small utility function to trim down the source path of any function
 consteval const char* TrimSourcePath(const char* const str,
-                                           const char* const lastslash = nullptr) {
-  return *str ? TrimSourcePath(str + 1,
-                               ((*str == '/' || *str == '\\')
-                                    ? str + 1
-                                    : (nullptr == lastslash ? str : lastslash)))
+                                     const char* const lastslash = nullptr) {
+  return *str ? TrimSourcePath(str + 1, ((*str == '/' || *str == '\\')
+                                             ? str + 1
+                                             : (nullptr == lastslash ? str : lastslash)))
               : (nullptr == lastslash ? str : lastslash);
 }
 
@@ -43,7 +42,8 @@ static constexpr int PastLastOffset(int last_offset,
   return PastLastOffset(last_offset, current_offset + 1, str + 1);
 }
 
-// based off: https://stackoverflow.com/questions/56471708/c-compile-time-substring
+// based off:
+// https://stackoverflow.com/questions/56471708/c-compile-time-substring
 // TODO(Force): move this to some compile time string util.
 template <int... I>
 struct Seq {};
@@ -96,16 +96,17 @@ struct LiteralToVariadicChars {
 #define EVAL_MACRO__(x) EVAL_MACRO_(x)
 #endif
 
-#define COMPILE_TIME_PAST_LAST_SLASH(STR)                                       \
-  []() {                                                                        \
-    struct Wrapper {                                                            \
-      constexpr static const char* get() { return STR; }                        \
-    };                                                                          \
-    using Seq =                                                                 \
-        ::base::detail::MakeSeq<::base::detail::PastLastOffset(0, 0,            \
-                                                               Wrapper::get()), \
-                                ::base::detail::CountStrlen(Wrapper::get())>;   \
-    return ::base::detail::LiteralToVariadicChars<Wrapper, Seq>::type::value;   \
+#define COMPILE_TIME_PAST_LAST_SLASH(STR)                                             \
+  []() {                                                                              \
+    struct Wrapper {                                                                  \
+      constexpr static const char* get() {                                            \
+        return STR;                                                                   \
+      }                                                                               \
+    };                                                                                \
+    using Seq =                                                                       \
+        ::base::detail::MakeSeq<::base::detail::PastLastOffset(0, 0, Wrapper::get()), \
+                                ::base::detail::CountStrlen(Wrapper::get())>;         \
+    return ::base::detail::LiteralToVariadicChars<Wrapper, Seq>::type::value;         \
   }()
 
 #define MAKE_SOURCE_LOC(function, file, line)                                      \

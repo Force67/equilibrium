@@ -25,8 +25,7 @@ class SimpleDeque {
   }
 
  public:
-  SimpleDeque()
-      : data(nullptr), capacity(0), frontIndex(0), backIndex(0), size(0) {}
+  SimpleDeque() : data(nullptr), capacity(0), frontIndex(0), backIndex(0), size(0) {}
 
   ~SimpleDeque() { delete[] data; }
 

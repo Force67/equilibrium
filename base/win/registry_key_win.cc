@@ -6,8 +6,9 @@
 #include <Windows.h>
 #include <base/check.h>
 
-extern "C" __declspec(dllimport) DWORD WINAPI
-    ExpandEnvironmentStringsW(LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize);
+extern "C" __declspec(dllimport) DWORD WINAPI ExpandEnvironmentStringsW(LPCWSTR lpSrc,
+                                                                        LPWSTR lpDst,
+                                                                        DWORD nSize);
 
 namespace base::win {
 namespace {
@@ -60,9 +61,8 @@ LONG RegistryKey::CreateWithDisposition(HKEY rootkey,
                                         REGSAM access) {
   DCHECK(rootkey && subkey && access && disposition);
   HKEY subhkey = nullptr;
-  LONG result =
-      ::RegCreateKeyExW(rootkey, subkey, 0, nullptr, REG_OPTION_NON_VOLATILE, access,
-                        nullptr, &subhkey, disposition);
+  LONG result = ::RegCreateKeyExW(rootkey, subkey, 0, nullptr, REG_OPTION_NON_VOLATILE,
+                                  access, nullptr, &subhkey, disposition);
   if (result == ERROR_SUCCESS) {
     Close();
     key_ = subhkey;
@@ -84,8 +84,8 @@ LONG RegistryKey::CreateKey(const wchar_t* name, REGSAM access) {
     return 87L;
   }
   HKEY subkey = nullptr;
-  LONG result = ::RegCreateKeyExW(key_, name, 0, nullptr, REG_OPTION_NON_VOLATILE,
-                                  access, nullptr, &subkey, nullptr);
+  LONG result = ::RegCreateKeyExW(key_, name, 0, nullptr, REG_OPTION_NON_VOLATILE, access,
+                                  nullptr, &subkey, nullptr);
   if (result == ERROR_SUCCESS) {
     Close();
     key_ = subkey;
@@ -148,9 +148,8 @@ bool RegistryKey::HasValue(const wchar_t* name) const {
 
 DWORD RegistryKey::GetValueCount() const {
   DWORD count = 0;
-  LONG result =
-      ::RegQueryInfoKeyW(key_, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                         &count, nullptr, nullptr, nullptr, nullptr);
+  LONG result = ::RegQueryInfoKeyW(key_, nullptr, nullptr, nullptr, nullptr, nullptr,
+                                   nullptr, &count, nullptr, nullptr, nullptr, nullptr);
   return (result == ERROR_SUCCESS) ? count : 0;
 }
 
@@ -165,8 +164,8 @@ FILETIME RegistryKey::GetLastWriteTime() const {
 LONG RegistryKey::GetValueNameAt(DWORD index, base::StringW& name) const {
   wchar_t buf[256];
   DWORD bufsize = sizeof(buf) / sizeof(wchar_t);
-  LONG r = ::RegEnumValueW(key_, index, buf, &bufsize, nullptr, nullptr, nullptr,
-                           nullptr);
+  LONG r =
+      ::RegEnumValueW(key_, index, buf, &bufsize, nullptr, nullptr, nullptr, nullptr);
   if (r == ERROR_SUCCESS)
     name.assign(buf, bufsize);
 
@@ -199,9 +198,8 @@ LONG RegistryKey::DeleteEmptyKey(const wchar_t* name) {
     return result;
 
   DWORD count = 0;
-  result =
-      ::RegQueryInfoKeyW(target_key, nullptr, nullptr, nullptr, nullptr, nullptr,
-                         nullptr, &count, nullptr, nullptr, nullptr, nullptr);
+  result = ::RegQueryInfoKeyW(target_key, nullptr, nullptr, nullptr, nullptr, nullptr,
+                              nullptr, &count, nullptr, nullptr, nullptr, nullptr);
 
   ::RegCloseKey(target_key);
 
@@ -289,12 +287,10 @@ LONG RegistryKey::ReadValue(const wchar_t* name,
 }
 
 LONG RegistryKey::WriteValue(const wchar_t* name, const DWORD in_value) {
-  return WriteValue(name, &in_value, static_cast<DWORD>(sizeof(in_value)),
-                    REG_DWORD);
+  return WriteValue(name, &in_value, static_cast<DWORD>(sizeof(in_value)), REG_DWORD);
 }
 
-LONG RegistryKey::WriteValue(const wchar_t* name,
-                             const base::StringRefW string_ref) {
+LONG RegistryKey::WriteValue(const wchar_t* name, const base::StringRefW string_ref) {
   return WriteValue(name, string_ref.c_str(),
                     static_cast<DWORD>(sizeof(wchar_t) * (string_ref.length() + 1)),
                     REG_SZ);
@@ -306,9 +302,8 @@ LONG RegistryKey::WriteValue(const wchar_t* name,
                              DWORD dtype) {
   DCHECK(data || !dsize);
 
-  LONG result =
-      ::RegSetValueExW(key_, name, 0, dtype,
-                       reinterpret_cast<LPBYTE>(const_cast<void*>(data)), dsize);
+  LONG result = ::RegSetValueExW(
+      key_, name, 0, dtype, reinterpret_cast<LPBYTE>(const_cast<void*>(data)), dsize);
   return result;
 }
 
@@ -320,8 +315,8 @@ LONG RegistryKey::RegDelRecurse(HKEY root_key, const wchar_t* name, REGSAM acces
     return result;
 
   HKEY target_key = nullptr;
-  result = ::RegOpenKeyExW(root_key, name, 0, KEY_ENUMERATE_SUB_KEYS | access,
-                           &target_key);
+  result =
+      ::RegOpenKeyExW(root_key, name, 0, KEY_ENUMERATE_SUB_KEYS | access, &target_key);
 
   if (result == ERROR_FILE_NOT_FOUND)
     return ERROR_SUCCESS;
@@ -346,8 +341,8 @@ LONG RegistryKey::RegDelRecurse(HKEY root_key, const wchar_t* name, REGSAM acces
     key_name.reserve(kMaxKeyNameLength);
     key_name.resize(kMaxKeyNameLength - 1);
 
-    result = ::RegEnumKeyExW(target_key, 0, key_name.data(), &key_size, nullptr,
-                             nullptr, nullptr, nullptr);
+    result = ::RegEnumKeyExW(target_key, 0, key_name.data(), &key_size, nullptr, nullptr,
+                             nullptr, nullptr);
 
     if (result != ERROR_SUCCESS)
       break;

@@ -46,7 +46,6 @@ constexpr inline T Align(const T n, const T to, T skew) {
 }
 static_assert(Align(69, 1024, 1) == 1025, "Alignment failed");
 
-
 template <typename T>
 inline pointer_size AlignAddress(const void* address, T align) {
   pointer_size ArithAddr = reinterpret_cast<pointer_size>(address);

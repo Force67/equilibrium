@@ -62,9 +62,9 @@ struct SharedString {
   }
 
   static SharedString* reallocate(TChar* const data,
-                                const size_t currentSize,
-                                const size_t currentCapacity,
-                                size_t* newCapacity) {
+                                  const size_t currentSize,
+                                  const size_t currentCapacity,
+                                  size_t* newCapacity) {
     DCHECK(*newCapacity > 0 && *newCapacity > currentSize);
     const size_t allocNewCapacity =
         goodMallocSize(getDataOffset() + (*newCapacity + 1) * sizeof(TChar));

@@ -18,10 +18,8 @@ class DynamicBitSet {
   static constexpr mem_size kWordSize = sizeof(ArrayType);
 
  public:
-
   constexpr explicit DynamicBitSet(mem_size val, mem_size bit_count) noexcept
       : bit_count_(bit_count) {
-
     vector_.resize(reserve_count(bit_count));
     // move full word.
     bool kNeedsMask = bit_count < kCharBit * sizeof(u64);
@@ -158,7 +156,8 @@ class DynamicBitSet {
       for (auto j = 0; j < rhs.storage_size(); ++j) {
         if (i < j)
           break;
-        Set(i, (*this)[i] | rhs[j]);  // we use array access operators (BitSet.[]).
+        Set(i,
+            (*this)[i] | rhs[j]);  // we use array access operators (BitSet.[]).
       }
     }
     return *this;

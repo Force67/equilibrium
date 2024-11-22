@@ -10,10 +10,9 @@
 namespace base {
 
 template <typename T>
-inline constexpr mem_size CountStringLength(
-    const T* p,
-    mem_size limit = MinMax<mem_size>::max()) {
-  //DCHECK(p);
+inline constexpr mem_size CountStringLength(const T* p,
+                                            mem_size limit = MinMax<mem_size>::max()) {
+  // DCHECK(p);
 
   const auto* s = p;
   while (*s && limit--)
@@ -23,7 +22,7 @@ inline constexpr mem_size CountStringLength(
 
 template <typename T>
 inline constexpr mem_size FindNullTerminator(const T* p, mem_size n /*max_size*/) {
-  //DCHECK(p);
+  // DCHECK(p);
 
   const auto* s = p;
   for (; n > 0; --n, ++s) {

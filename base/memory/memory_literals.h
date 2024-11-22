@@ -5,8 +5,8 @@
 #include <base/arch.h>
 
 namespace base::memory_literals {
-// Please avoid using these for any memory specific calculations use the *ib methods
-// instead
+// Please avoid using these for any memory specific calculations use the *ib
+// methods instead
 constexpr mem_size operator""_kb(mem_size x) {
   return 1000ULL * x;
 }

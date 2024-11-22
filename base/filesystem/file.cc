@@ -26,8 +26,7 @@ File::File(const Path& path, uint32_t flags) : error_details_(FILE_OK) {
 }
 #endif
 
-File::File(ScopedPlatformFile platform_file)
-    : File(std::move(platform_file), false) {}
+File::File(ScopedPlatformFile platform_file) : File(std::move(platform_file), false) {}
 
 File::File(PlatformFile platform_file) : File(platform_file, false) {}
 
@@ -88,14 +87,12 @@ bool File::ReadAtCurrentPosAndCheck(std::span<uint8_t> data) {
 
 bool File::WriteAndCheck(int64_t offset, std::span<const uint8_t> data) {
   int size = static_cast<int>(data.size());
-  return Write(offset, reinterpret_cast<const char*>(data.data()), size) ==
-         size;
+  return Write(offset, reinterpret_cast<const char*>(data.data()), size) == size;
 }
 
 bool File::WriteAtCurrentPosAndCheck(std::span<const uint8_t> data) {
   int size = static_cast<int>(data.size());
-  return WriteAtCurrentPos(reinterpret_cast<const char*>(data.data()), size) ==
-         size;
+  return WriteAtCurrentPos(reinterpret_cast<const char*>(data.data()), size) == size;
 }
 
 // static

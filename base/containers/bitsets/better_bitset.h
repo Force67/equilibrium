@@ -10,7 +10,8 @@
 
 namespace base {
 template <mem_size N>
-requires(N > 0) class BetterBitSet {
+  requires(N > 0)
+class BetterBitSet {
   using ArrayType = base::conditional_t<
       (N > 32),
       u64,
@@ -86,8 +87,8 @@ requires(N > 0) class BetterBitSet {
   BetterBitSet& flip() noexcept {
     for (mem_size i = 0; i < kWords - 1; ++i)
       array_[i] = ~array_[i];
-    array_[kWords - 1] = static_cast<ArrayType>(
-        ~static_cast<mem_size>(array_[kWords - 1]) & kLastMask);
+    array_[kWords - 1] =
+        static_cast<ArrayType>(~static_cast<mem_size>(array_[kWords - 1]) & kLastMask);
     return *this;
   }
 
@@ -138,7 +139,9 @@ requires(N > 0) class BetterBitSet {
     return memcmp(&array_[0], &rhs.array_[0], sizeof(array_)) == 0;
   }
 
-  BetterBitSet& operator&=(const BetterBitSet& rhs) noexcept requires(N <= 64) {
+  BetterBitSet& operator&=(const BetterBitSet& rhs) noexcept
+    requires(N <= 64)
+  {
     for (auto i = 0; i < kWords; ++i) {
       array_[i] &= rhs.array_[i] & kLastMask;
     }
@@ -147,8 +150,7 @@ requires(N > 0) class BetterBitSet {
 
   BetterBitSet& operator|=(const BetterBitSet& rhs) noexcept {
     for (auto i = 0; i < kWords; ++i) {
-      Set(i, this->operator[](i) |
-                 rhs[i]);  // we use array access operators (BitSet.[]).
+      Set(i, this->operator[](i) | rhs[i]);  // we use array access operators (BitSet.[]).
     }
 
     return *this;

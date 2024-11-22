@@ -12,10 +12,11 @@ constexpr char kBaseCheckChannelName[] = "CHECK";
 
 // by default we forward those cases to the global log handler
 static void DefaultCheckHandler(const char* message,
-                                 const char* file_name,
-                                 const char* function,
-                                 const char* msg) {
-  ::base::PrintLogMessage(kBaseCheckChannelName, ::base::LogLevel::kFatal, message, file_name, function);
+                                const char* file_name,
+                                const char* function,
+                                const char* msg) {
+  ::base::PrintLogMessage(kBaseCheckChannelName, ::base::LogLevel::kFatal, message,
+                          file_name, function);
   if (msg)
     ::base::PrintLogMessage(kBaseCheckChannelName, ::base::LogLevel::kFatal, msg);
 }
@@ -25,13 +26,11 @@ BASE_EXPORT constinit base::CheckHandler* assert_handler{DefaultCheckHandler};
 
 namespace detail {
 void DCheck(const SourceLocation& source_location, const char* msg) {
-  assert_handler(source_location.format, source_location.file, source_location.func,
-                 msg);
+  assert_handler(source_location.format, source_location.file, source_location.func, msg);
 }
 
 void BugCheck(const SourceLocation& source_location, const char* msg) {
-  assert_handler(source_location.format, source_location.file, source_location.func,
-                 msg);
+  assert_handler(source_location.format, source_location.file, source_location.func, msg);
 }
 }  // namespace detail
 

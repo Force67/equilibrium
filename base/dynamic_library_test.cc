@@ -15,9 +15,9 @@ TEST(DynamicLibrary, EmptyLoad) {
 TEST(DynamicLibrary, Load) {
   const base::DynamicLibrary lib(
 #if defined(OS_LINUX)
-	  "libstdc++.so"
+      "libstdc++.so"
 #elif defined(OS_WIN)
-	  "iphlpapi.dll"
+      "iphlpapi.dll"
 #endif
   );
   ASSERT_TRUE(lib.loaded());
@@ -26,7 +26,7 @@ TEST(DynamicLibrary, Load) {
 TEST(DynamicLibrary, LoadExisting) {
   const base::Path kPath(
 #if defined(OS_LINUX)
-	  "libc.so"
+      "libc.so"
 #elif defined(OS_WIN)
       "kernel32.dll"
 #endif

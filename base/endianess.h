@@ -11,8 +11,8 @@ namespace base {
 template <typename T>
 consteval T ByteSwap_Always(T i, T j = 0u, mem_size n = 0u) {
   return n == sizeof(T) ? j
-             : ByteSwap_Always<T>(i >> kCharBit,
-                                      (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
+                        : ByteSwap_Always<T>(i >> kCharBit,
+                                             (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
 }
 
 // Swap only to LE
@@ -22,8 +22,8 @@ consteval T ByteSwapToLittleEndian(T i, T j = 0u, mem_size n = 0u) {
     return i;
 
   return n == sizeof(T) ? j
-             : ByteSwapToLittleEndian<T>(i >> kCharBit,
-                                        (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
+                        : ByteSwapToLittleEndian<T>(
+                              i >> kCharBit, (j << kCharBit) | (i & (T)(u8)(-1)), n + 1);
 }
 
 }  // namespace base

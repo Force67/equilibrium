@@ -55,8 +55,7 @@ inline FileDescriptor::FileDescriptor(int ifd, bool iauto_close)
 inline FileDescriptor::FileDescriptor(File file)
     : fd(file.TakePlatformFile()), auto_close(true) {}
 
-inline FileDescriptor::FileDescriptor(ScopedFD fd)
-    : fd(fd.release()), auto_close(true) {}
+inline FileDescriptor::FileDescriptor(ScopedFD fd) : fd(fd.release()), auto_close(true) {}
 
 inline bool FileDescriptor::operator==(const FileDescriptor& other) const {
   return fd == other.fd && auto_close == other.auto_close;

@@ -9,7 +9,7 @@ namespace {
 using namespace base;
 
 TEST(DynamicBitSet, Compare) {
-	// this is leaking memory..
+  // this is leaking memory..
   base::DynamicBitSet a(9, 4);  // 1001
   base::DynamicBitSet b(3, 4);  // 0011
   EXPECT_EQ(a.to_ullong(), 0b1001);
@@ -51,7 +51,6 @@ TEST(DynamicBitSet, SetTest) {
   a.Set(3, true);
   EXPECT_TRUE(a.Test(3));
 }
-
 
 TEST(DynamicBitSet, CountSetBits) {
   base::DynamicBitSet a(9, 4);  // 1001

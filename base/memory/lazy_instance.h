@@ -11,7 +11,8 @@ namespace base {
 // prefer this class over unneeded unique_pointers if your only goal is to delay
 // creation. use with composition.
 template <typename T>
-requires(!base::IsTrivial<T>) class LazyInstance {
+  requires(!base::IsTrivial<T>)
+class LazyInstance {
  public:
   constexpr LazyInstance() = default;
 

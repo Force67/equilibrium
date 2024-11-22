@@ -8,8 +8,8 @@ namespace {
 using namespace base;
 
 TEST(BitSetTest, Compare) {
-  base::BitSet<4> a(9); // 1001
-  base::BitSet<4> b(3); // 0011
+  base::BitSet<4> a(9);  // 1001
+  base::BitSet<4> b(3);  // 0011
   ASSERT_FALSE(a == b);
   ASSERT_TRUE(a != b);
 }

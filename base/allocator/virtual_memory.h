@@ -32,10 +32,8 @@ using NativePageProtectionType = u32;
 using NativePageProtectionType = int;  // whatever they define as int.
 #endif
 
-NativePageProtectionType TranslateToNativePageProtection(
-    const PageProtectionFlags);
-PageProtectionFlags TranslateFromNativePageProtection(
-    const NativePageProtectionType);
+NativePageProtectionType TranslateToNativePageProtection(const PageProtectionFlags);
+PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtectionType);
 
 u32 FetchCurrentPageSize();
 
@@ -51,12 +49,11 @@ byte* VirtualMemoryReserve(void* address, mem_size size);
 // On Windows the returned pages are also zeroed.
 byte* VirtualMemoryAllocate(void* address,
                             mem_size size,
-                            PageProtectionFlags protection, const bool reserve = true);
+                            PageProtectionFlags protection,
+                            const bool reserve = true);
 
 // Releases memory that was previously reserved with VirtualMemoryReserve
 bool VirtualMemoryFree(void* address, mem_size size);
 
-bool VirtualMemoryProtect(void* address,
-                          mem_size size,
-                          PageProtectionFlags protection);
+bool VirtualMemoryProtect(void* address, mem_size size, PageProtectionFlags protection);
 }  // namespace base

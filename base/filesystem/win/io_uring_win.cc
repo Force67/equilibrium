@@ -38,14 +38,13 @@ typedef struct IORING_CREATE_FLAGS {
 } IORING_CREATE_FLAGS;
 
 extern "C" __declspec(dllimport) HRESULT
-    QueryIoRingCapabilities(IORING_CAPABILITIES* capabilities);
+QueryIoRingCapabilities(IORING_CAPABILITIES* capabilities);
 
-extern "C" __declspec(dllimport) HRESULT
-    CreateIoRing(IORING_VERSION ioringVersion,
-                 IORING_CREATE_FLAGS flags,
-                 u32 submissionQueueSize,
-                 u32 completionQueueSize,
-                 void* h);
+extern "C" __declspec(dllimport) HRESULT CreateIoRing(IORING_VERSION ioringVersion,
+                                                      IORING_CREATE_FLAGS flags,
+                                                      u32 submissionQueueSize,
+                                                      u32 completionQueueSize,
+                                                      void* h);
 
 extern "C" __declspec(dllimport) HRESULT CloseIoRing(void* ioRing);
 
@@ -93,8 +92,7 @@ typedef struct IORING_BUFFER_REF {
       : Kind(IORING_REF_KIND::IORING_REF_RAW), Buffer(address) {}
 
   explicit IORING_BUFFER_REF(IORING_REGISTERED_BUFFER registeredBuffer)
-      : Kind(IORING_REF_KIND::IORING_REF_REGISTERED),
-        Buffer(registeredBuffer) {}
+      : Kind(IORING_REF_KIND::IORING_REF_REGISTERED), Buffer(registeredBuffer) {}
 
   IORING_BUFFER_REF(u32 index, u32 offset)
       : IORING_BUFFER_REF(IORING_REGISTERED_BUFFER{index, offset}) {}
@@ -112,21 +110,20 @@ typedef struct IORING_BUFFER_REF {
   } Buffer;
 } IORING_BUFFER_REF;
 
-extern "C" __declspec(dllimport) HRESULT
-    PopIoRingCompletion(_In_ void* ioRing, IORING_CQE* cqe);
+extern "C" __declspec(dllimport) HRESULT PopIoRingCompletion(_In_ void* ioRing,
+                                                             IORING_CQE* cqe);
 
 typedef enum IORING_SQE_FLAGS {
   IOSQE_FLAGS_NONE = 0,
 } IORING_SQE_FLAGS;
 
-extern "C" __declspec(dllimport) HRESULT
-    BuildIoRingReadFile(void* ioRing,
-                        IORING_HANDLE_REF fileRef,
-                        IORING_BUFFER_REF dataRef,
-                        u32 numberOfBytesToRead,
-                        u64 fileOffset,
-                        UINT_PTR userData,
-                        IORING_SQE_FLAGS flags);
+extern "C" __declspec(dllimport) HRESULT BuildIoRingReadFile(void* ioRing,
+                                                             IORING_HANDLE_REF fileRef,
+                                                             IORING_BUFFER_REF dataRef,
+                                                             u32 numberOfBytesToRead,
+                                                             u64 fileOffset,
+                                                             UINT_PTR userData,
+                                                             IORING_SQE_FLAGS flags);
 
 }  // namespace
 
@@ -151,8 +148,7 @@ bool IOUring::Create() {
     return false;
   }
   IORING_CREATE_FLAGS flags{};
-  if (FAILED(::CreateIoRing(IORING_VERSION_3, flags, 0x10000, 0x20000,
-                            ring_handle_))) {
+  if (FAILED(::CreateIoRing(IORING_VERSION_3, flags, 0x10000, 0x20000, ring_handle_))) {
     LOG_ERROR("Failed to create IO ring.");
     return false;
   }
@@ -169,8 +165,7 @@ void IOUring::Destroy() {
     }
     ring_handle_ = nullptr;
   } else {
-    LOG_WARNING(
-        "Attempted to destroy an uninitialized or already destroyed IO ring.");
+    LOG_WARNING("Attempted to destroy an uninitialized or already destroyed IO ring.");
   }
 }
 

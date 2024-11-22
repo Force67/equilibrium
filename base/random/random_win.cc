@@ -15,8 +15,7 @@ u64 SourceTrueRandomSeed() {
     return 0;
   }
   u64 seed = 0;
-  BOOL result =
-      ::CryptGenRandom(hProvider, sizeof(seed), reinterpret_cast<BYTE*>(&seed));
+  BOOL result = ::CryptGenRandom(hProvider, sizeof(seed), reinterpret_cast<BYTE*>(&seed));
   ::CryptReleaseContext(hProvider, 0);
   if (!result)
     return 0;

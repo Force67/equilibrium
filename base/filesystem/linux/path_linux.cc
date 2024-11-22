@@ -14,4 +14,4 @@ base::String Path::ToAsciiString() const {
 
   return base::String(reinterpret_cast<const char*>(path_buf_.c_str()));
 }
-}
+}  // namespace base

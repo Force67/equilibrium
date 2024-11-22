@@ -76,8 +76,7 @@ class CommandLine {
 
   // Helper for aliases
   template <typename... Aliases>
-  inline bool FindSwitchWithAlias(const base::StringRefU8 command,
-                                  Aliases... aliases) {
+  inline bool FindSwitchWithAlias(const base::StringRefU8 command, Aliases... aliases) {
     bool found = FindSwitch(command);
     if (found)
       return found;
@@ -90,9 +89,8 @@ class CommandLine {
 
   // Helper for aliases
   template <typename... Aliases>
-  inline base::StringRefU8 FindSwitchValuesWithAlias(
-      const base::StringRefU8 command,
-      Aliases... aliases) {
+  inline base::StringRefU8 FindSwitchValuesWithAlias(const base::StringRefU8 command,
+                                                     Aliases... aliases) {
     base::StringRefU8 val = FindSwitchValue(command);
     if (!val.empty())
       return val;
@@ -104,11 +102,17 @@ class CommandLine {
     return u8"";
   }
 
+  template <typename TFunc>
+  void ForEachPiece(TFunc&& functor) {
+    for (auto& piece : pieces_) {
+      functor(piece);
+    }
+  }
+
   // Get the value for a given switch; returns an empty string if the switch
   // isn't found or has no value these switches usually start with - or -- and
   // the parameter is provided by --myswitch=myvalue
-  static base::StringRefU8 ExtractSwitchValue(
-      const base::StringRefU8 item_contents);
+  static base::StringRefU8 ExtractSwitchValue(const base::StringRefU8 item_contents);
 
   // Finds the index for when positonal arguments start, usually after the
   // optional arguments

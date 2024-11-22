@@ -19,15 +19,17 @@ template <typename T,
 class DistinctPointer {
  public:
   // default ctor, pointer is uninitialized
-  constexpr DistinctPointer() requires(base::ISSame<TConstructionPolicy, MakeLater>)
-      : pointer_(nullptr){};
+  constexpr DistinctPointer()
+    requires(base::ISSame<TConstructionPolicy, MakeLater>)
+      : pointer_(nullptr) {};
 
-  constexpr DistinctPointer() requires(base::ISSame<TConstructionPolicy, MakeNow>)
+  constexpr DistinctPointer()
+    requires(base::ISSame<TConstructionPolicy, MakeNow>)
       : pointer_(new T()) {}
 
   template <typename... TArgs>
-  constexpr DistinctPointer(TArgs&&... args) requires(
-      base::ISSame<TConstructionPolicy, MakeNow>)
+  constexpr DistinctPointer(TArgs&&... args)
+    requires(base::ISSame<TConstructionPolicy, MakeNow>)
       : pointer_(new T(base::forward<TArgs>(args)...)) {}
 
   constexpr ~DistinctPointer() {
@@ -38,14 +40,18 @@ class DistinctPointer {
   BASE_NOCOPYMOVE(DistinctPointer);
 
   // delay without params
-  void Make() requires(base::ISSame<TConstructionPolicy, MakeLater>) {
+  void Make()
+    requires(base::ISSame<TConstructionPolicy, MakeLater>)
+  {
     DCHECK(!pointer_);
     pointer_ = new T();
   }
 
   // for delayed initialization
   template <typename... TArgs>
-  void Make(TArgs&&... args) requires(base::ISSame<TConstructionPolicy, MakeLater>) {
+  void Make(TArgs&&... args)
+    requires(base::ISSame<TConstructionPolicy, MakeLater>)
+  {
     DCHECK(!pointer_);
     pointer_ = new T(base::forward<TArgs>(args)...);
   }

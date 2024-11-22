@@ -15,12 +15,15 @@
 using namespace base;
 
 // bugcheck isnt available in this context
-#define ENSURE_THAT(expression) if (!(expression)) { DEBUG_TRAP; }
+#define ENSURE_THAT(expression) \
+  if (!(expression)) {          \
+    DEBUG_TRAP;                 \
+  }
 
 void EQPageTableTest1() {
   PageTable table(0xFFFF * 2, 0xFFFF, 2);
   ENSURE_THAT(table.page_size() == 0xFFFF);
- // u32 size = PageTable::current_page_size();
+  // u32 size = PageTable::current_page_size();
 
   void* page = table.RequestPage(base::PageProtectionFlags::RW);
   ENSURE_THAT(page);
@@ -75,10 +78,10 @@ void BucketAllocatorTest_Allocate() {
 
   // now lets allocate a bunch of blocks:
   for (int i = 0; i < 100; i++) {
-	block = allocator.Allocate(10, 8);
-	ENSURE_THAT(block != nullptr);
-	allocated_size = allocator.QueryAllocationSize(block);
-	ENSURE_THAT(allocated_size >= 10);
+    block = allocator.Allocate(10, 8);
+    ENSURE_THAT(block != nullptr);
+    allocated_size = allocator.QueryAllocationSize(block);
+    ENSURE_THAT(allocated_size >= 10);
   }
 }
 
@@ -94,7 +97,6 @@ void BucketAllocatorTest_ReAllocate_Grow() {
   ENSURE_THAT(allocated_size >= 20);
   ENSURE_THAT(allocator.Free(block) == 20);
 }
-
 
 int main() {
 #if (BASE_USE_EQ_ALLOCATOR)

@@ -51,7 +51,7 @@ class Expected {
       expected_value_ = base::move(value);
   }
 
-  ~Expected(){};
+  ~Expected() {};
 
   constexpr bool has_error() noexcept {
 #if defined(CONFIG_DEBUG)
@@ -64,8 +64,7 @@ class Expected {
   CONSTEXPR_ND const TExpected& value() const noexcept {
     DCHECK(!has_error_, "Invalid access on error'd value");
 #if defined(CONFIG_DEBUG)
-    DCHECK(has_checked_validity_,
-           "Validity wasn't checked before accessing value");
+    DCHECK(has_checked_validity_, "Validity wasn't checked before accessing value");
 #endif
     return expected_value_;
   }

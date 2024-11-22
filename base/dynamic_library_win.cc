@@ -36,7 +36,6 @@ bool DynamicLibrary::Free() {
 
 void* DynamicLibrary::FindSymbolPointer(const char* name) const {
   // TODO: buyer moore search directly on nt image header???
-  return reinterpret_cast<void*>(
-      ::GetProcAddress(static_cast<HMODULE>(handle_), name));
+  return reinterpret_cast<void*>(::GetProcAddress(static_cast<HMODULE>(handle_), name));
 }
 }  // namespace base

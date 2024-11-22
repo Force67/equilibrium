@@ -1,8 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// Safe wrapper around a standard C array. It is your own responsibility to track
-// sizes.
+// Safe wrapper around a standard C array. It is your own responsibility to
+// track sizes.
 #pragma once
 
 #include <base/arch.h>
@@ -11,7 +11,8 @@
 namespace base {
 
 template <typename T, mem_size N>
-requires(N > 0) class Array {
+  requires(N > 0)
+class Array {
  public:
   using Storage = T[N];
 
@@ -22,10 +23,10 @@ requires(N > 0) class Array {
     return storage_[index];
   }
 
-inline CONSTEXPR_ND T& at(mem_size index) noexcept {
-  DCHECK(index < N, "Array access out of bounds");
-  return storage_[index];
-}
+  inline CONSTEXPR_ND T& at(mem_size index) noexcept {
+    DCHECK(index < N, "Array access out of bounds");
+    return storage_[index];
+  }
 
   inline void fill(const T& value) noexcept {
     for (auto& c : storage_)

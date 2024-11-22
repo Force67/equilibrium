@@ -12,6 +12,6 @@ inline bool TriFailed(TriState s) {
   return s == TriState::kFalse || s == TriState::kUnknown;
 }
 
-// no custom bool operators here, since they would defeat the very purpose of this
-// type
+// no custom bool operators here, since they would defeat the very purpose of
+// this type
 }  // namespace base

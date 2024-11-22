@@ -14,8 +14,7 @@
 #include <intrin.h>
 #define BASE_WIN_GET_CALLER _ReturnAddress()
 #elif defined(COMPILER_GCC)
-#define BASE_WIN_GET_CALLER \
-  __builtin_extract_return_addr(__builtin_return_address(0))
+#define BASE_WIN_GET_CALLER __builtin_extract_return_addr(__builtin_return_address(0))
 #endif
 
 namespace base {
@@ -41,8 +40,7 @@ class GenericScopedHandle {
     Set(handle);
   }
 
-  GenericScopedHandle(GenericScopedHandle&& other)
-      : handle_(Traits::NullHandle()) {
+  GenericScopedHandle(GenericScopedHandle&& other) : handle_(Traits::NullHandle()) {
     Set(other.Take());
   }
 
@@ -59,8 +57,7 @@ class GenericScopedHandle {
     return *this;
   }
 
-  static void* GetProgramCounter() { return nullptr;
-  }
+  static void* GetProgramCounter() { return nullptr; }
 
   void Set(Handle handle) {
     if (handle_ != handle) {
@@ -70,8 +67,7 @@ class GenericScopedHandle {
 
       if (Traits::IsHandleValid(handle)) {
         handle_ = handle;
-        Verifier::StartTracking(handle, this, BASE_WIN_GET_CALLER,
-                                GetProgramCounter());
+        Verifier::StartTracking(handle, this, BASE_WIN_GET_CALLER, GetProgramCounter());
       }
       ::SetLastError(last_error);
     }
@@ -84,8 +80,7 @@ class GenericScopedHandle {
     Handle temp = handle_;
     handle_ = Traits::NullHandle();
     if (Traits::IsHandleValid(temp)) {
-      Verifier::StopTracking(temp, this, BASE_WIN_GET_CALLER,
-                             GetProgramCounter());
+      Verifier::StopTracking(temp, this, BASE_WIN_GET_CALLER, GetProgramCounter());
     }
     return temp;
   }
@@ -93,8 +88,7 @@ class GenericScopedHandle {
   // Explicitly closes the owned handle.
   void Close() {
     if (Traits::IsHandleValid(handle_)) {
-      Verifier::StopTracking(handle_, this, BASE_WIN_GET_CALLER,
-                             GetProgramCounter());
+      Verifier::StopTracking(handle_, this, BASE_WIN_GET_CALLER, GetProgramCounter());
 
       Traits::CloseHandle(handle_);
       handle_ = Traits::NullHandle();
@@ -176,14 +170,14 @@ class DummyVerifierTraits {
                            const void* pc2);
 };*/
 
-using UncheckedScopedHandle =
-    GenericScopedHandle<HandleTraits, DummyVerifierTraits>;
-//using CheckedScopedHandle = GenericScopedHandle<HandleTraits, VerifierTraits>;
+using UncheckedScopedHandle = GenericScopedHandle<HandleTraits, DummyVerifierTraits>;
+// using CheckedScopedHandle = GenericScopedHandle<HandleTraits,
+// VerifierTraits>;
 
-//#if DCHECK_IS_ON () &&
-//    !defined(ARCH_CPU_64_BITS) using ScopedHandle = CheckedScopedHandle;
-//#else
+// #if DCHECK_IS_ON () &&
+//     !defined(ARCH_CPU_64_BITS) using ScopedHandle = CheckedScopedHandle;
+// #else
 using ScopedHandle = UncheckedScopedHandle;
-//#endif
+// #endif
 }  // namespace win
 }  // namespace base

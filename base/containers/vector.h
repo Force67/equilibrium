@@ -113,10 +113,9 @@ class Vector {
 
   // increase internal capacity
   void reserve(mem_size new_reserved_capacity) {
-    DCHECK(
-        new_reserved_capacity != 0 && capacity() != 0,
-        "Vector::reserve: Use resize instead of resize for populating an empty "
-        "Vector");
+    DCHECK(new_reserved_capacity != 0 && capacity() != 0,
+           "Vector::reserve: Use resize instead of resize for populating an empty "
+           "Vector");
 
     if (new_reserved_capacity > capacity()) [[likely]]
       GrowCapacity(capacity(), new_reserved_capacity);
@@ -168,8 +167,7 @@ class Vector {
   template <typename... TArgs>
   value_type& emplace_back(TArgs&&... args) {
     if (end_ < capacity_) [[likely]]
-      ::new (static_cast<void*>(end_++))
-          value_type(base::forward<TArgs>(args)...);
+      ::new (static_cast<void*>(end_++)) value_type(base::forward<TArgs>(args)...);
     else
       InsertAtEnd(base::forward<TArgs>(args)...);
     return back();
@@ -408,8 +406,7 @@ class Vector {
     if (n > mem_size(capacity_ - end_)) {
       const auto current_cap = size();
       const auto grow_size = CalculateNewCapacity(current_cap);
-      const auto new_size =
-          grow_size < current_cap + n ? current_cap + n : grow_size;
+      const auto new_size = grow_size < current_cap + n ? current_cap + n : grow_size;
 
       GrowCapacity(current_cap, new_size);
 
@@ -428,8 +425,7 @@ class Vector {
     if (n > mem_size(capacity_ - end_)) {
       const auto current_cap = size();
       const auto grow_size = CalculateNewCapacity(current_cap);
-      const auto new_size =
-          grow_size < current_cap + n ? current_cap + n : grow_size;
+      const auto new_size = grow_size < current_cap + n ? current_cap + n : grow_size;
 
       GrowCapacity(current_cap, new_size);
 

@@ -11,30 +11,19 @@
 
 namespace base {
 
-enum class LogLevel {
-  kTrace,
-  kDebug,
-  kInfo,
-  kWarning,
-  kError,
-  kFatal,
-  kAll
-};
+enum class LogLevel { kTrace, kDebug, kInfo, kWarning, kError, kFatal, kAll };
 const char* LogLevelToName(LogLevel level) noexcept;
 
 namespace detail {
 BASE_EXPORT void WriteLogMessage(const char* channel_name,
-                     LogLevel,
-                     const char*,
-                     const fmt::format_args&);
-BASE_EXPORT void WriteLogMessagef(
-    const char* channel_name,
-                      LogLevel,
-                      const char*,
-                      const fmt::basic_format_args<fmt::printf_context>&);
-BASE_EXPORT void WriteLogMessage(const char* channel_name,
-                                LogLevel,
-                                const char*);
+                                 LogLevel,
+                                 const char*,
+                                 const fmt::format_args&);
+BASE_EXPORT void WriteLogMessagef(const char* channel_name,
+                                  LogLevel,
+                                  const char*,
+                                  const fmt::basic_format_args<fmt::printf_context>&);
+BASE_EXPORT void WriteLogMessage(const char* channel_name, LogLevel, const char*);
 }  // namespace detail
 
 using LogHandler = void (*)(void*, const char* channel_name, LogLevel, const char*);
@@ -46,8 +35,7 @@ void PrintLogMessage(const char* channel_name,
                      LogLevel level,
                      const char* format,
                      const Args&... args) {
-  detail::WriteLogMessage(channel_name, level, format,
-                          fmt::make_format_args(args...));
+  detail::WriteLogMessage(channel_name, level, format, fmt::make_format_args(args...));
 }
 
 // adadpter function for legacy printf style systems
@@ -57,7 +45,8 @@ void PrintfLogMessage(const char* channel_name,
                       const char* format,
                       const Args&... args) {
   using context = fmt::basic_printf_context<char>;
-  detail::WriteLogMessagef(channel_name, level, format, fmt::make_format_args<context>(args...));
+  detail::WriteLogMessagef(channel_name, level, format,
+                           fmt::make_format_args<context>(args...));
 }
 }  // namespace base
 
@@ -90,8 +79,7 @@ void PrintfLogMessage(const char* channel_name,
   ::base::PrintLogMessage(PROJECT_NAME, ::base::LogLevel::kFatal, __VA_ARGS__)
 
 // >>> new log api
-#define BASE_LOGI(c, ...) \
-  ::base::PrintLogMessage(c, ::base::LogLevel::kInfo, __VA_ARGS__)
+#define BASE_LOGI(c, ...) ::base::PrintLogMessage(c, ::base::LogLevel::kInfo, __VA_ARGS__)
 #define BASE_LOGW(c, ...) \
   ::base::PrintLogMessage(c, ::base::LogLevel::kWarning, __VA_ARGS__)
 #define BASE_LOGE(c, ...) \

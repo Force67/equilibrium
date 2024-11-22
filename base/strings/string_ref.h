@@ -59,19 +59,15 @@ class BasicStringRef {
   }
 
   // construct at compiletime
-  constexpr BasicStringRef(const TChar* data,
-                           mem_size length,
-                           bool is_null_terminated)
+  constexpr BasicStringRef(const TChar* data, mem_size length, bool is_null_terminated)
       : data_(data),
         length_(static_cast<u32>(length)),
-        tags_(is_null_terminated ? StringRefFlags::kIsNullTerm
-                                 : StringRefFlags::kNone) {}
+        tags_(is_null_terminated ? StringRefFlags::kIsNullTerm : StringRefFlags::kNone) {}
 
   // construct from raw string
   constexpr BasicStringRef(const TChar* data)
       : data_(data),
-        length_(
-            static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
+        length_(static_cast<u32>(base::CountStringLength(data, max_size_bytes()))) {
     // if our length is greater than 0, it means we have hit the null
     // barrier..., so we assume for now that we may advance by one to catch the
     // actual null terminator, that would have been cut off otherwise, since the
@@ -106,8 +102,8 @@ class BasicStringRef {
   bool compare_at(const mem_size self_offset_in_bytes,
                   const TChar* rhs,
                   mem_size character_count) const {
-    return memcmp(data_ + self_offset_in_bytes, rhs,
-                  character_count * sizeof(TChar)) == 0;
+    return memcmp(data_ + self_offset_in_bytes, rhs, character_count * sizeof(TChar)) ==
+           0;
   }
 
   // Comparison operators
@@ -149,23 +145,20 @@ class BasicStringRef {
     // thanks to constinit we can ensure no ugly c++ guard is generated around
     // this, so while not pretty, this is OK
     static constinit TChar null_array[] = {0};
-    static constinit BasicStringRef<TChar> null_ref{
-        null_array, 0, false /*disallow .c_str()*/};
+    static constinit BasicStringRef<TChar> null_ref{null_array, 0,
+                                                    false /*disallow .c_str()*/};
     return null_ref;
   }
 
-  inline bool IsNullTerminated() const {
-    return tags_ & StringRefFlags::kIsNullTerm;
-  }
+  inline bool IsNullTerminated() const { return tags_ & StringRefFlags::kIsNullTerm; }
 
   // NOTE(Vince): fixes one of my biggest pet peeves with the STL, which is the
   // fact that we cannot know if a referenced string is null terminated using
   // std::string_view
   // Prefer using this over .data()
   inline const TChar* c_str() const {
-    BUGCHECK(
-        tags_ & StringRefFlags::kIsNullTerm,
-        "String piece is not null terminated. c_str() is therefore illegal");
+    BUGCHECK(tags_ & StringRefFlags::kIsNullTerm,
+             "String piece is not null terminated. c_str() is therefore illegal");
 
     // TODO: review the impact of this..
     // tags_ |= StringRefFlags::kInvalidateDeadRef;
@@ -200,6 +193,10 @@ class BasicStringRef {
     return base::StringSearch(data_, length(), &s, pos, 1);
   }
 
+  constexpr mem_size find(const TChar s) const {
+    return base::StringSearch(data_, length(), &s, 0, 1);
+  }
+
   constexpr mem_size find_first_not_of(const TChar* s,
                                        mem_size pos,
                                        mem_size count) const {
@@ -224,8 +221,7 @@ class BasicStringRef {
     return data_[offset];
   }
 
-  base::XBasicString<TChar> substr(mem_size pos = 0,
-                                   mem_size count = npos) const {
+  base::XBasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
     BUGCHECK(pos < length_, "Position is out of bounds");
     if (count > length_ - pos) {
       count = length_ - pos;
@@ -233,8 +229,7 @@ class BasicStringRef {
     return base::XBasicString<TChar>(&data_[pos], count);
   }
 
-  BasicStringRef<TChar> subslice(mem_size pos = 0,
-                                 mem_size count = npos) const {
+  BasicStringRef<TChar> subslice(mem_size pos = 0, mem_size count = npos) const {
     // Clamp pos to the length of the string.
     if (pos > length_) {
       pos = length_;
@@ -291,8 +286,7 @@ inline base::StringRefU32 operator""_s(const char32_t* s, size_t length) {
 template <typename T>
 base::XBasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
                                      bool no_nterm = false) {
-  base::XBasicString<T> strong(slice.data(),
-                               slice.length() + (!no_nterm ? 1 : 0));
+  base::XBasicString<T> strong(slice.data(), slice.length() + (!no_nterm ? 1 : 0));
   if (!no_nterm)
     strong[slice.length()] = 0;
   return strong;

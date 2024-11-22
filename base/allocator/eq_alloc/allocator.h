@@ -45,9 +45,9 @@ class Allocator {
 
   // returns the amount of memory that is allocated by the block.
   virtual mem_size QueryAllocationSize(void* block) {
-	(void)block;
-	IMPOSSIBLE;
-	return 0u;
+    (void)block;
+    IMPOSSIBLE;
+    return 0u;
   }
 };
 }  // namespace base

@@ -55,8 +55,7 @@ struct Function<R(Args...)> {
   template <typename C, typename MF>
   static R MemberDispatch(void* target, Args... args) {
     auto holder = static_cast<MemberFuncHolder<C, MF>*>(target);
-    return (holder->object->*holder->memberFuncPtr)(
-        base::forward<Args>(args)...);
+    return (holder->object->*holder->memberFuncPtr)(base::forward<Args>(args)...);
   }
 
   // Constructor for functors and free functions
@@ -75,8 +74,7 @@ struct Function<R(Args...)> {
 
   // Move constructor and assignment
   Function(Function&& other) noexcept
-      : m_Dispatcher(other.m_Dispatcher),
-        m_Target(base::move(other.m_Target)) {}
+      : m_Dispatcher(other.m_Dispatcher), m_Target(base::move(other.m_Target)) {}
 
   Function& operator=(Function&& other) noexcept {
     if (this != &other) {

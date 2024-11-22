@@ -11,7 +11,7 @@ namespace base {
 #if defined(OS_WIN)
 #define BASE_PATH_SEP_MACRO L'\\'
 #define BASE_PATH_LITERAL(x) L##x
-#endif 
+#endif
 
 #if defined(OS_POSIX)
 #define BASE_PATH_SEP_MACRO '/'
@@ -23,25 +23,26 @@ class BASE_EXPORT Path {
 #if defined(OS_WIN)
   // On Windows, paths are encoded in 2 byte UTF-16
   using CharType = wchar_t;
-  // preffered platform seperators, use when having to deal with native paths, else
-  // prefer path encoding we use
+  // preffered platform seperators, use when having to deal with native paths,
+  // else prefer path encoding we use
   static constexpr wchar_t kSeperator = L'\\';
 #endif
 
 #if defined(OS_POSIX)
-  // On MacOs,these are encoded in utf8, linux encoding is not strictly specified
-  // however we aim to enforce utf8 on linux too
+  // On MacOs,these are encoded in utf8, linux encoding is not strictly
+  // specified however we aim to enforce utf8 on linux too
 
-  // Specifically, Glib (used by Gtk+ apps) assumes that all file names are UTF-8
-  // encoded, regardless of the user's locale. This may be overridden with the
-  // environment variables G_FILENAME_ENCODING and G_BROKEN_FILENAMES. On the other
-  // hand, Qt defaults to assuming that all file names are encoded in the current
-  // user's locale. An individual application may choose to override this assumption,
-  // though I do not know of any that do, and there is no external override switch.
-  // Modern Linux distributions are set up such that all users are using UTF-8
-  // locales and paths on foreign filesystem mounts are translated to UTF-8, so this
-  // difference in strategies generally has no effect. However, if you really want to
-  // be safe, you cannot assume any structure about filenames beyond "NUL-terminated,
+  // Specifically, Glib (used by Gtk+ apps) assumes that all file names are
+  // UTF-8 encoded, regardless of the user's locale. This may be overridden with
+  // the environment variables G_FILENAME_ENCODING and G_BROKEN_FILENAMES. On
+  // the other hand, Qt defaults to assuming that all file names are encoded in
+  // the current user's locale. An individual application may choose to override
+  // this assumption, though I do not know of any that do, and there is no
+  // external override switch. Modern Linux distributions are set up such that
+  // all users are using UTF-8 locales and paths on foreign filesystem mounts
+  // are translated to UTF-8, so this difference in strategies generally has no
+  // effect. However, if you really want to be safe, you cannot assume any
+  // structure about filenames beyond "NUL-terminated,
   // '/'-delimited sequence of bytes".
   using CharType = char8_t;
   static constexpr CharType kSeperator = u8'/';
@@ -59,7 +60,7 @@ class BASE_EXPORT Path {
   Path() = default;
 
   // all of these will CHECK if the desired encoding is violated
-  /*implicit*/ Path(const char* ascii_only); // implicit to allow: path / blah.c_str()
+  /*implicit*/ Path(const char* ascii_only);  // implicit to allow: path / blah.c_str()
   Path(const base::StringRefU8);
   Path(const base::StringRefW);
   explicit Path(const BufferType& path);
@@ -70,23 +71,17 @@ class BASE_EXPORT Path {
   friend Path operator/(const Path& lhs, const Path& rhs);
   Path& operator/=(const Path& other);
 
-  operator bool() {
-    return !empty();
-  }
-  bool operator!=(const Path& other) const {
-    return path_buf_ != other.path_buf_;
-  }
-  bool operator==(const Path& other) const {
-    return path_buf_ == other.path_buf_;
-  }
+  operator bool() { return !empty(); }
+  bool operator!=(const Path& other) const { return path_buf_ != other.path_buf_; }
+  bool operator==(const Path& other) const { return path_buf_ == other.path_buf_; }
 
   // append another path to this path, and insert a seperator in between of them
   Path& Append(const Path&);
 
   bool AppendExtension(const char* ascii_only, const bool ensure_dot = true);
 
-  // modifies the buffer to the internal path notation e.g. backslashes on windows or
-  // forward slashes on *nix
+  // modifies the buffer to the internal path notation e.g. backslashes on
+  // windows or forward slashes on *nix
   static void Normalize(BufferType&);
 
   // returns a Path corresponding to the directory containing the path
@@ -108,21 +103,13 @@ class BASE_EXPORT Path {
   [[nodiscard]] base::String ToAsciiString() const;
 
   // cxx adapters
-  [[nodiscard]] inline bool empty() const {
-    return path_buf_.empty();
-  }
+  [[nodiscard]] inline bool empty() const { return path_buf_.empty(); }
 
-  [[nodiscard]] inline const CharType* c_str() const {
-    return path_buf_.c_str();
-  }
+  [[nodiscard]] inline const CharType* c_str() const { return path_buf_.c_str(); }
 
-  [[nodiscard]] inline const BufferType& path() const {
-    return path_buf_;
-  }
+  [[nodiscard]] inline const BufferType& path() const { return path_buf_; }
 
-  [[nodiscard]] inline auto length() const {
-    return path_buf_.length();
-  }
+  [[nodiscard]] inline auto length() const { return path_buf_.length(); }
 
  private:
   void StripTrailingSeparators();

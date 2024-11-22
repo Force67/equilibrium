@@ -2,7 +2,7 @@
 #include "id_set.h"
 #include <gtest/gtest.h>
 
-using TheIdSet = base::IdSet<u32, 0xFFFFFFFF,  0xFFFFFFFF - 1>;
+using TheIdSet = base::IdSet<u32, 0xFFFFFFFF, 0xFFFFFFFF - 1>;
 
 TEST(IdSetTest, GenerateSequentialIds) {
   TheIdSet id_set;
@@ -18,9 +18,8 @@ TEST(IdSetTest, ReuseReleasedIds) {
   id_set.ReleaseId(id1);
   EXPECT_EQ(id_set.GenerateId(),
             id1);  // Sollte die freigegebene ID wiederverwenden
-  EXPECT_NE(
-      id_set.GenerateId(),
-      id2);  // Sollte nicht die ID wiederverwenden, die nicht freigegeben wurde
+  EXPECT_NE(id_set.GenerateId(),
+            id2);  // Sollte nicht die ID wiederverwenden, die nicht freigegeben wurde
 }
 
 TEST(IdSetTest, ReleaseLastGeneratedId) {

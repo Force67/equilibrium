@@ -36,9 +36,8 @@ struct ExternalStorage {
   }
 
   void setCapacity(size_t cap, Category cat) {
-    capacity_ = base::kIsLittleEndian
-                    ? cap | (static_cast<size_t>(cat) << kCategoryShift)
-                    : (cap << 2) | static_cast<size_t>(cat);
+    capacity_ = base::kIsLittleEndian ? cap | (static_cast<size_t>(cat) << kCategoryShift)
+                                      : (cap << 2) | static_cast<size_t>(cat);
   }
 };
 
@@ -74,11 +73,9 @@ class basic_eqi_string {
     DCHECK(this->size() == size);
     DCHECK(size == 0 || memcmp(this->data(), data, size * sizeof(TChar)) == 0);
   }
-  // takes a previously allocated string. Remember to add one to the size in order to
-  // account for the null terminator!
-  basic_eqi_string(TChar* const data,
-                   const size_t size,
-                   const size_t allocatedSize) {
+  // takes a previously allocated string. Remember to add one to the size in
+  // order to account for the null terminator!
+  basic_eqi_string(TChar* const data, const size_t size, const size_t allocatedSize) {
     if (size > 0) {
       DCHECK(allocatedSize >= size + 1);
       DCHECK(data[size] == '\0');
@@ -142,8 +139,7 @@ class basic_eqi_string {
   }
 
   NOINLINE
-  void reserve(size_t minCapacity,
-               bool disableSSO = kDisableEqiSmallStringOptimization) {
+  void reserve(size_t minCapacity, bool disableSSO = kDisableEqiSmallStringOptimization) {
     switch (category()) {
       case Category::kSmall:
         ReserveSmall(minCapacity, disableSSO);

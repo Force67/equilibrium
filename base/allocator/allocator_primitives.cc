@@ -18,7 +18,7 @@ void* ReAllocate(void* former, mem_size new_size) {
   return memory_coordinator().ReAllocate(former, new_size);
 }
 
-void Free(void* block) {  
+void Free(void* block) {
   if (block != nullptr)
     memory_coordinator().Free(block);
 }
@@ -44,9 +44,7 @@ MemoryBlock Allocate(mem_size size, AlignmentValue alignment) {
   return memory_coordinator().AllocateAligned(size, alignment);
 }
 
-MemoryBlock TryExpand(MemoryBlock block,
-                      mem_size new_size,
-                      AlignmentValue alignment) {
+MemoryBlock TryExpand(MemoryBlock block, mem_size new_size, AlignmentValue alignment) {
   return memory_coordinator().ReAllocateAligned(block, new_size, alignment);
 }
 
@@ -62,12 +60,10 @@ MemoryBlockV3 Allocate(mem_size size,
                        AlignAndSkew align_and_skew,
                        AllocationFlags flags,
                        AllocationHints hints) {
-  static_assert(
-      sizeof(AllocationFlags) == (sizeof(MemoryBlockV3::tracking_flags) / 2),
-      "AllocationFlags are misaligned");
-  static_assert(
-      sizeof(AllocationHints) == (sizeof(MemoryBlockV3::tracking_flags) / 2),
-      "AllocationHints are misaligned");
+  static_assert(sizeof(AllocationFlags) == (sizeof(MemoryBlockV3::tracking_flags) / 2),
+                "AllocationFlags are misaligned");
+  static_assert(sizeof(AllocationHints) == (sizeof(MemoryBlockV3::tracking_flags) / 2),
+                "AllocationHints are misaligned");
 
   // TODO: allocate
 

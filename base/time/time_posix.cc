@@ -15,4 +15,4 @@ i64 GetUnixTimeStamp() {
   ::gettimeofday(&tv, nullptr);
   return tv.tv_sec;  // Return the number of seconds since January 1, 1970
 }
-} // namespace base
+}  // namespace base

@@ -45,9 +45,8 @@ constexpr int size_coefficient_v =
 // Convenience typedef that checks whether the passed in type is integral (i.e.
 // bool, char, int or their extended versions) and is of the correct size.
 template <typename Char, size_t N>
-using EnableIfBitsAre = std::enable_if_t<std::is_integral<Char>::value &&
-                                             CHAR_BIT * sizeof(Char) == N,
-                                         bool>;
+using EnableIfBitsAre =
+    std::enable_if_t<std::is_integral<Char>::value && CHAR_BIT * sizeof(Char) == N, bool>;
 
 template <typename Char, EnableIfBitsAre<Char, 8> = true>
 void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
@@ -187,13 +186,12 @@ bool DoUTFConversion(const wchar_t* src,
 template <typename InputString, typename DestString>
 bool UTFConversion(const InputString& src_str, DestString* dest_str) {
   if (IsStringASCII(src_str)) {
-      // Converting between ASCII, wide, and UTF-16
-      dest_str->resize(src_str.size());
-      for (size_t i = 0; i < src_str.size(); i++) {
-        (*dest_str)[i] =
-            static_cast<typename DestString::value_type>(src_str[i]);
-      }
-      return true;
+    // Converting between ASCII, wide, and UTF-16
+    dest_str->resize(src_str.size());
+    for (size_t i = 0; i < src_str.size(); i++) {
+      (*dest_str)[i] = static_cast<typename DestString::value_type>(src_str[i]);
+    }
+    return true;
   }
 
   dest_str->resize(src_str.length() *

@@ -7,7 +7,7 @@
 namespace {
 TEST(EnvironmentVariables, SetReceive) {
   ASSERT_TRUE(base::SetEnvironmentVariable(u8"base_unitttest_env_var", u8"test"));
-  
+
   base::StringU8 result;
   ASSERT_TRUE(base::GetEnvironmentVariable(u8"base_unitttest_env_var", result));
   ASSERT_EQ(result.length(), 4);

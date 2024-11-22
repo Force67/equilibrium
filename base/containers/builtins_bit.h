@@ -35,9 +35,8 @@ template <typename T>
     return static_cast<mem_size>(__builtin_popcount(value));
   } else {
 #ifdef _M_IX86
-    return static_cast<mem_size>(
-        __builtin_popcount(value >> 32) +
-        __builtin_popcount(static_cast<unsigned int>(value)));
+    return static_cast<mem_size>(__builtin_popcount(value >> 32) +
+                                 __builtin_popcount(static_cast<unsigned int>(value)));
 #else   // ^^^ _M_IX86 / !_M_IX86 vvv
     return static_cast<mem_size>(__builtin_popcountll(value));
 #endif  // _M_IX86

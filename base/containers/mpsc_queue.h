@@ -32,9 +32,7 @@ class MPSCQueue {
       return temp;
     }
 
-    bool operator==(const Iterator& other) const {
-      return node_ == other.node_;
-    }
+    bool operator==(const Iterator& other) const { return node_ == other.node_; }
 
     bool operator!=(const Iterator& other) const { return !(*this == other); }
 
@@ -116,8 +114,8 @@ class MPSCQueue {
   }
 
   bool empty() const {
-    return tail_.load(std::memory_order_acquire)
-               ->next.load(std::memory_order_acquire) == nullptr;
+    return tail_.load(std::memory_order_acquire)->next.load(std::memory_order_acquire) ==
+           nullptr;
   }
 
   struct Node {
@@ -128,9 +126,9 @@ class MPSCQueue {
     explicit Node(const T&& value) : value(base::move(value)), next(nullptr) {}
 
     template <typename... Args>
-    explicit Node(Args&&... args)
-        : value(std::forward<Args>(args)...), next(nullptr) {}
+    explicit Node(Args&&... args) : value(std::forward<Args>(args)...), next(nullptr) {}
   };
+
  private:
   std::atomic<Node*> head_;
   std::atomic<Node*> tail_;

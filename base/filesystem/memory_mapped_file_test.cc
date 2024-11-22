@@ -16,8 +16,7 @@ class MemoryMappedFileTest : public ::testing::Test {
     // auto path = temp_dir.path();
     // path.Append("temp_file");
     base::Path path("./temp_file");
-    temp_file.Initialize(path, base::File::FLAG_CREATE_ALWAYS |
-                                   base::File::FLAG_WRITE |
+    temp_file.Initialize(path, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE |
                                    base::File::FLAG_READ);
     ASSERT_TRUE(temp_file.IsValid());
     mmf = base::MakeUnique<MemoryMappedFile>(temp_file);
@@ -36,9 +35,8 @@ TEST_F(MemoryMappedFileTest, MapSuccess) {
 TEST_F(MemoryMappedFileTest, ReMapValid) {
   mmf->Map();
   // Assuming the file size allows, remap to a different offset
-  //EXPECT_TRUE(mmf->ReMap(100, 200));
+  // EXPECT_TRUE(mmf->ReMap(100, 200));
 }
-
 
 #if 0
 TEST_F(MemoryMappedFileTest, MapFailure) {

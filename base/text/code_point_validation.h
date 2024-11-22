@@ -34,7 +34,8 @@ inline bool DoIsStringUTF8(const Char* str, mem_size length) {
 }
 
 template <typename Char>
-inline arch_types::mem_size IsStringUTF8AndReportIdx(const Char* str, arch_types::mem_size length) {
+inline arch_types::mem_size IsStringUTF8AndReportIdx(const Char* str,
+                                                     arch_types::mem_size length) {
   const u8* src = reinterpret_cast<const u8*>(str);
   arch_types::mem_size char_index = 0;
 

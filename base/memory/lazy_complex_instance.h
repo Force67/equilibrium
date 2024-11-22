@@ -9,11 +9,12 @@
 
 namespace base {
 // prefer this class over unneeded unique_pointers if your only goal is to delay
-// creation. use with composition. This is a no overhead version of the same class,
-// for which you need to implement a _constructed_ method. Think _carefully_ about
-// what kind of members you check for construction
+// creation. use with composition. This is a no overhead version of the same
+// class, for which you need to implement a _constructed_ method. Think
+// _carefully_ about what kind of members you check for construction
 template <typename T>
-requires(!base::IsTrivial<T>) class LazyComplexInstance {
+  requires(!base::IsTrivial<T>)
+class LazyComplexInstance {
  public:
   constexpr LazyComplexInstance() = default;
 
@@ -52,8 +53,8 @@ requires(!base::IsTrivial<T>) class LazyComplexInstance {
   T& as_obj() noexcept { return *reinterpret_cast<T*>(&storage_); }
 
  private:
-  // we dont declare this as the master alignment in hopes of getting a better total
-  // alignment with the boolean
+  // we dont declare this as the master alignment in hopes of getting a better
+  // total alignment with the boolean
   u8 alignas(T) storage_[sizeof(T)]{0};
 };
 }  // namespace base

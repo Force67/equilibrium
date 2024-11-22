@@ -59,7 +59,6 @@ class Span {
     return *ptr_[len_ - 1];
   }
 
-  
   // iterator to beginning
   CONSTEXPR_ND T* begin() const noexcept {
     return const_cast<T*>(ptr_);  // Remove const_cast if T* is non-const

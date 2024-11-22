@@ -53,8 +53,8 @@ struct EQMemoryRouter {
           size, eq_allocation_constants::kPageThreshold);
     } else {
       allocator_id = AllocatorID::kHeapAllocator;
-      block = allocators_[AllocatorID::kHeapAllocator]->Allocate(
-          size, nextPowerOfTwo(size));
+      block =
+          allocators_[AllocatorID::kHeapAllocator]->Allocate(size, nextPowerOfTwo(size));
     }
 
     uintptr_t po = page_tab.PageOffset(block);
@@ -63,10 +63,9 @@ struct EQMemoryRouter {
     return block;
   }
 
-
   STRONG_INLINE void* AllocateAligned(mem_size size, mem_size alignment) {
-    // Adjust the size to include extra space for alignment correction and storing
-    // the adjustment.
+    // Adjust the size to include extra space for alignment correction and
+    // storing the adjustment.
     mem_size expanded_size = size + alignment + sizeof(mem_size);
 
     // Allocate a new block with the expanded size.
@@ -136,7 +135,7 @@ struct EQMemoryRouter {
     auto* allocator = FindOwningAllocator(page_tab, block);
     DCHECK(allocator, "Free(): Orphaned memory?");
     if (!allocator)
-	  return 0u;
+      return 0u;
     return allocator->Free(block);
   }
 
@@ -153,8 +152,7 @@ struct EQMemoryRouter {
     auto index = page_table.PageOffset(block) >> kMibShift;
     DCHECK(index <= sizeof(allocator_mapping_table_),
            "Allocator index too large (over 1tib)");
-    DCHECK(index != kMaxAllocators,
-           "Unowned memory (no allocator knows its origin)");
+    DCHECK(index != kMaxAllocators, "Unowned memory (no allocator knows its origin)");
 
     if (allocator_mapping_table_[index] != kMaxAllocators) {
       return allocators_[allocator_mapping_table_[index]];
@@ -171,8 +169,8 @@ struct EQMemoryRouter {
   alignas(PageTable) byte page_table_data_[4 /*magic*/ + sizeof(PageTable)]{};
   // see
   // https://cdn.discordapp.com/attachments/818575873203503165/1005495331636662373/unknown.png
-  // every index (number stored from 1 - 255 at given position) corresponds to a page
-  // at offset n
+  // every index (number stored from 1 - 255 at given position) corresponds to a
+  // page at offset n
   Allocator* allocators_[base::MinMax<allocator_id>::max()]{nullptr};
   allocator_id allocator_mapping_table_[kVirtualAddressRange >> kMibShift]{
       kMaxAllocators};

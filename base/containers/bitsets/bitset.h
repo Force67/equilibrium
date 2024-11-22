@@ -111,8 +111,8 @@ class BitSet {
     return *this;
   }
 
-  BitSet& operator<<=(
-      mem_size pos) noexcept {  // shift left by pos, first by words then by bits
+  BitSet& operator<<=(mem_size pos) noexcept {  // shift left by pos, first by
+                                                // words then by bits
     const auto word_shift = static_cast<pointer_diff>(pos / kBitsPerWord);
     if (word_shift != 0) {
       for (pointer_diff i = kWords; 0 <= i; --i) {
@@ -131,8 +131,8 @@ class BitSet {
     return *this;
   }
 
-  BitSet& operator>>=(
-      mem_size pos) noexcept {  // shift right by pos, first by words then by bits
+  BitSet& operator>>=(mem_size pos) noexcept {  // shift right by pos, first by
+                                                // words then by bits
     const auto word_shift = static_cast<pointer_diff>(pos / kBitsPerWord);
     if (word_shift != 0) {
       for (pointer_diff i = 0; i <= kWords; ++i) {
@@ -169,24 +169,21 @@ class BitSet {
 };
 
 template <mem_size N>
-[[nodiscard]] BitSet<N> operator&(const BitSet<N>& lhs,
-                                  const BitSet<N>& rhs) noexcept {
+[[nodiscard]] BitSet<N> operator&(const BitSet<N>& lhs, const BitSet<N>& rhs) noexcept {
   BitSet<N> temp = lhs;
   temp &= rhs;
   return temp;
 }
 
 template <mem_size N>
-[[nodiscard]] BitSet<N> operator|(const BitSet<N>& lhs,
-                                  const BitSet<N>& rhs) noexcept {
+[[nodiscard]] BitSet<N> operator|(const BitSet<N>& lhs, const BitSet<N>& rhs) noexcept {
   BitSet<N> temp = lhs;
   temp |= rhs;
   return temp;
 }
 
 template <mem_size N>
-[[nodiscard]] BitSet<N> operator^(const BitSet<N>& lhs,
-                                  const BitSet<N>& rhs) noexcept {
+[[nodiscard]] BitSet<N> operator^(const BitSet<N>& lhs, const BitSet<N>& rhs) noexcept {
   BitSet<N> temp = lhs;
   temp ^= rhs;
   return temp;

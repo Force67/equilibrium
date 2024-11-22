@@ -98,8 +98,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
   // Try to find space in the current page
   byte* page_head = nullptr;
   byte* page_end = nullptr;
-  for (auto* node = page_list_.head(); node != page_list_.end();
-       node = node->next()) {
+  for (auto* node = page_list_.head(); node != page_list_.end(); node = node->next()) {
     PageTag& tag = node->value()->tag;
     page_head = tag.begin();
     page_end = tag.end();
@@ -110,8 +109,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
       byte* new_block = nullptr;
 
       // Check if there's enough space after the current block in the same page
-      if (page_end -
-              (reinterpret_cast<byte*>(former_block) + aligned_new_size) >=
+      if (page_end - (reinterpret_cast<byte*>(former_block) + aligned_new_size) >=
           sizeof(BucketInfo)) {
         new_block = reinterpret_cast<byte*>(former_block);
         former_bucket->SetUserSize(new_size);      // Update the user size
@@ -132,7 +130,8 @@ void* BucketAllocator::ReAllocate(void* former_block,
 
       // Update the metadata for the new block
       BucketInfo* new_bucket =
-          new (page_hint + static_cast<pointer_size>(page_end - page_head - sizeof(BucketInfo)))
+          new (page_hint +
+               static_cast<pointer_size>(page_end - page_head - sizeof(BucketInfo)))
               BucketInfo(
                   /*offset*/ 0, new_size, aligned_new_size, BucketInfo::kUsed);
       new_bucket->SetUserSize(new_size);
@@ -147,9 +146,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
   return nullptr;
 }
 
-void* BucketAllocator::AcquireMemory(mem_size user_size,
-                                     mem_size size,
-                                     byte* hint) {
+void* BucketAllocator::AcquireMemory(mem_size user_size, mem_size size, byte* hint) {
   // DCHECK(!lock_.held());
 
   if (hint) {
@@ -159,8 +156,7 @@ void* BucketAllocator::AcquireMemory(mem_size user_size,
   byte* page_head = nullptr;
   if (BucketInfo* bucket = FindAndClaimFreeBucket(user_size, size, page_head)) {
     // return user memory
-    return reinterpret_cast<void*>((page_head + sizeof(HeaderNode)) +
-                                   bucket->offset_);
+    return reinterpret_cast<void*>((page_head + sizeof(HeaderNode)) + bucket->offset_);
   }
   return nullptr;
 }
@@ -168,8 +164,8 @@ void* BucketAllocator::AcquireMemory(mem_size user_size,
 bool BucketAllocator::TryAcquireNewPage(PageTable& table, byte*& page_base) {
   // this needs to lock
   mem_size page_size = 0;
-  page_base = static_cast<byte*>(
-      table.RequestPage(base::PageProtectionFlags::RW, &page_size));
+  page_base =
+      static_cast<byte*>(table.RequestPage(base::PageProtectionFlags::RW, &page_size));
   if (!page_base || page_size == 0) {
     DEBUG_TRAP;  // page or page size invalid
     return false;
@@ -187,9 +183,9 @@ bool BucketAllocator::DoAnyBucketsIntersect(const PageTag& tag) {
   u32 prev_end_offset = 0;
 
   for (u32 i = 0; i < tag.bucket_count.load(); i++) {
-    const auto bucket = (*reinterpret_cast<AtomicBucket*>(
-                             tag.end() - (sizeof(BucketInfo) * (i + 1))))
-                            .load();
+    const auto bucket =
+        (*reinterpret_cast<AtomicBucket*>(tag.end() - (sizeof(BucketInfo) * (i + 1))))
+            .load();
 
     if (bucket.IsinUse()) {
       if (bucket.offset_ < prev_end_offset) {
@@ -239,11 +235,10 @@ BucketAllocator::BucketInfo* BucketAllocator::FindAndClaimFreeBucket(
     mem_size user_size,
     mem_size size, /* aligned size here is the full size */
     byte*& page_start) {
-  constexpr float kSizeTolerance =
-      0.25f;  // Tolerance for size difference (25%)
+  constexpr float kSizeTolerance = 0.25f;  // Tolerance for size difference (25%)
 
-  for (base::LinkNode<HeaderNode>* node = page_list_.head();
-       node != page_list_.end(); node = node->next()) {
+  for (base::LinkNode<HeaderNode>* node = page_list_.head(); node != page_list_.end();
+       node = node->next()) {
     PageTag& tag = node->value()->tag;
 
     page_start = tag.begin();
@@ -254,11 +249,10 @@ BucketAllocator::BucketInfo* BucketAllocator::FindAndClaimFreeBucket(
     // very small chunk
     byte* data_start = tag.data();
     for (mem_size i = 0; i < tag.bucket_count; i++) {
-      BucketInfo* buck = reinterpret_cast<BucketInfo*>(
-          page_end - (sizeof(BucketInfo) * (i + 1)));
+      BucketInfo* buck =
+          reinterpret_cast<BucketInfo*>(page_end - (sizeof(BucketInfo) * (i + 1)));
       if (buck->IsFree() && buck->size() >= size) {
-        float size_ratio =
-            static_cast<float>(buck->size()) / static_cast<float>(size);
+        float size_ratio = static_cast<float>(buck->size()) / static_cast<float>(size);
         if (size_ratio <= (1.0f + kSizeTolerance) &&
             size_ratio >= (1.0f - kSizeTolerance)) {
           buck->SetUsed();
@@ -272,8 +266,8 @@ BucketAllocator::BucketInfo* BucketAllocator::FindAndClaimFreeBucket(
     // Check for gaps between existing buckets
     byte* last_data_end = data_start;
     for (mem_size i = 0; i < tag.bucket_count; i++) {
-      BucketInfo* current_buck = reinterpret_cast<BucketInfo*>(
-          page_end - (sizeof(BucketInfo) * (i + 1)));
+      BucketInfo* current_buck =
+          reinterpret_cast<BucketInfo*>(page_end - (sizeof(BucketInfo) * (i + 1)));
       byte* current_data_start = data_start + current_buck->offset_;
 
       // Calculate gap between last bucket end and current bucket start
@@ -281,10 +275,8 @@ BucketAllocator::BucketInfo* BucketAllocator::FindAndClaimFreeBucket(
       if (gap_size >= size) {
         // Found a suitable gap, create new bucket metadata
         BucketInfo* free_bucket =
-            new (page_end -
-                 (sizeof(BucketInfo) * (node->value()->tag.bucket_count + 1)))
-                BucketInfo(/*offset*/ last_data_end - data_start, user_size,
-                           size,
+            new (page_end - (sizeof(BucketInfo) * (node->value()->tag.bucket_count + 1)))
+                BucketInfo(/*offset*/ last_data_end - data_start, user_size, size,
                            /*flags*/ BucketInfo::kUsed);
         node->value()->tag.bucket_count++;
         return free_bucket;
@@ -315,8 +307,7 @@ BucketAllocator::BucketInfo* BucketAllocator::FindAndClaimFreeBucket(
 BucketAllocator::BucketInfo* BucketAllocator::FindBucket(pointer_size address) {
   address -= sizeof(HeaderNode);
 
-  for (auto* node = page_list_.head(); node != page_list_.end();
-       node = node->next()) {
+  for (auto* node = page_list_.head(); node != page_list_.end(); node = node->next()) {
     byte* page_start = reinterpret_cast<byte*>(node);
     byte* page_end = node->value()->tag.end();
 
@@ -326,10 +317,9 @@ BucketAllocator::BucketInfo* BucketAllocator::FindBucket(pointer_size address) {
     }
 
     for (auto i = 0; i < node->value()->tag.bucket_count; i++) {
-      BucketInfo* buck = reinterpret_cast<BucketInfo*>(
-          page_end - (sizeof(BucketInfo) * (i + 1)));
-      if (address >=
-              (reinterpret_cast<pointer_size>(page_start) + buck->offset_) &&
+      BucketInfo* buck =
+          reinterpret_cast<BucketInfo*>(page_end - (sizeof(BucketInfo) * (i + 1)));
+      if (address >= (reinterpret_cast<pointer_size>(page_start) + buck->offset_) &&
           address < (reinterpret_cast<pointer_size>(page_start) +
                      (buck->offset_ + buck->size()))) {
         return buck;
