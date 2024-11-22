@@ -446,6 +446,12 @@ by a value of 0 (not 1).*/
   }
   void erase(const character_type* pos) { erase(pos - data_, 1); }
 
+  void remove_suffix(mem_size n) {
+    BUGCHECK(n <= size_in_chars_, "Invalid count");
+    size_in_chars_ -= n;
+    data_[size_in_chars_] = '\0';  // Ensure null termination
+  }
+
   void clear() {
     size_in_chars_ = 0;
     memset(data_, 0, cap_in_chars_ * sizeof(character_type));

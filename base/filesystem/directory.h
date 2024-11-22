@@ -2,4 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-namespace base {}
+#include "filesystem/file_util.h"
+
+namespace base {
+
+// bool CreateDirectory(const Path &full_path);
+}

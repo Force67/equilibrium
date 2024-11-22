@@ -139,4 +139,40 @@ std::string File::ErrorToString(Error error) {
   IMPOSSIBLE;
   return "";
 }
+
+base::UniquePointer<byte[]> ReadFile(const base::Path& path, i64* opt_size) {
+  base::File file(path, base::File::FLAG_OPEN | base::File::FLAG_READ);
+  if (!file.IsValid()) {
+    return nullptr;
+  }
+
+  i64 length = file.Seek(base::File::Whence::FROM_END, 0);
+  if (opt_size)
+    *opt_size = length;
+
+  auto content = base::MakeUnique<u8[]>(length);
+  file.Seek(base::File::Whence::FROM_BEGIN, 0);
+  i64 read =
+      file.Read(0, reinterpret_cast<char*>(content.Get_UseOnlyIfYouKnowWhatYouareDoing()),
+                static_cast<i32>(length));
+  if (read == length) {
+    return content;
+  }
+
+  return nullptr;
+}
+
+bool WriteFile(const base::Path& path, const byte* data, i64 size) {
+  base::File file(path, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
+  if (!file.IsValid()) {
+    return false;
+  }
+
+  int r = file.Write(0, reinterpret_cast<const char*>(data), static_cast<int>(size));
+  if (r != size) {
+    return false;
+  }
+
+  return true;
+}
 }  // namespace base

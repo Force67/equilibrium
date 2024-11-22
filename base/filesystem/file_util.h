@@ -49,6 +49,4 @@ BASE_EXPORT bool DirectoryExists(const Path& path);
 
 BASE_EXPORT bool CreateNewTempDirectory(const Path::BufferType& prefix,
                                         Path* new_temp_path);
-
-BASE_EXPORT std::unique_ptr<u8[]> LoadFile(const Path& path, i64* opt_size);
 }  // namespace base

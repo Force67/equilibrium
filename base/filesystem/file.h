@@ -9,6 +9,8 @@
 #include "base/filesystem/scoped_file.h"
 #include "base/filesystem/platform_file.h"
 
+#include "base/memory/unique_pointer.h"
+
 #include "build/build_config.h"
 
 #if defined(OS_BSD) || defined(OS_APPLE) || defined(OS_NACL) || defined(OS_FUCHSIA) || \
@@ -375,4 +377,6 @@ class BASE_EXPORT File {
   bool async_ = false;
 };
 
+base::UniquePointer<byte[]> ReadFile(const base::Path& path, i64* size);
+bool WriteFile(const base::Path& path, const byte* data, i64 size);
 }  // namespace base
