@@ -17,7 +17,7 @@ Path::Path(const char* ascii_only) {
 }
 
 Path::Path(const base::StringRefU8 utf8) {
-  path_buf_ = utf8.c_str();
+  path_buf_ = Path::BufferType(utf8.begin(), utf8.length());
   Normalize(path_buf_);
 }
 

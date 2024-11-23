@@ -418,6 +418,15 @@ by a value of 0 (not 1).*/
     return npos;
   }
 
+  size_type find_last_of(const character_type c) {
+    for (size_type i = size_in_chars_ - 1; i != static_cast<size_type>(-1); --i) {
+      if (data_[i] == c) {
+        return i;
+      }
+    }
+    return npos;
+  }
+
   // replace functions ========================================
   void erase(mem_size pos_in_characters, size_type count = npos) {
     // Check if the position is within the valid range
