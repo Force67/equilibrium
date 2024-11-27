@@ -24,11 +24,19 @@ local function to_double(version)
   return vnum:sub(1, index + 1) .. (vnum:sub(index + 2, vnum:len()):gsub('%.', ''))
 end
 
-blu.git_branch = io_exec('git symbolic-ref --short -q HEAD')
-blu.git_commit = io_exec('git rev-parse --short HEAD')
-blu.git_commit_long = io_exec('git rev-parse HEAD')
--- See https://stackoverflow.com/questions/1404796/how-can-i-get-the-latest-tag-name-in-current-branch-in-git
-blu.version = io_exec('git describe --tags ' .. io_exec('git rev-list --tags --max-count=1'))
+local is_ci = os.getenv('BLU_IS_CI_BUILD') == 'true'
+if is_ci then
+  blu.git_branch = os.getenv('GITHUB_REF') or "<none>"
+  blu.git_commit = os.getenv('GITHUB_SHA') or "<none>"
+  blu.git_commit_long = os.getenv('GITHUB_SHA') or "<none>"
+  blu.version = os.getenv('GITHUB_TAG') or "<none>"
+else
+  blu.git_branch = io_exec('git symbolic-ref --short -q HEAD')
+  blu.git_commit = io_exec('git rev-parse --short HEAD')
+  blu.git_commit_long = io_exec('git rev-parse HEAD')
+  -- See https://stackoverflow.com/questions/1404796/how-can-i-get-the-latest-tag-name-in-current-branch-in-git
+  blu.version = io_exec('git describe --tags ' .. io_exec('git rev-list --tags --max-count=1'))
+end
 
 -- include_meta adds build metadata to a given project, in the form of macros
 -- and version info.
