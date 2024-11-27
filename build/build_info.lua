@@ -17,11 +17,40 @@ local function io_exec(command)
 end
 
 local function to_double(version)
-  -- we want to convert the number to double, so first we strip the 'v' character
-  -- then we remove the second (dots)
-  local vnum = blu.version:sub(2)
-  local index = vnum:find("%.")
-  return vnum:sub(1, index + 1) .. (vnum:sub(index + 2, vnum:len()):gsub('%.', ''))
+    -- Check if version is nil or not a string
+    if not version or type(version) ~= "string" then
+        return 0
+    end
+
+    -- Check if version starts with 'v'
+    if not version:match("^v%d") then
+        return 0
+    end
+
+    -- Strip the 'v' character
+    local vnum = version:sub(2)
+
+    -- Find first dot
+    local index = vnum:find("%.")
+    if not index then
+        return 0
+    end
+
+    -- Ensure there are digits after the first dot
+    if not vnum:match("^%d+%.%d") then
+        return 0
+    end
+
+    -- Convert to double format
+    local result = vnum:sub(1, index + 1) .. (vnum:sub(index + 2, vnum:len()):gsub('%.', ''))
+
+    -- Verify the result is a valid number
+    local number = tonumber(result)
+    if not number then
+        return 0
+    end
+
+    return number
 end
 
 local is_ci = os.getenv('BLU_IS_CI_BUILD') == 'true'
@@ -29,7 +58,7 @@ if is_ci then
   blu.git_branch = os.getenv('GITHUB_REF') or "<none>"
   blu.git_commit = os.getenv('GITHUB_SHA') or "<none>"
   blu.git_commit_long = os.getenv('GITHUB_SHA') or "<none>"
-  blu.version = os.getenv('GITHUB_TAG') or "<none>"
+  blu.version = os.getenv('GITHUB_TAG') or "0.0.1"
 else
   blu.git_branch = io_exec('git symbolic-ref --short -q HEAD')
   blu.git_commit = io_exec('git rev-parse --short HEAD')
