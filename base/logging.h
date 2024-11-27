@@ -63,8 +63,8 @@ void PrintfLogMessage(const char* channel_name,
   ::base::PrintLogMessage(c, ::base::LogLevel::kTrace, __VA_ARGS__)
 // <<< new log api
 #else
-#define LOG_DEBUG(...)
-#define LOG_TRACE(...)
+#define BASE_LOG_DEBUG(...)
+#define BASE_LOG_TRACE(...)
 #define BASE_LOGD(...)
 #define BASE_LOGT(...)
 #endif
