@@ -31,6 +31,7 @@
 namespace eq::ui {
 
 namespace {
+constexpr char kLogTag[] = "NativeWindowWin32";
 base::Atomic<u32> window_count = 0;
 
 constexpr DWORD kWindowDefaultChildStyle =
@@ -38,8 +39,8 @@ constexpr DWORD kWindowDefaultChildStyle =
 constexpr DWORD kWindowDefaultStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
 
 void* SetWindowUserData(HWND hwnd, void* user_data) {
-  return reinterpret_cast<void*>(SetWindowLongPtrW(
-      hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(user_data)));
+  return reinterpret_cast<void*>(
+      SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(user_data)));
 }
 
 void* GetWindowUserData(HWND hwnd) {
@@ -60,8 +61,7 @@ inline HWND TranslateHandle(NativeWindow::handle native_window_handle) {
 }
 
 i32 HitTest(i32 x, i32 y, RECT rect) {
-  return ((rect.left <= x && x < rect.right) &&
-          (rect.top <= y && y < rect.bottom));
+  return ((rect.left <= x && x < rect.right) && (rect.top <= y && y < rect.bottom));
 }
 
 BOOL IsWindows10BuildOrGreaterWin32(WORD build) {
@@ -121,8 +121,7 @@ void EmbeddedWidgetRect(RECT rect) {
 }
 }  // namespace
 
-NativeWindowWin32::NativeWindowWin32(base::StringRefU8 name,
-                                     WindowDelegateWin* delegate)
+NativeWindowWin32::NativeWindowWin32(base::StringRefU8 name, WindowDelegateWin* delegate)
     : class_style_(CS_DBLCLKS),
       window_style_(WS_OVERLAPPEDWINDOW),
       delegate_(delegate),
@@ -169,8 +168,7 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
 
   switch (message) {
     case WM_DWMCOMPOSITIONCHANGED: {
-      BUGCHECK(false,
-               "Invalid DWM message. Windows 7 and below are unsupported.");
+      BUGCHECK(false, "Invalid DWM message. Windows 7 and below are unsupported.");
       break;
     }
     case WM_NCCALCSIZE: {
@@ -189,8 +187,7 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
       if (!is_custom_styled_)
         break;
 
-      result =
-          HandleWindowHittest({GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param)});
+      result = HandleWindowHittest({GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param)});
       break;
     }
     case WM_PAINT: {
@@ -225,8 +222,8 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
 
   // Handle the message if it's in our message map; otherwise, let the system
   // handle it.
-  if (!delegate_ || !delegate_->ProcessWindowMessage(a_hwnd, message, w_param,
-                                                     l_param, result))
+  if (!delegate_ ||
+      !delegate_->ProcessWindowMessage(a_hwnd, message, w_param, l_param, result))
     result = DefWindowProcW(a_hwnd, message, w_param, l_param);
 
   return result;
@@ -363,23 +360,22 @@ bool NativeWindowWin32::Init(handle parent_handle,
   // contrast mode.)
   BOOL compositon_enabled = FALSE;
   ::DwmIsCompositionEnabled(&compositon_enabled);
-  BUGCHECK(
-      compositon_enabled,
-      "Composition isn't enabled. Win <= 8 isn't supported anymore. Enable "
-      "Windows8 compatability in manifest!");
+  BUGCHECK(compositon_enabled,
+           "Composition isn't enabled. Win <= 8 isn't supported anymore. Enable "
+           "Windows8 compatability in manifest!");
 
-  LOG_INFO(
-      "Warning: VSYNC might be enabled though the DWMCompositionEnabled, make "
-      "sure "
-      "it isnt killing perf?");
+  BASE_LOGI(kLogTag,
+            "Warning: VSYNC might be enabled though the DWMCompositionEnabled, make "
+            "sure "
+            "it isnt killing perf?");
 
   HWND parent = TranslateHandle(parent_handle);
 
   if (suggested_bounds.width() == 0 || suggested_bounds.height() == 0) {
-    LOG_DEBUG(
-        "Win32Window: Invalid rect was specified: could lead to negative "
-        "bounds "
-        "(invisible window). Terminating init!");
+    BASE_LOGD(kLogTag,
+              "Win32Window: Invalid rect was specified: could lead to negative "
+              "bounds "
+              "(invisible window). Terminating init!");
     return false;
   }
 
@@ -390,9 +386,9 @@ bool NativeWindowWin32::Init(handle parent_handle,
       (window_style_ & kWindowDefaultStyle)) {
     is_custom_styled_ = true;
     window_style_ = 0x80000000;  // WS_POPUP
-    LOG_DEBUG(
-        "Win32Window: fancy border is enabled. OS Window border handling is "
-        "disabled.");
+    BASE_LOGD(kLogTag,
+              "Win32Window: fancy border is enabled. OS Window border handling is "
+              "disabled.");
   }
 
   if (parent == HWND_DESKTOP) {
@@ -417,10 +413,10 @@ bool NativeWindowWin32::Init(handle parent_handle,
 
   if (window_count == 0) {
     // this icon stuff is questionable.
-    HICON icon_handle = icon_id && !is_custom_styled_
-                            ? ::LoadIconW(::GetModuleHandleW(nullptr),
-                                          MAKEINTRESOURCEW(icon_id))
-                            : nullptr;
+    HICON icon_handle =
+        icon_id && !is_custom_styled_
+            ? ::LoadIconW(::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(icon_id))
+            : nullptr;
     const WNDCLASSEXW wc{
         .cbSize = sizeof(wc),
         .style = /*CS_VREDRAW | CS_HREDRAW*/ 0,
@@ -438,10 +434,9 @@ bool NativeWindowWin32::Init(handle parent_handle,
 
   // ATOM atom = GetWindowClassAtom();
   auto wide_name = base::UTF8ToWide(title_);
-  hwnd_ =
-      ::CreateWindowExW(window_ex_style_, kWindowClassName, wide_name.c_str(),
-                        window_style_, bounds.x(), bounds.y(), bounds.width(),
-                        bounds.height(), parent, nullptr, nullptr, this);
+  hwnd_ = ::CreateWindowExW(window_ex_style_, kWindowClassName, wide_name.c_str(),
+                            window_style_, bounds.x(), bounds.y(), bounds.width(),
+                            bounds.height(), parent, nullptr, nullptr, this);
   if (!hwnd_)
     return false;
 
@@ -554,23 +549,21 @@ bool NativeWindowWin32::ResizeBounds(const ui::IPoint window_pos,
   // Manually do what EnableNonClientDpiScaling() would do, so we are compatible
   // with all versions of windows.
   f32 dpi_factor = GetDPIFactor(dpi_).x;
-  const ui::IPoint scaled_bounds = {
-      static_cast<i32>(in_dimension.x * dpi_factor),
-      static_cast<i32>(in_dimension.y * dpi_factor)};
+  const ui::IPoint scaled_bounds = {static_cast<i32>(in_dimension.x * dpi_factor),
+                                    static_cast<i32>(in_dimension.y * dpi_factor)};
 
   // what we get out is the new desired size, but what if we update that only
   // after the
   i32 new_width = 0, new_height = 0;
-  ScaleWindowSize(window_style_, window_ex_style_, scaled_bounds.x,
-                  scaled_bounds.y, new_width, new_height,
-                  static_cast<UINT>(dpi_));
+  ScaleWindowSize(window_style_, window_ex_style_, scaled_bounds.x, scaled_bounds.y,
+                  new_width, new_height, static_cast<UINT>(dpi_));
 
-  const auto bounds = eq::ui::IRect::MakeXYWH(window_pos.x, window_pos.y,
-                                              new_width, new_height);
+  const auto bounds =
+      eq::ui::IRect::MakeXYWH(window_pos.x, window_pos.y, new_width, new_height);
 
   request_resize_ = true;
-  return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(),
-                      bounds.height(), TRUE);
+  return ::MoveWindow(hwnd_, bounds.x(), bounds.y(), bounds.width(), bounds.height(),
+                      TRUE);
 }
 
 void NativeWindowWin32::ExtendClientFrame(RECT& r) {

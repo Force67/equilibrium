@@ -6,7 +6,7 @@
 #include "base/memory/unique_pointer.h"
 
 #if defined(OS_WIN)
-#include "win/native_window_win32.h"
+#include "win/win32_window_win.h"
 #endif
 
 #if defined(OS_LINUX)

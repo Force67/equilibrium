@@ -17,6 +17,8 @@ struct DefaultAllocator {
     return base::allocator_primitives::Allocate(byte_size);
   }
   static void Free(void* block, mem_size former_block_byte_size) {
+    (void)former_block_byte_size;  // ignored but provided for special imp or v2
+                                   // imp
     base::allocator_primitives::Free(block);
   }
 };

@@ -5,7 +5,7 @@
 
 #if defined (OS_WIN)
 #include "win/message_pump_win.h"
-#include "win/native_window_win32.h"
+#include "win/win32_window_win.h"
 #endif
 
 #if defined (OS_LINUX)
