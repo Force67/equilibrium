@@ -23,8 +23,9 @@ class VulkanInstance {
 
   VkInstance& instance() { return vk_instance_.instance; }
 
- private:
   void BindFunctionPointers();
+
+ private:
   static GLADapiproc LoadSymbol(void* user_pointer, const char* symbol_name);
 
  private:

@@ -1,14 +1,15 @@
-// Copyright (C) 2022 Vincent Hengel.
+// Copyright (C) 2022-2025 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/arch.h>
 #include <eq/gpu/vulkan/vulkan_raii.h>
 
 namespace gpu::vulkan {
 
 class VulkanSurface {
  public:
-  VulkanSurface(VkInstance instance) : instance_(instance){};
+  VulkanSurface(VkInstance& instance) : instance_(instance){};
   ~VulkanSurface();
 
   // minimum depth bit surface
@@ -21,5 +22,6 @@ class VulkanSurface {
  private:
   VkInstance& instance_;
   VkSurfaceKHR surface_handle_{VK_NULL_HANDLE};
+  u32 present_family_{0};
 };
 }  // namespace gpu::vulkan
