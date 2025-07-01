@@ -55,7 +55,7 @@ void Path::Normalize(BufferType& buffer) {
 }
 
 base::String Path::ToAsciiString() const {
-  DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
+  BASE_DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
                                base::CountStringLength(path_buf_.c_str())),
          "Path must be ASCII only");
   return base::WideToASCII(path_buf_);

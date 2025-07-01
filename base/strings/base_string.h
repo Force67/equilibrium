@@ -356,15 +356,15 @@ class BasicBaseString {
 
   // access operator
   character_type& operator[](size_type index) {
-    BUGCHECK(index < size_in_chars_, "Index out of bounds");
+    BASE_BUGCHECK(index < size_in_chars_, "Index out of bounds");
     return data_[index];
   }
   const character_type& operator[](size_type index) const {
-    BUGCHECK(index < size_in_chars_, "Index out of bounds");
+    BASE_BUGCHECK(index < size_in_chars_, "Index out of bounds");
     return data_[index];
   }
   character_type& at(size_type index) {
-    BUGCHECK(index < size_in_chars_, "Index out of bounds");
+    BASE_BUGCHECK(index < size_in_chars_, "Index out of bounds");
     return data_[index];
   }
 
@@ -430,7 +430,7 @@ by a value of 0 (not 1).*/
   // replace functions ========================================
   void erase(mem_size pos_in_characters, size_type count = npos) {
     // Check if the position is within the valid range
-    BUGCHECK(pos_in_characters < size_in_chars_, "Invalid position");
+    BASE_BUGCHECK(pos_in_characters < size_in_chars_, "Invalid position");
 
     // Adjust the count if it's set to npos
     if (count == npos) {
@@ -438,7 +438,7 @@ by a value of 0 (not 1).*/
     }
 
     // Check if the count is within the valid range
-    BUGCHECK(count <= size_in_chars_ - pos_in_characters, "Invalid count");
+    BASE_BUGCHECK(count <= size_in_chars_ - pos_in_characters, "Invalid count");
 
     // Shift the characters after the deleted region
     memmove(reinterpret_cast<byte*>(data_) + (pos_in_characters * sizeof(character_type)),

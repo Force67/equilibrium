@@ -7,7 +7,7 @@
 
 namespace crypto {
 bool Base64Encode(const base::Span<byte> in_data, base::String& out) {
-  DCHECK(!in_data.empty(), "Invalid span passed to Base64Encode");
+  BASE_DCHECK(!in_data.empty(), "Invalid span passed to Base64Encode");
 
   size_t out_length = 0;
   int result = 0;

@@ -43,7 +43,7 @@ class DistinctPointer {
   void Make()
     requires(base::ISSame<TConstructionPolicy, MakeLater>)
   {
-    DCHECK(!pointer_);
+    BASE_DCHECK(!pointer_);
     pointer_ = new T();
   }
 
@@ -52,17 +52,17 @@ class DistinctPointer {
   void Make(TArgs&&... args)
     requires(base::ISSame<TConstructionPolicy, MakeLater>)
   {
-    DCHECK(!pointer_);
+    BASE_DCHECK(!pointer_);
     pointer_ = new T(base::forward<TArgs>(args)...);
   }
 
   T* operator->() const {
-    DCHECK(pointer_);
+    BASE_DCHECK(pointer_);
     return pointer_;
   }
 
   T& operator*() const {
-    DCHECK(pointer_);
+    BASE_DCHECK(pointer_);
     return *pointer_;
   }
 

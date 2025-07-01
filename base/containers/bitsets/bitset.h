@@ -26,7 +26,7 @@ class BitSet {
   void Reset() { array_ = {}; }
 
   void Set(const mem_size pos, bool toggle = true) {
-    DCHECK(N >= pos, "BitSet::Set(): Invalid bit positional offset");
+    BASE_DCHECK(N >= pos, "BitSet::Set(): Invalid bit positional offset");
 
     auto& selected_word = array_[pos / kBitsPerWord];
     const auto new_bit = ArrayType{1} << pos % kBitsPerWord;
@@ -34,13 +34,13 @@ class BitSet {
   }
 
   BitSet& Flip(const mem_size pos) {
-    DCHECK(N >= pos, "BitSet::Flip(): Invalid bit positional offset");
+    BASE_DCHECK(N >= pos, "BitSet::Flip(): Invalid bit positional offset");
     array_[pos / kBitsPerWord] ^= ArrayType{1} << pos % kBitsPerWord;
     return *this;
   }
 
   [[nodiscard]] bool Test(const mem_size pos) {
-    DCHECK(N >= pos, "BitSet::Test(): Invalid offset");
+    BASE_DCHECK(N >= pos, "BitSet::Test(): Invalid offset");
     return (array_[pos / kBitsPerWord] & (ArrayType{1} << pos % kBitsPerWord)) != 0;
   }
 
@@ -63,11 +63,11 @@ class BitSet {
     } else {
       if constexpr (N_large) {
         for (mem_size _Idx = 1; _Idx <= kWords; ++_Idx) {
-          DCHECK(array_[_Idx] == 0, "fail if any high - order words are nonzero");
+          BASE_DCHECK(array_[_Idx] == 0, "fail if any high - order words are nonzero");
         }
       }
 
-      DCHECK(array_[0] < ULONG_MAX, "Overflow");
+      BASE_DCHECK(array_[0] < ULONG_MAX, "Overflow");
       return static_cast<u32>(array_[0]);
     }
   }
@@ -81,7 +81,7 @@ class BitSet {
       if constexpr (N_large) {
         for (mem_size _Idx = 1; _Idx <= kWords; ++_Idx) {
           if (array_[_Idx] != 0) {
-            DCHECK(true, "fail if any high-order words are nonzero");
+            BASE_DCHECK(true, "fail if any high-order words are nonzero");
           }
         }
       }

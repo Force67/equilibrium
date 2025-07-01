@@ -81,7 +81,7 @@ extern "C" int glad_vulkan_is_device_function(const char* name);
 GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer,
                                        const char* symbol_name) {
   VulkanInstance* instance = nullptr;
-  DCHECK(instance = reinterpret_cast<VulkanInstance*>(user_pointer));
+  BASE_DCHECK(instance = reinterpret_cast<VulkanInstance*>(user_pointer));
 
   PFN_vkVoidFunction result = nullptr;
   if (instance->device_ != VK_NULL_HANDLE &&
@@ -100,7 +100,7 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer,
 
 // needs to be called if a device is constructed too..
 void VulkanInstance::BindFunctionPointers() {
-  // DCHECK(vk_instance_, "VkInstance no longer valid");
+  // BASE_DCHECK(vk_instance_, "VkInstance no longer valid");
 
   if (!get_instance_proc_)
     get_instance_proc_ =
@@ -130,12 +130,12 @@ bool VulkanInstance::Create() {
 #if defined(CONFIG_DEBUG)
   {
     bool result = CheckValidationLayers();
-    DCHECK(result);
+    BASE_DCHECK(result);
     if (!result)
       return false;
 
     result = CheckExtensions();
-    DCHECK(result);
+    BASE_DCHECK(result);
     if (!result)
       return false;
   }

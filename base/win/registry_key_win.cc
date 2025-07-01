@@ -41,7 +41,7 @@ RegistryKey::RegistryKey(HKEY rootkey, const wchar_t* sub_key, REGSAM access) {
     else
       Open(rootkey, sub_key, access);
   } else {
-    DCHECK(!sub_key);
+    BASE_DCHECK(!sub_key);
     wow64access_ = access & kWow64AccessMask;
   }
 }
@@ -59,7 +59,7 @@ LONG RegistryKey::CreateWithDisposition(HKEY rootkey,
                                         const wchar_t* subkey,
                                         DWORD* disposition,
                                         REGSAM access) {
-  DCHECK(rootkey && subkey && access && disposition);
+  BASE_DCHECK(rootkey && subkey && access && disposition);
   HKEY subhkey = nullptr;
   LONG result = ::RegCreateKeyExW(rootkey, subkey, 0, nullptr, REG_OPTION_NON_VOLATILE,
                                   access, nullptr, &subhkey, disposition);
@@ -73,14 +73,14 @@ LONG RegistryKey::CreateWithDisposition(HKEY rootkey,
 }
 
 LONG RegistryKey::CreateKey(const wchar_t* name, REGSAM access) {
-  DCHECK(name && access);
+  BASE_DCHECK(name && access);
   // After the application has accessed an alternate registry view using one of
   // the [KEY_WOW64_32KEY / KEY_WOW64_64KEY] flags, all subsequent operations
   // (create, delete, or open) on child registry keys must explicitly use the
   // same flag. Otherwise, there can be unexpected behavior.
   // http://msdn.microsoft.com/en-us/library/windows/desktop/aa384129.aspx.
   if ((access & kWow64AccessMask) != wow64access_) {
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return 87L;
   }
   HKEY subkey = nullptr;
@@ -96,7 +96,7 @@ LONG RegistryKey::CreateKey(const wchar_t* name, REGSAM access) {
 }
 
 LONG RegistryKey::Open(HKEY rootkey, const wchar_t* subkey, REGSAM access) {
-  DCHECK(rootkey && subkey && access);
+  BASE_DCHECK(rootkey && subkey && access);
   HKEY subhkey = nullptr;
 
   LONG result = ::RegOpenKeyExW(rootkey, subkey, 0, access, &subhkey);
@@ -110,14 +110,14 @@ LONG RegistryKey::Open(HKEY rootkey, const wchar_t* subkey, REGSAM access) {
 }
 
 LONG RegistryKey::OpenKey(const wchar_t* relative_key_name, REGSAM access) {
-  DCHECK(relative_key_name && access);
+  BASE_DCHECK(relative_key_name && access);
   // After the application has accessed an alternate registry view using one of
   // the [KEY_WOW64_32KEY / KEY_WOW64_64KEY] flags, all subsequent operations
   // (create, delete, or open) on child registry keys must explicitly use the
   // same flag. Otherwise, there can be unexpected behavior.
   // http://msdn.microsoft.com/en-us/library/windows/desktop/aa384129.aspx.
   if ((access & kWow64AccessMask) != wow64access_) {
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return 87L;
   }
   HKEY subkey = nullptr;
@@ -173,8 +173,8 @@ LONG RegistryKey::GetValueNameAt(DWORD index, base::StringW& name) const {
 }
 
 LONG RegistryKey::DeleteKey(const wchar_t* name) {
-  DCHECK(key_);
-  DCHECK(name);
+  BASE_DCHECK(key_);
+  BASE_DCHECK(name);
   HKEY subkey = nullptr;
 
   // Verify the key exists before attempting delete to replicate previous
@@ -188,8 +188,8 @@ LONG RegistryKey::DeleteKey(const wchar_t* name) {
 }
 
 LONG RegistryKey::DeleteEmptyKey(const wchar_t* name) {
-  DCHECK(key_);
-  DCHECK(name);
+  BASE_DCHECK(key_);
+  BASE_DCHECK(name);
 
   HKEY target_key = nullptr;
   LONG result = ::RegOpenKeyExW(key_, name, 0, KEY_READ | wow64access_, &target_key);
@@ -213,7 +213,7 @@ LONG RegistryKey::DeleteEmptyKey(const wchar_t* name) {
 }
 
 LONG RegistryKey::DeleteValue(const wchar_t* value_name) {
-  DCHECK(key_);
+  BASE_DCHECK(key_);
   LONG result = ::RegDeleteValueW(key_, value_name);
   return result;
 }
@@ -300,7 +300,7 @@ LONG RegistryKey::WriteValue(const wchar_t* name,
                              const void* data,
                              DWORD dsize,
                              DWORD dtype) {
-  DCHECK(data || !dsize);
+  BASE_DCHECK(data || !dsize);
 
   LONG result = ::RegSetValueExW(
       key_, name, 0, dtype, reinterpret_cast<LPBYTE>(const_cast<void*>(data)), dsize);

@@ -78,8 +78,8 @@ DWORD DeleteFileRecursive(const Path& path,
     if (info.IsDirectory()) {
       if (recursive) {
         this_result = DeleteFileRecursive(current, pattern, true);
-        DCHECK_NE(static_cast<LONG>(this_result), ERROR_FILE_NOT_FOUND);
-        DCHECK_NE(static_cast<LONG>(this_result), ERROR_PATH_NOT_FOUND);
+        BASE_DCHECK_NE(static_cast<LONG>(this_result), ERROR_FILE_NOT_FOUND);
+        BASE_DCHECK_NE(static_cast<LONG>(this_result), ERROR_PATH_NOT_FOUND);
         if (this_result == ERROR_SUCCESS &&
             !::RemoveDirectory(current.value().c_str())) {
           this_result = ReturnLastErrorOrSuccessOnNotFound();
@@ -125,8 +125,8 @@ DWORD DoDeleteFile(const Path& path, bool recursive) {
   const Path::BufferType pattern(BASE_PATH_LITERAL("*"));
   if (recursive) {
     const DWORD error_code = DeleteFileRecursive(path, pattern, true);
-    DCHECK(static_cast<LONG>(error_code) != ERROR_FILE_NOT_FOUND);
-    DCHECK(static_cast<LONG>(error_code) != ERROR_PATH_NOT_FOUND);
+    BASE_DCHECK(static_cast<LONG>(error_code) != ERROR_FILE_NOT_FOUND);
+    BASE_DCHECK(static_cast<LONG>(error_code) != ERROR_PATH_NOT_FOUND);
     if (error_code != ERROR_SUCCESS)
       return error_code;
   }

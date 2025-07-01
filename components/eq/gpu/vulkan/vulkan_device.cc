@@ -34,7 +34,7 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice physical,
   device_ci.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
   device_ci.ppEnabledExtensionNames = extensions.data();
 
-  BUGCHECK(::vkCreateDevice(physical, &device_ci, nullptr, &device_) == VK_SUCCESS,
+  BASE_BUGCHECK(::vkCreateDevice(physical, &device_ci, nullptr, &device_) == VK_SUCCESS,
            "Failed to create Vulkan logical device");
 
   // Retrieve queues

@@ -136,7 +136,7 @@ std::string File::ErrorToString(Error error) {
       break;
   }
 
-  IMPOSSIBLE;
+  BASE_IMPOSSIBLE;
   return "";
 }
 

@@ -37,7 +37,7 @@ Thread::Handle Thread::Spawn() {
         break;
       }
       default:
-        BUGCHECK(last_error, "CreateThread() error");
+        BASE_BUGCHECK(last_error, "CreateThread() error");
         break;
     }
   }

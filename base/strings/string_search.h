@@ -16,10 +16,10 @@ mem_size StringSearch(const TChar* haystack,
                       const TChar* needle,
                       const mem_size start_pos,
                       const mem_size needle_size) {
-  DCHECK(haystack, "haystack is null");
-  DCHECK(needle, "needle is null");
-  DCHECK(size, "size is null");
-  DCHECK(needle_size, "needle_size is null");
+  BASE_DCHECK(haystack, "haystack is null");
+  BASE_DCHECK(needle, "needle is null");
+  BASE_DCHECK(size, "size is null");
+  BASE_DCHECK(needle_size, "needle_size is null");
 
   // nsize + pos can overflow (eg pos == npos), guard against that by checking
   // that nsize + pos does not wrap around.
@@ -52,7 +52,7 @@ mem_size StringSearch(const TChar* haystack,
     // Here we know that the last char matches
     // Continue in pedestrian mode
     for (mem_size j = 0;;) {
-      DCHECK(j < needle_size);
+      BASE_DCHECK(j < needle_size);
       if (i[j] != needle[j]) {
         // Not found, we can skip
         // Compute the skip value lazily
@@ -82,10 +82,10 @@ mem_size StringSearchNotOf(const TChar* haystack,
                            const TChar* needle,
                            const mem_size start_pos,
                            const mem_size needle_size) {
-  DCHECK(haystack, "haystack is null");
-  DCHECK(needle, "needle is null");
-  DCHECK(size, "size is null");
-  DCHECK(needle_size, "needle_size is null");
+  BASE_DCHECK(haystack, "haystack is null");
+  BASE_DCHECK(needle, "needle is null");
+  BASE_DCHECK(size, "size is null");
+  BASE_DCHECK(needle_size, "needle_size is null");
 
   const TChar* haystackEnd = haystack + size;
   for (const TChar* curPos = haystack + start_pos; curPos < haystackEnd; ++curPos) {

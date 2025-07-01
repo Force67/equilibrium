@@ -9,7 +9,7 @@
 namespace base {
 
 bool SpawnProcess(const Path& path_to_executable, const base::StringRefU8 command_line) {
-  BUGCHECK(command_line.IsNullTerminated(), "Invalid command_line");
+  BASE_BUGCHECK(command_line.IsNullTerminated(), "Invalid command_line");
 
   auto wide_command_line = base::UTF8ToWide(command_line);
 

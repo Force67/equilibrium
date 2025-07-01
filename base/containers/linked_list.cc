@@ -38,8 +38,8 @@ void LinkNodeBase::RemoveFromList() {
 }
 
 void LinkNodeBase::InsertBeforeBase(LinkNodeBase* e) {
-  DCHECK(previous_ == nullptr);
-  DCHECK(next_ == nullptr);
+  BASE_DCHECK(previous_ == nullptr);
+  BASE_DCHECK(next_ == nullptr);
   next_ = e;
   previous_ = e->previous_;
   e->previous_->next_ = this;
@@ -47,8 +47,8 @@ void LinkNodeBase::InsertBeforeBase(LinkNodeBase* e) {
 }
 
 void LinkNodeBase::InsertAfterBase(LinkNodeBase* e) {
-  DCHECK(previous_ == nullptr);
-  DCHECK(next_ == nullptr);
+  BASE_DCHECK(previous_ == nullptr);
+  BASE_DCHECK(next_ == nullptr);
   next_ = e->next_;
   previous_ = e;
   e->next_->previous_ = this;

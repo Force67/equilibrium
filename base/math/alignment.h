@@ -12,11 +12,11 @@ namespace base {
 
 // must return to mem_size in case our alignment is > UINT_MAX
 inline mem_size Log2Align(const mem_size n) {
-  DCHECK(n > 0);
-  DCHECK(base::IsPowerOf2(n));
+  BASE_DCHECK(n > 0);
+  BASE_DCHECK(base::IsPowerOf2(n));
 
   u8 shift = static_cast<u8>(base::Log2(n));
-  DCHECK(shift < 64);  // Broken invariant
+  BASE_DCHECK(shift < 64);  // Broken invariant
   return mem_size(1) << shift;
 }
 

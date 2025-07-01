@@ -145,7 +145,7 @@ LRESULT CALLBACK NativeWindowWin32::WndProc(HWND hwnd,
   if (message == WM_NCCREATE) {
     const auto* cs = reinterpret_cast<CREATESTRUCTW*>(l_param);
     window = reinterpret_cast<NativeWindowWin32*>(cs->lpCreateParams);
-    DCHECK(window);
+    BASE_DCHECK(window);
     SetWindowUserData(hwnd, window);
     // for release
     if (window)
@@ -168,7 +168,7 @@ LRESULT NativeWindowWin32::ProcessMessage(HWND a_hwnd,
 
   switch (message) {
     case WM_DWMCOMPOSITIONCHANGED: {
-      BUGCHECK(false, "Invalid DWM message. Windows 7 and below are unsupported.");
+      BASE_BUGCHECK(false, "Invalid DWM message. Windows 7 and below are unsupported.");
       break;
     }
     case WM_NCCALCSIZE: {
@@ -331,7 +331,7 @@ LRESULT NativeWindowWin32::HandleWindowHittest(const ui::IPoint pos) {
 }
 
 void NativeWindowWin32::HandleDestroy() {
-  BUGCHECK(window_count > 0, "Invalid construction to destruction ratio");
+  BASE_BUGCHECK(window_count > 0, "Invalid construction to destruction ratio");
 
   if (window_count == 1) {
     // last man standing, exit the message loop, we need to verify the window
@@ -360,7 +360,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
   // contrast mode.)
   BOOL compositon_enabled = FALSE;
   ::DwmIsCompositionEnabled(&compositon_enabled);
-  BUGCHECK(compositon_enabled,
+  BASE_BUGCHECK(compositon_enabled,
            "Composition isn't enabled. Win <= 8 isn't supported anymore. Enable "
            "Windows8 compatability in manifest!");
 
@@ -393,13 +393,13 @@ bool NativeWindowWin32::Init(handle parent_handle,
 
   if (parent == HWND_DESKTOP) {
     // Only non-child windows can have HWND_DESKTOP (0) as their parent.
-    BUGCHECK((window_style_ & WS_CHILD) == 0);
+    BASE_BUGCHECK((window_style_ & WS_CHILD) == 0);
     parent = GetWindowToParentTo(false);
   } else if (parent == ::GetDesktopWindow()) {
     // Any type of window can have the "Desktop Window" as their parent.
     parent = GetWindowToParentTo(true);
   } else if (parent != HWND_MESSAGE) {
-    DCHECK(::IsWindow(parent));
+    BASE_DCHECK(::IsWindow(parent));
   }
 
   eq::ui::IRect bounds;
@@ -428,7 +428,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
         .lpszClassName = kWindowClassName,
     };
 
-    BUGCHECK(RegisterClassExW(&wc));
+    BASE_BUGCHECK(RegisterClassExW(&wc));
   }
   window_count++;
 
@@ -457,7 +457,7 @@ bool NativeWindowWin32::Init(handle parent_handle,
   }
 
   // store the monitor we were spawned from
-  BUGCHECK(tracked_monitor_ = ui::GetCurrentMonitorHandle(hwnd_));
+  BASE_BUGCHECK(tracked_monitor_ = ui::GetCurrentMonitorHandle(hwnd_));
   user_size_ = {bounds.width(), bounds.height()};
   dpi_ = ui::GetMonitorDpi(tracked_monitor_).x;
   // this is only done now since we have to wait for the window to be placed in
@@ -543,7 +543,7 @@ const eq::ui::IRect NativeWindowWin32::bounds() const {
 
 bool NativeWindowWin32::ResizeBounds(const ui::IPoint window_pos,
                                      const ui::IPoint in_dimension) {
-  DCHECK(dpi_ > 95.f,
+  BASE_DCHECK(dpi_ > 95.f,
          "A dpi value must be provided to ensure the same size across all "
          "monitors");
   // Manually do what EnableNonClientDpiScaling() would do, so we are compatible

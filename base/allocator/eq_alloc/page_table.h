@@ -35,8 +35,8 @@ class PageTable {
 
   uintptr_t PageOffset(void* address) {
     auto b = reinterpret_cast<uintptr_t>(address);
-    DCHECK(address_space_ != 0, "First page not set");
-    // DCHECK(b >= first_page_, "Page out of bounds");
+    BASE_DCHECK(address_space_ != 0, "First page not set");
+    // BASE_DCHECK(b >= first_page_, "Page out of bounds");
     return b - address_space_;
   }
 

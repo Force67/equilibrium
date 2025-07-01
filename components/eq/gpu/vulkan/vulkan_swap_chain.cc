@@ -96,7 +96,7 @@ bool VulkanSwapchain::Initialize(u32 width,
     view_create_info.subresourceRange.baseArrayLayer = 0;
     view_create_info.subresourceRange.layerCount = 1;
 
-    BUGCHECK(
+    BASE_BUGCHECK(
         vkCreateImageView(device_.handle(), &view_create_info, nullptr,
                           &image_views_[i]) == VK_SUCCESS,
              "Failed to create swap chain image view");

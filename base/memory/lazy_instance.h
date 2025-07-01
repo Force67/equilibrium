@@ -24,14 +24,14 @@ class LazyInstance {
   BASE_NOCOPYMOVE(LazyInstance)
 
   void Make() {
-    DCHECK(!exists_);
+    BASE_DCHECK(!exists_);
     exists_ = true;
     new (&storage_[0]) T();
   }
 
   template <typename... TArgs>
   void Make(TArgs&&... args) {
-    DCHECK(!exists_);
+    BASE_DCHECK(!exists_);
     exists_ = true;
     new (&storage_[0]) T(base::forward<TArgs>(args)...);
   }
@@ -41,12 +41,12 @@ class LazyInstance {
   operator bool() const noexcept { return exists_; }
 
   T* operator->() noexcept {
-    DCHECK(exists_);
+    BASE_DCHECK(exists_);
     return &as_obj();
   }
 
   T& operator*() noexcept {
-    DCHECK(exists_);
+    BASE_DCHECK(exists_);
     return as_obj();
   }
 

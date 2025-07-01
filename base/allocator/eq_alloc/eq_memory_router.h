@@ -95,7 +95,7 @@ struct EQMemoryRouter {
                                  pointer_diff& diff_out) {
     auto& page_tab = *page_table();
     auto* allocator = FindOwningAllocator(page_tab, former);
-    DCHECK(allocator, "ReAllocate(): Orphaned memory?");
+    BASE_DCHECK(allocator, "ReAllocate(): Orphaned memory?");
 
     const auto former_size = allocator->QueryAllocationSize(former);
     diff_out = new_size - former_size;
@@ -133,7 +133,7 @@ struct EQMemoryRouter {
   STRONG_INLINE mem_size Free(void* block) {
     auto& page_tab = *page_table();
     auto* allocator = FindOwningAllocator(page_tab, block);
-    DCHECK(allocator, "Free(): Orphaned memory?");
+    BASE_DCHECK(allocator, "Free(): Orphaned memory?");
     if (!allocator)
       return 0u;
     return allocator->Free(block);
@@ -150,9 +150,9 @@ struct EQMemoryRouter {
   Allocator* FindOwningAllocator(base::PageTable& page_table, void* block) {
     // the limit for an index is 1048576
     auto index = page_table.PageOffset(block) >> kMibShift;
-    DCHECK(index <= sizeof(allocator_mapping_table_),
+    BASE_DCHECK(index <= sizeof(allocator_mapping_table_),
            "Allocator index too large (over 1tib)");
-    DCHECK(index != kMaxAllocators, "Unowned memory (no allocator knows its origin)");
+    BASE_DCHECK(index != kMaxAllocators, "Unowned memory (no allocator knows its origin)");
 
     if (allocator_mapping_table_[index] != kMaxAllocators) {
       return allocators_[allocator_mapping_table_[index]];

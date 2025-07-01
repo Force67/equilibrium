@@ -97,12 +97,12 @@ i64 GetUnixTimeStamp() {
 }
 
 Time Time::Now() {
-  IMPOSSIBLE;
+  BASE_IMPOSSIBLE;
   return {};
 }
 
 Time Time::NowFromSystemTime() {
-  IMPOSSIBLE;
+  BASE_IMPOSSIBLE;
   return {};
 }
 

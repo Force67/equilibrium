@@ -78,7 +78,7 @@ class DynamicBitSet {
     if (bit_count_ > 64) {
       for (mem_size i = 1; i < word_count(); ++i) {
         if (vector_[i] != 0) {
-          DCHECK(true, "fail if any high-order words are nonzero");
+          BASE_DCHECK(true, "fail if any high-order words are nonzero");
         }
       }
     }
@@ -102,7 +102,7 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& reset(mem_size pos) noexcept {
-    DCHECK(pos < bit_count_, "DynamicBitSet::Reset(): Access out of bounds");
+    BASE_DCHECK(pos < bit_count_, "DynamicBitSet::Reset(): Access out of bounds");
     if (bit_count_ > 64) {
       const mem_size chunk = pos / 64;
       const mem_size shift = pos % 64;
@@ -117,13 +117,13 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& operator=(const ArrayType val) noexcept {
-    DCHECK(vector_.size() > 0, "Array is empty");
+    BASE_DCHECK(vector_.size() > 0, "Array is empty");
     vector_[0] = val;
     return *this;
   }
 
   constexpr bool operator[](mem_size pos) const {
-    DCHECK(pos <= bit_count_, "DynamicBitSet::[]: Access out of bounds");
+    BASE_DCHECK(pos <= bit_count_, "DynamicBitSet::[]: Access out of bounds");
     if (bit_count_ > 64) {
       const mem_size chunk = pos / 64;
       const mem_size shift = pos % 64;
@@ -139,7 +139,7 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& operator&=(const DynamicBitSet& rhs) noexcept {
-    DCHECK(bit_count_ <= 64);
+    BASE_DCHECK(bit_count_ <= 64);
 
     for (auto i = 0; i < storage_size(); ++i) {
       for (auto j = 0; j < rhs.storage_size(); ++j) {

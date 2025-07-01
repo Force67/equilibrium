@@ -327,7 +327,7 @@ base::StringU8 WideToUTF8(const base::StringRefW wide) {
 }
 
 base::StringU16 ASCIIToUTF16(const base::StringRef ascii) {
-  DCHECK(IsStringASCII(ascii));
+  BASE_DCHECK(IsStringASCII(ascii));
 
   base::StringU16 utf16String;
   utf16String.reserve(ascii.size());  // Optimize memory allocation
@@ -340,7 +340,7 @@ base::StringU16 ASCIIToUTF16(const base::StringRef ascii) {
 }
 
 base::String UTF16ToASCII(const base::StringRefU16 utf16) {
-  BUGCHECK(IsStringASCII(utf16));
+  BASE_BUGCHECK(IsStringASCII(utf16));
 
   base::String result;
   result.reserve(utf16.length());  // Optimize memory allocation
@@ -353,7 +353,7 @@ base::String UTF16ToASCII(const base::StringRefU16 utf16) {
 
 #if defined(WCHAR_T_IS_UTF16)
 base::StringW ASCIIToWide(const base::StringRef ascii) {
-  DCHECK(IsStringASCII(ascii));
+  BASE_DCHECK(IsStringASCII(ascii));
 
   base::StringW wideString;
   wideString.reserve(ascii.size());  // Optimize memory allocation
@@ -366,7 +366,7 @@ base::StringW ASCIIToWide(const base::StringRef ascii) {
 }
 
 base::String WideToASCII(const base::StringRefW wide) {
-  DCHECK(IsStringASCII(wide));
+  BASE_DCHECK(IsStringASCII(wide));
 
   base::String asciiString;
   asciiString.reserve(wide.size());  // Optimize memory allocation

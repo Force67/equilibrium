@@ -38,7 +38,7 @@ MemoryCategory AddMemoryCategory(const char* name) {
   if (index < kInvalidCategory)
     tracker_instance.name_bucket[index] = name;
   else
-    BUGCHECK(false, "Invalid category");
+    BASE_BUGCHECK(false, "Invalid category");
 
   return index;
 }
@@ -56,7 +56,7 @@ void RemoveMemoryCategory(MemoryCategory id) {
         tracker_instance.name_bucket[token_entry] = nullptr;
         tracker_instance.memory_sizes[token_entry] = 0u;
       } else
-        BUGCHECK(false);
+        BASE_BUGCHECK(false);
 
       token_entry = kInvalidCategory;
       break;

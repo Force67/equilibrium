@@ -15,7 +15,7 @@ DynamicLibrary::DynamicLibrary(DynamicLibrary&& rhs) noexcept {
 
 DynamicLibrary::~DynamicLibrary() {
   if (should_free_) {
-    DCHECK(DynamicLibrary::Free(), "Failed to release loaded library")
+    BASE_DCHECK(DynamicLibrary::Free(), "Failed to release loaded library")
   }
 }
 }  // namespace base

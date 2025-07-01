@@ -25,7 +25,7 @@ CommandLine::~CommandLine() {
 }
 
 CommandLine* CommandLine::ForCurrentProcess() {
-  DCHECK(current_commandline_,
+  BASE_DCHECK(current_commandline_,
          "Commandline instance pointer is invalid! (Access before/after "
          "construction?)");
   return current_commandline_;
@@ -82,10 +82,10 @@ base::StringRefU8 CommandLine::ExtractSwitchValue(const base::StringRefU8 item_c
   return u8"";                                  // Default return: switch not found
 }
 
-base::StringRefU8 CommandLine::operator[](const mem_size index) CONST_ND {
+base::StringRefU8 CommandLine::operator[](const mem_size index) BASE_CONST_ND {
   const mem_size cap = pieces_.size();
-  BUGCHECK(index < cap, "CommandLine::operator[]: Access out of bounds");
-  BUGCHECK(index < base::MinMax<u16>::max(),
+  BASE_BUGCHECK(index < cap, "CommandLine::operator[]: Access out of bounds");
+  BASE_BUGCHECK(index < base::MinMax<u16>::max(),
            "CommandLine::operator[]: Index out of bounds");
   const auto& piece = pieces_[index];
   return base::StringRefU8(piece.c_str(), piece.length(),

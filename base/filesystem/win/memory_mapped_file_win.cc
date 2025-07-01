@@ -26,7 +26,7 @@ bool MemoryMappedFile::Map() {
 }
 
 bool MemoryMappedFile::ReMap(u64 offset, mem_size mapped_bytes) {
-  DCHECK(!memory_handle_.IsValid(), "Attempted to remap existing view");
+  BASE_DCHECK(!memory_handle_.IsValid(), "Attempted to remap existing view");
 
   // invalid offset
   if (offset > file_size_)

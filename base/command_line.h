@@ -48,7 +48,7 @@ class CommandLine {
 
   // get an argument at a given index, note that index 0 is usually the
   // executable path
-  base::StringRefU8 operator[](const mem_size index) CONST_ND;
+  base::StringRefU8 operator[](const mem_size index) BASE_CONST_ND;
 
   // failsafe access at index n
   base::StringRefU8 at(const mem_size index);

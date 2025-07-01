@@ -106,7 +106,7 @@ class UniquePointer {
 
   // release all memory owned by this pointer
   void Free() {
-    DCHECK(pointer_);
+    BASE_DCHECK(pointer_);
     // restore former type info for array types so it decays to delete[] instead
     // of delete
     TDeleter::Delete(reinterpret_cast<T*>(pointer_));
@@ -115,12 +115,12 @@ class UniquePointer {
   }
 
   TType* operator->() const noexcept {
-    DCHECK(pointer_);
+    BASE_DCHECK(pointer_);
     return pointer_;
   }
 
   TType& operator*() const noexcept {
-    DCHECK(pointer_);
+    BASE_DCHECK(pointer_);
     return *pointer_;
   }
 
@@ -128,7 +128,7 @@ class UniquePointer {
   TType& operator[](mem_size index)
     requires(base::IsArray<T>)
   {
-    // DCHECK(index < (sizeof(T) / sizeof(pointer_[0])));
+    // BASE_DCHECK(index < (sizeof(T) / sizeof(pointer_[0])));
     return pointer_[index];
   }
 

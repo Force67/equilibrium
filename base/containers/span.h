@@ -43,33 +43,32 @@ class Span {
   }
 #endif
 
-  // FIXME(Vince): we sacrifice const for dcheck here atm
-  inline CONSTEXPR_ND const T& operator[](mem_size index) const noexcept {
-    DCHECK(index < len_);
+  inline BASE_CONSTEXPR_ND const T& operator[](mem_size index) const noexcept {
+    BASE_DCHECK(index < len_);
     return ptr_[index];
   }
 
-  CONSTEXPR_ND T& front() noexcept {
-    DCHECK(ptr_ && len_ > 0);
+  BASE_CONSTEXPR_ND T& front() noexcept {
+    BASE_DCHECK(ptr_ && len_ > 0);
     return *ptr_;
   }
 
-  CONSTEXPR_ND T& back() noexcept {
-    DCHECK(ptr_ && len_ > 0);
+  BASE_CONSTEXPR_ND T& back() noexcept {
+    BASE_DCHECK(ptr_ && len_ > 0);
     return *ptr_[len_ - 1];
   }
 
   // iterator to beginning
-  CONSTEXPR_ND T* begin() const noexcept {
+  BASE_CONSTEXPR_ND T* begin() const noexcept {
     return const_cast<T*>(ptr_);  // Remove const_cast if T* is non-const
   }
   // iterator to end
-  CONSTEXPR_ND T* end() const noexcept {
+  BASE_CONSTEXPR_ND T* end() const noexcept {
     return const_cast<T*>(ptr_ + len_);  // Remove const_cast if T* is non-const
   }
   // For const iteration
-  CONSTEXPR_ND const T* cbegin() const noexcept { return ptr_; }
-  CONSTEXPR_ND const T* cend() const noexcept { return ptr_ + len_; }
+  BASE_CONSTEXPR_ND const T* cbegin() const noexcept { return ptr_; }
+  BASE_CONSTEXPR_ND const T* cend() const noexcept { return ptr_ + len_; }
 
  private:
   const T* ptr_;

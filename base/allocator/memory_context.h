@@ -26,7 +26,7 @@ class MemoryScope {
   static constexpr allocator_handle NoOverride = -1;
 
   explicit inline MemoryScope(allocator_id id) {
-    DCHECK(id > 0 && id <= 255, "Invalid ID?");
+    BASE_DCHECK(id > 0 && id <= 255, "Invalid ID?");
     // Enter the new allocator/pool instance.
     if (current_allocator() != id) {
       Enter(static_cast<allocator_handle>(id));

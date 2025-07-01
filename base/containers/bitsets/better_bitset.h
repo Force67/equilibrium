@@ -49,7 +49,7 @@ class BetterBitSet {
   }
 
   BetterBitSet& Set(mem_size pos, bool value = true) noexcept {
-    DCHECK(pos < N);
+    BASE_DCHECK(pos < N);
     if (value == false)
       return reset(pos);
     if constexpr (N > 64) {
@@ -100,7 +100,7 @@ class BetterBitSet {
   }
 
   BetterBitSet& reset(mem_size pos) noexcept {
-    DCHECK(pos < N, "BetterBitSet::Reset(): Access out of bounds");
+    BASE_DCHECK(pos < N, "BetterBitSet::Reset(): Access out of bounds");
     if constexpr (N > 64) {
       const mem_size chunk = pos / 64;
       const mem_size shift = pos % 64;
@@ -125,8 +125,8 @@ class BetterBitSet {
     return *this;
   }
 
-  [[nodiscard]] CONSTEXPR_ND bool operator[](mem_size pos) const {
-    DCHECK(pos < N, "BetterBitSet::[]: Access out of bounds");
+  [[nodiscard]] BASE_CONSTEXPR_ND bool operator[](mem_size pos) const {
+    BASE_DCHECK(pos < N, "BetterBitSet::[]: Access out of bounds");
     if constexpr (N > 64) {
       const mem_size chunk = pos / 64;
       const mem_size shift = pos % 64;

@@ -113,7 +113,7 @@ class Vector {
 
   // increase internal capacity
   void reserve(mem_size new_reserved_capacity) {
-    DCHECK(new_reserved_capacity != 0 && capacity() != 0,
+    BASE_DCHECK(new_reserved_capacity != 0 && capacity() != 0,
            "Vector::reserve: Use resize instead of resize for populating an empty "
            "Vector");
 
@@ -318,23 +318,23 @@ class Vector {
   }
 
   T& front() {
-    DCHECK(!empty(), "Vector is empty.");
+    BASE_DCHECK(!empty(), "Vector is empty.");
     return data_[0];
   }
 
   // Access first element (const)
   const T& front() const {
-    DCHECK(!empty(), "Vector is empty.");
+    BASE_DCHECK(!empty(), "Vector is empty.");
     return data_[0];
   }
 
   [[nodiscard]] const T& back() const {
-    DCHECK(!empty());
+    BASE_DCHECK(!empty());
     return *(end_ - 1);
   }
 
   [[nodiscard]] T& back() {
-    DCHECK(!empty());
+    BASE_DCHECK(!empty());
     return *(end_ - 1);
   }
 
@@ -347,8 +347,8 @@ class Vector {
   [[nodiscard]] mem_size size() const { return end_ - data_; }
   [[nodiscard]] mem_size capacity() const { return capacity_ - data_; }
 
-  [[nodiscard]] CONSTEXPR_ND T& operator[](mem_size pos) const {
-    DCHECK(pos <= size(), "Vector::[]: Access out of bounds");
+  [[nodiscard]] BASE_CONSTEXPR_ND T& operator[](mem_size pos) const {
+    BASE_DCHECK(pos <= size(), "Vector::[]: Access out of bounds");
     return data_[pos];
   }
 

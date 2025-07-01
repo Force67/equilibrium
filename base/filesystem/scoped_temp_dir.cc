@@ -18,8 +18,8 @@ constexpr Path::CharType kScopedDirPrefix[] = BASE_PATH_LITERAL("scoped_dir");
 ScopedTempDir::ScopedTempDir() = default;
 
 ScopedTempDir::~ScopedTempDir() {
-  BUGCHECK(!path_.empty(), "Attempted to delete an unset scoped_temp_dir");
-  BUGCHECK(Delete(), "Failed to delete scoped_temp_dir");
+  BASE_BUGCHECK(!path_.empty(), "Attempted to delete an unset scoped_temp_dir");
+  BASE_BUGCHECK(Delete(), "Failed to delete scoped_temp_dir");
 }
 
 bool ScopedTempDir::CreateUniqueTempDir() {
@@ -66,7 +66,7 @@ bool ScopedTempDir::Delete() {
   if (path_.empty())
     return false;
 
-  DCHECK(false);
+  BASE_DCHECK(false);
 #if 0
   bool ret = DeletePathRecursively(path_);
   if (ret) {

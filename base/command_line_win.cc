@@ -19,7 +19,7 @@ base::StringU8 CommandLine::GetNativeUTF8CommandlineString() {
   // The lifetime of the returned value is managed by the system, applications
   // should not free or modify this value.
   const wchar_t* wide_commandline = ::GetCommandLineW();
-  BUGCHECK(wide_commandline, "GetCommandLineW failed. This should never happen!");
+  BASE_BUGCHECK(wide_commandline, "GetCommandLineW failed. This should never happen!");
   return base::WideToUTF8(wide_commandline);
 }
 

@@ -19,7 +19,7 @@ class Allocator {
   virtual void* Allocate(mem_size size, mem_size user_alignment = 1024) {
     (void)size;
     (void)user_alignment;
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return nullptr;
   }
 
@@ -32,21 +32,21 @@ class Allocator {
     (void)former_block;
     (void)new_size;
     (void)user_alignment;
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return nullptr;
   }
 
   // returns the amount of memory that was freed.
   virtual mem_size Free(void* block) {
     (void)block;
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return 0u;
   }
 
   // returns the amount of memory that is allocated by the block.
   virtual mem_size QueryAllocationSize(void* block) {
     (void)block;
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return 0u;
   }
 };

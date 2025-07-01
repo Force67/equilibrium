@@ -7,13 +7,14 @@
 #include <base/meta/source_location.h>
 
 #define TK_UNUSED(expr) (void)expr
+
 // #define BASE_RECORD_CHECKS
-#ifdef BUGCHECK
-#error Something else defined BUGCHECK
+#ifdef BASE_BUGCHECK
+#error Something else defined BASE_BUGCHECK
 #endif
 
-#ifdef DCHECK
-#error Something else defined DCHECK
+#ifdef BASE_DCHECK
+#error Something else defined BASE_DCHECK
 #endif
 
 namespace base {
@@ -52,7 +53,7 @@ void SetCheckHandler(CheckHandler*);
 #ifndef CONFIG_SHIPPING
 
 #if defined(BASE_RECORD_CHECKS)
-#define DCHECK(expression, ...)                            \
+#define BASE_DCHECK(expression, ...)                       \
   do {                                                     \
     if (!(expression)) {                                   \
       MAKE_SOURCE_LOC(BASE_FUNC_NAME, __FILE__, __LINE__); \
@@ -61,22 +62,22 @@ void SetCheckHandler(CheckHandler*);
     }                                                      \
   } while (0);
 #else
-#define DCHECK(expression, ...) \
-  do {                          \
-    if (!(expression)) {        \
-      CHECK_BREAK;              \
-    }                           \
+#define BASE_DCHECK(expression, ...) \
+  do {                               \
+    if (!(expression)) {             \
+      CHECK_BREAK;                   \
+    }                                \
   } while (0);
 #endif
 
 // constexpr if no dcheck
-#define CONSTEXPR_ND
-#define CONST_ND
+#define BASE_CONSTEXPR_ND
+#define BASE_CONST_ND
 
 #else
-#define DCHECK(x, ...)
-#define CONSTEXPR_ND constexpr
-#define CONST_ND const
+#define BASE_DCHECK(x, ...)
+#define BASE_CONSTEXPR_ND constexpr
+#define BASE_CONST_ND const
 #endif
 
 // BugChecks indicate a hard programmer error and are compiled into shipping
@@ -84,7 +85,7 @@ void SetCheckHandler(CheckHandler*);
 #ifndef BASE_STRIP_BUGCHECK
 
 #if defined(BASE_RECORD_CHECKS)
-#define BUGCHECK(expression, ...)                          \
+#define BASE_BUGCHECK(expression, ...)                     \
   do {                                                     \
     if (!(expression)) {                                   \
       MAKE_SOURCE_LOC(BASE_FUNC_NAME, __FILE__, __LINE__); \
@@ -93,21 +94,21 @@ void SetCheckHandler(CheckHandler*);
     }                                                      \
   } while (0);
 #else
-#define BUGCHECK(expression, ...) \
-  do {                            \
-    if (!(expression)) {          \
-      CHECK_BREAK;                \
-    }                             \
+#define BASE_BUGCHECK(expression, ...) \
+  do {                                 \
+    if (!(expression)) {               \
+      CHECK_BREAK;                     \
+    }                                  \
   } while (0);
 #endif
 #else
 
-#define BUGCHECK(x, ...)
+#define BASE_BUGCHECK(x, ...)
 #endif
 
 #if defined(BASE_RECORD_CHECKS)
 // Another form of bugcheck.
-#define IMPOSSIBLE                                       \
+#define BASE_IMPOSSIBLE                                  \
   {                                                      \
     MAKE_SOURCE_LOC(BASE_FUNC_NAME, __FILE__, __LINE__); \
     ::base::detail::BugCheck(kSourceLoc);                \
@@ -115,6 +116,6 @@ void SetCheckHandler(CheckHandler*);
   }
 // newline
 #else
-#define IMPOSSIBLE \
+#define BASE_IMPOSSIBLE \
   { CHECK_BREAK; }
 #endif

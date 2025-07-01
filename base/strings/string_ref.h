@@ -44,7 +44,7 @@ class BasicStringRef {
       : data_(str.c_str()),
         length_(static_cast<u32>(str.length())),
         tags_(StringRefFlags::kIsNullTerm) {
-    DCHECK(str.size() <= max_size_characters());
+    BASE_DCHECK(str.size() <= max_size_characters());
   }
 
   // construct from other
@@ -157,7 +157,7 @@ class BasicStringRef {
   // std::string_view
   // Prefer using this over .data()
   inline const TChar* c_str() const {
-    BUGCHECK(tags_ & StringRefFlags::kIsNullTerm,
+    BASE_BUGCHECK(tags_ & StringRefFlags::kIsNullTerm,
              "String piece is not null terminated. c_str() is therefore illegal");
 
     // TODO: review the impact of this..
@@ -217,12 +217,12 @@ class BasicStringRef {
   const TChar operator[](mem_size offset) const {
     if (offset >= length_)
       DEBUG_TRAP;
-    BUGCHECK(offset < length_, "Index out of bounds");
+    BASE_BUGCHECK(offset < length_, "Index out of bounds");
     return data_[offset];
   }
 
   base::XBasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
-    BUGCHECK(pos < length_, "Position is out of bounds");
+    BASE_BUGCHECK(pos < length_, "Position is out of bounds");
     if (count > length_ - pos) {
       count = length_ - pos;
     }

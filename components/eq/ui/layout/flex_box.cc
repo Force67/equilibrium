@@ -17,7 +17,7 @@ void Flexbox::Build() {
       break;
     }
     default:
-      IMPOSSIBLE;
+      BASE_IMPOSSIBLE;
   }
 }
 }  // namespace eq::ui

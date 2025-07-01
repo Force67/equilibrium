@@ -36,7 +36,7 @@ inline constexpr mem_size CalculateAlignedSize(mem_size size) {
 
 BucketAllocator::BucketAllocator(PageTable& t) : page_table_(t) {
   byte* page_hint = nullptr;
-  DCHECK(TryAcquireNewPage(page_table_, page_hint),
+  BASE_DCHECK(TryAcquireNewPage(page_table_, page_hint),
          "No initial page for the bucket allocator to work with!");
 }
 
@@ -147,7 +147,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
 }
 
 void* BucketAllocator::AcquireMemory(mem_size user_size, mem_size size, byte* hint) {
-  // DCHECK(!lock_.held());
+  // BASE_DCHECK(!lock_.held());
 
   if (hint) {
     // do something with the hint index
@@ -335,7 +335,7 @@ mem_size BucketAllocator::Free(void* pointer) {
     b->SetFree();
     return size;
   }
-  DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
+  BASE_DCHECK(false, "BucketAllocator::Free(): Failed to release memory");
   return 0u;
 }
 

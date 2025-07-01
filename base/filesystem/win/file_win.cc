@@ -37,7 +37,7 @@ void File::Close() {
 }
 
 int64_t File::Seek(Whence whence, int64_t offset) {
-  BUGCHECK(IsValid());
+  BASE_BUGCHECK(IsValid());
 
   LARGE_INTEGER distance, res;
   distance.QuadPart = offset;
@@ -48,8 +48,8 @@ int64_t File::Seek(Whence whence, int64_t offset) {
 }
 
 int File::Read(int64_t offset, char* data, int size) {
-  BUGCHECK(IsValid());
-  BUGCHECK(!async_);
+  BASE_BUGCHECK(IsValid());
+  BASE_BUGCHECK(!async_);
   if (size < 0)
     return -1;
 
@@ -70,8 +70,8 @@ int File::Read(int64_t offset, char* data, int size) {
 }
 
 int File::ReadAtCurrentPos(char* data, int size) {
-  BUGCHECK(IsValid());
-  BUGCHECK(!async_);
+  BASE_BUGCHECK(IsValid());
+  BASE_BUGCHECK(!async_);
   if (size < 0)
     return -1;
 
@@ -93,8 +93,8 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
 }
 
 int File::Write(int64_t offset, const char* data, size_t size) {
-  BUGCHECK(IsValid());
-  BUGCHECK(!async_);
+  BASE_BUGCHECK(IsValid());
+  BASE_BUGCHECK(!async_);
 
   LARGE_INTEGER offset_li;
   offset_li.QuadPart = offset;
@@ -112,8 +112,8 @@ int File::Write(int64_t offset, const char* data, size_t size) {
 }
 
 int File::WriteAtCurrentPos(const char* data, int size) {
-  BUGCHECK(IsValid());
-  BUGCHECK(!async_);
+  BASE_BUGCHECK(IsValid());
+  BASE_BUGCHECK(!async_);
   if (size < 0)
     return -1;
 
@@ -129,7 +129,7 @@ int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
 }
 
 int64_t File::GetLength() {
-  BUGCHECK(IsValid());
+  BASE_BUGCHECK(IsValid());
 
   LARGE_INTEGER size;
   if (!::GetFileSizeEx(file_.Get(), &size))
@@ -139,7 +139,7 @@ int64_t File::GetLength() {
 }
 
 bool File::SetLength(int64_t length) {
-  BUGCHECK(IsValid());
+  BASE_BUGCHECK(IsValid());
 
   // Get the current file pointer.
   LARGE_INTEGER file_pointer;
@@ -166,7 +166,7 @@ bool File::SetLength(int64_t length) {
 }
 
 bool File::GetInfo(Info* info) {
-  BUGCHECK(IsValid());
+  BASE_BUGCHECK(IsValid());
 
   BY_HANDLE_FILE_INFORMATION file_info;
   if (!::GetFileInformationByHandle(file_.Get(), &file_info))
@@ -191,7 +191,7 @@ DWORD LockFileFlagsForMode(File::LockMode mode) {
     case File::LockMode::kExclusive:
       return flags | LOCKFILE_EXCLUSIVE_LOCK;
   }
-  IMPOSSIBLE;
+  BASE_IMPOSSIBLE;
 
   // Dummy value to shut up the compiler
   return 0;
@@ -200,7 +200,7 @@ DWORD LockFileFlagsForMode(File::LockMode mode) {
 }  // namespace
 
 File::Error File::Lock(File::LockMode mode) {
-  BUGCHECK(IsValid());
+  BASE_BUGCHECK(IsValid());
 
   OVERLAPPED overlapped = {};
   BOOL result = ::LockFileEx(file_.Get(), LockFileFlagsForMode(mode), /*dwReserved=*/0,
@@ -212,7 +212,7 @@ File::Error File::Lock(File::LockMode mode) {
 }
 
 File::Error File::Unlock() {
-  BUGCHECK(IsValid());
+  BASE_BUGCHECK(IsValid());
 
   OVERLAPPED overlapped = {};
   BOOL result = ::UnlockFileEx(file_.Get(), /*dwReserved=*/0,
@@ -288,13 +288,13 @@ File::Error File::OSErrorToFileError(uint32_t last_error) {
     default:
       // UmaHistogramSparse("PlatformFile.UnknownErrors.Windows", last_error);
       // This function should only be called for errors.
-      BUGCHECK(static_cast<DWORD>(ERROR_SUCCESS) != last_error);
+      BASE_BUGCHECK(static_cast<DWORD>(ERROR_SUCCESS) != last_error);
       return FILE_ERROR_FAILED;
   }
 }
 
 void File::DoInitialize(const Path& path, uint32_t flags) {
-  BUGCHECK(!IsValid());
+  BASE_BUGCHECK(!IsValid());
 
   DWORD disposition = 0;
 
@@ -302,31 +302,31 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
     disposition = OPEN_EXISTING;
 
   if (flags & FLAG_CREATE) {
-    BUGCHECK(!disposition);
+    BASE_BUGCHECK(!disposition);
     disposition = CREATE_NEW;
   }
 
   if (flags & FLAG_OPEN_ALWAYS) {
-    BUGCHECK(!disposition);
+    BASE_BUGCHECK(!disposition);
     disposition = OPEN_ALWAYS;
   }
 
   if (flags & FLAG_CREATE_ALWAYS) {
-    BUGCHECK(!disposition);
-    BUGCHECK(flags & FLAG_WRITE);
+    BASE_BUGCHECK(!disposition);
+    BASE_BUGCHECK(flags & FLAG_WRITE);
     disposition = CREATE_ALWAYS;
   }
 
   if (flags & FLAG_OPEN_TRUNCATED) {
-    BUGCHECK(!disposition);
-    BUGCHECK(flags & FLAG_WRITE);
+    BASE_BUGCHECK(!disposition);
+    BASE_BUGCHECK(flags & FLAG_WRITE);
     disposition = TRUNCATE_EXISTING;
   }
 
   if (!disposition) {
     ::SetLastError(ERROR_INVALID_PARAMETER);
     error_details_ = FILE_ERROR_FAILED;
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return;
   }
 
@@ -334,7 +334,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
   if (flags & FLAG_WRITE)
     access = GENERIC_WRITE;
   if (flags & FLAG_APPEND) {
-    BUGCHECK(!access);
+    BASE_BUGCHECK(!access);
     access = FILE_APPEND_DATA;
   }
   if (flags & FLAG_READ)
@@ -383,7 +383,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
 }
 
 bool File::Flush() {
-  BUGCHECK(IsValid());
+  BASE_BUGCHECK(IsValid());
 
   // On Windows 8 and above, FlushFileBuffers is guaranteed to flush the storage
   // device's internal buffers (if they exist) before returning.

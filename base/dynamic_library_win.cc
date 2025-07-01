@@ -8,7 +8,7 @@
 
 namespace base {
 bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
-  DCHECK(!handle_, "Attempted to load an already existing library");
+  BASE_DCHECK(!handle_, "Attempted to load an already existing library");
 
   if (handle_ = ::GetModuleHandleW(path.c_str())) {
     should_free_ = false;
@@ -23,7 +23,7 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
 }
 
 bool DynamicLibrary::LoadExisting(const base::Path& path) {
-  DCHECK(!handle_);
+  BASE_DCHECK(!handle_);
   should_free_ = false;
   return handle_ = ::GetModuleHandleW(path.c_str());
 }

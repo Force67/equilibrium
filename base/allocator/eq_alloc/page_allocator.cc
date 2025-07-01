@@ -7,7 +7,7 @@
 
 namespace base {
 void* PageAllocator::Allocate(mem_size size, mem_size) {
-  DCHECK(size <= base::eq_allocation_constants::kPageThreshold,
+  BASE_DCHECK(size <= base::eq_allocation_constants::kPageThreshold,
          "Size limit for page allocation exceeded");
 
   return page_table_.RequestPage(base::PageProtectionFlags::RW, nullptr);

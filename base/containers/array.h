@@ -18,13 +18,13 @@ class Array {
 
   Array() = default;
 
-  inline CONSTEXPR_ND T& operator[](mem_size index) noexcept {
-    DCHECK(index < N, "Array access out of bounds");
+  inline BASE_CONSTEXPR_ND T& operator[](mem_size index) noexcept {
+    BASE_DCHECK(index < N, "Array access out of bounds");
     return storage_[index];
   }
 
-  inline CONSTEXPR_ND T& at(mem_size index) noexcept {
-    DCHECK(index < N, "Array access out of bounds");
+  inline BASE_CONSTEXPR_ND T& at(mem_size index) noexcept {
+    BASE_DCHECK(index < N, "Array access out of bounds");
     return storage_[index];
   }
 
