@@ -25,6 +25,9 @@ class VulkanInstance {
 
   void BindFunctionPointers();
 
+  void SetPhysicalDevice(VkPhysicalDevice physical) {
+	physical_device_ = physical; }
+
  private:
   static GLADapiproc LoadSymbol(void* user_pointer, const char* symbol_name);
 

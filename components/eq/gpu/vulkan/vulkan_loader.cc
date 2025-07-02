@@ -1,3 +1,5 @@
+// Copyright (C) 2022-2025 Vincent Hengel.
+// For licensing information see LICENSE at the root of this distribution.
 
 #include <base/logging.h>
 #include <base/dynamic_library.h>

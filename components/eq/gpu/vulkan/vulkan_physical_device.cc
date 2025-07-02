@@ -3,7 +3,6 @@
 
 #include "vulkan_physical_device.h"
 #include <algorithm>
-#include <stdexcept>
 
 namespace gpu::vulkan {
 
@@ -27,6 +26,7 @@ bool PhysicalDevice::PickBest(std::vector<const char*> required_extensions,
   vkEnumeratePhysicalDevices(instance_, &count, nullptr);
   if (count == 0)
     return false;
+
   std::vector<VkPhysicalDevice> devices(count);
   vkEnumeratePhysicalDevices(instance_, &count, devices.data());
 

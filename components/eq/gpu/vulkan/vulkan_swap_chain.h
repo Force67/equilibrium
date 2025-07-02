@@ -36,6 +36,10 @@ class VulkanSwapchain {
   const std::vector<VkImage>& images() const { return images_; }
   const std::vector<VkImageView>& imageViews() const { return image_views_; }
 
+  auto image_format() const {
+	return VkSurfaceFormatKHR{format_.format, format_.colorSpace};
+  }
+
  private:
   void QuerySupport();
   VkSurfaceFormatKHR ChooseFormat() const;

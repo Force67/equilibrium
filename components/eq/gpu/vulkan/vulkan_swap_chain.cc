@@ -68,6 +68,7 @@ bool VulkanSwapchain::Initialize(u32 width,
   create_info.clipped = VK_TRUE;
   create_info.oldSwapchain = swapchain_;  // VK_NULL_HANDLE on first creation
 
+  BASE_DCHECK(vkCreateSwapchainKHR != nullptr);
   if (vkCreateSwapchainKHR(device_.handle(), &create_info, nullptr, &swapchain_) !=
       VK_SUCCESS) {
     return false;

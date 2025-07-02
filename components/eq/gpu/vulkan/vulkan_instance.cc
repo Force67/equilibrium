@@ -100,18 +100,20 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer,
 
 // needs to be called if a device is constructed too..
 void VulkanInstance::BindFunctionPointers() {
-  // BASE_DCHECK(vk_instance_, "VkInstance no longer valid");
-
   if (!get_instance_proc_)
     get_instance_proc_ =
         vk_dll_.FindSymbol<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
   if (!get_device_proc_)
-    get_device_proc_ =
-        vk_dll_.FindSymbol<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr");
+    get_device_proc_ = vk_dll_.FindSymbol<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr");
 
   if (get_instance_proc_ && get_device_proc_) {
-    i32 version = gladLoadVulkanUserPtr(physical_device_,
-                                        VulkanInstance::LoadSymbol, this);
+    // First load instance functions
+    gladLoadVulkanUserPtr(nullptr, VulkanInstance::LoadSymbol, this);
+
+    // Then load device functions if we have a device
+    if (physical_device_ != VK_NULL_HANDLE) {
+      gladLoadVulkanUserPtr(physical_device_, VulkanInstance::LoadSymbol, this);
+    }
   }
 }
 

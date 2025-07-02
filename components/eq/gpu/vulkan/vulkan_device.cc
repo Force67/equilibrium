@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "vulkan_device.h"
-#include <stdexcept>
 #include <set>
 
 #include <base/containers/vector.h>
@@ -18,8 +17,8 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice physical,
                                        idx.transfer};
 
   float priority = 1.0f;
-  base::Vector<VkDeviceQueueCreateInfo> qi;
-  qi.reserve(uniqueFamilies.size());
+  base::Vector<VkDeviceQueueCreateInfo> qi(uniqueFamilies.size(),
+                                           base::VectorReservePolicy::kForPushback);
   for (uint32_t family : uniqueFamilies) {
     VkDeviceQueueCreateInfo ci{VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
     ci.queueFamilyIndex = family;
