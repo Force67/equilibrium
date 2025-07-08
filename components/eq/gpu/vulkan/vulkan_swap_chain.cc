@@ -7,6 +7,7 @@
 
 #include <base/check.h>
 
+#include "gpu/vulkan/vulkan_helpers.h"
 #include "gpu/vulkan/vulkan_device.h"
 #include "gpu/vulkan/vulkan_surface.h"
 
@@ -68,7 +69,8 @@ bool VulkanSwapchain::Initialize(u32 width,
   create_info.clipped = VK_TRUE;
   create_info.oldSwapchain = swapchain_;  // VK_NULL_HANDLE on first creation
 
-  BASE_DCHECK(vkCreateSwapchainKHR != nullptr);
+  BASE_DCHECK(vkCreateSwapchainKHR != nullptr);  // ensure the symbol was loaded (did you
+                                                 // call BindFunctionPointers(device) ???)
   if (vkCreateSwapchainKHR(device_.handle(), &create_info, nullptr, &swapchain_) !=
       VK_SUCCESS) {
     return false;
@@ -97,10 +99,8 @@ bool VulkanSwapchain::Initialize(u32 width,
     view_create_info.subresourceRange.baseArrayLayer = 0;
     view_create_info.subresourceRange.layerCount = 1;
 
-    BASE_BUGCHECK(
-        vkCreateImageView(device_.handle(), &view_create_info, nullptr,
-                          &image_views_[i]) == VK_SUCCESS,
-             "Failed to create swap chain image view");
+    EQ_GPU_VK_BUGCHECK(vkCreateImageView(device_.handle(), &view_create_info, nullptr,
+                                         &image_views_[i]));
   }
 
   return true;

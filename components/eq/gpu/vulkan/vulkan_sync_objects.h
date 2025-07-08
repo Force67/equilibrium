@@ -9,9 +9,12 @@ namespace gpu::vulkan {
 
 class VulkanDevice;
 
-// Per-frame semaphores + fence bundle to drive the classic
-// acquire->submit->present loop.
-// Lifetime: whole application (recreated only if max-frames-in-flight changes).
+// Manages the synchronization primitives (semaphores and fences) required for
+// rendering a set number of concurrent frames ("frames in flight").
+// This class encapsulates the logic for the classic acquire-submit-present loop,
+// ensuring that CPU and GPU operations are correctly ordered.
+// Its lifetime typically matches the application's, recreated only if the
+// maximum number of frames in flight is changed.
 class VulkanSyncObjects {
  public:
   explicit VulkanSyncObjects(const VulkanDevice& dev, uint32_t framesInFlight);

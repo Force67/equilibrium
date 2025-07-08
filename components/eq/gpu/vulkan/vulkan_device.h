@@ -3,9 +3,9 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/containers/span.h>
+
 #include <eq/gpu/vulkan/vulkan.h>
-#include <vector>
-#include <memory>
 
 namespace gpu::vulkan {
 
@@ -32,7 +32,7 @@ class VulkanDevice {
   // extensions: device extensions to enable (e.g. swapchain)
   VulkanDevice(VkPhysicalDevice physical,
                const QueueFamilyIndices& families,
-               const std::vector<const char*>& extensions);
+               const base::Span<const char*> extensions);
   ~VulkanDevice();
 
   VulkanDevice(const VulkanDevice&) = delete;

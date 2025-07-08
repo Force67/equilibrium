@@ -25,8 +25,8 @@ VulkanFramebuffers::VulkanFramebuffers(const VulkanDevice& dev,
     fci.height = extent_.height;
     fci.layers = 1;
 
-    BASE_BUGCHECK(
-        vkCreateFramebuffer(device_.handle(), &fci, nullptr, &framebuffers_[i]));
+    BASE_BUGCHECK(vkCreateFramebuffer(device_.handle(), &fci, nullptr,
+                                      &framebuffers_[i]) == VK_SUCCESS);
   }
 }
 

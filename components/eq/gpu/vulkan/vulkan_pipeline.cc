@@ -5,11 +5,10 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_device.h"
 #include "vulkan_render_pass.h"
-#include <vector>
 
 namespace gpu::vulkan {
 namespace {
-VkShaderModule MakeShader(VkDevice dev, const std::vector<uint32_t>& code) {
+VkShaderModule MakeShader(VkDevice dev, const base::Span<uint32_t>& code) {
   VkShaderModuleCreateInfo ci{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
   ci.codeSize = code.size() * sizeof(uint32_t);
   ci.pCode = code.data();
@@ -22,8 +21,8 @@ VkShaderModule MakeShader(VkDevice dev, const std::vector<uint32_t>& code) {
 
 VulkanPipeline::VulkanPipeline(const VulkanDevice& dev,
                                const VulkanRenderPass& rp,
-                               const std::vector<uint32_t>& vertSpv,
-                               const std::vector<uint32_t>& fragSpv)
+                               const base::Span<uint32_t>& vertSpv,
+                               const base::Span<uint32_t>& fragSpv)
     : device_(dev) {
   /* 1. shader stages ------------------------------------------------------- */
   VkShaderModule vert = MakeShader(device_.handle(), vertSpv);
@@ -80,7 +79,7 @@ VulkanPipeline::VulkanPipeline(const VulkanDevice& dev,
   VkDynamicState dynStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
   VkPipelineDynamicStateCreateInfo dyn{
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
-  dyn.dynamicStateCount = std::size(dynStates);
+  dyn.dynamicStateCount = sizeof(dynStates) / sizeof(VkDynamicState);
   dyn.pDynamicStates = dynStates;
 
   /* 3. pipeline layout ----------------------------------------------------- */

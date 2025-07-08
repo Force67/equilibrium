@@ -9,3 +9,11 @@ namespace gpu::vulkan {
 
 const char* VulkanResultToString(VkResult result);
 }
+
+#define EQ_GPU_VK_BUGCHECK(expr)                                           \
+  do {                                                                     \
+    VkResult res = (expr);                                                 \
+    if (res != VK_SUCCESS) {                                               \
+      BASE_BUGCHECK(false, "Vulkan error: %s", VulkanResultToString(res)); \
+    }                                                                      \
+  } while (0)

@@ -2,6 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include "vulkan_device.h"
+#include "vulkan_helpers.h"
+
 #include <set>
 
 #include <base/containers/vector.h>
@@ -10,7 +12,7 @@ namespace gpu::vulkan {
 
 VulkanDevice::VulkanDevice(VkPhysicalDevice physical,
                            const QueueFamilyIndices& idx,
-                           const std::vector<const char*>& extensions)
+                           const base::Span<const char*> extensions)
     : physical_(physical) {
   // Build unique set of family indices
   std::set<uint32_t> uniqueFamilies = {idx.graphics, idx.present, idx.compute,
@@ -33,8 +35,7 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice physical,
   device_ci.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
   device_ci.ppEnabledExtensionNames = extensions.data();
 
-  BASE_BUGCHECK(::vkCreateDevice(physical, &device_ci, nullptr, &device_) == VK_SUCCESS,
-           "Failed to create Vulkan logical device");
+  EQ_GPU_VK_BUGCHECK(::vkCreateDevice(physical, &device_ci, nullptr, &device_));
 
   // Retrieve queues
   vkGetDeviceQueue(device_, idx.graphics, 0, &queues_.graphics);

@@ -4,6 +4,7 @@
 #include <base/check.h>
 #include "vulkan_render_pass.h"
 #include "vulkan_device.h"
+#include "vulkan_helpers.h"
 
 namespace gpu::vulkan {
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& dev, VkFormat swapchainFormat)
@@ -41,7 +42,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& dev, VkFormat swapchainFo
   rpci.dependencyCount = 1;
   rpci.pDependencies = &dep;
 
-  BASE_BUGCHECK(vkCreateRenderPass(device_.handle(), &rpci, nullptr, &pass_));
+  EQ_GPU_VK_BUGCHECK(vkCreateRenderPass(device_.handle(), &rpci, nullptr, &pass_));
 }
 
 VulkanRenderPass::~VulkanRenderPass() {

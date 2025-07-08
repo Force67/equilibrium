@@ -4,6 +4,7 @@
 #include <base/check.h>
 #include "vulkan_sync_objects.h"
 #include "vulkan_device.h"
+#include "vulkan_helpers.h"
 
 namespace gpu::vulkan {
 VulkanSyncObjects::VulkanSyncObjects(const VulkanDevice& dev, uint32_t frames)
@@ -15,9 +16,11 @@ VulkanSyncObjects::VulkanSyncObjects(const VulkanDevice& dev, uint32_t frames)
   fci.flags = VK_FENCE_CREATE_SIGNALED_BIT;  // so first frame doesn't stall
 
   for (auto& f : frames_) {
-    BASE_BUGCHECK(vkCreateSemaphore(device_.handle(), &sci, nullptr, &f.imageAvailable));
-    BASE_BUGCHECK(vkCreateSemaphore(device_.handle(), &sci, nullptr, &f.renderFinished));
-    BASE_BUGCHECK(vkCreateFence(device_.handle(), &fci, nullptr, &f.inFlight));
+    EQ_GPU_VK_BUGCHECK(
+        vkCreateSemaphore(device_.handle(), &sci, nullptr, &f.imageAvailable));
+    EQ_GPU_VK_BUGCHECK(
+        vkCreateSemaphore(device_.handle(), &sci, nullptr, &f.renderFinished));
+    EQ_GPU_VK_BUGCHECK(vkCreateFence(device_.handle(), &fci, nullptr, &f.inFlight));
   }
 }
 
@@ -63,7 +66,7 @@ void VulkanSyncObjects::Submit(VkCommandBuffer cmd,
   si.signalSemaphoreCount = 1;
   si.pSignalSemaphores = &f.renderFinished;
 
-  BASE_BUGCHECK(vkQueueSubmit(graphicsQueue, 1, &si, f.inFlight));
+  EQ_GPU_VK_BUGCHECK(vkQueueSubmit(graphicsQueue, 1, &si, f.inFlight));
 }
 
 void VulkanSyncObjects::Present(uint32_t imageIndex,

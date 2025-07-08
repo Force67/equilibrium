@@ -12,7 +12,7 @@ VulkanCommandPool::VulkanCommandPool(const VulkanDevice& dev, uint32_t queueFami
   ci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   ci.queueFamilyIndex = queueFamilyIndex;
 
-  BASE_BUGCHECK(vkCreateCommandPool(device_.handle(), &ci, nullptr, &pool_));
+  BASE_BUGCHECK(vkCreateCommandPool(device_.handle(), &ci, nullptr, &pool_) == VK_SUCCESS);
 }
 
 VulkanCommandPool::~VulkanCommandPool() {

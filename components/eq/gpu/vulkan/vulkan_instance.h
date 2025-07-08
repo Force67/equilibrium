@@ -23,10 +23,7 @@ class VulkanInstance {
 
   VkInstance& instance() { return vk_instance_.instance; }
 
-  void BindFunctionPointers();
-
-  void SetPhysicalDevice(VkPhysicalDevice physical) {
-	physical_device_ = physical; }
+  void BindFunctionPointers(VkPhysicalDevice d = VK_NULL_HANDLE);
 
  private:
   static GLADapiproc LoadSymbol(void* user_pointer, const char* symbol_name);
@@ -35,7 +32,6 @@ class VulkanInstance {
   base::DynamicLibrary vk_dll_;  // must be first, so it gets unloaded LAST!
   VkInstance_Cxx vk_instance_;   // must be second, order of destruction
   base::LazyInstance<DebugMessenger> messenger_;
-  VkPhysicalDevice physical_device_{VK_NULL_HANDLE};
   VkDevice device_{VK_NULL_HANDLE};
 
   PFN_vkGetInstanceProcAddr get_instance_proc_{nullptr};
