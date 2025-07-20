@@ -9,6 +9,10 @@
 // https://github.com/wulmx/qemu-6.2/blob/a67f22c921e0e1aa024f4e78dbfc0e421cf7f718/roms/skiboot/libstb/crypto/mbedtls/programs/pkey/pk_sign.c
 // for more mbed documentation
 
+#ifdef _WIN32
+#pragma comment(lib, "bcrypt.lib")
+#endif
+
 namespace crypto {
 static constexpr DigestType kMdTypeAlgo{DigestType::MBEDTLS_MD_SHA512};
 

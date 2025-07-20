@@ -34,7 +34,6 @@ unittest2("eq_ui:platformtests")
 
 unittest2("eq_ui:gammatests")
   files({
-    "test/run_all_tests.cc",
     "test/ui_test_suite.cc",
     "test/ui_test_suite.h",
     -- for now, just to get tests working...
@@ -46,7 +45,6 @@ unittest2("eq_ui:gammatests")
 
 unittest2("eq_ui:layout")
   files({
-    "test/run_all_tests.cc",
     "test/ui_test_suite.cc",
     "test/ui_test_suite.h",
     "layout/*.cc",
