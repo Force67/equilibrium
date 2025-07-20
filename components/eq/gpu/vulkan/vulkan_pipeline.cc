@@ -5,6 +5,7 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_device.h"
 #include "vulkan_render_pass.h"
+#include "vulkan_helpers.h"
 
 namespace gpu::vulkan {
 namespace {
@@ -14,7 +15,7 @@ VkShaderModule MakeShader(VkDevice dev, const base::Span<uint32_t>& code) {
   ci.pCode = code.data();
 
   VkShaderModule mod{};
-  BASE_BUGCHECK(vkCreateShaderModule(dev, &ci, nullptr, &mod));
+  EQ_GPU_VK_BUGCHECK(vkCreateShaderModule(dev, &ci, nullptr, &mod));
   return mod;
 }
 }  // namespace
@@ -84,7 +85,7 @@ VulkanPipeline::VulkanPipeline(const VulkanDevice& dev,
 
   /* 3. pipeline layout ----------------------------------------------------- */
   VkPipelineLayoutCreateInfo lci{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
-  BASE_BUGCHECK(vkCreatePipelineLayout(device_.handle(), &lci, nullptr, &layout_));
+  EQ_GPU_VK_BUGCHECK(vkCreatePipelineLayout(device_.handle(), &lci, nullptr, &layout_));
 
   /* 4. graphics pipeline --------------------------------------------------- */
   VkGraphicsPipelineCreateInfo gpi{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
@@ -101,7 +102,7 @@ VulkanPipeline::VulkanPipeline(const VulkanDevice& dev,
   gpi.renderPass = rp.handle();
   gpi.subpass = 0;
 
-  BASE_BUGCHECK(vkCreateGraphicsPipelines(device_.handle(), VK_NULL_HANDLE, 1, &gpi,
+  EQ_GPU_VK_BUGCHECK(vkCreateGraphicsPipelines(device_.handle(), VK_NULL_HANDLE, 1, &gpi,
                                           nullptr, &pipeline_));
 
   /* shaders live only while creating the pipeline */
