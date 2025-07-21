@@ -15,6 +15,13 @@ TEST(BasicStringRefTest, Construction) {
   EXPECT_STREQ(str_ref.data(), test_str.data());
 }
 
+TEST(BasicStringRefTest, ConstructNullRef) {
+  StringRef str_ref = StringRef::null_ref();
+  EXPECT_TRUE(str_ref.IsNullTerminated());
+  EXPECT_EQ(str_ref.length(), 0);
+  EXPECT_STREQ(str_ref.data(), "");
+}
+
 TEST(BasicStringRefTest, ConstexprConstruction) {
   std::string test_str = "Hello, world!";
 

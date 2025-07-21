@@ -86,11 +86,21 @@ class BasicStringRef {
 #endif
   }
 
+  // move assignment
   BasicStringRef<TChar>& operator=(BasicStringRef<TChar>&& other) noexcept {
     if (this != &other) {
-      // Transfer ownership
-      // havent got time for this bs..
-      memcpy(this, &other, sizeof(BasicStringRef<TChar>));
+      data_ = other.data_;
+      length_ = other.length_;
+      tags_ = other.tags_;
+    }
+    return *this;
+  }
+  // copy assignment
+  BasicStringRef<TChar>& operator=(const BasicStringRef<TChar>& other) noexcept {
+    if (this != &other) {
+      data_ = other.data_;
+      length_ = other.length_;
+      tags_ = other.tags_;
     }
     return *this;
   }
@@ -144,9 +154,11 @@ class BasicStringRef {
   static constexpr inline BasicStringRef<TChar> null_ref() {
     // thanks to constinit we can ensure no ugly c++ guard is generated around
     // this, so while not pretty, this is OK
+
+    // This empty string is (de-facto) null-terminated at its first character
     static constinit TChar null_array[] = {0};
     static constinit BasicStringRef<TChar> null_ref{null_array, 0,
-                                                    false /*disallow .c_str()*/};
+                                                    true};  // null-terminated
     return null_ref;
   }
 
@@ -247,7 +259,7 @@ class BasicStringRef {
 
  private:
   const TChar* data_;
-  const u32 length_;
+  u32 length_;
   StringRefFlags tags_;
 };
 
