@@ -13,8 +13,8 @@
 #include "strings/string_ref.h"
 namespace base {
 bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
-  DCHECK(!handle_, "Attempted to load an already existing library");
-  DCHECK(!path.empty(), "Empty library path");
+  BASE_DCHECK(!handle_, "Attempted to load an already existing library");
+  BASE_DCHECK(!path.empty(), "Empty library path");
 
   if (LoadExisting(path))
     return true;
@@ -22,7 +22,7 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
   // user preference
   should_free_ = should_free;
 
-  BUGCHECK(!base::DoIsStringUTF8(path.c_str(), path.length()),
+  BASE_BUGCHECK(!base::DoIsStringUTF8(path.c_str(), path.length()),
            "DynamicLibrary::Load(): BASE requires paths to be utf8 encoded!");
 
   // TODO(vince): RTLD_LAZY preferences in flags...
@@ -31,8 +31,8 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
 }
 
 bool DynamicLibrary::LoadExisting(const base::Path& path) {
-  DCHECK(!handle_, "Attempted to load an already existing library");
-  DCHECK(!path.empty(), "Empty library path");
+  BASE_DCHECK(!handle_, "Attempted to load an already existing library");
+  BASE_DCHECK(!path.empty(), "Empty library path");
 
   should_free_ = false;
 
@@ -51,7 +51,7 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
     // According to the man pages, dlpi_name is null terminated
     const base::StringRefU8 ref(reinterpret_cast<const char8_t*>(info->dlpi_name));
 
-    BUGCHECK(base::DoIsStringUTF8(ref.c_str(), ref.length()),
+    BASE_BUGCHECK(base::DoIsStringUTF8(ref.c_str(), ref.length()),
              "DynamicLibrary::LoadExisting(): BASE requires paths to be utf8 "
              "encoded!");
 

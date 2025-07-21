@@ -492,7 +492,7 @@ by a value of 0 (not 1).*/
   // insert functions ====
   void insert(mem_size pos, size_type n, character_type character) {
     // Check if the position is within the valid range
-    BUGCHECK(pos <= size_in_chars_, "Invalid position");
+    BASE_BUGCHECK(pos <= size_in_chars_, "Invalid position");
 
     // Adjust the size of the string to make room for the new characters
     size_type new_size = size_in_chars_ + n;

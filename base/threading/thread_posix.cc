@@ -32,12 +32,12 @@ Thread::Handle Thread::Spawn() {
 
   // handle may be garbrage when the thread creation fails, so we ensure that
   // null is returned
-  BUGCHECK(ec, "pthread_create() error");
+  BASE_BUGCHECK(ec, "pthread_create() error");
   return {.pthread_ = 0};
 }
 
 void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
-  DCHECK(false);
+  BASE_DCHECK(false);
   sched_param param{.sched_priority = static_cast<int>(new_priority)};
   pthread_setschedparam(handle.pthread_, SCHED_OTHER, &param);
 }
@@ -55,7 +55,7 @@ const i32 GetNativeThreadPriority(Thread::Handle handle) {
 }
 
 const Thread::Priority GetThreadPriority(Thread::Handle handle) {
-  DCHECK(false);
+  BASE_DCHECK(false);
 
   return Thread::Priority::kLow;
 }

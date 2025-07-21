@@ -87,8 +87,8 @@ void SpinningMutex::FutexWait() {
 
   if (err) {
     // These are programming error, check them.
-    DCHECK(errno != EACCES);
-    DCHECK(errno != EINVAL);
+    BASE_DCHECK(errno != EACCES);
+    BASE_DCHECK(errno != EINVAL);
   }
   errno = saved_errno;
 }
@@ -97,7 +97,7 @@ void SpinningMutex::FutexWake() {
   int saved_errno = errno;
   long retval = syscall(SYS_futex, &state_, FUTEX_WAKE | FUTEX_PRIVATE_FLAG,
                         1 /* wake up a single waiter */, nullptr, nullptr, 0);
-  DCHECK(retval != -1);
+  BASE_DCHECK(retval != -1);
   errno = saved_errno;
 }
 

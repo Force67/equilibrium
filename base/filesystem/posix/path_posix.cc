@@ -10,7 +10,7 @@
 
 namespace base {
 Path::Path(const char* ascii_only) {
-  DCHECK(base::DoIsStringASCII(ascii_only, base::CountStringLength(ascii_only)),
+  BASE_DCHECK(base::DoIsStringASCII(ascii_only, base::CountStringLength(ascii_only)),
          "Path must be ASCII only");
   path_buf_ = reinterpret_cast<const char8_t*>(ascii_only);
   Normalize(path_buf_);
@@ -27,7 +27,7 @@ Path::Path(const base::StringRefW wide_text) {
 }
 
 bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
-  DCHECK(base::DoIsStringASCII(ascii_only, base::CountStringLength(ascii_only)),
+  BASE_DCHECK(base::DoIsStringASCII(ascii_only, base::CountStringLength(ascii_only)),
          "Extension must be ASCII only");
   if (ascii_only[0] != '.' && ensure_dot) {
     path_buf_ += '.';

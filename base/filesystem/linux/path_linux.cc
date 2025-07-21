@@ -8,7 +8,7 @@ namespace base {
 // only a ascii char as parameter. This is a horrible hack, defeating the point
 // of storing stuff in utf8 internally, but for now it's the only way.
 base::String Path::ToAsciiString() const {
-  DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
+  BASE_DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
                                base::CountStringLength(path_buf_.c_str())),
          "Path must be ASCII only");
 

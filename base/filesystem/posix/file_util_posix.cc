@@ -234,7 +234,7 @@ bool GetCurrentDirectory(Path* dir) {
 
   char system_buffer[PATH_MAX] = "";
   if (!::getcwd(system_buffer, sizeof(system_buffer))) {
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     return false;
   }
   *dir = Path(system_buffer);

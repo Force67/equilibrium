@@ -56,7 +56,7 @@ base::Vector<base::StringU8> TokenizeCommandLine(const base::StringRefU8 command
 }  // namespace
 
 bool SpawnProcess(const Path& path_to_executable, const base::StringRefU8 command_line) {
-  DCHECK(command_line[command_line.length() - 1] != '\0',
+  BASE_DCHECK(command_line[command_line.length() - 1] != '\0',
          "Command line must have a null terminator at the end");
 
   auto tokens = TokenizeCommandLine(command_line);

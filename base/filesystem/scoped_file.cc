@@ -40,7 +40,7 @@ void ScopedFDCloseTraits::Free(int fd) {
     ret = 0;
 #endif
 
-  BUGCHECK(0 == ret);
+  BASE_BUGCHECK(0 == ret);
 }
 
 #endif  // OS_POSIX || OS_FUCHSIA

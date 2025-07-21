@@ -63,7 +63,7 @@ i16 FcntlFlockType(File::LockMode* mode) {
     case File::LockMode::kExclusive:
       return F_WRLCK;
   }
-  IMPOSSIBLE;
+  BASE_IMPOSSIBLE;
   return 0;
 }
 
@@ -81,7 +81,7 @@ File::Error CallFcntlFlock(PlatformFile file, File::LockMode* mode) {
 }  // namespace
 
 void File::Info::FromStat(const stat_wrapper_t& stat_info) {
-  IMPOSSIBLE;
+  BASE_IMPOSSIBLE;
 }
 
 bool File::IsValid() const {
@@ -106,7 +106,7 @@ void File::Close() {
 
 int64_t File::Seek(Whence whence, int64_t offset) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
 
   static_assert(sizeof(int64_t) == sizeof(off_t), "off_t must be 64 bits");
   return lseek(file_.get(), static_cast<off_t>(offset), static_cast<int>(whence));
@@ -114,7 +114,7 @@ int64_t File::Seek(Whence whence, int64_t offset) {
 
 int File::Read(int64_t offset, char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -134,7 +134,7 @@ int File::Read(int64_t offset, char* data, int size) {
 
 int File::ReadAtCurrentPos(char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -153,14 +153,14 @@ int File::ReadAtCurrentPos(char* data, int size) {
 
 int File::ReadNoBestEffort(int64_t offset, char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
 
   return HANDLE_EINTR(pread(file_.get(), data, size, offset));
 }
 
 int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -173,7 +173,7 @@ int File::Write(int64_t offset, const char* data, size_t size) {
   if (IsOpenAppend(file_.get()))
     return WriteAtCurrentPos(data, size);
 
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -193,7 +193,7 @@ int File::Write(int64_t offset, const char* data, size_t size) {
 
 int File::WriteAtCurrentPos(const char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -212,7 +212,7 @@ int File::WriteAtCurrentPos(const char* data, int size) {
 
 int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -220,7 +220,7 @@ int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
 }
 
 int64_t File::GetLength() {
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
 
   stat_wrapper_t file_info;
   if (Fstat(file_.get(), &file_info))
@@ -231,7 +231,7 @@ int64_t File::GetLength() {
 
 bool File::SetLength(int64_t length) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
 
   return !CallFtruncate(file_.get(), length);
 }
@@ -239,7 +239,7 @@ bool File::SetLength(int64_t length) {
 #if 0
 bool File::SetTimes(Time last_access_time, Time last_modified_time) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
 
   timeval times[2];
   times[0] = last_access_time.ToTimeVal();
@@ -250,7 +250,7 @@ bool File::SetTimes(Time last_access_time, Time last_modified_time) {
 #endif
 
 bool File::GetInfo(Info* info) {
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
 
   stat_wrapper_t file_info;
   if (Fstat(file_.get(), &file_info))
@@ -307,7 +307,7 @@ File::Error File::OSErrorToFileError(int saved_errno) {
       return FILE_ERROR_NOT_A_DIRECTORY;
     default:
       // This function should only be called for errors.
-      DCHECK(0 != saved_errno);
+      BASE_DCHECK(0 != saved_errno);
       return FILE_ERROR_FAILED;
   }
 }
@@ -315,7 +315,7 @@ File::Error File::OSErrorToFileError(int saved_errno) {
 // TODO(erikkay): does it make sense to support FLAG_EXCLUSIVE_* here?
 void File::DoInitialize(const Path& path, uint32_t flags) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(!IsValid());
+  BASE_DCHECK(!IsValid());
 
   int open_flags = 0;
   if (flags & FLAG_CREATE)
@@ -324,19 +324,19 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
   created_ = false;
 
   if (flags & FLAG_CREATE_ALWAYS) {
-    DCHECK(!open_flags);
-    DCHECK(flags & FLAG_WRITE);
+    BASE_DCHECK(!open_flags);
+    BASE_DCHECK(flags & FLAG_WRITE);
     open_flags = O_CREAT | O_TRUNC;
   }
 
   if (flags & FLAG_OPEN_TRUNCATED) {
-    DCHECK(!open_flags);
-    DCHECK(flags & FLAG_WRITE);
+    BASE_DCHECK(!open_flags);
+    BASE_DCHECK(flags & FLAG_WRITE);
     open_flags = O_TRUNC;
   }
 
   if (!open_flags && !(flags & FLAG_OPEN) && !(flags & FLAG_OPEN_ALWAYS)) {
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
     errno = EOPNOTSUPP;
     error_details_ = FILE_ERROR_FAILED;
     return;
@@ -351,7 +351,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
     // Note: For FLAG_WRITE_ATTRIBUTES and no other read/write flags, we'll
     // open the file in O_RDONLY mode (== 0, see static_assert below), so that
     // we get a fd that can be used for SetTimes().
-    IMPOSSIBLE;
+    BASE_IMPOSSIBLE;
   }
 
   if (flags & FLAG_TERMINAL_DEVICE)
@@ -367,7 +367,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
   int mode = S_IRUSR | S_IWUSR;
 
   const auto utf8_index = base::IsStringUTF8AndReportIdx(path.c_str(), path.length());
-  BUGCHECK(utf8_index == 0,
+  BASE_BUGCHECK(utf8_index == 0,
            "File::DoInitialize(): BASE requires paths to be utf8 encoded!");
 
   // decay to a regular char type cause the api requires it, by no means that
@@ -376,7 +376,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
   char* utf8_path_buf = (char*)path.c_str();
   // memcpy(reinterpret_cast<void*>(utf8_path_buf), path.c_str(),
   // sizeof(char*));
-  DCHECK(utf8_path_buf, "File::DoInitialize(): Failed to convert path type");
+  BASE_DCHECK(utf8_path_buf, "File::DoInitialize(): Failed to convert path type");
 
   int descriptor = HANDLE_EINTR(open(utf8_path_buf, open_flags, mode));
 
@@ -407,13 +407,13 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
 
 bool File::Flush() {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-  DCHECK(IsValid());
+  BASE_DCHECK(IsValid());
 
   return !HANDLE_EINTR(fdatasync(file_.get()));
 }
 
 void File::SetPlatformFile(PlatformFile file) {
-  DCHECK(!file_.is_valid());
+  BASE_DCHECK(!file_.is_valid());
   file_.reset(file);
 }
 
