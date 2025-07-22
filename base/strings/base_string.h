@@ -261,7 +261,7 @@ class BasicBaseString {
     BASE_BUGCHECK(index < get_size(), "Index out of bounds");
     return get_data()[index];
   }
-  
+
   character_type& at(size_type pos) {
     BASE_BUGCHECK(pos < get_size(), "Position out of bounds");
     return get_data()[pos];

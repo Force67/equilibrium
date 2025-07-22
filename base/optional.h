@@ -34,6 +34,17 @@ class Optional {
       storage()->~T();
   }
 
+  template <typename... Args>
+  void emplace(Args&&... args) {
+    BASE_DCHECK(is_empty_,
+                "base::Optional::emplace(): tried to emplace into non-empty Optional");
+    is_empty_ = false;
+    ::new (&storage_[0]) T(base::forward<Args>(args)...);
+#if defined(CONFIG_DEBUG)
+    has_checked_validity_ = true;
+#endif
+  }
+
   bool failed() noexcept {
 #if defined(CONFIG_DEBUG)
     has_checked_validity_ = true;
@@ -41,7 +52,7 @@ class Optional {
     return is_empty_;
   }
 
-  bool has_value() noexcept {
+  bool has_value() BASE_CONST_ND noexcept {
 #if defined(CONFIG_DEBUG)
     has_checked_validity_ = true;
 #endif
