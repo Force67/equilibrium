@@ -11,6 +11,17 @@
 namespace {
 using namespace base;
 
+TEST(VectorTest, ConstructFromIntializerList) {
+  base::Vector<i32> vec = {1, 2, 3, 4, 5};
+
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ(vec[0], 1);
+  EXPECT_EQ(vec[1], 2);
+  EXPECT_EQ(vec[2], 3);
+  EXPECT_EQ(vec[3], 4);
+  EXPECT_EQ(vec[4], 5);
+}
+
 struct Complex2 {
   i32 a;
   i32 b;
@@ -279,6 +290,19 @@ TEST(VectorFindTest, EmptyVectorFind) {
 
   auto* notFound = vec.find(1);  // Vector is empty
   EXPECT_EQ(notFound, nullptr);
+}
+
+TEST(VectorFindTest, FindInUnsortedArray) {
+  base::Vector<i32> vec;
+  vec.push_back(5);
+  vec.push_back(1);
+  vec.push_back(3);
+  vec.push_back(2);
+  vec.push_back(4);
+
+  auto* found = vec.find(3);
+  ASSERT_NE(found, nullptr);
+  EXPECT_EQ(*found, 3);
 }
 
 }  // namespace

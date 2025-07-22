@@ -8,6 +8,7 @@
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/memory/move.h>
+#include <base/math/value_bounds.h>
 #include <base/containers/container_traits.h>
 
 #include <new>      // < for placement new
@@ -52,17 +53,19 @@ class Vector {
 
   // from braces {}
   Vector(std::initializer_list<value_type> list) {
-    const auto size = list.size();
-    data_ = Vector::Allocate(size);
-    capacity_ = &data_[size];
-    end_ = capacity_;
-    for (auto&& item : list) {
-      ::new (static_cast<void*>(end_++)) T(item);
+    const auto count = list.size();
+    data_ = Vector::Allocate(count);
+    capacity_ = data_ + count;
+    end_ = data_;  // Start at the beginning
+    T* current = data_;
+    for (const auto& item : list) {
+      ::new (static_cast<void*>(current++)) T(item);
     }
+    end_ = current;  // Set end_ to its final position
   }
 
   // move constructor
-  Vector(Vector&& other) {
+  Vector(Vector&& other) noexcept {
     data_ = other.data_;
     end_ = other.end_;
     capacity_ = other.capacity_;
@@ -77,6 +80,7 @@ class Vector {
     Vector::Free(data_, capacity());
   }
 
+  // move assignment operator
   Vector& operator=(Vector&& other) noexcept {
     if (this != &other) {
       base::DestructRange(data_, end_);
@@ -184,85 +188,104 @@ class Vector {
     }
   }
 
-  [[nodiscard]] T* find(const T& element_match) const {
-    if (empty()) [[unlikely]]
-      return nullptr;
-
-    mem_size left = 0;
-    mem_size right = size() - 1;
-
-    while (left <= right) {
-      mem_size middle = left + (right - left) / 2;
-      T& middle_element = *(begin() + middle);
-
-      if (middle_element == element_match)
-        return &middle_element;
-      else if (middle_element < element_match)
-        left = middle + 1;
-      else
-        right = middle - 1;
+  [[nodiscard]] T* find(const T& element_match) {
+    for (auto* it = begin(); it != end(); ++it) {
+      if (*it == element_match) {
+        return it;
+      }
     }
-
     return nullptr;
+  }
+
+  [[nodiscard]] const T* find(const T& element_match) const {
+    for (const auto* it = begin(); it != end(); ++it) {
+      if (*it == element_match) {
+        return it;
+      }
+    }
+    return nullptr;
+  }
+
+  [[nodiscard]] bool Contains(const T& element_match) const {
+    return find(element_match) != nullptr;
   }
 
   // single element at a specified position.
   T* insert(T* pos, const T& value) {
-    auto index = pos - begin();
-    if (end_ == capacity_) {  // Need to grow the vector
-      mem_size new_cap = size() == 0 ? 1 : size() * kDefaultMult;
-      reserve(new_cap);
+    BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
+    const auto index = pos - begin();
+
+    if (size() == capacity()) {
+      const mem_size new_cap = CalculateNewCapacity(size());
+      GrowCapacity(size(), new_cap);
+      pos = begin() + index;  // Recalculate iterator after growth
     }
-    if (pos != end_) {
-      // Shift elements to the right
-      for (auto it = end_; it != pos; --it) {
-        *it = base::move(*(it - 1));
-      }
+
+    MakeHoleForInsert(pos, 1);
+
+    // Safely place the new value.
+    if (pos < end_) {
+      *pos = value;  // Assign into the now-vacant (moved-from) spot.
+    } else {
+      ::new (static_cast<void*>(pos)) T(value);  // Construct at the end.
     }
-    // Construct the new element
-    ::new (static_cast<void*>(&*pos)) T(value);
-    ++end_;
+
+    end_++;
     return begin() + index;
   }
 
-  // multiple elements of the same value at a specified position.
+  // Inserts multiple copies of an element.
   void insert(T* pos, size_t count, const T& value) {
     if (count == 0)
       return;
-    auto index = pos - begin();
-    while (size() + count > capacity()) {  // Ensure capacity
-      reserve(size() == 0 ? count : size() * kDefaultMult);
+    BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
+    const auto index = pos - begin();
+
+    if (size() + count > capacity()) {
+      const mem_size new_cap = CalculateNewCapacity(size() + count);
+      GrowCapacity(size(), new_cap);
+      pos = begin() + index;  // Recalculate iterator
     }
-    // Move existing elements to make space
-    for (auto it = end_ + count - 1; it >= pos + count; --it) {
-      *it = base::move(*(it - count));
+
+    MakeHoleForInsert(pos, count);
+
+    // Fill the hole with the new value.
+    for (size_t i = 0; i < count; ++i) {
+      ::new (static_cast<void*>(pos + i)) T(value);  // Always safe to construct here
     }
-    // Insert new elements
-    for (auto it = pos; it != pos + count; ++it) {
-      ::new (static_cast<void*>(&*it)) T(value);
-    }
+
     end_ += count;
   }
 
-  // range of elements at a specified position.
+  // Inserts a range of elements.
   template <class InputIt>
   void insert(T* pos, InputIt first, InputIt last) {
-    auto distance = first - last;
-    if (distance <= 0)
-      return;
-    auto index = pos - begin();
-    while (size() + distance > capacity()) {  // Ensure capacity
-      reserve(size() == 0 ? distance : size() * kDefaultMult);
-    }
-    // Move existing elements to make space
-    for (auto it = end_ + distance - 1; it >= pos + distance; --it) {
-      *it = base::move(*(it - distance));
+    // Manually calculate distance
+    mem_size count = 0;
+    for (InputIt it = first; it != last; ++it) {
+      count++;
     }
 
-    // Copy new elements
-    memcpy(pos, first, distance * sizeof(T));
-    // std::copy(first, last, pos);
-    end_ += distance;
+    if (count == 0)
+      return;
+    BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
+    const auto index = pos - begin();
+
+    if (size() + count > capacity()) {
+      const mem_size new_cap = CalculateNewCapacity(size() + count);
+      GrowCapacity(size(), new_cap);
+      pos = begin() + index;  // Recalculate iterator
+    }
+
+    MakeHoleForInsert(pos, count);
+
+    // Fill the hole from the source range.
+    T* dest = pos;
+    for (InputIt it = first; it != last; ++it, ++dest) {
+      ::new (static_cast<void*>(dest)) T(*it);
+    }
+
+    end_ += count;
   }
 
   bool erase(mem_size pos) {
@@ -352,25 +375,6 @@ class Vector {
     return data_[pos];
   }
 
-  bool Contains(const T& element_match) const {
-    mem_size left = 0;
-    mem_size right = size() - 1;
-
-    while (left <= right) {
-      mem_size middle = left + (right - left) / 2;
-      const T& middle_element = *(begin() + middle);
-
-      if (middle_element == element_match)
-        return true;
-      else if (middle_element < element_match)
-        left = middle + 1;
-      else
-        right = middle - 1;
-    }
-
-    return false;
-  }
-
   template <typename TFunc>
   void ForEach(TFunc&& func) {
     for (auto* it = begin(); it != end(); ++it) {
@@ -390,6 +394,32 @@ class Vector {
  private:
   mem_size CalculateNewCapacity(mem_size cap) {
     return cap > 0 ? cap * /*capacity_mult_*/ kDefaultMult : 1;
+  }
+
+  void MakeHoleForInsert(T* pos, mem_size count) {
+    const mem_size elements_to_move = end_ - pos;
+    if (elements_to_move == 0 || count == 0) {
+      return;  // Nothing to shift.
+    }
+
+    T* const old_end = end_;
+
+    // Elements being shifted into what was previously beyond the vector's end
+    // must be move-constructed into uninitialized memory.
+    const mem_size num_to_construct = base::Min(count, elements_to_move);
+    for (mem_size i = 0; i < num_to_construct; ++i) {
+      T* source = old_end - (i + 1);
+      T* dest = source + count;
+      ::new (static_cast<void*>(dest)) T(base::move(*source));
+    }
+
+    // Elements being shifted into memory that was already occupied by other
+    // elements can be safely move-assigned.
+    for (mem_size i = num_to_construct; i < elements_to_move; ++i) {
+      T* source = old_end - (i + 1);
+      T* dest = source + count;
+      *dest = base::move(*source);
+    }
   }
 
   template <typename... TArgs>
