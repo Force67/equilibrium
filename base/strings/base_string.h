@@ -16,8 +16,6 @@
 #include <cstring>
 #include <algorithm>
 
-// TODO: small string optimization
-
 #define HAS_BASE_STRING_TRAITS 1
 
 namespace base {
@@ -26,9 +24,17 @@ concept HasStringTraits = requires(T& t) {
   t.data();
   t.c_str();
   t.size();
-  // Direct type constraint for character type
-  // { typename T::value_type{} } -> std::same_as<TEncoding>;
 };
+
+template <typename TInputIterator, typename T>
+inline TInputIterator find(TInputIterator first, TInputIterator last, const T& value) {
+  for (; first != last; ++first) {
+    if (*first == value) {
+      return first;
+    }
+  }
+  return last;
+}
 
 template <typename TChar,
           typename TSizeType = mem_size,
@@ -39,103 +45,306 @@ class BasicBaseString {
   using allocator_type = TAllocator;
   using value_type = character_type;
   using size_type = TSizeType;
+  static constexpr size_type npos = base::MinMax<size_type>::max();
 
-  BasicBaseString() noexcept = default;
+ private:
+  // This structure defines the memory footprint of the string object.
+  // On a 64-bit system, this is typically 24 bytes.
+  struct LargeLayout {
+    character_type* data_;
+    size_type size_;
+    size_type capacity_;
+  };
 
-  // construct from a string
-  explicit BasicBaseString(const character_type* str) { assign(str); }
+  // The small string stores its data inside the object's footprint.
+  // The capacity is the total size minus one byte for the size/flag field.
+  static constexpr size_type kSmallCapacity =
+      (sizeof(LargeLayout) - 1) / sizeof(character_type);
+
+  // The last byte of a small string stores its size and the mode flag.
+  // The MSB is the flag: 1 for Large, 0 for Small.
+  // The remaining 7 bits store the size of the small string.
+  static constexpr unsigned char kLargeFlag = 0x80;
+
+  union {
+    LargeLayout large_;
+    struct {
+      character_type data_[kSmallCapacity];
+      unsigned char size_and_flag_;
+    } small_;
+  };
+
+  // SSO (Small String Optimization) Helper Functions
+  bool is_large() const noexcept { return (small_.size_and_flag_ & kLargeFlag) != 0; }
+
+  size_type get_size() const noexcept {
+    return is_large() ? large_.size_ : (small_.size_and_flag_ & ~kLargeFlag);
+  }
+
+  character_type* get_data() noexcept { return is_large() ? large_.data_ : small_.data_; }
+
+  const character_type* get_data() const noexcept {
+    return is_large() ? large_.data_ : small_.data_;
+  }
+
+  size_type get_capacity() const noexcept {
+    return is_large() ? large_.capacity_ : kSmallCapacity;
+  }
+
+  void set_size(size_type new_size) {
+    if (is_large()) {
+      large_.size_ = new_size;
+    } else {
+      small_.size_and_flag_ = (unsigned char)(new_size & ~kLargeFlag);
+    }
+  }
+
+  void ensure_null_terminated() noexcept { get_data()[get_size()] = '\0'; }
+
+  void switch_to_large(size_type required_capacity) {
+    character_type buffer_backup[kSmallCapacity];
+    const size_type old_size = get_size();
+    memcpy(buffer_backup, small_.data_, old_size * sizeof(character_type));
+
+    // Geometric growth strategy
+    size_type new_capacity = required_capacity + (required_capacity / 2);
+    character_type* new_data = static_cast<character_type*>(
+        TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
+
+    memcpy(new_data, buffer_backup, old_size * sizeof(character_type));
+
+    large_.data_ = new_data;
+    large_.size_ = old_size;
+    large_.capacity_ = new_capacity;
+    small_.size_and_flag_ |= kLargeFlag;  // Set flag to indicate large mode
+
+    ensure_null_terminated();
+  }
+
+  void deallocate_large() {
+    if (is_large()) {
+      TAllocator::Free(large_.data_, (large_.capacity_ + 1) * sizeof(character_type));
+    }
+  }
+
+ public:
+  // -- Constructors and Destructor --
+
+  BasicBaseString() noexcept {
+    small_.size_and_flag_ = 0;  // is_small, size = 0
+    ensure_null_terminated();
+  }
+
+  explicit BasicBaseString(const character_type* str) {
+    small_.size_and_flag_ = 0;
+    ensure_null_terminated();
+    assign(str);
+  }
+
   explicit BasicBaseString(const character_type* str, size_type len_in_characters) {
+    small_.size_and_flag_ = 0;
+    ensure_null_terminated();
     assign(str, len_in_characters);
   }
 
-  // construct from string with range
   explicit BasicBaseString(const character_type* begin, const character_type* end) {
+    small_.size_and_flag_ = 0;
+    ensure_null_terminated();
     assign(begin, end - begin);
   }
 
-  // construct from a character array
   template <size_type N>
-  /*implicit*/ BasicBaseString(const character_type (&arr)[N]) {
-    assign(arr, N - 1);
+  BasicBaseString(const character_type (&arr)[N]) {
+    small_.size_and_flag_ = 0;
+    ensure_null_terminated();
+    assign(arr, N > 0 ? N - 1 : 0);
   }
 
-  // copy constructor
   BasicBaseString(const BasicBaseString& other) {
-    if (this != &other) {
-      assign(other.c_str(), other.size());
+    if (other.is_large()) {
+      assign(other.large_.data_, other.large_.size_);
+    } else {
+      memcpy(this, &other, sizeof(other));
     }
   }
 
   template <class TOther>
-    requires(  //! std::same_as<TOther, BaseString> &&
-        base::HasStringTraits<TOther, value_type>)
+    requires(base::HasStringTraits<TOther, value_type>)
   BasicBaseString(const TOther& other) {
-    // if (this != &other) {
+    small_.size_and_flag_ = 0;
+    ensure_null_terminated();
     assign(other.c_str(), other.size());
-    //}
   }
 
-  // move constructor
   BasicBaseString(BasicBaseString&& other) noexcept {
-    data_ = other.data_;
-    size_in_chars_ = other.size_in_chars_;
-    cap_in_chars_ = other.cap_in_chars_;
-    // condem the other
-    other.data_ = nullptr;
-    other.size_in_chars_ = 0;
-    other.cap_in_chars_ = 0;
-  }
-  ~BasicBaseString() { DeAllocate(); }
-
-  // Returns a pointer to the underlying character array.
-  const character_type* c_str() const noexcept { return data_; }
-  character_type* data() const noexcept { return data_; }
-
-  // const character_type front() const noexcept { return data_[0]; }
-
-  // begin and end
-  const character_type* begin() const noexcept { return data_; }
-  const character_type* end() const noexcept { return data_ + size_in_chars_; }
-  character_type* begin() noexcept { return data_; }
-  character_type* end() noexcept { return data_ + size_in_chars_; }
-  const character_type* cbegin() const noexcept { return data_; }
-  const character_type* cend() const noexcept { return data_ + size_in_chars_; }
-  const character_type* rbegin() const noexcept { return data_ + size_in_chars_ - 1; }
-  const character_type* rend() const noexcept { return data_ - 1; }
-  const character_type back() const noexcept { return data_[size_in_chars_ - 1]; }
-
-  // Returns the length of the BasicBaseString.
-  size_type size() const noexcept { return size_in_chars_; }
-  size_type byte_size() const noexcept { return size_in_chars_ * sizeof(character_type); }
-  size_type length() const noexcept { return size_in_chars_; }
-  bool empty() const noexcept { return size_in_chars_ == 0; }
-  bool not_empty() const noexcept { return size_in_chars_ != 0; }
-  size_type capacity() const noexcept { return cap_in_chars_; }
-  // Returns the maximum possible length of the BasicBaseString.
-  size_type max_size() const noexcept {
-    return base::MinMax<size_type>::max() / sizeof(character_type);
+    memcpy(this, &other, sizeof(*this));
+    // Set the moved-from object to a valid empty state
+    other.small_.size_and_flag_ = 0;
+    other.ensure_null_terminated();
   }
 
-  // Increases the capacity of the BasicBaseString to a value greater than or
-  // equal to the given size.
+  ~BasicBaseString() { deallocate_large(); }
+
+  // -- Assignment Operators --
+
+  BasicBaseString& operator=(const BasicBaseString& other) {
+    if (this != &other) {
+      assign(other.get_data(), other.get_size());
+    }
+    return *this;
+  }
+
+  BasicBaseString& operator=(const character_type* str) {
+    assign(str);
+    return *this;
+  }
+
+  BasicBaseString& operator=(BasicBaseString&& other) noexcept {
+    if (this != &other) {
+      deallocate_large();
+      memcpy(this, &other, sizeof(*this));
+      other.small_.size_and_flag_ = 0;
+      other.ensure_null_terminated();
+    }
+    return *this;
+  }
+
+  void assign(const character_type* str, size_type len) {
+    if (str == nullptr || len == 0) {
+      clear();
+      return;
+    }
+    if (len > get_capacity()) {
+      deallocate_large();
+      size_type new_capacity = len;
+      large_.data_ = static_cast<character_type*>(
+          TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
+      large_.capacity_ = new_capacity;
+      small_.size_and_flag_ |= kLargeFlag;
+    }
+    memcpy(get_data(), str, len * sizeof(character_type));
+    set_size(len);
+    ensure_null_terminated();
+  }
+  void assign(const character_type* start, const character_type* end) {
+    assign(start, end - start);
+  }
+
+  void assign(const character_type* str) { assign(str, base::CountStringLength(str)); }
+
+  // -- Element Access and Iterators --
+
+  const character_type* c_str() const noexcept { return get_data(); }
+  character_type* data() noexcept { return get_data(); }
+  const character_type* data() const noexcept { return get_data(); }
+
+  const character_type* begin() const noexcept { return get_data(); }
+  const character_type* end() const noexcept { return get_data() + get_size(); }
+  character_type* begin() noexcept { return get_data(); }
+  character_type* end() noexcept { return get_data() + get_size(); }
+
+  character_type& back() {
+    BASE_BUGCHECK(!empty(), "Cannot access .back() of an empty string");
+    return get_data()[get_size() - 1];
+  }
+
+  const character_type& back() const {
+    BASE_BUGCHECK(!empty(), "Cannot access .back() of an empty string");
+    return get_data()[get_size() - 1];
+  }
+
+  character_type& operator[](size_type index) {
+    BASE_BUGCHECK(index < get_size(), "Index out of bounds");
+    return get_data()[index];
+  }
+  const character_type& operator[](size_type index) const {
+    BASE_BUGCHECK(index < get_size(), "Index out of bounds");
+    return get_data()[index];
+  }
+  
+  character_type& at(size_type pos) {
+    BASE_BUGCHECK(pos < get_size(), "Position out of bounds");
+    return get_data()[pos];
+  }
+
+  const character_type& at(size_type pos) const {
+    BASE_BUGCHECK(pos < get_size(), "Position out of bounds");
+    return get_data()[pos];
+  }
+
+  // -- Capacity and Size --
+
+  size_type size() const noexcept { return get_size(); }
+  size_type length() const noexcept { return get_size(); }
+  size_type byte_size() const noexcept { return get_size() * sizeof(character_type); }
+  bool empty() const noexcept { return get_size() == 0; }
+  size_type capacity() const noexcept { return get_capacity(); }
+
   void reserve(size_type new_capacity) {
-    if (new_capacity >= cap_in_chars_) {
-      Reallocate(new_capacity);
+    if (new_capacity > get_capacity()) {
+      if (!is_large()) {
+        switch_to_large(new_capacity);
+      } else {
+        const size_type old_size = get_size();
+        character_type* new_data = static_cast<character_type*>(
+            TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
+        memcpy(new_data, large_.data_, old_size * sizeof(character_type));
+        deallocate_large();
+        large_.data_ = new_data;
+        large_.size_ = old_size;
+        large_.capacity_ = new_capacity;
+        small_.size_and_flag_ |= kLargeFlag;  // ensure flag is set
+        ensure_null_terminated();
+      }
     }
   }
 
-  // Resizes the BasicBaseString to the specified length.
   void resize(size_type new_size) {
-    if (new_size >= cap_in_chars_) {
-      Reallocate(new_size);
+    const size_type old_size = get_size();
+    if (new_size > old_size) {
+      reserve(new_size);
+      memset(get_data() + old_size, 0, (new_size - old_size) * sizeof(character_type));
     }
-    size_in_chars_ = new_size;
-    data_[size_in_chars_] = '\0';
+    set_size(new_size);
+    ensure_null_terminated();
   }
 
-  // append operator
+  void clear() {
+    deallocate_large();
+    small_.size_and_flag_ = 0;  // to empty small string
+    ensure_null_terminated();
+  }
+
+  void shrink_to_fit() {
+    if (!is_large() || get_size() == get_capacity()) {
+      return;
+    }
+    const size_type current_size = get_size();
+    if (current_size <= kSmallCapacity) {
+      // Transition from large to small
+      character_type* old_data = large_.data_;
+      memcpy(small_.data_, old_data, current_size * sizeof(character_type));
+      small_.size_and_flag_ = (unsigned char)current_size;  // Now small
+      ensure_null_terminated();
+      TAllocator::Free(old_data, (large_.capacity_ + 1) * sizeof(character_type));
+    } else {
+      // Shrink the large buffer
+      character_type* new_data = static_cast<character_type*>(
+          TAllocator::Allocate((current_size + 1) * sizeof(character_type)));
+      memcpy(new_data, large_.data_, current_size * sizeof(character_type));
+      deallocate_large();
+      large_.data_ = new_data;
+      large_.size_ = current_size;
+      large_.capacity_ = current_size;
+      small_.size_and_flag_ |= kLargeFlag;
+      ensure_null_terminated();
+    }
+  }
+
+  // -- Modification Operations --
+
   BasicBaseString& operator+=(const BasicBaseString& other) {
-    append(other.data_, other.size_in_chars_);
+    append(other.get_data(), other.get_size());
     return *this;
   }
   BasicBaseString& operator+=(const character_type* str) {
@@ -147,477 +356,299 @@ class BasicBaseString {
     return *this;
   }
 
-  // Appends the given BasicBaseString to the end of this BasicBaseString.
-  void append(const BasicBaseString& other) { append(other.data_, other.size_in_chars_); }
-  void append(const character_type* str, size_type added_character_count) {
-    size_type new_size = size_in_chars_ + added_character_count;
-    if (new_size > cap_in_chars_) {  // Use > instead of >= to ensure space for NUL
-      Reallocate(new_size);
-    }
-    memcpy(&data_[size_in_chars_], str, added_character_count * sizeof(character_type));
-    size_in_chars_ = new_size;
-    // ALWAYS ensure null termination
-    data_[size_in_chars_] = '\0';
-  }
-  void append(const character_type* str) {
-    if (!str ||
-        str[0] == '\0') {  // counting the strlen would fail if we let this through
+  void append(const character_type* str, size_type count) {
+    if (count == 0)
       return;
-    }
-    append(str, base::CountStringLength(str));
+    const size_type old_size = get_size();
+    const size_type new_size = old_size + count;
+    reserve(new_size);
+    memcpy(get_data() + old_size, str, count * sizeof(character_type));
+    set_size(new_size);
+    ensure_null_terminated();
   }
-  void append(const size_type n, const character_type c) {
-    size_type new_size = size_in_chars_ + n;
-    if (new_size >= cap_in_chars_) {
-      Reallocate(new_size);
-    }
-    memset(&data_[size_in_chars_], c, n * sizeof(character_type));
-    size_in_chars_ = new_size;
-    data_[size_in_chars_] = '\0';
-  }
-  void append(const character_type single_character) {
-    const size_type new_size = size_in_chars_ + 1;
-    if (new_size >= cap_in_chars_) {
-      Reallocate(new_size);
-    }
-    data_[size_in_chars_] = single_character;
-    size_in_chars_ = new_size;
-    data_[size_in_chars_] = '\0';
-  }
+  void append(const character_type* str) { append(str, base::CountStringLength(str)); }
 
   void push_back(character_type c) {
-    const auto new_size = size_in_chars_ + 1;
-    if (new_size > cap_in_chars_) {
-      Reallocate(new_size);
+    const size_type old_size = get_size();
+    if (old_size == get_capacity()) {
+      reserve(old_size + 1);
     }
-    data_[size_in_chars_] = c;  // append the character
-    size_in_chars_ = new_size;
-    // ALWAYS ensure null termination
-    data_[size_in_chars_] = '\0';
+    get_data()[old_size] = c;
+    set_size(old_size + 1);
+    ensure_null_terminated();
   }
 
-  // assignment functions ========================================
-  void assign(const character_type* str, size_type len_in_characters) {
-    // Allow assignment of empty string to clear the current one.
-    if (str == nullptr || len_in_characters == 0) {
-      clear();
+  void insert(size_type pos, size_type count, character_type c) {
+    BASE_BUGCHECK(pos <= get_size(), "Invalid position");
+    const size_type old_size = get_size();
+    const size_type new_size = old_size + count;
+    reserve(new_size);
+    character_type* d = get_data();
+    memmove(d + pos + count, d + pos, (old_size - pos) * sizeof(character_type));
+    memset(d + pos, c, count * sizeof(character_type));
+    set_size(new_size);
+    ensure_null_terminated();
+  }
+
+  void erase(size_type pos = 0, size_type count = npos) {
+    const size_type current_size = get_size();
+    BASE_BUGCHECK(pos <= current_size, "Invalid position");
+    count = std::min(count, current_size - pos);
+    if (count == 0)
       return;
-    }
 
-    // Make sure we have enough space (+1 for null terminator)
-    if (len_in_characters > cap_in_chars_) {
-      // Reallocate will handle freeing old memory
-      Reallocate(len_in_characters);
-    }
-
-    // No need to memset the whole buffer. Just copy and terminate.
-    memcpy(data_, str, len_in_characters * sizeof(character_type));
-    size_in_chars_ = len_in_characters;
-    data_[size_in_chars_] = '\0';
+    character_type* d = get_data();
+    memmove(d + pos, d + pos + count,
+            (current_size - pos - count) * sizeof(character_type));
+    set_size(current_size - count);
+    ensure_null_terminated();
   }
-  void assign(const character_type* begin, const character_type* end) {
-    assign(begin, end - begin);
+  void erase(const character_type* p) {
+    const size_type pos = p - get_data();
+    BASE_BUGCHECK(pos < get_size(), "Pointer out of bounds");
+    erase(pos, 1);
   }
-  void assign(const character_type* str) { assign(str, base::CountStringLength(str)); }
-  BasicBaseString& operator=(const BasicBaseString& other) {
-    if (this != &other) {
-      assign(other.data_, other.size_in_chars_);
-    }
-    return *this;
-  }
-  BasicBaseString& operator=(const character_type* str) {
-    assign(str, base::CountStringLength(str));
-    return *this;
+  void erase(const character_type* start, const character_type* end) {
+    BASE_BUGCHECK(start < end, "Invalid range");
+    const size_type pos = start - get_data();
+    BASE_BUGCHECK(pos < get_size(), "Pointer out of bounds");
+    erase(pos, end - start);
   }
 
-  // move assignment ========================================
-  BasicBaseString& operator=(BasicBaseString&& other) noexcept {
-    if (this != &other) {
-      // Deallocate existing resources to prevent a memory leak
-      DeAllocate();
-
-      // Steal the resources from the other object
-      data_ = other.data_;
-      size_in_chars_ = other.size_in_chars_;
-      cap_in_chars_ = other.cap_in_chars_;
-
-      // Condemn the other object
-      other.data_ = nullptr;
-      other.size_in_chars_ = 0;
-      other.cap_in_chars_ = 0;
-    }
-    return *this;
+  void remove_suffix(size_type n) {
+    const size_type current_size = get_size();
+    BASE_BUGCHECK(n <= current_size, "Invalid count");
+    set_size(current_size - n);
+    ensure_null_terminated();
   }
 
-  // equality comparisions
-  int compare(const character_type* str, size_type len) const noexcept {
-    return memcmp(data_, str, len);
+  BasicBaseString substr(size_type pos = 0, size_type count = npos) const {
+    const size_type current_size = get_size();
+    BASE_BUGCHECK(pos <= current_size, "Invalid position");
+    count = std::min(count, current_size - pos);
+    return BasicBaseString(get_data() + pos, count);
   }
-  int compare(size_type pos, size_type len, const BasicBaseString& str) const noexcept {
-    if (pos == 0 && len == 0)
-      return 0;
 
-    // Check if the requested substring is within the bounds of the current
-    // string
-    if (pos > size_in_chars_) {
-      return str.empty() ? 0 : -1;  // If the substring is beyond the end of the
-                                    // string, compare with an empty string
-    }
+  // -- Search and Compare --
 
-    size_type rlen =
-        std::min(len, size_in_chars_ - pos);  // Length of the substring to compare
-
-    // Compare the substring with the provided string
-    int result = memcmp(data_ + pos, str.data(), std::min(rlen, str.size()));
-
-    // If the substrings are equal, compare the remaining characters
-    if (result == 0) {
-      if (rlen < str.size()) {
-        result = -1;
-      } else if (rlen > str.size()) {
-        result = 1;
-      } else {
-        result = 0;
-      }
-    }
-    return result;
+  int compare(const BasicBaseString& other) const noexcept {
+    const size_type left_size = get_size();
+    const size_type right_size = other.get_size();
+    const size_type min_size = std::min(left_size, right_size);
+    int result = memcmp(get_data(), other.get_data(), min_size * sizeof(character_type));
+    if (result != 0)
+      return result;
+    if (left_size < right_size)
+      return -1;
+    if (left_size > right_size)
+      return 1;
+    return 0;
   }
-  int compare(size_type pos, size_type len, const character_type* str) const noexcept {
-    // Check if the requested substring is within the bounds of the current
-    // string
-    if (pos > size_in_chars_) {
-      // If the substring is beyond the end of the string, compare with a
-      // null-terminated string
-      int result = memcmp("", str, 1);
-      return result == 0 ? 0 : -1;
-    }
 
-    size_type rlen =
-        std::min(len, size_in_chars_ - pos);  // Length of the substring to compare
-
-    // Compare the substring with the provided string
-    int result = memcmp(&data_[pos], str, rlen * sizeof(character_type));
-
-    // If the substrings are equal, compare the remaining characters
-    if (result == 0) {
-      size_type str_len = 0;
-      while (str[str_len] != 0) {
-        str_len++;
-      }
-      if (rlen < str_len) {
-        result = -1;
-      } else if (rlen > str_len) {
-        result = 1;
-      } else {
-        result = 0;
-      }
-    }
-    return result;
-  }
   int compare(const character_type* str) const noexcept {
-    return memcmp(data_, str, base::CountStringLength(str) * sizeof(character_type));
-  }
-  template <class TOther>
-  int compare(const TOther& other)
-    requires(base::HasStringTraits<TOther, value_type>)
-  {
-    return memcmp(data_, other.c_str(), other.length() * sizeof(character_type));
-  }
-  bool operator==(const character_type* str) const noexcept {
-    return memcmp(data_, str, base::CountStringLength(str) * sizeof(character_type)) == 0;
-  }
-  bool operator!=(const character_type* str) const noexcept {
-    return memcmp(data_, str, base::CountStringLength(str) * sizeof(character_type)) != 0;
-  }
-  /* bool operator==(const BasicBaseString& other) const noexcept {
-        return memcmp(data_, other.data_, other.size_in_chars_) == 0;
-  }*/
-  template <class TOther>
-    requires(  //! std::same_as<TOther, BasicBaseString> &&
-        HasStringTraits<TOther, value_type>)
-  bool operator==(const TOther& other) const {
-    const bool result =
-        memcmp(data_, other.c_str(), other.size() * sizeof(character_type)) == 0;
-    return result;
+    const size_type left_size = get_size();
+    const size_type right_size = base::CountStringLength(str);
+    const size_type min_size = std::min(left_size, right_size);
+    int result = memcmp(get_data(), str, min_size * sizeof(character_type));
+    if (result != 0)
+      return result;
+    if (left_size < right_size)
+      return -1;
+    if (left_size > right_size)
+      return 1;
+    return 0;
   }
 
-  // comparision operators
-  friend bool operator!=(const BasicBaseString& lhs, const BasicBaseString& rhs) {
-    return !(lhs == rhs);
+  int compare(const character_type* str, size_type count) const noexcept {
+    const size_type left_size = get_size();
+    const size_type min_size = std::min(left_size, count);
+    int result = memcmp(get_data(), str, min_size * sizeof(character_type));
+    if (result != 0)
+      return result;
+    if (left_size < count)
+      return -1;
+    if (left_size > count)
+      return 1;
+    return 0;
   }
 
-  friend bool operator<(const BasicBaseString& lhs, const BasicBaseString& rhs) {
-    return lhs.length() < rhs.length();
+  // for backwards compat
+  int compare(size_type offset,
+              size_type count,
+              const character_type* str) const noexcept {
+    BASE_BUGCHECK(offset < get_size(), "Offset out of bounds");
+    const size_type left_size = get_size() - offset;
+    const size_type min_size = std::min(left_size, count);
+    int result = memcmp(get_data() + offset, str, min_size * sizeof(character_type));
+    if (result != 0)
+      return result;
+    if (left_size < count)
+      return -1;
+    if (left_size > count)
+      return 1;
+    return 0;
   }
 
-  friend bool operator<=(const BasicBaseString& lhs, const BasicBaseString& rhs) {
-    return !(rhs < lhs);
-  }
+  int compare(size_type pos, size_type len, const BasicBaseString& str) const noexcept {
+    BASE_BUGCHECK(pos <= get_size(), "Position out of bounds");
 
-  friend bool operator>(const BasicBaseString& lhs, const BasicBaseString& rhs) {
-    return rhs < lhs;
-  }
+    const size_type rlen = std::min(len, get_size() - pos);
+    const size_type other_len = str.get_size();
+    const size_type min_len = std::min(rlen, other_len);
 
-  friend bool operator>=(const BasicBaseString& lhs, const BasicBaseString& rhs) {
-    return !(lhs < rhs);
-  }
+    int result =
+        memcmp(get_data() + pos, str.get_data(), min_len * sizeof(character_type));
 
-  // access operator
-  character_type& operator[](size_type index) {
-    BASE_BUGCHECK(index < size_in_chars_, "Index out of bounds");
-    return data_[index];
-  }
-  const character_type& operator[](size_type index) const {
-    BASE_BUGCHECK(index < size_in_chars_, "Index out of bounds");
-    return data_[index];
-  }
-  character_type& at(size_type index) {
-    BASE_BUGCHECK(index < size_in_chars_, "Index out of bounds");
-    return data_[index];
-  }
-
-  character_type* at_if(size_type index) {
-    if (index < size_in_chars_) {
-      return data_ + index;
+    if (result != 0) {
+      return result;
     }
-    return nullptr;
+
+    if (rlen < other_len) {
+      return -1;
+    }
+    if (rlen > other_len) {
+      return 1;
+    }
+
+    return 0;
+  }
+  size_type find(character_type c, size_type pos = 0) const {
+    if (pos >= get_size())
+      return npos;
+    const character_type* result =
+        base::find(get_data() + pos, get_data() + get_size(), c);
+    return result == end() ? npos : result - begin();
   }
 
-  // search functions ========================================
-  // Finds the last occurrence of any of the characters in the given string.
-  size_type find(const character_type c) {
-    for (size_type i = 0; i < size_in_chars_; ++i) {
-      if (data_[i] == c) {
+  size_type find_last_of(character_type c, size_type pos = npos) const {
+    const size_type current_size = get_size();
+    if (current_size == 0)
+      return npos;
+    size_type search_end = (pos == npos || pos >= current_size) ? current_size - 1 : pos;
+    for (size_type i = search_end; i != static_cast<size_type>(-1); --i) {
+      if (get_data()[i] == c) {
         return i;
       }
     }
     return npos;
   }
 
-  size_type find_last_of(const BasicBaseString& other) const {
-    return find_last_of(other.data_, other.size());
-  }
+  // kSeparators, BufferType::npos, kSeparatorsLength - 1
+  size_type find_last_of(const character_type* s,
+                         size_type pos = npos,
+                         size_type s_len = npos) const {
+    const size_type current_size = get_size();
+    if (current_size == 0 || s == nullptr || s_len == 0)
+      return npos;
+    if (pos == npos || pos >= current_size)
+      pos = current_size - 1;
 
-  size_type find_last_of(const character_type* str, size_type len) const {
-    for (size_type i = size_in_chars_ - 1; i != static_cast<size_type>(-1); --i) {
-      for (size_type j = 0; j < len; ++j) {
-        if (data_[i] == str[j]) {
-          return i;
-        }
-      }
-    }
-    return npos;
-  }
-  /*Position of the last character in the string to be considered in the search.
-Any value greater than, or equal to, the string length (including string::npos)
-means that the entire string is searched. Note: The first character is denoted
-by a value of 0 (not 1).*/
-  size_type find_last_of(const character_type* s, size_type pos, size_type n) const {
-    if (pos >= size_in_chars_) {
-      pos = size_in_chars_ - 1;
-    }
     for (size_type i = pos; i != static_cast<size_type>(-1); --i) {
-      for (size_type j = 0; j < n; ++j) {
-        if (data_[i] == s[j]) {
-          return i;
-        }
-      }
-    }
-    return npos;
-  }
-
-  size_type find_last_of(const character_type c) {
-    for (size_type i = size_in_chars_ - 1; i != static_cast<size_type>(-1); --i) {
-      if (data_[i] == c) {
+      if (base::find(s, s + s_len, get_data()[i]) != s + s_len) {
         return i;
       }
     }
     return npos;
   }
-
-  // replace functions ========================================
-  void erase(mem_size pos_in_characters, size_type count = npos) {
-    // Check if the position is within the valid range
-    BASE_BUGCHECK(pos_in_characters < size_in_chars_, "Invalid position");
-
-    // Adjust the count if it's set to npos
-    if (count == npos) {
-      count = size_in_chars_ - pos_in_characters;
-    }
-
-    // Check if the count is within the valid range
-    BASE_BUGCHECK(count <= size_in_chars_ - pos_in_characters, "Invalid count");
-
-    // Shift the characters after the deleted region
-    memmove(reinterpret_cast<byte*>(data_) + (pos_in_characters * sizeof(character_type)),
-            reinterpret_cast<byte*>(data_) +
-                ((pos_in_characters + count) * sizeof(character_type)),
-            (size_in_chars_ - pos_in_characters - count) * sizeof(character_type));
-
-    // Update the size
-    size_in_chars_ -= count;
-    data_[size_in_chars_] = '\0';  // Ensure null termination
-  }
-  void erase(const character_type* first, const character_type* last) {
-    erase(first - data_, last - first);
-  }
-  void erase(const character_type* pos) { erase(pos - data_, 1); }
-
-  void remove_suffix(mem_size n) {
-    BUGCHECK(n <= size_in_chars_, "Invalid count");
-    size_in_chars_ -= n;
-    data_[size_in_chars_] = '\0';  // Ensure null termination
-  }
-
-  void clear() {
-    size_in_chars_ = 0;
-    memset(data_, 0, cap_in_chars_ * sizeof(character_type));
-  }
-
-  static constexpr size_type npos = base::MinMax<size_type>::max();
-  BasicBaseString substr(size_type pos, size_type count = npos) const {
-    // Position must be within the bounds of the string.
-    // pos == size_in_chars_ is a valid position to get an empty substring.
-    BUGCHECK(pos > size_in_chars_, "Invalid position");
-
-    // Adjust count to not go past the end of the string
-    if (count == npos || pos + count > size_in_chars_) {
-      count = size_in_chars_ - pos;
-    }
-
-    BasicBaseString substr;
-    substr.assign(data_ + pos, count);
-    return substr;
-  }
-
-  void shrink_to_fit() {
-    if (size_in_chars_ == cap_in_chars_) {
-      return;  // Already at perfect capacity
-    }
-
-    if (size_in_chars_ == 0) {
-      DeAllocate();  // Free everything if the string is empty
-      return;
-    }
-
-    // Allocate a new buffer of the exact required size (+1 for NUL)
-    size_type new_capacity = size_in_chars_;
-    character_type* new_data = static_cast<character_type*>(
-        TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
-
-    // Copy the data and null-terminate it
-    memcpy(new_data, data_, new_capacity * sizeof(character_type));
-    new_data[new_capacity] = '\0';
-
-    // Free the old, oversized buffer
-    TAllocator::Free(data_, (cap_in_chars_ + 1) * sizeof(character_type));
-
-    // Assign the new buffer and capacity
-    data_ = new_data;
-    cap_in_chars_ = new_capacity;
-  }
-
-  // insert functions ====
-  void insert(mem_size pos, size_type n, character_type character) {
-    // Check if the position is within the valid range
-    BASE_BUGCHECK(pos <= size_in_chars_, "Invalid position");
-
-    // Adjust the size of the string to make room for the new characters
-    size_type new_size = size_in_chars_ + n;
-    if (new_size >= cap_in_chars_) {
-      Reallocate(new_size);
-    }
-
-    // Shift the characters after the insertion point to make room
-    memmove(data_ + pos + n, data_ + pos,
-            (size_in_chars_ - pos) * sizeof(character_type));
-
-    // Insert the new characters
-    memset(data_ + pos, character, n * sizeof(character_type));
-
-    // Update the size of the string
-    size_in_chars_ = new_size;
-    data_[size_in_chars_] = '\0';  // Ensure null termination
-  }
-
- private:
-  // Allocates memory for the BasicBaseString.
-  void Allocate(size_type new_cap_in_chars_in_characters) {
-    new_cap_in_chars_in_characters++;  // +1 for the nterm
-    data_ = static_cast<character_type*>(
-        TAllocator::Allocate(new_cap_in_chars_in_characters * sizeof(character_type)));
-    memset(data_, 0, new_cap_in_chars_in_characters * sizeof(character_type));
-  }
-
-  // Deallocates the memory used by the BasicBaseString.
-  void DeAllocate() {
-    if (data_) {
-      // The original allocation was for cap_in_chars_ + 1 characters
-      TAllocator::Free(data_, (cap_in_chars_ + 1) * sizeof(character_type));
-    }
-    data_ = nullptr;
-    size_in_chars_ = 0;
-    cap_in_chars_ = 0;
-  }
-
-  // Reallocates the memory used by the BasicBaseString to the given capacity.
-  void Reallocate(size_type new_cap_in_chars) {
-    // Use a growth factor. Base it on the requested capacity.
-    size_type new_capacity = new_cap_in_chars + (new_cap_in_chars / 2);
-
-    // Allocate new buffer (+1 for null terminator)
-    character_type* new_data = static_cast<character_type*>(
-        TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
-    memset(new_data, 0, (new_capacity + 1) * sizeof(character_type));
-
-    if (data_ != nullptr) {
-      // Copy old data
-      memcpy(new_data, data_, size_in_chars_ * sizeof(character_type));
-      // Free the old buffer, using its correct allocated size
-      TAllocator::Free(data_, (cap_in_chars_ + 1) * sizeof(character_type));
-    }
-
-    // Assign new buffer and capacity
-    data_ = new_data;
-    cap_in_chars_ = new_capacity;
-  }
-
-  character_type* data_ = nullptr;
-  size_type size_in_chars_ = 0;
-  size_type cap_in_chars_ = 0;
 };
 
-template <typename CharT, typename Alloc>
-BasicBaseString<CharT, Alloc> operator+(const BasicBaseString<CharT, Alloc>& lhs,
-                                        const BasicBaseString<CharT, Alloc>& rhs) {
-  BasicBaseString<CharT, Alloc> result(lhs);
-  result += rhs;
+// -- Non-Member Comparison Operators --
+template <typename CharT, typename TSizeType, class TAllocator>
+bool operator==(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+                const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  if (lhs.size() != rhs.size())
+    return false;
+  return memcmp(lhs.data(), rhs.data(), lhs.byte_size()) == 0;
+}
+
+template <typename CharT, typename TSizeType, class TAllocator>
+bool operator==(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+                const CharT* rhs) {
+  if (lhs.empty() && rhs == nullptr)
+    return true;
+  if (rhs == nullptr || base::CountStringLength(rhs) != lhs.size())
+    return false;
+  return memcmp(lhs.data(), rhs, lhs.byte_size()) == 0;
+}
+
+template <typename CharT, typename TSizeType, class TAllocator, typename TOtherString>
+  requires(HasStringTraits<TOtherString, CharT>)
+bool operator==(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+                const TOtherString& rhs) {
+  const auto lhs_size = lhs.size();
+  const auto rhs_size = rhs.size();
+
+  if (lhs_size != rhs_size) {
+    return false;
+  }
+
+  // If both strings are empty, they are equal.
+  if (lhs_size == 0) {
+    return true;
+  }
+
+  return memcmp(lhs.data(), rhs.data(), lhs_size * sizeof(CharT)) == 0;
+}
+
+template <typename CharT, typename TSizeType, class TAllocator>
+bool operator!=(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+                const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  return !(lhs == rhs);
+}
+
+template <typename CharT, typename TSizeType, class TAllocator>
+bool operator<(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+               const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  return lhs.compare(rhs) < 0;
+}
+
+template <typename CharT, typename TSizeType, class TAllocator>
+bool operator<=(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+                const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  return lhs.compare(rhs) <= 0;
+}
+
+template <typename CharT, typename TSizeType, class TAllocator>
+bool operator>(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+               const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  return lhs.compare(rhs) > 0;
+}
+
+template <typename CharT, typename TSizeType, class TAllocator>
+bool operator>=(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+                const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  return lhs.compare(rhs) >= 0;
+}
+
+// -- Non-Member Concatenation --
+
+template <typename CharT, typename TSizeType, class TAllocator>
+BasicBaseString<CharT, TSizeType, TAllocator> operator+(
+    const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+    const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  BasicBaseString<CharT, TSizeType, TAllocator> result;
+  result.reserve(lhs.size() + rhs.size());
+  result.append(lhs.data(), lhs.size());
+  result.append(rhs.data(), rhs.size());
   return result;
 }
 
-template <typename CharT, typename Alloc>
-BasicBaseString<CharT, Alloc> operator+(const BasicBaseString<CharT, Alloc>& lhs,
-                                        const CharT* rhs) {
-  BasicBaseString<CharT, Alloc> result(lhs);
-  result += rhs;
+template <typename CharT, typename TSizeType, class TAllocator>
+BasicBaseString<CharT, TSizeType, TAllocator> operator+(
+    const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
+    const CharT* rhs) {
+  BasicBaseString<CharT, TSizeType, TAllocator> result(lhs);
+  result.append(rhs);
   return result;
 }
 
-template <typename CharT, typename Alloc>
-BasicBaseString<CharT, Alloc> operator+(const CharT* lhs,
-                                        const BasicBaseString<CharT, Alloc>& rhs) {
-  BasicBaseString<CharT, Alloc> result(lhs);
-  result += rhs;
+template <typename CharT, typename TSizeType, class TAllocator>
+BasicBaseString<CharT, TSizeType, TAllocator> operator+(
+    const CharT* lhs,
+    const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
+  BasicBaseString<CharT, TSizeType, TAllocator> result(lhs);
+  result.append(rhs);
   return result;
 }
 
-#if 0
-// define our core string types.
-using BaseString = BasicBaseString<char>;
-using BaseStringW = BasicBaseString<wchar_t>;
-// UTF Strings
-using BaseStringU8 = BasicBaseString<char8_t>;
-using BaseStringU16 = BasicBaseString<char16_t>;
-using BaseStringU32 = BasicBaseString<char32_t>;
-#endif
 }  // namespace base
