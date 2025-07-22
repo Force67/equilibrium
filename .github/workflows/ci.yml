@@ -48,7 +48,7 @@ jobs:
       if: ${{ failure() && github.event_name == 'workflow_dispatch' && inputs.remote_debug}}
       uses: mxschmitt/action-tmate@v3
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if:  ${{ !cancelled() }}
       with:
         name: test-results
