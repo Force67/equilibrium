@@ -1,206 +1,260 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 #include "red_black_tree_2.h"
 
-namespace {
-// Test fixture for RedBlackTree
-class RedBlackTree2Test : public ::testing::Test {
+// Helper function to validate the Red-Black Tree properties recursively
+template <typename Node, typename Nil>
+int validate_rbtree_properties(Node* node, Nil nil_node) {
+  if (node == nil_node) {
+    return 1;  // Base case: NIL nodes are black, height is 1
+  }
+
+  // Property 2: Root is black (checked in tests)
+  // Property 3: All leaves (NIL) are black (guaranteed by sentinel)
+
+  // Property 4: If a node is red, then both its children are black.
+  if (node->color == base::RedBlackTree2<int>::RED) {
+    EXPECT_EQ(node->left->color, base::RedBlackTree2<int>::BLACK);
+    EXPECT_EQ(node->right->color, base::RedBlackTree2<int>::BLACK);
+  }
+
+  // Property 5: Every path from a given node to any of its descendant NIL nodes
+  // contains the same number of black nodes.
+  int left_black_height = validate_rbtree_properties(node->left, nil_node);
+  int right_black_height = validate_rbtree_properties(node->right, nil_node);
+  EXPECT_EQ(left_black_height, right_black_height);
+
+  // Return black height of the current subtree
+  return left_black_height + (node->color == base::RedBlackTree2<int>::BLACK ? 1 : 0);
+}
+
+// Main test fixture for our Red-Black Tree
+class RedBlackTreeTest : public ::testing::Test {
  protected:
   base::RedBlackTree2<int> tree;
-
-  int CheckBlackHeight(base::RedBlackTree2<int>::Node* node) {
-    if (node == nullptr) {
-      return 1;  // Null nodes are black by definition
-    }
-
-    int leftHeight = CheckBlackHeight(node->left);
-    int rightHeight = CheckBlackHeight(node->right);
-
-    if (leftHeight == 0 || rightHeight == 0 || leftHeight != rightHeight) {
-      return 0;  // Unbalanced or heights are different
-    }
-
-    return leftHeight +
-           (node->color == base::RedBlackTree2<int>::NodeColor::BLACK ? 1 : 0);
-  }
-
-  bool CheckTreeBalance(base::RedBlackTree2<int>::Node* root) {
-    return CheckBlackHeight(root) != 0;
-  }
-
-  // Check if a node is red
-
-  bool IsRed(const base::RedBlackTree2<int>::Node* node) const {
-    return node != nullptr && node->color == base::RedBlackTree2<int>::NodeColor::RED;
-  }
-  // Recursively verify Red-Black properties and compute black height
-  bool VerifyProperties(const base::RedBlackTree2<int>::Node* node,
-                        int& blackHeight,
-                        int currentBlackHeight = 0) const {
-    if (node == nullptr) {
-      // Base case: Reached a leaf node (null). Set black height for this path.
-      blackHeight = currentBlackHeight;
-      return true;
-    }
-
-    // Increment black height if the current node is black
-    if (!IsRed(node)) {
-      currentBlackHeight++;
-    }
-
-    int leftBlackHeight = 0, rightBlackHeight = 0;
-
-    // Check left subtree
-    if (!VerifyProperties(node->left, leftBlackHeight, currentBlackHeight)) {
-      return false;
-    }
-
-    // Check right subtree
-    if (!VerifyProperties(node->right, rightBlackHeight, currentBlackHeight)) {
-      return false;
-    }
-
-    // Check for red violation (two consecutive red nodes)
-    if (IsRed(node) && (IsRed(node->left) || IsRed(node->right))) {
-      return false;
-    }
-
-    // Check for consistent black height in subtrees
-    if (leftBlackHeight != rightBlackHeight) {
-      return false;
-    }
-
-    // Propagate the black height up for the parent to check
-    blackHeight = leftBlackHeight;
-    return true;
-  }
-
-  bool CheckPropertiesWrapper() const {
-    if (tree.empty()) {
-      return true;  // An empty tree is a valid Red-Black Tree
-    }
-
-    // The root must be black (property 2)
-    if (IsRed(tree.root())) {
-      return false;
-    }
-
-    int blackHeight = 0;
-    return VerifyProperties(tree.root(), blackHeight);
-  }
 };
 
-TEST_F(RedBlackTree2Test, InsertTest) {
+TEST_F(RedBlackTreeTest, IsEmptyInitially) {
+  ASSERT_TRUE(tree.empty());
+  ASSERT_EQ(tree.root(), tree.nil());
+}
+
+TEST_F(RedBlackTreeTest, InsertSingleElement) {
+  ASSERT_TRUE(tree.Insert(10));
+  ASSERT_FALSE(tree.empty());
+  ASSERT_EQ(tree.root()->value, 10);
+  ASSERT_EQ(tree.root()->color, base::RedBlackTree2<int>::BLACK);  // Root must be black
+  ASSERT_TRUE(tree.Search(10));
+  ASSERT_FALSE(tree.Search(99));
+}
+
+TEST_F(RedBlackTreeTest, InsertDoesNotAllowDuplicates) {
+  tree.Insert(10);
+  ASSERT_FALSE(tree.Insert(10));  // Second insert should fail
+  tree.Insert(20);
+  ASSERT_FALSE(tree.Insert(20));
+}
+
+TEST_F(RedBlackTreeTest, SimpleInsertAndErase) {
   tree.Insert(10);
   tree.Insert(20);
+  ASSERT_TRUE(tree.Search(10));
+  ASSERT_TRUE(tree.Search(20));
+
+  ASSERT_TRUE(tree.Erase(10));
+  ASSERT_FALSE(tree.Search(10));
+  ASSERT_TRUE(tree.Search(20));
+  ASSERT_EQ(tree.root()->value, 20);
+  ASSERT_EQ(tree.root()->color, base::RedBlackTree2<int>::BLACK);
+
+  ASSERT_TRUE(tree.Erase(20));
+  ASSERT_FALSE(tree.Search(20));
+  ASSERT_TRUE(tree.empty());
+}
+
+TEST_F(RedBlackTreeTest, EraseNonExistentElement) {
+  tree.Insert(10);
+  ASSERT_FALSE(tree.Erase(99));
+  ASSERT_TRUE(tree.Search(10));
+}
+
+TEST_F(RedBlackTreeTest, ClearFunction) {
+  tree.Insert(10);
   tree.Insert(5);
-  // Check if elements are inserted
-  EXPECT_TRUE(tree.Search(10));
-  EXPECT_TRUE(tree.Search(20));
-  EXPECT_TRUE(tree.Search(5));
-  // Check if the tree maintains Red-Black properties
-  EXPECT_TRUE(CheckPropertiesWrapper());
-}
-
-TEST_F(RedBlackTree2Test, StructureTest) {
-  // Add elements to the tree
-  tree.Insert(30);
   tree.Insert(15);
-  tree.Insert(60);
-
-  // Check if the tree maintains Red-Black properties
-  EXPECT_TRUE(CheckPropertiesWrapper());
-  // 1. Check if the root is black
-  EXPECT_FALSE(IsRed(tree.root()));
-  // 2. Check if the tree is balanced in terms of black height
-  EXPECT_TRUE(CheckTreeBalance(tree.root()));
+  ASSERT_FALSE(tree.empty());
+  tree.Clear();
+  ASSERT_TRUE(tree.empty());
+  ASSERT_EQ(tree.root(), tree.nil());
+  // Can still insert after clearing
+  ASSERT_TRUE(tree.Insert(100));
+  ASSERT_TRUE(tree.Search(100));
 }
 
-TEST_F(RedBlackTree2Test, BalancingTest) {
-  // Insert elements in a way that requires tree balancing
+// Replace the old test with this new, correct version.
+TEST_F(RedBlackTreeTest, InsertionTriggeringCase1Fix) {
+  /*
+   * This test creates a scenario that specifically triggers Case 1 of the
+   * insertion fix-up algorithm (when the new node's uncle is RED).
+   *
+   * Sequence:
+   * 1. Insert 20 -> Becomes root 20(B)
+   * 2. Insert 10 -> Becomes left child 10(R)
+   * 3. Insert 30 -> Becomes right child 30(R)
+   *    Tree is now: 20(B) / \ 10(R) 30(R)
+   *
+   * 4. Insert 5 -> Inserted as left child of 10(R). Now we have a problem:
+   *    - New node k=5 is RED.
+   *    - Parent of k (10) is RED. -> Fixup loop begins.
+   *    - Grandparent is 20(B).
+   *    - Uncle (grandparent's other child) is 30(R). -> UNCLE IS RED. This is Case 1.
+   *
+   * The fix-up should:
+   * - Recolor parent (10) to BLACK.
+   * - Recolor uncle (30) to BLACK.
+   * - Recolor grandparent (20) to RED.
+   * - Move k up to the grandparent (20).
+   * - The loop terminates as 20's parent is nil (BLACK).
+   * - The final step of FixInsert colors the root (20) back to BLACK.
+   */
+  tree.Insert(20);
+  tree.Insert(10);
+  tree.Insert(30);
+  tree.Insert(5);  // This insertion triggers the Case 1 fix-up.
+
+  // Final state assertions:
+  // Root must be 20 and must be BLACK.
+  EXPECT_EQ(tree.root()->value, 20);
+  EXPECT_EQ(tree.root()->color, base::RedBlackTree2<int>::BLACK);
+
+  // Parent (10) and Uncle (30) must have been recolored to BLACK.
+  EXPECT_EQ(tree.root()->left->value, 10);
+  EXPECT_EQ(tree.root()->left->color, base::RedBlackTree2<int>::BLACK);
+  EXPECT_EQ(tree.root()->right->value, 30);
+  EXPECT_EQ(tree.root()->right->color, base::RedBlackTree2<int>::BLACK);
+
+  // The new node (5) remains RED.
+  EXPECT_EQ(tree.root()->left->left->value, 5);
+  EXPECT_EQ(tree.root()->left->left->color, base::RedBlackTree2<int>::RED);
+
+  // And finally, validate the entire tree's properties.
+  validate_rbtree_properties(tree.root(), tree.nil());
+}
+
+TEST_F(RedBlackTreeTest, InsertionTriggeringRotations) {
+  // This sequence triggers left and right rotations
+  tree.Insert(10);
+  tree.Insert(20);
+  tree.Insert(30);  // Triggers left rotation on 10, then recoloring
+
+  ASSERT_EQ(tree.root()->value, 20);
+  ASSERT_EQ(tree.root()->color, base::RedBlackTree2<int>::BLACK);
+  ASSERT_EQ(tree.root()->left->value, 10);
+  ASSERT_EQ(tree.root()->left->color, base::RedBlackTree2<int>::RED);
+  ASSERT_EQ(tree.root()->right->value, 30);
+  ASSERT_EQ(tree.root()->right->color, base::RedBlackTree2<int>::RED);
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  tree.Clear();
+  tree.Insert(30);
+  tree.Insert(20);
+  tree.Insert(10);  // Triggers right rotation
+  ASSERT_EQ(tree.root()->value, 20);
+  validate_rbtree_properties(tree.root(), tree.nil());
+}
+
+TEST_F(RedBlackTreeTest, ComplexInsertionAndDeletionStressTest) {
+  // Insert 1 to 10
+  for (int i = 1; i <= 10; ++i) {
+    ASSERT_TRUE(tree.Insert(i));
+  }
+
+  ASSERT_EQ(tree.root()->color, base::RedBlackTree2<int>::BLACK);
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  // Delete in a specific order to trigger various deletion cases
+  // Delete 1 (leaf)
+  ASSERT_TRUE(tree.Erase(1));
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  // Delete 3 (leaf)
+  ASSERT_TRUE(tree.Erase(3));
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  // Delete 5 (leaf)
+  ASSERT_TRUE(tree.Erase(5));
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  // Delete 7 (node with one child)
+  ASSERT_TRUE(tree.Erase(7));
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  // Delete 9 (leaf)
+  ASSERT_TRUE(tree.Erase(9));
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  // Delete root (4)
+  ASSERT_TRUE(tree.Erase(4));
+  ASSERT_EQ(tree.root()->color, base::RedBlackTree2<int>::BLACK);
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  // Check remaining values
+  ASSERT_TRUE(tree.Search(2));
+  ASSERT_TRUE(tree.Search(6));
+  ASSERT_TRUE(tree.Search(8));
+  ASSERT_TRUE(tree.Search(10));
+  ASSERT_FALSE(tree.Search(1));
+  ASSERT_FALSE(tree.Search(3));
+}
+
+TEST_F(RedBlackTreeTest, DeletionOfRootNode) {
+  tree.Insert(10);
   tree.Insert(5);
-  tree.Insert(3);
-  tree.Insert(4);  // This should trigger some rotations
-  EXPECT_TRUE(CheckTreeBalance(tree.root()));
-}
-
-// Test for searching non-existent elements
-TEST_F(RedBlackTree2Test, SearchNonExistent) {
-  tree.Insert(10);
-  tree.Insert(20);
-  tree.Insert(30);
-  EXPECT_FALSE(tree.Search(40));
-}
-
-TEST_F(RedBlackTree2Test, EraseTest) {
-  // Insert some elements
-  tree.Insert(10);
-  tree.Insert(20);
-  tree.Insert(30);
-  tree.Insert(40);
-  tree.Insert(50);
-
-  // Remove an element and check if it's correctly deleted
-  tree.Erase(30);
-  EXPECT_FALSE(tree.Search(30));
-
-  // Check if the tree maintains Red-Black properties after deletion
-  EXPECT_TRUE(CheckPropertiesWrapper());
-}
-
-TEST_F(RedBlackTree2Test, EraseRootTest) {
-  // Insert elements
-  tree.Insert(25);
   tree.Insert(15);
-  tree.Insert(30);
+  tree.Insert(12);
 
-  // Remove the root
-  tree.Erase(25);
-  EXPECT_FALSE(tree.Search(25));
-
-  // Check if the tree maintains Red-Black properties after deleting root
-  EXPECT_TRUE(CheckPropertiesWrapper());
+  ASSERT_EQ(tree.root()->value, 10);
+  ASSERT_TRUE(tree.Erase(10));        // Delete the root
+  ASSERT_EQ(tree.root()->value, 12);  // Successor becomes new root
+  ASSERT_FALSE(tree.Search(10));
+  validate_rbtree_properties(tree.root(), tree.nil());
 }
 
-TEST_F(RedBlackTree2Test, EraseRedNodeTest) {
-  // Insert elements
-  tree.Insert(40);
-  tree.Insert(30);
-  tree.Insert(50);
-  tree.Insert(35);
+// A fuzz test to catch edge cases
+TEST_F(RedBlackTreeTest, RandomOperationsFuzzTest) {
+  const int num_operations = 5000;
+  const int value_range = 1000;
 
-  // Remove a red node
-  tree.Erase(35);
-  EXPECT_FALSE(tree.Search(35));
+  // Use a simple array as a shadow structure to verify correctness
+  bool values_present[value_range] = {false};
 
-  // Check if the tree maintains Red-Black properties after deleting a red node
-  EXPECT_TRUE(CheckPropertiesWrapper());
+  for (int i = 0; i < num_operations; ++i) {
+    int val = rand() % value_range;
+
+    // 60% chance to insert, 40% chance to erase
+    if (rand() % 10 < 6) {
+      bool inserted = tree.Insert(val);
+      if (values_present[val]) {
+        ASSERT_FALSE(inserted);
+      } else {
+        ASSERT_TRUE(inserted);
+        values_present[val] = true;
+      }
+    } else {
+      bool erased = tree.Erase(val);
+      if (values_present[val]) {
+        ASSERT_TRUE(erased);
+        values_present[val] = false;
+      } else {
+        ASSERT_FALSE(erased);
+      }
+    }
+  }
+
+  // Final validation
+  ASSERT_EQ(tree.root()->color, base::RedBlackTree2<int>::BLACK);
+  validate_rbtree_properties(tree.root(), tree.nil());
+
+  for (int i = 0; i < value_range; ++i) {
+    ASSERT_EQ(values_present[i], tree.Search(i));
+  }
 }
-
-TEST_F(RedBlackTree2Test, EraseBlackNodeTest) {
-  // Insert elements
-  tree.Insert(50);
-  tree.Insert(30);
-  tree.Insert(70);
-  tree.Insert(20);
-  tree.Insert(40);
-
-  // Remove a black node
-  tree.Erase(20);
-  EXPECT_FALSE(tree.Search(20));
-
-  // Check if the tree maintains Red-Black properties after deleting a black
-  // node
-  EXPECT_TRUE(CheckPropertiesWrapper());
-}
-
-TEST_F(RedBlackTree2Test, EraseNonexistentTest) {
-  // Insert elements
-  tree.Insert(10);
-  tree.Insert(20);
-  tree.Insert(30);
-
-  // Try to remove a non-existent element
-  tree.Erase(100);
-  EXPECT_TRUE(CheckPropertiesWrapper());
-}
-}  // namespace

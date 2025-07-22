@@ -1,13 +1,14 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the head_ of this distribution.
 //
-// A red�black tree is a kind of self-balancing binary search tree. Each node
+// A red-black tree is a kind of self-balancing binary search tree. Each node
 // stores an extra bit representing "color" ("red" or "black"), used to ensure
-// that the tree remains balanced during insertions and deletions. Red�black
-// tree. Type. Tree.
+// that the tree remains balanced during insertions and deletions.
 #pragma once
 
 namespace base {
+
+// Default comparator using '<' and '==' operators.
 template <typename T>
 struct RBComparator {
   static bool less_than(const T& lhs, const T& rhs) { return lhs < rhs; }
@@ -19,28 +20,36 @@ class RedBlackTree2 {
  public:
   using Comparator = TComparator;
 
-  // use as Compare(left,right)
   enum NodeColor { RED, BLACK };
+
   struct Node {
     T value;
     NodeColor color;
     Node *left, *right, *parent;
 
-    Node(T value)
-        : value(value), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+    // This constructor is for regular, data-holding nodes.
+    // It correctly initializes the 'value' member via copy-construction.
+    Node(const T& val)
+        : value(val), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
   };
 
  private:
   Node* root_;
+  Node* nil_;  // Sentinel node for all leaves
 
+  // We must manage the memory for the sentinel node manually to avoid
+  // requiring T to have a default constructor.
+  char* nil_memory_;
+
+  // Rotations
   void RotateLeft(Node* x) {
     Node* y = x->right;
     x->right = y->left;
-    if (y->left != nullptr) {
+    if (y->left != nil_) {
       y->left->parent = x;
     }
     y->parent = x->parent;
-    if (x->parent == nullptr) {
+    if (x->parent == nil_) {
       this->root_ = y;
     } else if (x == x->parent->left) {
       x->parent->left = y;
@@ -54,11 +63,11 @@ class RedBlackTree2 {
   void RotateRight(Node* x) {
     Node* y = x->left;
     x->left = y->right;
-    if (y->right != nullptr) {
+    if (y->right != nil_) {
       y->right->parent = x;
     }
     y->parent = x->parent;
-    if (x->parent == nullptr) {
+    if (x->parent == nil_) {
       this->root_ = y;
     } else if (x == x->parent->right) {
       x->parent->right = y;
@@ -69,18 +78,17 @@ class RedBlackTree2 {
     x->parent = y;
   }
 
+  // Insertion Fix-up
   void FixInsert(Node* k) {
-    while (k != root_ && k->parent->color == RED) {
+    while (k->parent->color == RED) {
       if (k->parent == k->parent->parent->left) {
-        Node* u = k->parent->parent->right;  // Uncle node
-        if (u != nullptr && u->color == RED) {
-          // Case 1: Uncle is red
+        Node* u = k->parent->parent->right;  // Uncle
+        if (u->color == RED) {
           u->color = BLACK;
           k->parent->color = BLACK;
           k->parent->parent->color = RED;
           k = k->parent->parent;
         } else {
-          // Cases 2 and 3: Uncle is black
           if (k == k->parent->right) {
             k = k->parent;
             RotateLeft(k);
@@ -90,15 +98,13 @@ class RedBlackTree2 {
           RotateRight(k->parent->parent);
         }
       } else {
-        Node* u = k->parent->parent->left;  // Uncle node
-        if (u != nullptr && u->color == RED) {
-          // Case 1: Uncle is red
+        Node* u = k->parent->parent->left;  // Uncle
+        if (u->color == RED) {
           u->color = BLACK;
           k->parent->color = BLACK;
           k->parent->parent->color = RED;
           k = k->parent->parent;
         } else {
-          // Cases 2 and 3: Uncle is black
           if (k == k->parent->left) {
             k = k->parent;
             RotateRight(k);
@@ -112,10 +118,11 @@ class RedBlackTree2 {
     root_->color = BLACK;
   }
 
+  // Deletion Fix-up
   void FixDelete(Node* x) {
     while (x != root_ && x->color == BLACK) {
       if (x == x->parent->left) {
-        Node* w = x->parent->right;
+        Node* w = x->parent->right;  // Sibling
         if (w->color == RED) {
           w->color = BLACK;
           x->parent->color = RED;
@@ -138,38 +145,58 @@ class RedBlackTree2 {
           RotateLeft(x->parent);
           x = root_;
         }
-      } else {
-        // Similar code for the right child
+      } else {                      // Symmetric case for right child
+        Node* w = x->parent->left;  // Sibling
+        if (w->color == RED) {
+          w->color = BLACK;
+          x->parent->color = RED;
+          RotateRight(x->parent);
+          w = x->parent->left;
+        }
+        if (w->right->color == BLACK && w->left->color == BLACK) {
+          w->color = RED;
+          x = x->parent;
+        } else {
+          if (w->left->color == BLACK) {
+            w->right->color = BLACK;
+            w->color = RED;
+            RotateLeft(w);
+            w = x->parent->left;
+          }
+          w->color = x->parent->color;
+          x->parent->color = BLACK;
+          w->left->color = BLACK;
+          RotateRight(x->parent);
+          x = root_;
+        }
       }
     }
     x->color = BLACK;
   }
 
+  // Helper to replace subtree rooted at u with subtree rooted at v
   void Transplant(Node* u, Node* v) {
-    if (u->parent == nullptr) {
+    if (u->parent == nil_) {
       root_ = v;
     } else if (u == u->parent->left) {
       u->parent->left = v;
     } else {
       u->parent->right = v;
     }
-    if (v != nullptr) {
-      v->parent = u->parent;
-    }
+    v->parent = u->parent;
   }
 
   Node* Minimum(Node* node) const {
-    while (node->left != nullptr) {
+    while (node->left != nil_) {
       node = node->left;
     }
     return node;
   }
 
   Node* SearchTree(Node* node, const T& value) const {
-    if (node == nullptr || Comparator::equals(value, node->value)) {
+    if (node == nil_ || Comparator::equals(value, node->value)) {
       return node;
     }
-
     if (Comparator::less_than(value, node->value)) {
       return SearchTree(node->left, value);
     } else {
@@ -177,8 +204,11 @@ class RedBlackTree2 {
     }
   }
 
+  // Recursive deletion for cleanup.
+  // This is correct because 'delete node' will automatically invoke the
+  // destructor for 'T value' before freeing the node's memory.
   void DeleteTree(Node* node) {
-    if (node != nullptr) {
+    if (node != nil_) {
       DeleteTree(node->left);
       DeleteTree(node->right);
       delete node;
@@ -186,25 +216,45 @@ class RedBlackTree2 {
   }
 
  public:
-  RedBlackTree2() : root_(nullptr) {}
-  ~RedBlackTree2() { DeleteTree(root_); }
+  RedBlackTree2() {
+    nil_memory_ = new char[sizeof(Node)];
+    nil_ = reinterpret_cast<Node*>(nil_memory_);
+    nil_->color = BLACK;
+    nil_->parent = nil_;
+    nil_->left = nil_;
+    nil_->right = nil_;
+    root_ = nil_;
+  }
+
+  ~RedBlackTree2() {
+    DeleteTree(root_);
+    delete[] nil_memory_;
+  }
 
   Node* root() const { return root_; }
+  Node* nil() const { return nil_; }
 
-  bool empty() const { return root_ == nullptr; }
+  bool empty() const { return root_ == nil_; }
 
-  void Insert(const T& value) {
+  void Clear() {
+    DeleteTree(root_);
+    root_ = nil_;
+  }
+
+  bool Insert(const T& value) {
+    Node* existing = SearchTree(root_, value);
+    if (existing != nil_) {
+      return false;
+    }
+
     Node* node = new Node(value);
-    node->parent = nullptr;
-    node->value = value;
-    node->left = nullptr;
-    node->right = nullptr;
-    node->color = RED;
+    node->left = nil_;
+    node->right = nil_;
 
-    Node* y = nullptr;
+    Node* y = nil_;
     Node* x = this->root_;
 
-    while (x != nullptr) {
+    while (x != nil_) {
       y = x;
       if (Comparator::less_than(node->value, x->value)) {
         x = x->left;
@@ -214,7 +264,7 @@ class RedBlackTree2 {
     }
 
     node->parent = y;
-    if (y == nullptr) {
+    if (y == nil_) {
       root_ = node;
     } else if (Comparator::less_than(node->value, y->value)) {
       y->left = node;
@@ -222,67 +272,57 @@ class RedBlackTree2 {
       y->right = node;
     }
 
-    if (node->parent == nullptr) {
-      node->color = BLACK;
-      return;
-    }
-
-    if (node->parent->parent == nullptr) {
-      return;
-    }
-
     FixInsert(node);
+    return true;
   }
 
   bool Erase(const T& value) {
-    Node* nodeToDelete = SearchTree(root_, value);
-    if (!nodeToDelete)
-      return false;  // Node not found
-
-    Node* x;
-    Node* y = nodeToDelete;  // Temporary pointer y
-    NodeColor originalColor = y->color;
-
-    // If the node to be deleted has fewer than two children:
-    if (!nodeToDelete->left) {
-      x = nodeToDelete->right;
-      Transplant(nodeToDelete, nodeToDelete->right);
-    } else if (!nodeToDelete->right) {
-      x = nodeToDelete->left;
-      Transplant(nodeToDelete, nodeToDelete->left);
-    } else {
-      // Node has two children, find its in-order successor
-      y = Minimum(nodeToDelete->right);
-      originalColor = y->color;
-      x = y->right;
-
-      if (y->parent == nodeToDelete) {
-        if (x)
-          x->parent = y;
-      } else {
-        Transplant(y, y->right);
-        y->right = nodeToDelete->right;
-        y->right->parent = y;
-      }
-
-      Transplant(nodeToDelete, y);
-      y->left = nodeToDelete->left;
-      y->left->parent = y;
-      y->color = nodeToDelete->color;
+    Node* z = SearchTree(root_, value);
+    if (z == nil_) {
+      return false;
     }
 
-    delete nodeToDelete;
+    Node* y = z;
+    Node* x;
+    NodeColor originalColor = y->color;
 
-    if (originalColor == BLACK && x != nullptr) {
-      // Fix up the tree
+    if (z->left == nil_) {
+      x = z->right;
+      Transplant(z, z->right);
+    } else if (z->right == nil_) {
+      x = z->left;
+      Transplant(z, z->left);
+    } else {
+      y = Minimum(z->right);
+      originalColor = y->color;
+      x = y->right;
+      if (y->parent == z) {
+        x->parent = y;
+      } else {
+        Transplant(y, y->right);
+        y->right = z->right;
+        y->right->parent = y;
+      }
+      Transplant(z, y);
+      y->left = z->left;
+      y->left->parent = y;
+      y->color = z->color;
+    }
+
+    // THIS IS THE FIX: We simply delete the node. The 'delete' operator
+    // handles calling the destructor for us. No manual call is needed.
+    delete z;
+
+    if (originalColor == BLACK) {
       FixDelete(x);
     }
     return true;
   }
 
-  bool Search(const T& value) const {
-    Node* result = SearchTree(root_, value);
-    return result != nullptr;
-  }
+  Node* Find(const T& value) const { return SearchTree(root_, value); }
+
+  bool Contains(const T& value) const { return SearchTree(root_, value) != nil_; }
+
+  bool Search(const T& value) const { return Contains(value); }
 };
 }  // namespace base

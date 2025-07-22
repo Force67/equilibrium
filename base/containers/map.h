@@ -12,10 +12,13 @@ class Map {
   struct KeyValuePair {
     Key key;
     Value value;
-    KeyValuePair(const Key& key, const Value& value) : key(key), value(value) {}
-    bool operator<(const KeyValuePair& other) const { return key < other.key; }
+
+    KeyValuePair(const Key& k, const Value& v) : key(k), value(v) {}
+
+    explicit KeyValuePair(const Key& k) : key(k), value() {}
   };
 
+  // The comparator must be able to compare a KeyValuePair with another.
   struct Comparator {
     static bool less_than(const KeyValuePair& lhs, const KeyValuePair& rhs) {
       return lhs.key < rhs.key;
@@ -25,49 +28,46 @@ class Map {
     }
   };
 
+  Map() : size_(0) {}
+
   mem_size size() const { return size_; }
 
   bool Insert(const Key& key, const Value& value) {
-    if (Contains(key)) {
-      return false;
+    // tree.Insert returns true only if the element was not already there.
+    if (tree.Insert(KeyValuePair(key, value))) {
+      ++size_;
+      return true;
     }
-    ++size_;
-    tree.Insert(KeyValuePair(key, value));
+    return false;
   }
-  void Insert(KeyValuePair& kvp) { Insert(kvp.key, kvp.value); }
+  bool Insert(const KeyValuePair& kvp) { return Insert(kvp.key, kvp.value); }
 
   bool Erase(const Key& key) {
-    if (!Contains(key))
-      return false;
-
-    auto* current = tree.root();
-    while (current != nullptr) {
-      if (key == current->value.key) {
-        tree.Erase(current->value);
-        return true;
-      } else if (key < current->value.key) {
-        current = current->left;
-      } else {
-        current = current->right;
-      }
+    if (tree.Erase(KeyValuePair(key))) {
+      --size_;
+      return true;
     }
-
-    --size_;
-    return true;
+    return false;
   }
 
   bool Contains(const Key& key) const {
-    auto* current = tree.root();
-    while (current != nullptr) {
-      if (key == current->value.key) {
-        return true;
-      } else if (key < current->value.key) {
-        current = current->left;
-      } else {
-        current = current->right;
-      }
+    return tree.Contains(KeyValuePair(key));
+  }
+
+  Value* Find(const Key& key) {
+    auto* node = tree.Find(KeyValuePair(key));
+    if (node != tree.nil()) {
+      return &node->value.value;
     }
-    return false;
+    return nullptr;
+  }
+
+  const Value* Find(const Key& key) const {
+    auto* node = tree.Find(KeyValuePair(key));
+    if (node != tree.nil()) {
+      return &node->value.value;
+    }
+    return nullptr;
   }
 
  private:
