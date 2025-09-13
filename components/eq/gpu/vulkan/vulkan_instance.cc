@@ -98,7 +98,7 @@ GLADapiproc VulkanInstance::LoadSymbol(void* user_pointer,
   return result;
 }
 
-void VulkanInstance::BindFunctionPointers(VkPhysicalDevice phys_dev) {
+void VulkanInstance::BindFunctionPointers(VkPhysicalDevice phys_dev, VkDevice dev) {
   if (!get_instance_proc_)
     get_instance_proc_ =
         vk_dll_.FindSymbol<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
@@ -110,7 +110,8 @@ void VulkanInstance::BindFunctionPointers(VkPhysicalDevice phys_dev) {
     gladLoadVulkanUserPtr(nullptr, VulkanInstance::LoadSymbol, this);
 
     // Then load device functions if we have a device
-    if (phys_dev != VK_NULL_HANDLE) {
+    if (phys_dev != VK_NULL_HANDLE && dev != VK_NULL_HANDLE) {
+      device_ = dev;
       gladLoadVulkanUserPtr(phys_dev, VulkanInstance::LoadSymbol, this);
     }
   }

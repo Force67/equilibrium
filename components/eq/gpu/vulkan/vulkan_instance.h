@@ -23,7 +23,11 @@ class VulkanInstance {
 
   VkInstance& instance() { return vk_instance_.instance; }
 
-  void BindFunctionPointers(VkPhysicalDevice d = VK_NULL_HANDLE);
+  // Bind Vulkan function pointers. Call once after creating the instance
+  // (no args), and again after creating the VkDevice, passing the
+  // VkPhysicalDevice and VkDevice to load device-level functions.
+  void BindFunctionPointers(VkPhysicalDevice phys = VK_NULL_HANDLE,
+                            VkDevice dev = VK_NULL_HANDLE);
 
  private:
   static GLADapiproc LoadSymbol(void* user_pointer, const char* symbol_name);

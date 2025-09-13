@@ -4,6 +4,7 @@
 #include <base/check.h>
 #include "vulkan_command_pool.h"
 #include "vulkan_device.h"
+#include "vulkan_helpers.h"
 
 namespace gpu::vulkan {
 VulkanCommandPool::VulkanCommandPool(const VulkanDevice& dev, uint32_t queueFamilyIndex)
@@ -12,7 +13,7 @@ VulkanCommandPool::VulkanCommandPool(const VulkanDevice& dev, uint32_t queueFami
   ci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   ci.queueFamilyIndex = queueFamilyIndex;
 
-  BASE_BUGCHECK(vkCreateCommandPool(device_.handle(), &ci, nullptr, &pool_) == VK_SUCCESS);
+  EQ_GPU_VK_BUGCHECK(vkCreateCommandPool(device_.handle(), &ci, nullptr, &pool_));
 }
 
 VulkanCommandPool::~VulkanCommandPool() {
@@ -27,7 +28,7 @@ VkCommandBuffer VulkanCommandPool::AllocatePrimary() {
   ai.commandBufferCount = 1;
 
   VkCommandBuffer cmd{};
-  BASE_BUGCHECK(vkAllocateCommandBuffers(device_.handle(), &ai, &cmd));
+  EQ_GPU_VK_BUGCHECK(vkAllocateCommandBuffers(device_.handle(), &ai, &cmd));
   return cmd;
 }
 

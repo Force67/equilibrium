@@ -61,7 +61,9 @@ VulkanPipeline::VulkanPipeline(const VulkanDevice& dev,
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
   rs.lineWidth = 1.f;
   rs.cullMode = VK_CULL_MODE_BACK_BIT;
-  rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+  // Vulkan has inverted Y compared to GL; with a positive-height viewport
+  // our shader's typical CCW triangle appears CW. Treat CW as front to avoid culling.
+  rs.frontFace = VK_FRONT_FACE_CLOCKWISE;
   rs.polygonMode = VK_POLYGON_MODE_FILL;
 
   VkPipelineMultisampleStateCreateInfo ms{
