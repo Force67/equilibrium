@@ -1,1 +1,1 @@
-bin\win\premake5 --file=..\premake5.lua vs2022
+bin\win\premake5 --file=..\premake5.lua vs2026
