@@ -19,6 +19,7 @@ DIR=$(resolve_symlink "${BASH_SOURCE[0]}")
 
 PREMAKE_BIN="$DIR/bin/linux/premake5"
 PREMAKE_FILE="$DIR/../premake5.lua"
+TOTAL_START=$(date +%s%N)
 
 # Define valid build modes
 declare -a BUILD_MODES=("debug" "release" "shipping" "ci_release")
@@ -56,11 +57,25 @@ if [[ ! -f "$PREMAKE_BIN" ]]; then
 fi
 
 run_premake() {
-    "$PREMAKE_BIN" --file="$PREMAKE_FILE" "$@"
-    if [[ $? -ne 0 ]]; then
-        echo "Premake5 command failed: $@"
+    local args=("$@")
+    local label="${args[*]}"
+    local start_ts=$(date +%s%N)
+
+    "$PREMAKE_BIN" --file="$PREMAKE_FILE" "${args[@]}"
+    local status=$?
+
+    local end_ts=$(date +%s%N)
+    local elapsed_ns=$((end_ts - start_ts))
+    local elapsed_ms=$((elapsed_ns / 1000000))
+    local seconds=$((elapsed_ms / 1000))
+    local millis=$((elapsed_ms % 1000))
+
+    if [[ $status -ne 0 ]]; then
+        printf 'premake %s failed after %d.%03ds\n' "$label" "$seconds" "$millis"
         exit 1
     fi
+
+    printf 'premake %s finished in %d.%03ds\n' "$label" "$seconds" "$millis"
 }
 
 case "$TERM_PROGRAM" in
@@ -79,11 +94,27 @@ fi
 
 
 # ignore in ci builds
+# ignore in ci builds
+# ignore in ci builds
 if [[ -z "$BLU_IS_CI_BUILD" ]]; then
-    run_premake export-compile-commands --export-compile-config=$BUILD_MODE
+    run_premake \
+        --export-compile-config=$BUILD_MODE \
+        --zed-configs=debug,release \
+        --zed-fakeaction=gmake2 \
+        gmake2
+else
+    run_premake \
+        --skip-compile-commands \
+        --zed-configs=debug,release \
+        --zed-fakeaction=gmake2 \
+        gmake2
 fi
 
-run_premake zed-debug --zed-configs=debug,release --zed-fakeaction=gmake2
-run_premake gmake2
+TOTAL_END=$(date +%s%N)
+TOTAL_NS=$((TOTAL_END - TOTAL_START))
+TOTAL_MS=$((TOTAL_NS / 1000000))
+TOTAL_SECONDS=$((TOTAL_MS / 1000))
+TOTAL_REMAINDER_MS=$((TOTAL_MS % 1000))
+printf 'total premake workflow finished in %d.%03ds\n' "$TOTAL_SECONDS" "$TOTAL_REMAINDER_MS"
 
 exit 0

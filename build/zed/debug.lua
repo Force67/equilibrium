@@ -109,41 +109,47 @@ local function collect_entries(wks, allowed)
   for prj in workspace.eachproject(wks) do
     if is_debuggable(prj) then
       local family_dir = get_family_dir(prj)
+      local cwd_target = family_dir or prj.basedir or blu.rootdir
+      local cwd = relative_to_root(cwd_target)
 
       for cfg in project.eachconfig(prj) do
         if should_include(cfg, allowed) then
-          local label = string.format("%s (%s)", prj.name, cfg.buildcfg)
-          local program = relative_to_root(cfg.buildtarget.abspath)
-          local cwd_target = family_dir or prj.basedir or blu.rootdir
-          local cwd = relative_to_root(cwd_target)
-          local build_cmd = build_command(prj, cfg, family_dir)
+          local key = string.format("%s:%s", prj.name, cfg.shortname)
+          if not entries[key] then
+            local program = relative_to_root(cfg.buildtarget.abspath)
+            local build_cmd = build_command(prj, cfg, family_dir)
 
-          local args = {}
-          if cfg.debugargs and #cfg.debugargs > 0 then
-            for _, value in ipairs(cfg.debugargs) do
-              table.insert(args, value)
+            local args
+            if cfg.debugargs and #cfg.debugargs > 0 then
+              args = {}
+              for _, value in ipairs(cfg.debugargs) do
+                args[#args + 1] = value
+              end
             end
-          end
 
-          table.insert(entries, {
-            label = label,
-            adapter = "CodeLLDB",
-            request = "launch",
-            program = program,
-            cwd = cwd,
-            args = args,
-            build_command = build_cmd,
-          })
+            entries[key] = {
+              label = string.format("%s (%s)", prj.name, cfg.buildcfg),
+              program = program,
+              cwd = cwd,
+              args = args,
+              build_command = build_cmd,
+            }
+          end
         end
       end
     end
   end
 
-  table.sort(entries, function(a, b)
+  local ordered = {}
+  for _, entry in pairs(entries) do
+    ordered[#ordered + 1] = entry
+  end
+
+  table.sort(ordered, function(a, b)
     return a.label < b.label
   end)
 
-  return entries
+  return ordered
 end
 
 local function write_array(values)
@@ -161,12 +167,12 @@ local function write_entries(entries)
     local suffix = (idx == #entries) and '' or ','
     p.push('{')
     p.w('"label": "%s",', json_escape(entry.label))
-    p.w('"adapter": "%s",', json_escape(entry.adapter))
-    p.w('"request": "%s",', json_escape(entry.request))
+    p.w('"adapter": "CodeLLDB",')
+    p.w('"request": "launch",')
     p.w('"program": "%s",', json_escape(entry.program))
     p.w('"cwd": "%s",', json_escape(entry.cwd))
     p.w('"args": ')
-    write_array(entry.args)
+    write_array(entry.args or {})
     p.w(',')
     p.w('"build": {')
     p.w('  "command": "bash",')

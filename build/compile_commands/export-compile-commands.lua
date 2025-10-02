@@ -10,23 +10,33 @@ function m.getToolset(cfg)
   return p.tools[cfg.toolset or 'gcc']
 end
 
+local function cached_table_join(dst, src)
+  if src and #src > 0 then
+    for i = 1, #src do
+      dst[#dst + 1] = src[i]
+    end
+  end
+  return dst
+end
+
 function m.getCommonFlags(prj, cfg)
   -- some tools that consumes compile_commands.json have problems with relative include paths
   relative = project.getrelative
   project.getrelative = function(prj, dir) return dir end
 
   local toolset = m.getToolset(cfg)
-  local flags = toolset.getcppflags(cfg)
-  flags = table.join(flags, toolset.getdefines(cfg.defines))
-  flags = table.join(flags, toolset.getundefines(cfg.undefines))
-  flags = table.join(flags, toolset.getincludedirs(cfg, cfg.includedirs, cfg.sysincludedirs))
-  flags = table.join(flags, toolset.getforceincludes(cfg))
+  local flags = {}
+  cached_table_join(flags, toolset.getcppflags(cfg))
+  cached_table_join(flags, toolset.getdefines(cfg.defines))
+  cached_table_join(flags, toolset.getundefines(cfg.undefines))
+  cached_table_join(flags, toolset.getincludedirs(cfg, cfg.includedirs, cfg.sysincludedirs))
+  cached_table_join(flags, toolset.getforceincludes(cfg))
   if project.iscpp(prj) then
-    flags = table.join(flags, toolset.getcxxflags(cfg))
+    cached_table_join(flags, toolset.getcxxflags(cfg))
   elseif project.isc(prj) then
-    flags = table.join(flags, toolset.getcflags(cfg))
+    cached_table_join(flags, toolset.getcflags(cfg))
   end
-  flags = table.join(flags, cfg.buildoptions)
+  cached_table_join(flags, cfg.buildoptions)
   project.getrelative = relative
   return flags
 end
@@ -82,18 +92,31 @@ end
 
 -- we follow the https://clang.llvm.org/docs/JSONCompilationDatabase.html specification
 function m.onWorkspace(wks)
+  local requested_config = _OPTIONS["export-compile-config"] or "all"
+  local config_filter
+  if requested_config ~= "all" then
+    config_filter = {}
+    for token in tostring(requested_config):gmatch("[^,%s]+") do
+      config_filter[token] = true
+    end
+  end
+
   local cfgCmds = {}
   for prj in workspace.eachproject(wks) do
     for cfg in project.eachconfig(prj) do
+      if not config_filter or config_filter[cfg.shortname] then
       local cfgKey = string.format('%s', cfg.shortname)
       if not cfgCmds[cfgKey] then
         cfgCmds[cfgKey] = {}
       end
-      cfgCmds[cfgKey] = table.join(cfgCmds[cfgKey], m.getProjectCommands(prj, cfg))
+      local commands = m.getProjectCommands(prj, cfg)
+      if #commands > 0 then
+        cached_table_join(cfgCmds[cfgKey], commands)
+      end
+      end
     end
   end
 
-  local requested_config = _OPTIONS["export-compile-config"]
   for cfgKey,cmds in pairs(cfgCmds) do
     local not_all = requested_config ~= "all"
     -- if requested config mode is not set to all, we only export the target config
