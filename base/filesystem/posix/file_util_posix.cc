@@ -38,7 +38,7 @@ base::Path GetTempTemplate() {
 // https://www.gnu.org/software/libc/manual/html_node/Opening-Streams.html for
 // details.
 base::StringRef AppendModeCharacter(base::StringRef mode, char mode_char) {
-  base::String result = mode.c_str();
+  base::String result = mode;
   size_t comma_pos = result.find(',');
   result.insert(comma_pos == base::StringRef::npos ? result.length() : comma_pos, 1,
                 mode_char);

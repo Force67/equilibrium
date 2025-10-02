@@ -1,3 +1,4 @@
+
 resolve_symlink() {
   local script="$1"
   local resolved_path="$script"
@@ -29,6 +30,12 @@ if [[ $# -eq 0 ]]; then
 fi
 
 BUILD_MODE=$1
+VSCODE_TRIGGER=false
+
+# Check for --vscode flag
+if [[ "$2" == "--vscode" ]]; then
+    VSCODE_TRIGGER=true
+fi
 
 # Check if build mode is valid
 if [[ ! " ${BUILD_MODES[@]} " =~ " ${BUILD_MODE} " ]]; then
@@ -65,10 +72,18 @@ case "$TERM_PROGRAM" in
         ;;
 esac
 
+# Trigger vscode run from terminal if --vscode is passed
+if [[ "$VSCODE_TRIGGER" = true ]]; then
+    run_premake vscode --vscode-config=$BUILD_MODE --vscode-fakeaction=gmake2
+fi
+
+
 # ignore in ci builds
 if [[ -z "$BLU_IS_CI_BUILD" ]]; then
     run_premake export-compile-commands --export-compile-config=$BUILD_MODE
 fi
+
+run_premake zed-debug --zed-configs=debug,release --zed-fakeaction=gmake2
 run_premake gmake2
 
 exit 0

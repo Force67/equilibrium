@@ -79,3 +79,5 @@ rsbase/Cargo.lock
 rsbase/**/*.rs.bk
 
 .vscode/tasks.json
+/.ropeproject
+/.zed

@@ -13,6 +13,7 @@ end
 -- if _ACTION == "gmake2" then
   require("compile_commands/export-compile-commands") -- compile_commands.json support for clangd
   require("vscode/vscode") -- support for vscode
+  require("zed/debug") -- support for generating Zed debugger configs
 -- end
 
 -- pull in root dependencies
