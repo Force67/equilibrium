@@ -46,16 +46,43 @@ local function escape_pattern(value)
   return value:gsub('([^%w])', '%%%1')
 end
 
-local function mock_action_path(value)
+local mock_cache = {}
+local relative_cache = {}
+local last_fake_action = nil
+local last_action = nil
+local mock_pattern = nil
+local mock_replacement = nil
+local fallback_pattern = nil
+local fallback_replacement = nil
+
+local function update_mock_cache()
   local fake = _OPTIONS["zed-fakeaction"] or "gmake2"
-  local escaped_action = escape_pattern(_ACTION)
-  local escaped_fake = escape_pattern(fake)
-  local pattern = string.format("/%s/", escaped_action)
-  local replacement = string.format("/%s/", fake)
-  local result, count = value:gsub(pattern, replacement)
-  if count == 0 then
-    result = result:gsub(escaped_action, fake)
+  if fake ~= last_fake_action or _ACTION ~= last_action then
+    last_fake_action = fake
+    last_action = _ACTION
+    mock_cache = {}
+    relative_cache = {}
+    local escaped_action = escape_pattern(_ACTION)
+    mock_pattern = string.format("/%s/", escaped_action)
+    mock_replacement = string.format("/%s/", fake)
+    fallback_pattern = escaped_action
+    fallback_replacement = fake
   end
+end
+
+local function mock_action_path(value)
+  update_mock_cache()
+  local cached = mock_cache[value]
+  if cached then
+    return cached
+  end
+
+  local result, count = value:gsub(mock_pattern, mock_replacement)
+  if count == 0 then
+    result = result:gsub(fallback_pattern, fallback_replacement)
+  end
+
+  mock_cache[value] = result
   return result
 end
 
@@ -81,44 +108,71 @@ local function has_family_script(family_dir)
   return os.isfile(path.join(family_dir, "make.sh"))
 end
 
-local function build_command(prj, cfg, family_dir)
-  local parts = {}
-  if family_dir and has_family_script(family_dir) then
-    local rel_dir = path.getrelative(blu.rootdir, family_dir)
-    table.insert(parts, string.format("./%s/make.sh %s", rel_dir, cfg.shortname))
-  end
-  table.insert(parts, string.format("make -C out/gmake2 %s config=%s", prj.name, cfg.shortname))
+local family_script_cache = {}
 
-  local command = table.concat(parts, " && ")
-  command = string.format("cd \"$ZED_WORKTREE_ROOT\" && %s", command)
+local function get_family_script_command(family_dir)
+  if not family_dir then
+    return nil
+  end
+
+  local cached = family_script_cache[family_dir]
+  if cached ~= nil then
+    return cached or nil
+  end
+
+  local command
+  if has_family_script(family_dir) then
+    local rel_dir = path.getrelative(blu.rootdir, family_dir)
+    command = string.format("./%s/make.sh", rel_dir)
+  end
+
+  family_script_cache[family_dir] = command or false
   return command
 end
 
+local function build_command(prj_name, cfg_shortname, family_script)
+  local make_cmd = string.format("make -C out/gmake2 %s config=%s", prj_name, cfg_shortname)
+  if family_script then
+    return string.format("cd \"$ZED_WORKTREE_ROOT\" && %s %s && %s", family_script, cfg_shortname, make_cmd)
+  end
+
+  return string.format("cd \"$ZED_WORKTREE_ROOT\" && %s", make_cmd)
+end
+
 local function relative_to_root(pathname)
+  local cached = relative_cache[pathname]
+  if cached then
+    return cached
+  end
+
   local rel = path.translate(path.getrelative(blu.rootdir, pathname))
   rel = mock_action_path(rel)
+  local result
   if rel == "." then
-    return "$ZED_WORKTREE_ROOT"
+    result = "$ZED_WORKTREE_ROOT"
+  else
+    result = string.format("$ZED_WORKTREE_ROOT/%s", rel)
   end
-  return string.format("$ZED_WORKTREE_ROOT/%s", rel)
+
+  relative_cache[pathname] = result
+  return result
 end
 
 local function collect_entries(wks, allowed)
   local entries = {}
+  local seen = {}
 
   for prj in workspace.eachproject(wks) do
     if is_debuggable(prj) then
       local family_dir = get_family_dir(prj)
+      local family_script = get_family_script_command(family_dir)
       local cwd_target = family_dir or prj.basedir or blu.rootdir
       local cwd = relative_to_root(cwd_target)
 
       for cfg in project.eachconfig(prj) do
         if should_include(cfg, allowed) then
           local key = string.format("%s:%s", prj.name, cfg.shortname)
-          if not entries[key] then
-            local program = relative_to_root(cfg.buildtarget.abspath)
-            local build_cmd = build_command(prj, cfg, family_dir)
-
+          if not seen[key] then
             local args
             if cfg.debugargs and #cfg.debugargs > 0 then
               args = {}
@@ -127,29 +181,26 @@ local function collect_entries(wks, allowed)
               end
             end
 
-            entries[key] = {
+            entries[#entries + 1] = {
               label = string.format("%s (%s)", prj.name, cfg.buildcfg),
-              program = program,
+              program = relative_to_root(cfg.buildtarget.abspath),
               cwd = cwd,
               args = args,
-              build_command = build_cmd,
+              build_command = build_command(prj.name, cfg.shortname, family_script),
             }
+
+            seen[key] = true
           end
         end
       end
     end
   end
 
-  local ordered = {}
-  for _, entry in pairs(entries) do
-    ordered[#ordered + 1] = entry
-  end
-
-  table.sort(ordered, function(a, b)
+  table.sort(entries, function(a, b)
     return a.label < b.label
   end)
 
-  return ordered
+  return entries
 end
 
 local function write_array(values)

@@ -9,6 +9,8 @@ local vscode = p.modules.vscode
 local project = p.project
 local workspace = p.workspace
 
+local config_cache = setmetatable({}, { __mode = "k" })
+
 function vscode.getToolset(cfg)
 	--local toolset = p.tools[_OPTIONS.cc or cfg.toolset or p.CLANG]
 	--if not toolset then
@@ -41,11 +43,20 @@ function vscode.generateWorkspace(wks)
 end
 
 function vscode.getConfig(prj)
+    local option = _OPTIONS["vscode-config"]
+    local cached = config_cache[prj]
+    if cached and cached.option == option then
+        return cached.cfg
+    end
+
     for cfg in project.eachconfig(prj) do
-        if cfg.shortname == _OPTIONS["vscode-config"] then
+        if cfg.shortname == option then
+            config_cache[prj] = { option = option, cfg = cfg }
             return cfg
         end
     end
+
+    config_cache[prj] = { option = option, cfg = nil }
 end
 
 function vscode.mockAction(str)
@@ -61,10 +72,41 @@ function vscode.fullProgramName(cfg)
     return cfg.buildtarget.prefix .. cfg.buildtarget.basename
 end
 
+local function collect_buildable_projects(wks)
+    local result = {}
+    local count = 0
+
+    for prj in workspace.eachproject(wks) do
+        if vscode.canBuild(prj) then
+            local cfg = vscode.getConfig(prj)
+            if cfg == nil then
+                error("u done fucked up")
+            end
+
+            count = count + 1
+
+            local build_dir = vscode.mockAction(cfg.buildtarget.directory)
+            result[count] = {
+                project = prj,
+                config = cfg,
+                build_dir = build_dir,
+                program = string.format("%s/%s", build_dir, vscode.fullProgramName(cfg)),
+                location = vscode.mockAction(cfg.location),
+                debugargs = table.concat(cfg.debugargs or {}, " ")
+            }
+        end
+    end
+
+    return result
+end
+
 function vscode.onWorkspace(wks)
     p.eol("\r\n")
     p.indent("  ")
     --p.generate(wks, ".code-workspace", vscode.generateWorkspace)
+
+    local buildable = collect_buildable_projects(wks)
+    local buildable_count = #buildable
 
     p.generate(wks, blu.rootdir .. "/.vscode/launch.json", function(wks)
         p.push('{')
@@ -72,28 +114,19 @@ function vscode.onWorkspace(wks)
 		p.w('"configurations":')
         p.push('[')
 
-        local i = 0
-        for prj in workspace.eachproject(wks) do
-            i = i+1
-
-            if vscode.canBuild(prj) then
+        for index = 1, buildable_count do
+            local entry = buildable[index]
+            local prj = entry.project
             p.push('{')
 
 			p.w('"name": "%s",', prj.name)
 			p.w('"type": "cppdbg",')
 			p.w('"request": "launch",')
 
-            local target_config = vscode.getConfig(prj)
-            if target_config == nil then
-                error("u done fucked up")
-            end
-
-            local actualProgramName = vscode.fullProgramName(target_config)
-
-			p.w('"program": "%s/%s",', vscode.mockAction(target_config.buildtarget.directory), actualProgramName)
-			p.w('"args": [%s],', table.concat(target_config.debugargs, " "))
+			p.w('"program": "%s",', entry.program)
+			p.w('"args": [%s],', entry.debugargs)
 			p.w('"stopAtEntry": false,')
-			p.w('"cwd": "%s",', vscode.mockAction(target_config.buildtarget.directory))
+			p.w('"cwd": "%s",', entry.build_dir)
 			p.w('"externalConsole": false,')
 			p.w('"MIMode": "gdb",')
 
@@ -117,12 +150,10 @@ function vscode.onWorkspace(wks)
             p.w('"preLaunchTask": "make_%s",', prj.name)
 			p.w('"miDebuggerPath": "gdb"')
 
-            if i ~= #wks.projects then
+            if index ~= buildable_count then
                 p.pop('},')
               else
                 p.pop('}')
-            end
-
             end
         end
 
@@ -137,24 +168,16 @@ function vscode.onWorkspace(wks)
 		p.w('"tasks":')
         p.push('[')
 
-        local i = 0
-        for prj in workspace.eachproject(wks) do
-            i=i+1
-
-            if vscode.canBuild(prj) then
-
-            local target_config = vscode.getConfig(prj)
-            if target_config == nil then
-                error("u done fucked up")
-            end
-
+        for index = 1, buildable_count do
+            local entry = buildable[index]
+            local prj = entry.project
             p.push('{')
             p.w('"type": "shell",')
             p.w('"label": "make_%s",', prj.name)
 
             p.w('"options":')
             p.push('{')
-            p.w('"cwd": "%s",', vscode.mockAction(target_config.location)) -- so the makefiles can talk to each other
+            p.w('"cwd": "%s",', entry.location) -- so the makefiles can talk to each other
             p.pop('},')
 
             p.w('"command": "make %s"', prj.name)
@@ -166,12 +189,12 @@ function vscode.onWorkspace(wks)
             --p.w('"isDefault": true')
             --p.pop('}')
 
-            if i ~= #wks.projects then
+            if index ~= buildable_count then
                 p.pop('},')
               else
                 p.pop('}')
             end
-        end
+
         end
 
 
@@ -184,15 +207,10 @@ function vscode.onWorkspace(wks)
 		p.w('"configurations":')
         p.push('[')
 
-        local i = 0 -- works in lua since arrays start from 1
-        for prj in workspace.eachproject(wks) do
-            i = i+1
-
-            local target_config = vscode.getConfig(prj)
-            if target_config == nil then
-                error("u done fucked up")
-            end
-
+        for index = 1, buildable_count do
+            local entry = buildable[index]
+            local prj = entry.project
+            local target_config = entry.config
             local toolset = vscode.getToolset(target_config)
 
             p.push('{')
@@ -238,7 +256,7 @@ function vscode.onWorkspace(wks)
             p.pop(']')
 
             -- end entry
-            if i ~= #wks.projects then
+            if index ~= buildable_count then
                 p.pop('},')
               else
                 p.pop('}')
