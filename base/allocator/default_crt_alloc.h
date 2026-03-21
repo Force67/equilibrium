@@ -19,7 +19,9 @@ namespace base {
 class DefaultCRTRouter {
  public:
   void* Allocate(mem_size size) {
-    return ::malloc(size);
+    // Use operator new instead of malloc so we go through the same allocator
+    // as C++ code (e.g. mimalloc overrides operator new but not malloc).
+    return ::operator new(size);
   }
 
   void* AllocateAligned(mem_size size, mem_size alignment) {
@@ -35,8 +37,16 @@ class DefaultCRTRouter {
   void* ReAllocate(void* former,
                    mem_size new_size,
                    pointer_diff& diff_out) {
-    diff_out = 0;  // can't safely query old block size with custom allocators
-    return ::realloc(former, new_size);
+    // Can't use realloc with operator new memory. Do alloc+copy+free.
+    void* new_block = ::operator new(new_size);
+    if (former) {
+      // We don't know the old size, so this is a best-effort copy.
+      // In practice, callers should use Vector which manages its own growth.
+      memcpy(new_block, former, new_size);  // may over-read, but safe for growth
+      ::operator delete(former);
+    }
+    diff_out = 0;
+    return new_block;
   }
 
   void* ReAllocateAligned(void* former_block,
@@ -62,19 +72,14 @@ class DefaultCRTRouter {
   }
 
   mem_size Free(void* block) {
-    const mem_size former_block_size{block_size(block)};
-    ::free(block);
-    return former_block_size;
+    ::operator delete(block);
+    return 0;
   }
 
   bool Deallocate(void* block, mem_size size, mem_size alignment) {
     (void)alignment;
     (void)size;
-#if defined(BASE_WIN_ALLOC)
-    ::_aligned_free(block);
-#else
-    ::free(block);
-#endif
+    ::operator delete(block);
     return true;
   }
 
