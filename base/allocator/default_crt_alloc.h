@@ -16,13 +16,12 @@
 
 namespace base {
 
+// CRT router used by the memory coordinator for tracked allocations.
+// NOTE: base containers (Vector, String, etc.) bypass this entirely via
+// DefaultAllocator which goes straight through operator new/delete.
 class DefaultCRTRouter {
  public:
-  void* Allocate(mem_size size) {
-    // Use operator new instead of malloc so we go through the same allocator
-    // as C++ code (e.g. mimalloc overrides operator new but not malloc).
-    return ::operator new(size);
-  }
+  void* Allocate(mem_size size) { return ::malloc(size); }
 
   void* AllocateAligned(mem_size size, mem_size alignment) {
 #if defined(BASE_WIN_ALLOC)
@@ -34,32 +33,18 @@ class DefaultCRTRouter {
 #endif
   }
 
-  void* ReAllocate(void* former,
-                   mem_size new_size,
-                   pointer_diff& diff_out) {
-    // Can't use realloc with operator new memory. Do alloc+copy+free.
-    void* new_block = ::operator new(new_size);
-    if (former) {
-      // We don't know the old size, so this is a best-effort copy.
-      // In practice, callers should use Vector which manages its own growth.
-      memcpy(new_block, former, new_size);  // may over-read, but safe for growth
-      ::operator delete(former);
-    }
+  void* ReAllocate(void* former, mem_size new_size, pointer_diff& diff_out) {
     diff_out = 0;
-    return new_block;
+    return ::realloc(former, new_size);
   }
 
-  void* ReAllocateAligned(void* former_block,
-                          mem_size former_size,
-                          mem_size new_size,
-                          mem_size alignment) {
+  void* ReAllocateAligned(void* former_block, mem_size former_size,
+                          mem_size new_size, mem_size alignment) {
     (void)former_size;
 #if defined(BASE_WIN_ALLOC)
     return ::_aligned_realloc(former_block, new_size, alignment);
 #elif defined(BASE_POSIX_ALLOC)
-    if (former_size >= new_size) {
-      return former_block;
-    }
+    if (former_size >= new_size) return former_block;
     void* new_block = ::aligned_alloc(alignment, new_size);
     if (new_block && former_block) {
       memcpy(new_block, former_block, former_size);
@@ -72,25 +57,15 @@ class DefaultCRTRouter {
   }
 
   mem_size Free(void* block) {
-    ::operator delete(block);
+    ::free(block);
     return 0;
   }
 
   bool Deallocate(void* block, mem_size size, mem_size alignment) {
     (void)alignment;
     (void)size;
-    ::operator delete(block);
+    ::free(block);
     return true;
-  }
-
- private:
-  mem_size block_size(void* block) {
-    // Note: malloc_usable_size is NOT safe when a custom allocator like
-    // mimalloc intercepts malloc/free but doesn't intercept malloc_usable_size.
-    // Calling glibc's malloc_usable_size on a mimalloc block causes heap
-    // corruption. Return 0 since the size is only used for stats tracking.
-    (void)block;
-    return 0;
   }
 };
 }  // namespace base
