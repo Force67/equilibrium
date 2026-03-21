@@ -651,8 +651,4 @@ BasicBaseString<CharT, TSizeType, TAllocator> operator+(
   return result;
 }
 
-// Convenience typedefs
-using String = BasicBaseString<char>;
-using WString = BasicBaseString<wchar_t>;
-
 }  // namespace base

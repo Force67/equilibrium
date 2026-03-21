@@ -33,8 +33,8 @@ class BasicStringRef {
   using value_type = TChar;
   static constexpr mem_size npos = kStringNotFoundPos;
 
-  // disable default ctor
-  BasicStringRef() = delete;
+  // default ctor: empty ref pointing to a static empty string
+  constexpr BasicStringRef() : data_(s_empty_), length_(0), tags_(StringRefFlags::kIsNullTerm) {}
 
   // construct from base::String<T>
   template <class TOther>
@@ -258,6 +258,7 @@ class BasicStringRef {
   }
 
  private:
+  static constexpr TChar s_empty_[1] = {0};
   const TChar* data_;
   u32 length_;
   StringRefFlags tags_;
