@@ -56,20 +56,33 @@ class BasicBaseString {
     size_type capacity_;
   };
 
-  // The small string stores its data inside the object's footprint.
-  // The capacity is the total size minus one byte for the size/flag field.
-  static constexpr size_type kSmallCapacity =
-      (sizeof(LargeLayout) - 1) / sizeof(character_type);
-
   // The last byte of a small string stores its size and the mode flag.
   // The MSB is the flag: 1 for Large, 0 for Small.
   // The remaining 7 bits store the size of the small string.
   static constexpr unsigned char kLargeFlag = 0x80;
 
+  // The small string stores its data inside the object's footprint.
+  // data_ holds up to kSmallCapacity chars PLUS the null terminator.
+  // kSmallCapacity is the max string length (not counting null).
+  // Layout: [data_[0] ... data_[kSmallCapacity-1] null_term_byte size_and_flag_]
+  //         |<--- sizeof(LargeLayout) - 1 bytes --->|<-- 1 byte -->|
+  //
+  // We need data_ to be large enough for kSmallCapacity chars + 1 null.
+  // The flag byte is the very last byte. So:
+  //   sizeof(data_) >= kSmallCapacity + 1  (for chars + null)
+  //   sizeof(data_) + sizeof(size_and_flag_) == sizeof(LargeLayout)
+  //   sizeof(data_) == sizeof(LargeLayout) - 1
+  //   kSmallCapacity + 1 <= sizeof(LargeLayout) - 1
+  //   kSmallCapacity <= sizeof(LargeLayout) - 2
+  static constexpr size_type kSmallCapacity =
+      (sizeof(LargeLayout) - 1) / sizeof(character_type) - 1;
+
   union {
     LargeLayout large_;
     struct {
-      character_type data_[kSmallCapacity];
+      // data_ has room for kSmallCapacity chars + null terminator.
+      // The null at data_[kSmallCapacity] does NOT overlap size_and_flag_.
+      character_type data_[sizeof(LargeLayout) - 1];
       unsigned char size_and_flag_;
     } small_;
   };
@@ -88,7 +101,10 @@ class BasicBaseString {
   }
 
   size_type get_capacity() const noexcept {
-    return is_large() ? large_.capacity_ : kSmallCapacity;
+    if (!is_large()) return kSmallCapacity;
+    // The MSB of capacity_ overlaps with size_and_flag_ (the flag byte).
+    // Mask out the flag bit so we get the true capacity.
+    return large_.capacity_ & ~(static_cast<size_type>(kLargeFlag) << ((sizeof(size_type) - 1) * 8));
   }
 
   void set_size(size_type new_size) {
@@ -102,7 +118,7 @@ class BasicBaseString {
   void ensure_null_terminated() noexcept { get_data()[get_size()] = '\0'; }
 
   void switch_to_large(size_type required_capacity) {
-    character_type buffer_backup[kSmallCapacity];
+    character_type buffer_backup[sizeof(LargeLayout) - 1];
     const size_type old_size = get_size();
     memcpy(buffer_backup, small_.data_, old_size * sizeof(character_type));
 
@@ -116,14 +132,16 @@ class BasicBaseString {
     large_.data_ = new_data;
     large_.size_ = old_size;
     large_.capacity_ = new_capacity;
-    small_.size_and_flag_ |= kLargeFlag;  // Set flag to indicate large mode
+    // Must set flag AFTER writing capacity, since capacity clobbers the flag byte.
+    // Use = not |= to avoid reading stale bits from the capacity overlap.
+    small_.size_and_flag_ = kLargeFlag;
 
     ensure_null_terminated();
   }
 
   void deallocate_large() {
     if (is_large()) {
-      TAllocator::Free(large_.data_, (large_.capacity_ + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_, (get_capacity() + 1) * sizeof(character_type));
     }
   }
 
@@ -237,7 +255,7 @@ class BasicBaseString {
       large_.data_ = static_cast<character_type*>(
           TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
       large_.capacity_ = new_capacity;
-      small_.size_and_flag_ |= kLargeFlag;
+      small_.size_and_flag_ = kLargeFlag;
     }
     memcpy(get_data(), str, len * sizeof(character_type));
     set_size(len);
@@ -310,7 +328,7 @@ class BasicBaseString {
         large_.data_ = new_data;
         large_.size_ = old_size;
         large_.capacity_ = new_capacity;
-        small_.size_and_flag_ |= kLargeFlag;  // ensure flag is set
+        small_.size_and_flag_ = kLargeFlag;  // ensure flag is set
         ensure_null_terminated();
       }
     }
@@ -338,12 +356,14 @@ class BasicBaseString {
     }
     const size_type current_size = get_size();
     if (current_size <= kSmallCapacity) {
-      // Transition from large to small
+      // Transition from large to small.
+      // Must save pointer and capacity BEFORE clobbering the union.
       character_type* old_data = large_.data_;
+      const size_type old_capacity = get_capacity();
       memcpy(small_.data_, old_data, current_size * sizeof(character_type));
-      small_.size_and_flag_ = (unsigned char)current_size;  // Now small
+      small_.size_and_flag_ = static_cast<unsigned char>(current_size);
       ensure_null_terminated();
-      TAllocator::Free(old_data, (large_.capacity_ + 1) * sizeof(character_type));
+      TAllocator::Free(old_data, (old_capacity + 1) * sizeof(character_type));
     } else {
       // Shrink the large buffer
       character_type* new_data = static_cast<character_type*>(
@@ -353,7 +373,7 @@ class BasicBaseString {
       large_.data_ = new_data;
       large_.size_ = current_size;
       large_.capacity_ = current_size;
-      small_.size_and_flag_ |= kLargeFlag;
+      small_.size_and_flag_ = kLargeFlag;
       ensure_null_terminated();
     }
   }
