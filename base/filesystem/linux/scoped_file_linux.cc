@@ -4,7 +4,7 @@
 
 #include <base/check.h>
 #include <base/filesystem/scoped_file.h>
-#include "compiler.h"
+#include <base/compiler.h>
 
 namespace {
 

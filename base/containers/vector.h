@@ -37,6 +37,19 @@ class Vector {
 
   Vector() : data_(nullptr), end_(nullptr), capacity_(nullptr) {}
 
+  // Size constructor: creates a vector of `count` default-constructed elements.
+  explicit Vector(mem_size count) : data_(nullptr), end_(nullptr), capacity_(nullptr) {
+    if (count > 0) {
+      data_ = Vector::Allocate(count);
+      capacity_ = &data_[count];
+      T* current = data_;
+      for (mem_size i = 0; i < count; ++i, ++current) {
+        ::new (static_cast<void*>(current)) T();
+      }
+      end_ = capacity_;
+    }
+  }
+
   Vector(mem_size reserve_count, const VectorReservePolicy policy)
       : data_(nullptr), end_(nullptr), capacity_(nullptr) {
     if (reserve_count > 0) {
@@ -396,6 +409,18 @@ class Vector {
   void clear() noexcept {
     base::DestructRange(data_, end_);
     end_ = data_;
+  }
+
+  void assign(mem_size count, const T& value) {
+    clear();
+    resize(count, value);
+  }
+
+  template <typename InputIt>
+  void assign(InputIt first, InputIt last) {
+    clear();
+    for (; first != last; ++first)
+      push_back(*first);
   }
 
   void reset() {

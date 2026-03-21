@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "base/filesystem/scoped_file.h"
+#include <base/filesystem/scoped_file.h>
 
-#include "base/check.h"
-#include "build/build_config.h"
+#include <base/check.h>
+#include <build/build_config.h>
 
 #if defined(OS_POSIX) || defined(OS_FUCHSIA)
 #include <errno.h>

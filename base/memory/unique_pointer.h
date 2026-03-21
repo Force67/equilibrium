@@ -5,6 +5,7 @@
 // for more info
 #pragma once
 
+#include <cstddef>
 #include <base/check.h>
 #include <base/memory/move.h>
 #include <base/memory/deleter.h>
@@ -132,6 +133,9 @@ class UniquePointer {
 
   bool empty() const noexcept { return pointer_ == nullptr; }
   operator bool() const noexcept { return pointer_ != nullptr; }
+
+  bool operator==(std::nullptr_t) const noexcept { return pointer_ == nullptr; }
+  bool operator!=(std::nullptr_t) const noexcept { return pointer_ != nullptr; }
 
   TType* Get_UseOnlyIfYouKnowWhatYouareDoing() const { return pointer_; }
   void ResetUnchecked_UseOnlyIfYouKnowWhatYouareDoing() { pointer_ = nullptr; }

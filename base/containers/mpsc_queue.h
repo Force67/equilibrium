@@ -118,6 +118,17 @@ class MPSCQueue {
            nullptr;
   }
 
+  // Approximate queue size. O(n) walk -- use sparingly.
+  mem_size size_approx() const {
+    mem_size count = 0;
+    Node* current = tail_.load(std::memory_order_acquire)->next.load(std::memory_order_acquire);
+    while (current != nullptr) {
+      ++count;
+      current = current->next.load(std::memory_order_acquire);
+    }
+    return count;
+  }
+
   struct Node {
     T value;
     std::atomic<Node*> next;

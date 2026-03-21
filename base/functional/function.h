@@ -188,9 +188,11 @@ struct Function<R(Args...)> {
  public:
   Function() { memset(storage_, 0, sizeof(storage_)); }
 
-  // Nullptr construction / assignment
+  // Nullptr construction / assignment / comparison
   Function(decltype(nullptr)) : Function() {}
   Function& operator=(decltype(nullptr)) { Cleanup(); return *this; }
+  bool operator==(decltype(nullptr)) const noexcept { return !has_target_; }
+  bool operator!=(decltype(nullptr)) const noexcept { return has_target_; }
 
   // SFINAE helper: true for everything except Function itself and nullptr_t
   template <typename T>

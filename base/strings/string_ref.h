@@ -151,15 +151,8 @@ class BasicStringRef {
   }
 
   // Use this in the rare case where you might have an empty string_ref;
-  static constexpr inline BasicStringRef<TChar> null_ref() {
-    // thanks to constinit we can ensure no ugly c++ guard is generated around
-    // this, so while not pretty, this is OK
-
-    // This empty string is (de-facto) null-terminated at its first character
-    static constinit TChar null_array[] = {0};
-    static constinit BasicStringRef<TChar> null_ref{null_array, 0,
-                                                    true};  // null-terminated
-    return null_ref;
+  static inline BasicStringRef<TChar> null_ref() {
+    return BasicStringRef<TChar>();
   }
 
   inline bool IsNullTerminated() const { return tags_ & StringRefFlags::kIsNullTerm; }

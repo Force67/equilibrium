@@ -172,5 +172,17 @@ constexpr auto kIsLittleEndian = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
 constexpr auto kIsBigEndian = !kIsLittleEndian;
 }  // namespace base
 
+// Portable _countof for C-style arrays.
+#ifndef _countof
+#include <cstddef>
+namespace detail {
+template <typename T, std::size_t N>
+constexpr std::size_t countof_impl(const T (&)[N]) noexcept {
+  return N;
+}
+}  // namespace detail
+#define _countof(arr) ::detail::countof_impl(arr)
+#endif
+
 // TODO(Vince)
 // REG_DWORD_LITTLE_ENDIAN

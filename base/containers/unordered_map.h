@@ -465,8 +465,46 @@ class UnorderedMap {
     mem_size index_;
   };
 
+  // Const iterator support
+  class ConstIterator {
+   public:
+    ConstIterator(const Slot* slots, mem_size bucket_count, mem_size index)
+        : slots_(slots), bucket_count_(bucket_count), index_(index) {
+      AdvanceToOccupied();
+    }
+
+    bool operator!=(const ConstIterator& other) const { return index_ != other.index_; }
+    bool operator==(const ConstIterator& other) const { return index_ == other.index_; }
+
+    ConstIterator& operator++() {
+      ++index_;
+      AdvanceToOccupied();
+      return *this;
+    }
+
+    ConstKeyValueRef operator*() const {
+      return {*reinterpret_cast<const K*>(&slots_[index_].key_storage[0]),
+              *reinterpret_cast<const V*>(&slots_[index_].val_storage[0])};
+    }
+
+    const K& key() const { return *reinterpret_cast<const K*>(&slots_[index_].key_storage[0]); }
+    const V& value() const { return *reinterpret_cast<const V*>(&slots_[index_].val_storage[0]); }
+
+   private:
+    void AdvanceToOccupied() {
+      while (index_ < bucket_count_ && slots_[index_].state != kOccupied)
+        ++index_;
+    }
+
+    const Slot* slots_;
+    mem_size bucket_count_;
+    mem_size index_;
+  };
+
   Iterator begin() { return Iterator(slots_, bucket_count_, 0); }
   Iterator end() { return Iterator(slots_, bucket_count_, bucket_count_); }
+  ConstIterator begin() const { return ConstIterator(slots_, bucket_count_, 0); }
+  ConstIterator end() const { return ConstIterator(slots_, bucket_count_, bucket_count_); }
 
   // ForEach helper
   template <typename TFunc>

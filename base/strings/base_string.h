@@ -154,6 +154,18 @@ class BasicBaseString {
     assign(begin, end - begin);
   }
 
+  // Fill constructor: creates a string of `count` copies of `c`.
+  BasicBaseString(size_type count, character_type c) {
+    small_.size_and_flag_ = 0;
+    ensure_null_terminated();
+    if (count > 0) {
+      reserve(count);
+      memset(get_data(), c, count * sizeof(character_type));
+      set_size(count);
+      ensure_null_terminated();
+    }
+  }
+
   template <size_type N>
   BasicBaseString(const character_type (&arr)[N]) {
     small_.size_and_flag_ = 0;

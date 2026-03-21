@@ -1,12 +1,12 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include "base/filesystem/path.h"
+#include <base/filesystem/path.h>
 
-#include "text/code_point_validation.h"
-#include "text/code_convert.h"
+#include <base/text/code_point_validation.h>
+#include <base/text/code_convert.h>
 
-#include "strings/char_algorithms.h"
+#include <base/strings/char_algorithms.h>
 
 namespace base {
 Path::Path(const char* ascii_only) {
