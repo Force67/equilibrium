@@ -77,10 +77,20 @@ struct Function<R(Args...)> {
     memset(storage_, 0, sizeof(storage_));
   }
 
-  // Constructor for functors and lambdas
+  // Proper decay: function types become function pointers
+  template <typename T>
+  struct FnDecay { using type = typename base::remove_reference<T>::type; };
+  template <typename Ret, typename... A>
+  struct FnDecay<Ret(A...)> { using type = Ret(*)(A...); };
+  template <typename Ret, typename... A>
+  struct FnDecay<Ret(&)(A...)> { using type = Ret(*)(A...); };
+  template <typename Ret, typename... A>
+  struct FnDecay<Ret(&&)(A...)> { using type = Ret(*)(A...); };
+
+  // Constructor for functors, lambdas, and function pointers
   template <typename T>
   Function(T&& target) {
-    using Decayed = typename base::remove_reference<T>::type;
+    using Decayed = typename FnDecay<T>::type;
     memset(storage_, 0, sizeof(storage_));
 
     invoke_ = &InvokeImpl<Decayed>;
