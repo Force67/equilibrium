@@ -666,7 +666,7 @@ BasicBaseString<CharT, TSizeType, TAllocator> operator+(
     const CharT* lhs,
     const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
   BasicBaseString<CharT, TSizeType, TAllocator> result(lhs);
-  result.append(rhs);
+  result.append(rhs.data(), rhs.size());
   return result;
 }
 

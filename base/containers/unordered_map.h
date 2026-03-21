@@ -84,8 +84,9 @@ struct Equal {
 namespace detail {
 template <typename T>
 concept HasDataAndSize = requires(const T& t) {
-  { t.data() } -> __is_same(const typename T::character_type*);
-  { t.size() } -> __is_same(mem_size);
+  t.data();
+  t.size();
+  typename T::character_type;
 };
 }  // namespace detail
 

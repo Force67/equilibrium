@@ -5,7 +5,7 @@
 #pragma once
 
 #include <base/arch.h>
-#include <base/strings/base_string.h>
+#include <base/strings/xstring.h>
 #include <cstdio>
 
 namespace base {
