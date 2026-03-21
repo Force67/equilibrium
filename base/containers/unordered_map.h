@@ -133,6 +133,7 @@ class UnorderedMap {
   Slot* slots_{nullptr};
   mem_size bucket_count_{0};
   mem_size size_{0};
+  mem_size tombstone_count_{0};
   THash hasher_;
   TEqual equal_;
 
@@ -176,6 +177,7 @@ class UnorderedMap {
 
     slots_ = new_slots;
     bucket_count_ = new_count;
+    tombstone_count_ = 0;  // rehash eliminates all tombstones
   }
 
   Slot* AllocSlots(mem_size count) {
@@ -233,10 +235,12 @@ class UnorderedMap {
   UnorderedMap(UnorderedMap&& other) noexcept
       : slots_(other.slots_),
         bucket_count_(other.bucket_count_),
-        size_(other.size_) {
+        size_(other.size_),
+        tombstone_count_(other.tombstone_count_) {
     other.slots_ = nullptr;
     other.bucket_count_ = 0;
     other.size_ = 0;
+    other.tombstone_count_ = 0;
   }
 
   UnorderedMap& operator=(const UnorderedMap& other) {
@@ -273,9 +277,11 @@ class UnorderedMap {
       slots_ = other.slots_;
       bucket_count_ = other.bucket_count_;
       size_ = other.size_;
+      tombstone_count_ = other.tombstone_count_;
       other.slots_ = nullptr;
       other.bucket_count_ = 0;
       other.size_ = 0;
+      other.tombstone_count_ = 0;
     }
     return *this;
   }
@@ -288,7 +294,7 @@ class UnorderedMap {
   // Element access
   V& operator[](const K& key) {
     if (bucket_count_ == 0 ||
-        (size_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
+        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
       GrowAndRehash();
     }
 
@@ -335,13 +341,14 @@ class UnorderedMap {
     SlotVal(slots_[idx])->~V();
     slots_[idx].state = kDeleted;
     --size_;
+    ++tombstone_count_;
     return true;
   }
 
   // Insert or assign
   Pair<V*, bool> insert(const K& key, const V& value) {
     if (bucket_count_ == 0 ||
-        (size_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
+        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
       GrowAndRehash();
     }
 
@@ -363,7 +370,7 @@ class UnorderedMap {
 
   Pair<V*, bool> insert(const K& key, V&& value) {
     if (bucket_count_ == 0 ||
-        (size_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
+        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
       GrowAndRehash();
     }
 
@@ -386,7 +393,7 @@ class UnorderedMap {
   template <typename... TArgs>
   Pair<V*, bool> emplace(const K& key, TArgs&&... args) {
     if (bucket_count_ == 0 ||
-        (size_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
+        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
       GrowAndRehash();
     }
 
@@ -413,6 +420,7 @@ class UnorderedMap {
       }
     }
     size_ = 0;
+    tombstone_count_ = 0;
   }
 
   [[nodiscard]] mem_size size() const { return size_; }
