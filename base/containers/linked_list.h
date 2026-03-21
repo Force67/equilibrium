@@ -138,7 +138,7 @@ class LinkNode : public internal::LinkNodeBase {
   // Cast from the node-type to the value type.
   const T* value() const { return static_cast<const T*>(this); }
 
-  T* value() { return reinterpret_cast<T*>(this); }
+  T* value() { return static_cast<T*>(this); }
 };
 
 template <typename T>

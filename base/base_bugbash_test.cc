@@ -2096,4 +2096,584 @@ TEST(StringRefBugBash, PrefixComparison) {
   EXPECT_FALSE(b < a);
 }
 
+// ============================================================================
+// DEQUE TESTS
+// ============================================================================
+
+TEST(DequeBugBash, DefaultConstructor) {
+  base::SimpleDeque<i32> d;
+  EXPECT_TRUE(d.empty());
+  EXPECT_EQ(d.size(), 0u);
+}
+
+TEST(DequeBugBash, PushBackBasic) {
+  base::SimpleDeque<i32> d;
+  d.push_back(10);
+  d.push_back(20);
+  d.push_back(30);
+  EXPECT_EQ(d.size(), 3u);
+  EXPECT_EQ(d.front(), 10);
+  EXPECT_EQ(d.back(), 30);
+}
+
+TEST(DequeBugBash, PushFrontBasic) {
+  base::SimpleDeque<i32> d;
+  d.push_front(10);
+  d.push_front(20);
+  d.push_front(30);
+  EXPECT_EQ(d.size(), 3u);
+  EXPECT_EQ(d.front(), 30);
+  EXPECT_EQ(d.back(), 10);
+}
+
+TEST(DequeBugBash, PushBackThenPushFront) {
+  base::SimpleDeque<i32> d;
+  d.push_back(2);
+  d.push_back(3);
+  d.push_front(1);
+  d.push_front(0);
+  EXPECT_EQ(d.size(), 4u);
+  EXPECT_EQ(d.front(), 0);
+  EXPECT_EQ(d.back(), 3);
+  EXPECT_EQ(d[0], 0);
+  EXPECT_EQ(d[1], 1);
+  EXPECT_EQ(d[2], 2);
+  EXPECT_EQ(d[3], 3);
+}
+
+TEST(DequeBugBash, PopFront) {
+  base::SimpleDeque<i32> d;
+  d.push_back(10);
+  d.push_back(20);
+  d.push_back(30);
+  d.pop_front();
+  EXPECT_EQ(d.size(), 2u);
+  EXPECT_EQ(d.front(), 20);
+  EXPECT_EQ(d.back(), 30);
+}
+
+TEST(DequeBugBash, PopBack) {
+  base::SimpleDeque<i32> d;
+  d.push_back(10);
+  d.push_back(20);
+  d.push_back(30);
+  d.pop_back();
+  EXPECT_EQ(d.size(), 2u);
+  EXPECT_EQ(d.front(), 10);
+  EXPECT_EQ(d.back(), 20);
+}
+
+TEST(DequeBugBash, PopFrontAllElements) {
+  base::SimpleDeque<i32> d;
+  for (i32 i = 0; i < 10; ++i) d.push_back(i);
+  for (i32 i = 0; i < 10; ++i) {
+    EXPECT_EQ(d.front(), i);
+    d.pop_front();
+  }
+  EXPECT_TRUE(d.empty());
+}
+
+TEST(DequeBugBash, PopBackAllElements) {
+  base::SimpleDeque<i32> d;
+  for (i32 i = 0; i < 10; ++i) d.push_back(i);
+  for (i32 i = 9; i >= 0; --i) {
+    EXPECT_EQ(d.back(), i);
+    d.pop_back();
+  }
+  EXPECT_TRUE(d.empty());
+}
+
+TEST(DequeBugBash, MixedPushPop) {
+  base::SimpleDeque<i32> d;
+  d.push_back(1);
+  d.push_back(2);
+  d.push_front(0);
+  d.pop_back();
+  d.push_back(3);
+  EXPECT_EQ(d.size(), 3u);
+  EXPECT_EQ(d.front(), 0);
+  EXPECT_EQ(d.back(), 3);
+  EXPECT_EQ(d[0], 0);
+  EXPECT_EQ(d[1], 1);
+  EXPECT_EQ(d[2], 3);
+}
+
+TEST(DequeBugBash, WrapAroundStress) {
+  // Previously crashed with division-by-zero on first resize
+  base::SimpleDeque<i32> d;
+  for (i32 i = 0; i < 100; ++i) {
+    d.push_back(i);
+  }
+  for (i32 i = 0; i < 50; ++i) {
+    d.pop_front();
+  }
+  for (i32 i = 100; i < 200; ++i) {
+    d.push_back(i);
+  }
+  EXPECT_EQ(d.size(), 150u);
+  EXPECT_EQ(d.front(), 50);
+  EXPECT_EQ(d.back(), 199);
+}
+
+TEST(DequeBugBash, AlternatingPushFrontPushBack) {
+  base::SimpleDeque<i32> d;
+  for (i32 i = 0; i < 50; ++i) {
+    if (i % 2 == 0)
+      d.push_back(i);
+    else
+      d.push_front(-i);
+  }
+  EXPECT_EQ(d.size(), 50u);
+}
+
+TEST(DequeBugBash, SingleElement) {
+  base::SimpleDeque<i32> d;
+  d.push_back(42);
+  EXPECT_EQ(d.front(), 42);
+  EXPECT_EQ(d.back(), 42);
+  EXPECT_EQ(d.size(), 1u);
+  d.pop_back();
+  EXPECT_TRUE(d.empty());
+}
+
+TEST(DequeBugBash, GrowthPattern) {
+  // Tests that internal resize works correctly across multiple growth cycles
+  base::SimpleDeque<i32> d;
+  for (i32 i = 0; i < 1000; ++i) {
+    d.push_back(i);
+    EXPECT_EQ(d.back(), i);
+    EXPECT_EQ(d.front(), 0);
+  }
+  EXPECT_EQ(d.size(), 1000u);
+  for (i32 i = 0; i < 1000; ++i) {
+    EXPECT_EQ(d[i], i);
+  }
+}
+
+TEST(DequeBugBash, PushFrontGrowth) {
+  base::SimpleDeque<i32> d;
+  for (i32 i = 0; i < 100; ++i) {
+    d.push_front(i);
+  }
+  EXPECT_EQ(d.size(), 100u);
+  EXPECT_EQ(d.front(), 99);
+  EXPECT_EQ(d.back(), 0);
+  for (i32 i = 0; i < 100; ++i) {
+    EXPECT_EQ(d[i], 99 - i);
+  }
+}
+
+TEST(DequeBugBash, ClearDeque) {
+  base::SimpleDeque<i32> d;
+  for (i32 i = 0; i < 50; ++i) d.push_back(i);
+  d.clear();
+  EXPECT_TRUE(d.empty());
+  EXPECT_EQ(d.size(), 0u);
+  // Should be reusable after clear
+  d.push_back(42);
+  EXPECT_EQ(d.front(), 42);
+}
+
+TEST(DequeBugBash, MoveConstructor) {
+  base::SimpleDeque<i32> d1;
+  d1.push_back(1);
+  d1.push_back(2);
+  d1.push_back(3);
+
+  base::SimpleDeque<i32> d2(base::move(d1));
+  EXPECT_EQ(d2.size(), 3u);
+  EXPECT_EQ(d2.front(), 1);
+  EXPECT_EQ(d2.back(), 3);
+  EXPECT_TRUE(d1.empty());
+}
+
+TEST(DequeBugBash, ChurnCycle) {
+  // Add and remove in cycles to test wrap-around correctness
+  base::SimpleDeque<i32> d;
+  for (int cycle = 0; cycle < 20; ++cycle) {
+    for (i32 i = 0; i < 10; ++i) d.push_back(cycle * 10 + i);
+    for (i32 i = 0; i < 10; ++i) d.pop_front();
+  }
+  EXPECT_TRUE(d.empty());
+}
+
+TEST(DequeBugBash, StringDeque) {
+  using String = base::BasicBaseString<char>;
+  base::SimpleDeque<String> d;
+  d.push_back(String("hello"));
+  d.push_back(String("world"));
+  d.push_front(String("prefix"));
+  EXPECT_STREQ(d.front().c_str(), "prefix");
+  EXPECT_STREQ(d.back().c_str(), "world");
+  EXPECT_EQ(d.size(), 3u);
+}
+
+// ============================================================================
+// RING BUFFER TESTS
+// ============================================================================
+
+TEST(RingBufferBugBash, BasicSaveAndRead) {
+  base::RingBuffer<i32, 4> rb;
+  rb.SaveToBuffer(10);
+  rb.SaveToBuffer(20);
+  rb.SaveToBuffer(30);
+  EXPECT_EQ(rb.CurrentIndex(), 3u);
+  EXPECT_EQ(rb.BufferSize(), 4u);
+}
+
+TEST(RingBufferBugBash, OverwriteOnWrap) {
+  base::RingBuffer<i32, 4> rb;
+  for (i32 i = 0; i < 8; ++i) {
+    rb.SaveToBuffer(i);
+  }
+  EXPECT_EQ(rb.CurrentIndex(), 8u);
+  // Oldest elements should be overwritten
+}
+
+TEST(RingBufferBugBash, IsFilledBeforeFull) {
+  base::RingBuffer<i32, 4> rb;
+  rb.SaveToBuffer(10);
+  rb.SaveToBuffer(20);
+  // Not all indices are filled yet
+  EXPECT_EQ(rb.CurrentIndex(), 2u);
+}
+
+TEST(RingBufferBugBash, ClearResets) {
+  base::RingBuffer<i32, 4> rb;
+  rb.SaveToBuffer(10);
+  rb.SaveToBuffer(20);
+  rb.Clear();
+  EXPECT_EQ(rb.CurrentIndex(), 0u);
+}
+
+TEST(RingBufferBugBash, IteratorDereference) {
+  base::RingBuffer<i32, 4> rb;
+  for (i32 i = 0; i < 4; ++i) rb.SaveToBuffer(i * 10);
+  auto it = rb.Begin();
+  // operator* should return const T&, not const T*
+  const i32& val = *it;
+  EXPECT_GE(val, 0);
+}
+
+TEST(RingBufferBugBash, LargeRingBuffer) {
+  base::RingBuffer<i32, 1024> rb;
+  for (i32 i = 0; i < 5000; ++i) {
+    rb.SaveToBuffer(i);
+  }
+  EXPECT_EQ(rb.CurrentIndex(), 5000u);
+}
+
+// ============================================================================
+// LINKED LIST TESTS
+// ============================================================================
+
+struct TestNode : public base::LinkNode<TestNode> {
+  int value;
+  TestNode() : value(0) {}
+  explicit TestNode(int v) : value(v) {}
+};
+
+TEST(LinkedListBugBash, EmptyList) {
+  base::LinkedList<TestNode> list;
+  EXPECT_TRUE(list.empty());
+  EXPECT_EQ(list.head(), list.end());
+}
+
+TEST(LinkedListBugBash, AppendSingle) {
+  base::LinkedList<TestNode> list;
+  TestNode n(42);
+  list.Append(&n);
+  EXPECT_FALSE(list.empty());
+  EXPECT_EQ(list.head()->value()->value, 42);
+}
+
+TEST(LinkedListBugBash, AppendMultiple) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(2), c(3);
+  list.Append(&a);
+  list.Append(&b);
+  list.Append(&c);
+
+  int count = 0;
+  int expected = 1;
+  for (auto* node = list.head(); node != list.end(); node = node->next()) {
+    EXPECT_EQ(node->value()->value, expected++);
+    ++count;
+  }
+  EXPECT_EQ(count, 3);
+}
+
+TEST(LinkedListBugBash, RemoveFromMiddle) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(2), c(3);
+  list.Append(&a);
+  list.Append(&b);
+  list.Append(&c);
+
+  b.RemoveFromList();
+
+  int count = 0;
+  for (auto* node = list.head(); node != list.end(); node = node->next()) {
+    ++count;
+  }
+  EXPECT_EQ(count, 2);
+  EXPECT_EQ(list.head()->value()->value, 1);
+  EXPECT_EQ(list.tail()->value()->value, 3);
+}
+
+TEST(LinkedListBugBash, RemoveHead) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(2), c(3);
+  list.Append(&a);
+  list.Append(&b);
+  list.Append(&c);
+
+  a.RemoveFromList();
+  EXPECT_EQ(list.head()->value()->value, 2);
+}
+
+TEST(LinkedListBugBash, RemoveTail) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(2), c(3);
+  list.Append(&a);
+  list.Append(&b);
+  list.Append(&c);
+
+  c.RemoveFromList();
+  EXPECT_EQ(list.tail()->value()->value, 2);
+}
+
+TEST(LinkedListBugBash, RemoveAllElements) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(2), c(3);
+  list.Append(&a);
+  list.Append(&b);
+  list.Append(&c);
+
+  a.RemoveFromList();
+  b.RemoveFromList();
+  c.RemoveFromList();
+  EXPECT_TRUE(list.empty());
+}
+
+TEST(LinkedListBugBash, InsertBefore) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(3), c(2);
+  list.Append(&a);
+  list.Append(&b);
+  c.InsertBefore(&b);
+
+  int expected[] = {1, 2, 3};
+  int i = 0;
+  for (auto* node = list.head(); node != list.end(); node = node->next()) {
+    EXPECT_EQ(node->value()->value, expected[i++]);
+  }
+  EXPECT_EQ(i, 3);
+}
+
+TEST(LinkedListBugBash, InsertAfter) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(3), c(2);
+  list.Append(&a);
+  list.Append(&b);
+  c.InsertAfter(&a);
+
+  int expected[] = {1, 2, 3};
+  int i = 0;
+  for (auto* node = list.head(); node != list.end(); node = node->next()) {
+    EXPECT_EQ(node->value()->value, expected[i++]);
+  }
+  EXPECT_EQ(i, 3);
+}
+
+TEST(LinkedListBugBash, BackwardsIteration) {
+  base::LinkedList<TestNode> list;
+  TestNode a(1), b(2), c(3);
+  list.Append(&a);
+  list.Append(&b);
+  list.Append(&c);
+
+  int expected = 3;
+  for (auto* node = list.tail(); node != list.end(); node = node->previous()) {
+    EXPECT_EQ(node->value()->value, expected--);
+  }
+  EXPECT_EQ(expected, 0);
+}
+
+TEST(LinkedListBugBash, ValueCast) {
+  base::LinkedList<TestNode> list;
+  TestNode n(42);
+  list.Append(&n);
+
+  // Test that static_cast value() works correctly
+  TestNode* val = list.head()->value();
+  EXPECT_EQ(val->value, 42);
+  EXPECT_EQ(val, &n);  // should point to the same object
+}
+
+TEST(LinkedListBugBash, LargeList) {
+  base::LinkedList<TestNode> list;
+  constexpr int N = 1000;
+  TestNode nodes[N] = {};
+  for (int i = 0; i < N; ++i) {
+    nodes[i].value = i;
+    list.Append(&nodes[i]);
+  }
+
+  int count = 0;
+  for (auto* node = list.head(); node != list.end(); node = node->next()) {
+    EXPECT_EQ(node->value()->value, count);
+    ++count;
+  }
+  EXPECT_EQ(count, N);
+}
+
+// ============================================================================
+// ARRAY TESTS
+// ============================================================================
+
+TEST(ArrayBugBash, BasicAccess) {
+  base::Array<i32, 5> arr;
+  arr[0] = 10;
+  arr[4] = 50;
+  EXPECT_EQ(arr[0], 10);
+  EXPECT_EQ(arr[4], 50);
+  EXPECT_EQ(arr.size(), 5u);
+}
+
+TEST(ArrayBugBash, Fill) {
+  base::Array<i32, 10> arr;
+  arr.fill(42);
+  for (mem_size i = 0; i < 10; ++i) {
+    EXPECT_EQ(arr[i], 42);
+  }
+}
+
+TEST(ArrayBugBash, FrontBack) {
+  base::Array<i32, 3> arr;
+  arr[0] = 1;
+  arr[1] = 2;
+  arr[2] = 3;
+  EXPECT_EQ(arr.front(), 1);
+  EXPECT_EQ(arr.back(), 3);
+}
+
+TEST(ArrayBugBash, Iterator) {
+  base::Array<i32, 4> arr;
+  arr[0] = 10;
+  arr[1] = 20;
+  arr[2] = 30;
+  arr[3] = 40;
+  i32 sum = 0;
+  for (auto val : arr) sum += val;
+  EXPECT_EQ(sum, 100);
+}
+
+TEST(ArrayBugBash, DataPointer) {
+  base::Array<i32, 3> arr;
+  arr.fill(99);
+  i32* p = arr.data();
+  EXPECT_EQ(p[0], 99);
+  EXPECT_EQ(p[2], 99);
+}
+
+TEST(ArrayBugBash, NotEmpty) {
+  base::Array<i32, 1> arr;
+  EXPECT_FALSE(arr.empty());
+}
+
+// ============================================================================
+// VECTOR CONTAINER EDGE CASES (ROUND 2)
+// ============================================================================
+
+TEST(VectorEdgeCases, InsertSelfRange) {
+  // Insert elements from the same vector - tests self-referential insert
+  // Note: This is known dangerous; just ensure no crash
+  base::Vector<i32> v = {1, 2, 3, 4, 5};
+  base::Vector<i32> copy(v);  // use a copy to avoid UB
+  v.insert(v.begin() + 2, copy.begin(), copy.end());
+  EXPECT_EQ(v.size(), 10u);
+  EXPECT_EQ(v[0], 1);
+  EXPECT_EQ(v[1], 2);
+  EXPECT_EQ(v[2], 1);  // from copy
+  EXPECT_EQ(v[7], 3);
+}
+
+TEST(VectorEdgeCases, RepeatedShrinkGrow) {
+  base::Vector<i32> v;
+  for (int cycle = 0; cycle < 100; ++cycle) {
+    for (i32 i = 0; i < 50; ++i) v.push_back(i);
+    v.resize(5);
+    v.shrink_to_fit();
+    EXPECT_EQ(v.capacity(), 5u);
+    EXPECT_EQ(v.size(), 5u);
+    v.clear();
+  }
+}
+
+TEST(VectorEdgeCases, EmplaceBackReturnRef) {
+  base::Vector<i32> v;
+  auto& ref1 = v.emplace_back(42);
+  EXPECT_EQ(ref1, 42);
+  auto& ref2 = v.emplace_back(99);
+  EXPECT_EQ(ref2, 99);
+  // Note: ref1 may be invalidated by realloc!
+}
+
+TEST(VectorEdgeCases, AssignFromLargerRange) {
+  base::Vector<i32> v = {1, 2};
+  base::Vector<i32> src;
+  for (i32 i = 0; i < 100; ++i) src.push_back(i);
+  v.assign(src.begin(), src.end());
+  EXPECT_EQ(v.size(), 100u);
+  for (i32 i = 0; i < 100; ++i) EXPECT_EQ(v[i], i);
+}
+
+// ============================================================================
+// UNORDERED MAP EDGE CASES (ROUND 2)
+// ============================================================================
+
+TEST(UnorderedMapEdgeCases, HighLoadFactor) {
+  base::UnorderedMap<i32, i32> m;
+  // Insert enough to trigger multiple rehashes
+  for (i32 i = 0; i < 10000; ++i) {
+    m[i] = i * 2;
+  }
+  // Verify all keys survived
+  for (i32 i = 0; i < 10000; ++i) {
+    auto* v = m.find(i);
+    ASSERT_NE(v, nullptr) << "Missing key " << i;
+    EXPECT_EQ(*v, i * 2);
+  }
+}
+
+TEST(UnorderedMapEdgeCases, EraseReinsertStress) {
+  base::UnorderedMap<i32, i32> m;
+  // Fill, erase half, reinsert different keys - tests tombstone handling
+  for (i32 i = 0; i < 100; ++i) m.insert(i, i);
+  for (i32 i = 0; i < 50; ++i) m.erase(i);
+  for (i32 i = 100; i < 200; ++i) m.insert(i, i);
+
+  EXPECT_EQ(m.size(), 150u);
+  for (i32 i = 50; i < 200; ++i) {
+    ASSERT_NE(m.find(i), nullptr) << "Missing key " << i;
+  }
+}
+
+TEST(UnorderedMapEdgeCases, MoveValueType) {
+  using String = base::BasicBaseString<char>;
+  base::UnorderedMap<i32, String> m;
+  m.insert(1, String("hello world this is a long string"));
+  m.insert(2, String("another long string for testing"));
+
+  auto* v = m.find(1);
+  ASSERT_NE(v, nullptr);
+  EXPECT_STREQ(v->c_str(), "hello world this is a long string");
+
+  // Copy and verify independence
+  base::UnorderedMap<i32, String> m2(m);
+  EXPECT_EQ(m2.size(), 2u);
+  EXPECT_STREQ(m2.find(1)->c_str(), "hello world this is a long string");
+}
+
 }  // namespace

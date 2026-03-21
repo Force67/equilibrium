@@ -39,13 +39,13 @@ class RingBuffer {
   // n = bufferSize() - 1 returns the most recent value.
   const T& ReadBuffer(mem_size n) const {
     const mem_size buffer_index = BufferIndex(n);
-    DCHECK(IsFilledIndexByBufferIndex(buffer_index));
+    BASE_DCHECK(IsFilledIndexByBufferIndex(buffer_index));
     return buffer_[buffer_index];
   }
 
   T* MutableReadBuffer(mem_size n) {
     const mem_size buffer_index = BufferIndex(n);
-    DCHECK(IsFilledIndexByBufferIndex(buffer_index));
+    BASE_DCHECK(IsFilledIndexByBufferIndex(buffer_index));
     return &buffer_[buffer_index];
   }
 
@@ -62,7 +62,7 @@ class RingBuffer {
     mem_size index() const { return index_; }
 
     const T* operator->() const { return &buffer_.ReadBuffer(index_); }
-    const T* operator*() const { return &buffer_.ReadBuffer(index_); }
+    const T& operator*() const { return buffer_.ReadBuffer(index_); }
 
     Iterator& operator++() {
       index_++;
