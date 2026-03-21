@@ -72,8 +72,8 @@ template <class T>
   class_name& operator=(const class_name&) = delete; \
   class_name& operator=(class_name&&) = delete;
 
-#define BASE_NOMOVE(class_name)            \
-  class_name(const class_name&&) = delete; \
+#define BASE_NOMOVE(class_name)       \
+  class_name(class_name&&) = delete; \
   class_name& operator=(class_name&&) = delete;
 
 #define BASE_NOCOPY(class_name)           \

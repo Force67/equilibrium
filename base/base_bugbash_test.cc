@@ -30,6 +30,9 @@
 #include <base/containers/mpsc_queue.h>
 #include <base/containers/lock_free_concurrent_hashmap.h>
 #include <base/threading/spinning_mutex.h>
+#include <base/containers/bitsets/bitset.h>
+#include <base/containers/bitsets/dynamic_bitset.h>
+#include <base/memory/lazy_instance.h>
 
 namespace {
 using namespace base;
@@ -3006,6 +3009,301 @@ TEST(SpinningMutexBugBash, ContentionStress) {
   for (auto& t : threads) t.join();
 
   EXPECT_EQ(shared, static_cast<i64>(kThreads) * kOps);
+}
+
+// ============================================================================
+// UNIQUE POINTER TESTS
+// ============================================================================
+
+TEST(UniquePointerBugBash, MakeUniqueAndAccess) {
+  auto p = base::MakeUnique<i32>(42);
+  EXPECT_EQ(*p, 42);
+  EXPECT_FALSE(p.empty());
+  EXPECT_TRUE(static_cast<bool>(p));
+}
+
+TEST(UniquePointerBugBash, MoveConstructor) {
+  auto p1 = base::MakeUnique<i32>(42);
+  auto p2 = base::move(p1);
+  EXPECT_TRUE(p1.empty());
+  EXPECT_EQ(*p2, 42);
+}
+
+TEST(UniquePointerBugBash, MoveAssignmentFreesExisting) {
+  // This was a memory leak: operator= didn't free the existing pointer
+  LifetimeTracker::Reset();
+  {
+    auto p1 = base::MakeUnique<LifetimeTracker>(1);
+    auto p2 = base::MakeUnique<LifetimeTracker>(2);
+    EXPECT_EQ(LifetimeTracker::alive_count, 2);
+
+    p1 = base::move(p2);  // Should free old p1's object
+    EXPECT_EQ(LifetimeTracker::alive_count, 1);
+    EXPECT_EQ((*p1).value_, 2);
+    EXPECT_TRUE(p2.empty());
+  }
+  EXPECT_EQ(LifetimeTracker::alive_count, 0);
+}
+
+TEST(UniquePointerBugBash, ResetWithNewPointer) {
+  LifetimeTracker::Reset();
+  {
+    auto p = base::MakeUnique<LifetimeTracker>(1);
+    EXPECT_EQ(LifetimeTracker::alive_count, 1);
+    p.Reset(new LifetimeTracker(2));
+    EXPECT_EQ(LifetimeTracker::alive_count, 1);
+    EXPECT_EQ((*p).value_, 2);
+  }
+  EXPECT_EQ(LifetimeTracker::alive_count, 0);
+}
+
+TEST(UniquePointerBugBash, ResetToNull) {
+  auto p = base::MakeUnique<i32>(42);
+  p.Reset();
+  EXPECT_TRUE(p.empty());
+}
+
+TEST(UniquePointerBugBash, NullComparison) {
+  base::UniquePointer<i32> p;
+  EXPECT_TRUE(p == nullptr);
+  EXPECT_FALSE(p != nullptr);
+  auto p2 = base::MakeUnique<i32>(1);
+  EXPECT_FALSE(p2 == nullptr);
+  EXPECT_TRUE(p2 != nullptr);
+}
+
+TEST(UniquePointerBugBash, ArrayType) {
+  auto p = base::MakeUnique<i32[]>(10);
+  for (mem_size i = 0; i < 10; ++i) {
+    p[i] = static_cast<i32>(i * 10);
+  }
+  for (mem_size i = 0; i < 10; ++i) {
+    EXPECT_EQ(p[i], static_cast<i32>(i * 10));
+  }
+}
+
+TEST(UniquePointerBugBash, SelfMoveAssignment) {
+  auto p = base::MakeUnique<i32>(42);
+  auto* addr = base::AddressOf(p);
+  p = base::move(*addr);  // self-assign via move
+  EXPECT_FALSE(p.empty());
+  EXPECT_EQ(*p, 42);
+}
+
+// ============================================================================
+// LAZY INSTANCE TESTS
+// ============================================================================
+
+struct AlignedType {
+  alignas(16) i64 data[2];
+  int value;
+  AlignedType() : data{0, 0}, value(0) {}
+  explicit AlignedType(int v) : data{0, 0}, value(v) {}
+};
+
+TEST(LazyInstanceBugBash, BasicUsage) {
+  base::LazyInstance<AlignedType> lazy;
+  EXPECT_FALSE(lazy.constructed());
+  lazy.Make(42);
+  EXPECT_TRUE(lazy.constructed());
+  EXPECT_EQ(lazy->value, 42);
+  EXPECT_EQ((*lazy).value, 42);
+}
+
+TEST(LazyInstanceBugBash, AlignmentCorrect) {
+  // Previously storage was u8[] with no alignas, causing UB for aligned types
+  base::LazyInstance<AlignedType> lazy;
+  lazy.Make(99);
+  // If alignment is wrong, this may crash on platforms that enforce alignment
+  EXPECT_EQ(lazy->value, 99);
+  // Check alignment
+  auto* ptr = &(*lazy);
+  EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr) % alignof(AlignedType), 0u);
+}
+
+// ============================================================================
+// BITSET TESTS
+// ============================================================================
+
+TEST(BitSetBugBash, SetAndTest) {
+  base::BitSet<64> bs;
+  bs.Set(0);
+  bs.Set(63);
+  EXPECT_TRUE(bs.Test(0));
+  EXPECT_TRUE(bs.Test(63));
+  EXPECT_FALSE(bs.Test(1));
+}
+
+TEST(BitSetBugBash, OffByOneBoundary) {
+  // Previously N >= pos allowed setting bit N (out of bounds)
+  base::BitSet<8> bs;
+  bs.Set(0);
+  bs.Set(7);  // Last valid bit
+  EXPECT_TRUE(bs.Test(0));
+  EXPECT_TRUE(bs.Test(7));
+  // Setting bit 8 would be out of bounds (N=8, valid: 0-7)
+}
+
+TEST(BitSetBugBash, FlipBit) {
+  base::BitSet<32> bs;
+  bs.Set(5);
+  EXPECT_TRUE(bs.Test(5));
+  bs.Flip(5);
+  EXPECT_FALSE(bs.Test(5));
+  bs.Flip(5);
+  EXPECT_TRUE(bs.Test(5));
+}
+
+TEST(BitSetBugBash, CountSetBits) {
+  base::BitSet<64> bs;
+  bs.Set(0);
+  bs.Set(10);
+  bs.Set(20);
+  bs.Set(30);
+  EXPECT_EQ(bs.CountSetBits(), 4u);
+}
+
+TEST(BitSetBugBash, Reset) {
+  base::BitSet<32> bs;
+  bs.Set(5);
+  bs.Set(10);
+  bs.Reset();
+  EXPECT_FALSE(bs.Test(5));
+  EXPECT_FALSE(bs.Test(10));
+}
+
+TEST(BitSetBugBash, BitwiseAnd) {
+  base::BitSet<8> a(0b11001100);
+  base::BitSet<8> b(0b10101010);
+  auto c = a & b;
+  EXPECT_EQ(c.to_ulong(), 0b10001000u);
+}
+
+TEST(BitSetBugBash, BitwiseOr) {
+  base::BitSet<8> a(0b11001100);
+  base::BitSet<8> b(0b10101010);
+  auto c = a | b;
+  EXPECT_EQ(c.to_ulong(), 0b11101110u);
+}
+
+TEST(BitSetBugBash, BitwiseXor) {
+  base::BitSet<8> a(0b11001100);
+  base::BitSet<8> b(0b10101010);
+  auto c = a ^ b;
+  EXPECT_EQ(c.to_ulong(), 0b01100110u);
+}
+
+TEST(BitSetBugBash, ShiftLeft) {
+  base::BitSet<8> bs(0b00000001);
+  bs <<= 3;
+  EXPECT_EQ(bs.to_ulong(), 0b00001000u);
+}
+
+TEST(BitSetBugBash, ShiftRight) {
+  base::BitSet<8> bs(0b10000000);
+  bs >>= 3;
+  EXPECT_EQ(bs.to_ulong(), 0b00010000u);
+}
+
+TEST(BitSetBugBash, Equality) {
+  base::BitSet<32> a(42);
+  base::BitSet<32> b(42);
+  base::BitSet<32> c(43);
+  EXPECT_TRUE(a == b);
+  EXPECT_FALSE(a == c);
+  EXPECT_TRUE(a != c);
+}
+
+TEST(BitSetBugBash, ToUllong) {
+  base::BitSet<64> bs(0xDEADBEEFULL);
+  EXPECT_EQ(bs.to_ullong(), 0xDEADBEEFULL);
+}
+
+TEST(BitSetBugBash, LargeBitSet) {
+  base::BitSet<128> bs;
+  bs.Set(0);
+  bs.Set(64);
+  bs.Set(127);
+  EXPECT_TRUE(bs.Test(0));
+  EXPECT_TRUE(bs.Test(64));
+  EXPECT_TRUE(bs.Test(127));
+  EXPECT_FALSE(bs.Test(1));
+  EXPECT_FALSE(bs.Test(63));
+  EXPECT_EQ(bs.CountSetBits(), 3u);
+}
+
+// ============================================================================
+// DYNAMIC BITSET TESTS
+// ============================================================================
+
+TEST(DynamicBitSetBugBash, BasicSetAndTest) {
+  base::DynamicBitSet<> bs(0, 64);
+  bs.Set(0);
+  bs.Set(63);
+  EXPECT_TRUE(bs.Test(0));
+  EXPECT_TRUE(bs.Test(63));
+  EXPECT_FALSE(bs.Test(1));
+}
+
+TEST(DynamicBitSetBugBash, ReserveCountCorrect) {
+  // Previously divided by sizeof(u64)=8 instead of 64 bits
+  base::DynamicBitSet<> bs(0, 100);
+  EXPECT_EQ(bs.size(), 100u);
+  // Should need ceil(100/64) = 2 words, not 100/8 = 12
+  EXPECT_EQ(bs.word_count(), 2u);
+}
+
+TEST(DynamicBitSetBugBash, OffByOneBoundary) {
+  // Previously pos <= bit_count_ allowed accessing out of bounds
+  base::DynamicBitSet<> bs(0, 64);
+  bs.Set(0);
+  bs.Set(63);  // Last valid bit
+  EXPECT_TRUE(bs.Test(63));
+}
+
+TEST(DynamicBitSetBugBash, MultiWordOperator) {
+  // Previously multi-word operator[] didn't mask to single bit
+  base::DynamicBitSet<> bs(0, 128);
+  bs.Set(65);
+  EXPECT_TRUE(bs.Test(65));
+  EXPECT_FALSE(bs.Test(64));
+  EXPECT_FALSE(bs.Test(66));
+}
+
+TEST(DynamicBitSetBugBash, ResetAll) {
+  base::DynamicBitSet<> bs(0xFF, 64);
+  bs.reset();
+  for (mem_size i = 0; i < 64; ++i) {
+    EXPECT_FALSE(bs.Test(i));
+  }
+}
+
+TEST(DynamicBitSetBugBash, Equality) {
+  // Previously memcmp used word count instead of byte count
+  base::DynamicBitSet<> a(42, 64);
+  base::DynamicBitSet<> b(42, 64);
+  base::DynamicBitSet<> c(43, 64);
+  EXPECT_TRUE(a == b);
+  EXPECT_FALSE(a == c);
+}
+
+TEST(DynamicBitSetBugBash, SetAllAndCount) {
+  base::DynamicBitSet<> bs(0, 64);
+  bs.Set();
+  EXPECT_EQ(bs.CountSetBits(), 64u);
+}
+
+TEST(DynamicBitSetBugBash, FlipAll) {
+  base::DynamicBitSet<> bs(0, 64);
+  bs.flip();
+  EXPECT_EQ(bs.CountSetBits(), 64u);
+  bs.flip();
+  EXPECT_EQ(bs.CountSetBits(), 0u);
+}
+
+TEST(DynamicBitSetBugBash, ToUllong) {
+  base::DynamicBitSet<> bs(0xDEADBEEF, 64);
+  EXPECT_EQ(bs.to_ullong(), 0xDEADBEEFULL);
 }
 
 }  // namespace

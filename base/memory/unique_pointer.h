@@ -63,7 +63,9 @@ class UniquePointer {
   inline UniquePointer& operator=(UniquePointer&& rhs) noexcept
   /*TODO(Vince): requires(is_move_assignable_v<T>)*/ {
     if (this != base::AddressOf(rhs)) {
-      // steal & invalidate right side.
+      // Free existing pointer before stealing.
+      if (pointer_)
+        Free();
       pointer_ = rhs.pointer_;
       rhs.pointer_ = nullptr;
     }

@@ -57,6 +57,6 @@ class LazyInstance {
   // we cannot assume there wouldnd be a valid object thatd be 0 in data
   // so we rely on the extra boolean to be absolutely sure.
   bool exists_{false};
-  u8 storage_[sizeof(T)]{0};
+  alignas(T) u8 storage_[sizeof(T)]{0};
 };
 }  // namespace base
