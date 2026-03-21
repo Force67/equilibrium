@@ -135,19 +135,20 @@ class BasicBaseString {
     ensure_null_terminated();
   }
 
-  explicit BasicBaseString(const character_type* str) {
+  // Implicit from const char* for std::string-like ergonomics
+  BasicBaseString(const character_type* str) {
     small_.size_and_flag_ = 0;
     ensure_null_terminated();
-    assign(str);
+    if (str) assign(str);
   }
 
-  explicit BasicBaseString(const character_type* str, size_type len_in_characters) {
+  BasicBaseString(const character_type* str, size_type len_in_characters) {
     small_.size_and_flag_ = 0;
     ensure_null_terminated();
     assign(str, len_in_characters);
   }
 
-  explicit BasicBaseString(const character_type* begin, const character_type* end) {
+  BasicBaseString(const character_type* begin, const character_type* end) {
     small_.size_and_flag_ = 0;
     ensure_null_terminated();
     assign(begin, end - begin);
@@ -518,6 +519,24 @@ class BasicBaseString {
     const character_type* result =
         base::find(get_data() + pos, get_data() + get_size(), c);
     return result == end() ? npos : result - begin();
+  }
+
+  // Substring search
+  size_type find(const character_type* s, size_type pos = 0) const {
+    if (!s) return npos;
+    const size_type s_len = base::CountStringLength(s);
+    if (s_len == 0) return pos <= get_size() ? pos : npos;
+    if (pos + s_len > get_size()) return npos;
+    const character_type* d = get_data();
+    for (size_type i = pos; i <= get_size() - s_len; ++i) {
+      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0)
+        return i;
+    }
+    return npos;
+  }
+
+  size_type find(const BasicBaseString& s, size_type pos = 0) const {
+    return find(s.c_str(), pos);
   }
 
   size_type find_last_of(character_type c, size_type pos = npos) const {

@@ -1,8 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// Safe wrapper around a standard C array. It is your own responsibility to
-// track sizes.
+// Safe wrapper around a standard C array.
 #pragma once
 
 #include <base/arch.h>
@@ -23,7 +22,17 @@ class Array {
     return storage_[index];
   }
 
+  inline BASE_CONSTEXPR_ND const T& operator[](mem_size index) const noexcept {
+    BASE_DCHECK(index < N, "Array access out of bounds");
+    return storage_[index];
+  }
+
   inline BASE_CONSTEXPR_ND T& at(mem_size index) noexcept {
+    BASE_DCHECK(index < N, "Array access out of bounds");
+    return storage_[index];
+  }
+
+  inline BASE_CONSTEXPR_ND const T& at(mem_size index) const noexcept {
     BASE_DCHECK(index < N, "Array access out of bounds");
     return storage_[index];
   }
@@ -34,15 +43,20 @@ class Array {
   }
 
   inline constexpr T* data() noexcept { return &storage_[0]; }
-  inline const constexpr T* begin() const noexcept { return &storage_[0]; }
-  inline const constexpr T* front() const noexcept {
-    return &storage_[0];
-  }  // access the first element
-  inline const constexpr T* back() const noexcept {
-    return &storage_[N - 1];
-  }  // access the last element
+  inline constexpr const T* data() const noexcept { return &storage_[0]; }
+
+  inline constexpr T* begin() noexcept { return &storage_[0]; }
+  inline constexpr const T* begin() const noexcept { return &storage_[0]; }
+  inline constexpr T* end() noexcept { return &storage_[N]; }
+  inline constexpr const T* end() const noexcept { return &storage_[N]; }
+
+  inline constexpr T& front() noexcept { return storage_[0]; }
+  inline constexpr const T& front() const noexcept { return storage_[0]; }
+  inline constexpr T& back() noexcept { return storage_[N - 1]; }
+  inline constexpr const T& back() const noexcept { return storage_[N - 1]; }
 
   inline constexpr mem_size size() const { return N; }
+  inline constexpr bool empty() const { return false; }
 
  private:
   Storage storage_{};
