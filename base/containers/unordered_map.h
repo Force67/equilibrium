@@ -80,6 +80,26 @@ struct Equal {
   bool operator()(const K& a, const K& b) const { return a == b; }
 };
 
+// Forward-declare string types so we can specialize Hash without circular include
+namespace detail {
+template <typename T>
+concept HasDataAndSize = requires(const T& t) {
+  { t.data() } -> __is_same(const typename T::character_type*);
+  { t.size() } -> __is_same(mem_size);
+};
+}  // namespace detail
+
+// Hash specialization for any string-like type with .data() and .size()
+template <typename T>
+  requires detail::HasDataAndSize<T>
+struct Hash<T> {
+  mem_size operator()(const T& key) const {
+    return static_cast<mem_size>(
+        base::fnv1a(reinterpret_cast<const u8*>(key.data()),
+                     key.size() * sizeof(typename T::character_type)));
+  }
+};
+
 template <typename K, typename V, class THash = Hash<K>, class TEqual = Equal<K>,
           class TAllocator = DefaultAllocator>
 class UnorderedMap {
