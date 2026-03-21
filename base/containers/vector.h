@@ -317,9 +317,16 @@ class Vector {
       pos = begin() + index;
     }
 
+    const mem_size elements_after = end_ - pos;
     MakeHoleForInsert(pos, count);
 
-    for (mem_size i = 0; i < count; ++i) {
+    // Positions [pos..pos+min(count,elements_after)-1] contain moved-from but
+    // alive objects; use assignment. Positions past old end_ need placement new.
+    const mem_size num_assign = base::Min(count, elements_after);
+    for (mem_size i = 0; i < num_assign; ++i) {
+      *(pos + i) = value;
+    }
+    for (mem_size i = num_assign; i < count; ++i) {
       ::new (static_cast<void*>(pos + i)) T(value);
     }
 
@@ -345,11 +352,19 @@ class Vector {
       pos = begin() + index;
     }
 
+    const mem_size elements_after = end_ - pos;
     MakeHoleForInsert(pos, count);
 
+    // Positions in the old range contain moved-from but alive objects.
+    const mem_size num_assign = base::Min(count, elements_after);
     T* dest = pos;
-    for (InputIt it = first; it != last; ++it, ++dest) {
-      ::new (static_cast<void*>(dest)) T(*it);
+    mem_size i = 0;
+    for (InputIt it = first; it != last; ++it, ++dest, ++i) {
+      if (i < num_assign) {
+        *dest = *it;
+      } else {
+        ::new (static_cast<void*>(dest)) T(*it);
+      }
     }
 
     end_ += count;

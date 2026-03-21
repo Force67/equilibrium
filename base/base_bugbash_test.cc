@@ -2586,6 +2586,56 @@ TEST(ArrayBugBash, NotEmpty) {
 // VECTOR CONTAINER EDGE CASES (ROUND 2)
 // ============================================================================
 
+TEST(VectorEdgeCases, InsertMultiCopiesLifetime) {
+  // Tests that multi-copy insert doesn't double-construct moved-from elements
+  LifetimeTracker::Reset();
+  {
+    base::Vector<LifetimeTracker> v;
+    v.push_back(LifetimeTracker(1));
+    v.push_back(LifetimeTracker(2));
+    v.push_back(LifetimeTracker(3));
+    v.push_back(LifetimeTracker(4));
+    v.push_back(LifetimeTracker(5));
+
+    LifetimeTracker fill(99);
+    v.insert(v.begin() + 2, static_cast<mem_size>(3), fill);
+    EXPECT_EQ(v.size(), 8u);
+    EXPECT_EQ(v[0].value_, 1);
+    EXPECT_EQ(v[1].value_, 2);
+    EXPECT_EQ(v[2].value_, 99);
+    EXPECT_EQ(v[3].value_, 99);
+    EXPECT_EQ(v[4].value_, 99);
+    EXPECT_EQ(v[5].value_, 3);
+    EXPECT_EQ(v[6].value_, 4);
+    EXPECT_EQ(v[7].value_, 5);
+  }
+  EXPECT_EQ(LifetimeTracker::alive_count, 0);
+}
+
+TEST(VectorEdgeCases, InsertRangeLifetime) {
+  // Tests that range insert doesn't double-construct moved-from elements
+  LifetimeTracker::Reset();
+  {
+    base::Vector<LifetimeTracker> v;
+    for (int i = 0; i < 5; ++i) v.push_back(LifetimeTracker(i));
+
+    base::Vector<LifetimeTracker> to_insert;
+    to_insert.push_back(LifetimeTracker(10));
+    to_insert.push_back(LifetimeTracker(20));
+
+    v.insert(v.begin() + 2, to_insert.begin(), to_insert.end());
+    EXPECT_EQ(v.size(), 7u);
+    EXPECT_EQ(v[0].value_, 0);
+    EXPECT_EQ(v[1].value_, 1);
+    EXPECT_EQ(v[2].value_, 10);
+    EXPECT_EQ(v[3].value_, 20);
+    EXPECT_EQ(v[4].value_, 2);
+    EXPECT_EQ(v[5].value_, 3);
+    EXPECT_EQ(v[6].value_, 4);
+  }
+  EXPECT_EQ(LifetimeTracker::alive_count, 0);
+}
+
 TEST(VectorEdgeCases, InsertSelfRange) {
   // Insert elements from the same vector - tests self-referential insert
   // Note: This is known dangerous; just ensure no crash
