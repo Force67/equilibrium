@@ -398,6 +398,16 @@ class UnorderedMap {
   [[nodiscard]] bool empty() const { return size_ == 0; }
   [[nodiscard]] mem_size bucket_count() const { return bucket_count_; }
 
+  // Key-value reference for structured bindings
+  struct KeyValueRef {
+    K& key;
+    V& value;
+  };
+  struct ConstKeyValueRef {
+    const K& key;
+    const V& value;
+  };
+
   // Iterator support - iterates over occupied slots
   class Iterator {
    public:
@@ -415,14 +425,13 @@ class UnorderedMap {
       return *this;
     }
 
+    KeyValueRef operator*() {
+      return {*reinterpret_cast<K*>(&slots_[index_].key_storage[0]),
+              *reinterpret_cast<V*>(&slots_[index_].val_storage[0])};
+    }
+
     K& key() { return *reinterpret_cast<K*>(&slots_[index_].key_storage[0]); }
     V& value() { return *reinterpret_cast<V*>(&slots_[index_].val_storage[0]); }
-    const K& key() const {
-      return *reinterpret_cast<const K*>(&slots_[index_].key_storage[0]);
-    }
-    const V& value() const {
-      return *reinterpret_cast<const V*>(&slots_[index_].val_storage[0]);
-    }
 
    private:
     void AdvanceToOccupied() {
