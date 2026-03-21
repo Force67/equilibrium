@@ -24,6 +24,12 @@
 
 #include <string>
 #include <cstring>
+#include <thread>
+#include <atomic>
+
+#include <base/containers/mpsc_queue.h>
+#include <base/containers/lock_free_concurrent_hashmap.h>
+#include <base/threading/spinning_mutex.h>
 
 namespace {
 using namespace base;
@@ -2724,6 +2730,282 @@ TEST(UnorderedMapEdgeCases, MoveValueType) {
   base::UnorderedMap<i32, String> m2(m);
   EXPECT_EQ(m2.size(), 2u);
   EXPECT_STREQ(m2.find(1)->c_str(), "hello world this is a long string");
+}
+
+// ============================================================================
+// MPSC QUEUE TESTS
+// ============================================================================
+
+TEST(MPSCQueueBugBash, SingleThreadEnqueueDequeue) {
+  base::MPSCQueue<i32> q;
+  EXPECT_TRUE(q.empty());
+
+  q.enqueue(10);
+  q.enqueue(20);
+  q.enqueue(30);
+  EXPECT_FALSE(q.empty());
+
+  i32 val;
+  EXPECT_TRUE(q.dequeue(val));
+  EXPECT_EQ(val, 10);
+  EXPECT_TRUE(q.dequeue(val));
+  EXPECT_EQ(val, 20);
+  EXPECT_TRUE(q.dequeue(val));
+  EXPECT_EQ(val, 30);
+  EXPECT_FALSE(q.dequeue(val));
+  EXPECT_TRUE(q.empty());
+}
+
+TEST(MPSCQueueBugBash, EmplaceAndDequeue) {
+  base::MPSCQueue<i32> q;
+  q.emplace(42);
+  i32 val;
+  EXPECT_TRUE(q.dequeue(val));
+  EXPECT_EQ(val, 42);
+}
+
+TEST(MPSCQueueBugBash, Peek) {
+  base::MPSCQueue<i32> q;
+  q.enqueue(99);
+  i32* peeked = nullptr;
+  EXPECT_TRUE(q.peek(peeked));
+  ASSERT_NE(peeked, nullptr);
+  EXPECT_EQ(*peeked, 99);
+  // Queue should still have the element
+  i32 val;
+  EXPECT_TRUE(q.dequeue(val));
+  EXPECT_EQ(val, 99);
+}
+
+TEST(MPSCQueueBugBash, RemoveFront) {
+  base::MPSCQueue<i32> q;
+  q.enqueue(1);
+  q.enqueue(2);
+  EXPECT_TRUE(q.removeFront());
+  i32 val;
+  EXPECT_TRUE(q.dequeue(val));
+  EXPECT_EQ(val, 2);
+}
+
+TEST(MPSCQueueBugBash, SizeApprox) {
+  base::MPSCQueue<i32> q;
+  EXPECT_EQ(q.size_approx(), 0u);
+  q.enqueue(1);
+  q.enqueue(2);
+  q.enqueue(3);
+  EXPECT_EQ(q.size_approx(), 3u);
+}
+
+TEST(MPSCQueueBugBash, MultiProducerSingleConsumer) {
+  base::MPSCQueue<i32> q;
+  constexpr int kNumProducers = 4;
+  constexpr int kItemsPerProducer = 1000;
+  std::atomic<int> items_produced{0};
+
+  // Launch producer threads
+  std::thread producers[kNumProducers];
+  for (int p = 0; p < kNumProducers; ++p) {
+    producers[p] = std::thread([&q, &items_produced, p]() {
+      for (int i = 0; i < kItemsPerProducer; ++i) {
+        q.enqueue(p * kItemsPerProducer + i);
+        items_produced.fetch_add(1, std::memory_order_relaxed);
+      }
+    });
+  }
+
+  // Wait for all producers
+  for (auto& t : producers) t.join();
+
+  EXPECT_EQ(items_produced.load(), kNumProducers * kItemsPerProducer);
+
+  // Consume all items (single consumer)
+  int consumed = 0;
+  i32 val;
+  while (q.dequeue(val)) {
+    ++consumed;
+  }
+  EXPECT_EQ(consumed, kNumProducers * kItemsPerProducer);
+  EXPECT_TRUE(q.empty());
+}
+
+TEST(MPSCQueueBugBash, ProducerConsumerConcurrent) {
+  base::MPSCQueue<i32> q;
+  constexpr int kTotal = 10000;
+  std::atomic<int> consumed{0};
+  std::atomic<bool> done{false};
+
+  // Consumer thread
+  std::thread consumer([&]() {
+    i32 val;
+    while (!done.load(std::memory_order_acquire) || !q.empty()) {
+      if (q.dequeue(val)) {
+        consumed.fetch_add(1, std::memory_order_relaxed);
+      }
+    }
+    // Drain remaining
+    while (q.dequeue(val)) {
+      consumed.fetch_add(1, std::memory_order_relaxed);
+    }
+  });
+
+  // Producer threads
+  std::thread producers[4];
+  for (int p = 0; p < 4; ++p) {
+    producers[p] = std::thread([&q, p]() {
+      for (int i = 0; i < kTotal / 4; ++i) {
+        q.enqueue(p * (kTotal / 4) + i);
+      }
+    });
+  }
+
+  for (auto& t : producers) t.join();
+  done.store(true, std::memory_order_release);
+  consumer.join();
+
+  EXPECT_EQ(consumed.load(), kTotal);
+}
+
+// ============================================================================
+// LOCK-FREE HASHMAP TESTS
+// ============================================================================
+
+TEST(LockFreeHashMapBugBash, SingleThreadBasic) {
+  base::LockFreeHashMap<i32, i32> m(16);
+  m.insert(1, 10);
+  m.insert(2, 20);
+  m.insert(3, 30);
+
+  i32 val;
+  EXPECT_TRUE(m.find(1, val));
+  EXPECT_EQ(val, 10);
+  EXPECT_TRUE(m.find(2, val));
+  EXPECT_EQ(val, 20);
+  EXPECT_TRUE(m.find(3, val));
+  EXPECT_EQ(val, 30);
+  EXPECT_FALSE(m.find(99, val));
+}
+
+TEST(LockFreeHashMapBugBash, InsertAndRemove) {
+  base::LockFreeHashMap<i32, i32> m(16);
+  m.insert(1, 10);
+  m.insert(2, 20);
+  EXPECT_TRUE(m.remove(1));
+  i32 val;
+  EXPECT_FALSE(m.find(1, val));
+  EXPECT_TRUE(m.find(2, val));
+  EXPECT_EQ(val, 20);
+}
+
+TEST(LockFreeHashMapBugBash, ConcurrentInsert) {
+  base::LockFreeHashMap<i32, i32> m(64);
+  constexpr int kThreads = 4;
+  constexpr int kPerThread = 1000;
+
+  std::thread threads[kThreads];
+  for (int t = 0; t < kThreads; ++t) {
+    threads[t] = std::thread([&m, t]() {
+      for (int i = 0; i < kPerThread; ++i) {
+        m.insert(t * kPerThread + i, t * kPerThread + i);
+      }
+    });
+  }
+  for (auto& t : threads) t.join();
+
+  // Verify all keys are findable
+  for (int i = 0; i < kThreads * kPerThread; ++i) {
+    i32 val;
+    EXPECT_TRUE(m.find(i, val)) << "Missing key " << i;
+    EXPECT_EQ(val, i);
+  }
+}
+
+TEST(LockFreeHashMapBugBash, ConcurrentInsertAndFind) {
+  base::LockFreeHashMap<i32, i32> m(64);
+  constexpr int kInserts = 5000;
+  std::atomic<bool> done{false};
+
+  // Writer thread
+  std::thread writer([&]() {
+    for (int i = 0; i < kInserts; ++i) {
+      m.insert(i, i * 10);
+    }
+    done.store(true, std::memory_order_release);
+  });
+
+  // Reader thread
+  std::thread reader([&]() {
+    i32 val;
+    while (!done.load(std::memory_order_acquire)) {
+      // Just verify no crash during concurrent access
+      for (int i = 0; i < 100; ++i) {
+        m.find(i, val);
+      }
+    }
+  });
+
+  writer.join();
+  reader.join();
+}
+
+// ============================================================================
+// SPINNING MUTEX TESTS
+// ============================================================================
+
+TEST(SpinningMutexBugBash, BasicLockUnlock) {
+  base::SpinningMutex m;
+  m.Acquire();
+  m.Release();
+}
+
+TEST(SpinningMutexBugBash, TryLock) {
+  base::SpinningMutex m;
+  EXPECT_TRUE(m.Try());
+  m.Release();
+}
+
+TEST(SpinningMutexBugBash, MutualExclusion) {
+  base::SpinningMutex m;
+  int shared = 0;
+  constexpr int kThreads = 4;
+  constexpr int kIncrementsPerThread = 10000;
+
+  std::thread threads[kThreads];
+  for (int t = 0; t < kThreads; ++t) {
+    threads[t] = std::thread([&]() {
+      for (int i = 0; i < kIncrementsPerThread; ++i) {
+        m.Acquire();
+        ++shared;
+        m.Release();
+      }
+    });
+  }
+  for (auto& t : threads) t.join();
+
+  EXPECT_EQ(shared, kThreads * kIncrementsPerThread);
+}
+
+TEST(SpinningMutexBugBash, ContentionStress) {
+  base::SpinningMutex m;
+  i64 shared = 0;
+  constexpr int kThreads = 8;
+  constexpr int kOps = 5000;
+
+  std::thread threads[kThreads];
+  for (int t = 0; t < kThreads; ++t) {
+    threads[t] = std::thread([&]() {
+      for (int i = 0; i < kOps; ++i) {
+        m.Acquire();
+        // Do some "work" under lock
+        shared += 1;
+        shared -= 1;
+        shared += 1;
+        m.Release();
+      }
+    });
+  }
+  for (auto& t : threads) t.join();
+
+  EXPECT_EQ(shared, static_cast<i64>(kThreads) * kOps);
 }
 
 }  // namespace

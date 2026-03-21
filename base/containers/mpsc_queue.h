@@ -134,7 +134,7 @@ class MPSCQueue {
     std::atomic<Node*> next;
 
     Node() : next(nullptr) {}
-    explicit Node(const T&& value) : value(base::move(value)), next(nullptr) {}
+    explicit Node(T&& value) : value(base::move(value)), next(nullptr) {}
 
     template <typename... Args>
     explicit Node(Args&&... args) : value(std::forward<Args>(args)...), next(nullptr) {}

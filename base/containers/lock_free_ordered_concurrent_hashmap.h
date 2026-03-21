@@ -39,11 +39,11 @@ class OrderedLockFreeHashMap {
 
     Iterator& operator++() {
       if (currentNode) {
-        currentNode = currentNode->next.load();
+        currentNode = currentNode->next.load(std::memory_order_acquire);
       }
       while (!currentNode && bucketIndex < map->bucketCount - 1) {
         ++bucketIndex;
-        currentNode = map->buckets[bucketIndex].load();
+        currentNode = map->buckets[bucketIndex].load(std::memory_order_acquire);
       }
       return *this;
     }
@@ -102,73 +102,81 @@ class OrderedLockFreeHashMap {
     Node* newNode = new Node(key, std::move(value));
 
     size_t index = hash(key);
-    Node* oldHead = buckets[index].load();
+    Node* oldHead = buckets[index].load(std::memory_order_acquire);
 
     // Insertion into the bucket list
     do {
-      newNode->next = oldHead;
-    } while (!buckets[index].compare_exchange_weak(oldHead, newNode));
+      newNode->next.store(oldHead, std::memory_order_relaxed);
+    } while (!buckets[index].compare_exchange_weak(
+        oldHead, newNode, std::memory_order_release, std::memory_order_acquire));
 
     // Insertion into the ordered list
-    Node* oldTail = orderTail.load();
+    // WARNING: orderNext/orderPrev are NOT atomic. This is only safe
+    // if the ordered list is not read concurrently with insert.
+    Node* oldTail = orderTail.load(std::memory_order_acquire);
     do {
       newNode->orderPrev = oldTail;
       if (oldTail) {
         oldTail->orderNext = newNode;
       } else {
-        orderHead.store(newNode);
+        orderHead.store(newNode, std::memory_order_release);
       }
-    } while (!orderTail.compare_exchange_weak(oldTail, newNode));
+    } while (!orderTail.compare_exchange_weak(
+        oldTail, newNode, std::memory_order_release, std::memory_order_acquire));
   }
 
   bool find(const Key& key, Value& value) {
     size_t index = hash(key);
-    Node* head = buckets[index].load();
+    Node* head = buckets[index].load(std::memory_order_acquire);
 
     while (head) {
       if (head->keyValue.first == key) {
         value = head->keyValue.second;
         return true;
       }
-      head = head->next;
+      head = head->next.load(std::memory_order_acquire);
     }
 
     return false;
   }
 
+  // WARNING: remove() is NOT safe to call concurrently with find() or
+  // iteration. See LockFreeHashMap::remove() for details.
   bool remove(const Key& key) {
     size_t index = hash(key);
-    Node* current = buckets[index].load();
+    Node* current = buckets[index].load(std::memory_order_acquire);
     Node* prev = nullptr;
 
     // Find and remove from the bucket list
     while (current) {
       if (current->keyValue.first == key) {
-        Node* next = current->next.load();
+        Node* next = current->next.load(std::memory_order_acquire);
         if (prev) {
-          prev->next = next;
-        } else if (!buckets[index].compare_exchange_strong(current, next)) {
+          prev->next.store(next, std::memory_order_release);
+        } else if (!buckets[index].compare_exchange_strong(
+                       current, next, std::memory_order_acq_rel)) {
           continue;
         }
 
         // Remove from the ordered list
+        // WARNING: orderNext/orderPrev are NOT atomic.
         if (current->orderPrev) {
           current->orderPrev->orderNext = current->orderNext;
         } else {
-          orderHead.store(current->orderNext);
+          orderHead.store(current->orderNext, std::memory_order_release);
         }
 
         if (current->orderNext) {
           current->orderNext->orderPrev = current->orderPrev;
         } else {
-          orderTail.store(current->orderPrev);
+          orderTail.store(current->orderPrev, std::memory_order_release);
         }
 
         delete current;
         return true;
       }
       prev = current;
-      current = current->next;
+      current = current->next.load(std::memory_order_acquire);
     }
 
     return false;
