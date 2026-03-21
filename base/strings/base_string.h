@@ -162,6 +162,8 @@ class BasicBaseString {
   }
 
   BasicBaseString(const BasicBaseString& other) {
+    small_.size_and_flag_ = 0;
+    ensure_null_terminated();
     if (other.is_large()) {
       assign(other.large_.data_, other.large_.size_);
     } else {
