@@ -34,7 +34,7 @@ class Span {
   const T* data() const noexcept { return ptr_; }
   mem_size size() const noexcept { return len_; }
   mem_size length() const noexcept { return len_; }
-  bool empty() const noexcept { return ptr_ == nullptr; }
+  bool empty() const noexcept { return len_ == 0; }
 
 #if 0
   template <TRhs>
@@ -48,14 +48,14 @@ class Span {
     return ptr_[index];
   }
 
-  BASE_CONSTEXPR_ND T& front() noexcept {
+  BASE_CONSTEXPR_ND const T& front() const noexcept {
     BASE_DCHECK(ptr_ && len_ > 0);
     return *ptr_;
   }
 
-  BASE_CONSTEXPR_ND T& back() noexcept {
+  BASE_CONSTEXPR_ND const T& back() const noexcept {
     BASE_DCHECK(ptr_ && len_ > 0);
-    return *ptr_[len_ - 1];
+    return ptr_[len_ - 1];
   }
 
   // iterator to beginning

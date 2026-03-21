@@ -20,6 +20,7 @@
 #include <base/memory/unique_pointer.h>
 #include <base/hashing/fnv1a.h>
 #include <base/math/math_helpers.h>
+#include <base/strings/string_ref.h>
 
 #include <string>
 #include <cstring>
@@ -1960,6 +1961,139 @@ TEST(RegressionBugBash, VectorMoveAssignToNonEmpty) {
   EXPECT_EQ(v2.size(), 3u);
   EXPECT_TRUE(v1.empty());
   // v2's old elements should be properly destroyed
+}
+
+// ============================================================================
+// EXPECTED TESTS
+// ============================================================================
+
+TEST(ExpectedBugBash, ConstructWithValue) {
+  enum class MyError { kBad };
+  base::Expected<i32, MyError> e(42);
+  EXPECT_FALSE(e.has_error());
+  EXPECT_EQ(e.value(), 42);
+}
+
+TEST(ExpectedBugBash, ConstructWithError) {
+  enum class MyError { kBad };
+  base::Expected<i32, MyError> e(MyError::kBad);
+  EXPECT_TRUE(e.has_error());
+  EXPECT_EQ(e.error(), MyError::kBad);
+}
+
+TEST(ExpectedBugBash, CopyConstructValue) {
+  base::Expected<i32, float> e1(42);
+  base::Expected<i32, float> e2(e1);
+  EXPECT_FALSE(e2.has_error());
+  EXPECT_EQ(e2.value(), 42);
+}
+
+TEST(ExpectedBugBash, CopyConstructError) {
+  base::Expected<i32, float> e1(3.14f);
+  base::Expected<i32, float> e2(e1);
+  EXPECT_TRUE(e2.has_error());
+}
+
+TEST(ExpectedBugBash, AssignmentPreservesErrorState) {
+  // This test caught a bug: operator= was assigning expected_value_ to has_error_
+  base::Expected<i32, float> e1(42);
+  base::Expected<i32, float> e2(1.0f);
+  e2 = e1;
+  EXPECT_FALSE(e2.has_error());
+  EXPECT_EQ(e2.value(), 42);
+}
+
+// ============================================================================
+// SPAN TESTS
+// ============================================================================
+
+TEST(SpanBugBash, EmptySpan) {
+  base::Span<i32> s(static_cast<const i32*>(nullptr), 0);
+  EXPECT_TRUE(s.empty());
+  EXPECT_EQ(s.size(), 0u);
+}
+
+TEST(SpanBugBash, NonNullButZeroLength) {
+  i32 arr[] = {1, 2, 3};
+  base::Span<i32> s(arr, 0);
+  EXPECT_TRUE(s.empty());  // Previously returned false (wrong!)
+  EXPECT_EQ(s.size(), 0u);
+}
+
+TEST(SpanBugBash, BasicAccess) {
+  i32 arr[] = {10, 20, 30};
+  base::Span<i32> s(arr, 3);
+  EXPECT_EQ(s.size(), 3u);
+  EXPECT_FALSE(s.empty());
+  EXPECT_EQ(s[0], 10);
+  EXPECT_EQ(s[2], 30);
+}
+
+TEST(SpanBugBash, FrontAndBack) {
+  i32 arr[] = {10, 20, 30};
+  base::Span<i32> s(arr, 3);
+  EXPECT_EQ(s.front(), 10);
+  EXPECT_EQ(s.back(), 30);
+}
+
+TEST(SpanBugBash, FromVector) {
+  base::Vector<i32> v = {1, 2, 3, 4, 5};
+  auto s = base::MakeSpan(v);
+  EXPECT_EQ(s.size(), 5u);
+  EXPECT_EQ(s[0], 1);
+  EXPECT_EQ(s[4], 5);
+}
+
+TEST(SpanBugBash, IterateSpan) {
+  i32 arr[] = {10, 20, 30};
+  base::Span<i32> s(arr, 3);
+  i32 sum = 0;
+  for (auto val : s) {
+    sum += val;
+  }
+  EXPECT_EQ(sum, 60);
+}
+
+TEST(SpanBugBash, FromArray) {
+  i32 arr[] = {1, 2, 3, 4};
+  base::Span<i32> s(arr);
+  EXPECT_EQ(s.size(), 4u);
+  EXPECT_EQ(s[3], 4);
+}
+
+// ============================================================================
+// STRING REF TESTS
+// ============================================================================
+
+TEST(StringRefBugBash, LexicographicComparison) {
+  // Previously operator< only compared lengths, not content
+  base::BasicStringRef<char> a("abc");
+  base::BasicStringRef<char> b("abd");
+  EXPECT_TRUE(a < b);
+  EXPECT_FALSE(b < a);
+}
+
+TEST(StringRefBugBash, SameLengthDifferentContent) {
+  base::BasicStringRef<char> a("aaa");
+  base::BasicStringRef<char> b("zzz");
+  EXPECT_TRUE(a < b);
+  EXPECT_FALSE(b < a);
+}
+
+TEST(StringRefBugBash, EqualStringsNotLessThan) {
+  base::BasicStringRef<char> a("hello");
+  base::BasicStringRef<char> b("hello");
+  EXPECT_FALSE(a < b);
+  EXPECT_FALSE(b < a);
+  EXPECT_TRUE(a <= b);
+  EXPECT_TRUE(a >= b);
+}
+
+TEST(StringRefBugBash, PrefixComparison) {
+  base::BasicStringRef<char> a("abc");
+  base::BasicStringRef<char> b("abcdef");
+  EXPECT_TRUE(a < b);   // shorter prefix comes first
+  EXPECT_FALSE(b < a);
 }
 
 }  // namespace

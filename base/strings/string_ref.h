@@ -132,6 +132,9 @@ class BasicStringRef {
 
   friend bool operator<(const BasicStringRef<TChar>& lhs,
                         const BasicStringRef<TChar>& rhs) {
+    const mem_size min_len = lhs.length_ < rhs.length_ ? lhs.length_ : rhs.length_;
+    int result = memcmp(lhs.data_, rhs.data_, min_len * sizeof(TChar));
+    if (result != 0) return result < 0;
     return lhs.length_ < rhs.length_;
   }
 

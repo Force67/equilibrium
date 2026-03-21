@@ -75,7 +75,7 @@ class Expected {
   }
 
   Expected& operator=(Expected& rhs) {
-    has_error_ = rhs.expected_value_;
+    has_error_ = rhs.has_error_;
     if (has_error_)
       error_value_ = rhs.error_value_;
     else
