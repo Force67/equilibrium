@@ -170,7 +170,9 @@ class BasicBaseString {
   BasicBaseString(const character_type (&arr)[N]) {
     small_.size_and_flag_ = 0;
     ensure_null_terminated();
-    assign(arr, N > 0 ? N - 1 : 0);
+    // Use actual string length, not array size. A char buf[64] = "hello"
+    // has N=64 but the string is only 5 chars.
+    assign(arr, base::CountStringLength(arr, N > 0 ? N - 1 : 0));
   }
 
   BasicBaseString(const BasicBaseString& other) {
