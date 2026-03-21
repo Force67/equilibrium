@@ -10,8 +10,6 @@
 #include <base/memory/deleter.h>
 #include <base/memory/cxx_lifetime.h>
 
-#include <type_traits>
-
 namespace base {
 // unique_ptr replacement class, but you are:
 // - forced to use MakeUnique, so you cannot use it with a foreign pointer
@@ -40,7 +38,7 @@ class UniquePointer {
   // move constructor from base type
   // e.g when assigning UniquePtr<Base> b = move(UniquePtr<Super>....
   template <typename U>
-    requires(std::is_base_of_v<T, U>)
+    requires(__is_base_of(T, U))
   constexpr UniquePointer(UniquePointer<U>&& rhs) noexcept
       : pointer_(rhs.Get_UseOnlyIfYouKnowWhatYouareDoing()) {
     rhs.ResetUnchecked_UseOnlyIfYouKnowWhatYouareDoing();

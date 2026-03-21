@@ -7,12 +7,13 @@
 #include <base/allocator/memory_coordinator.h>
 #include <base/allocator/memory_stat_tracker.h>
 
-#include <base/threading/lock_guard.h>
-#include <base/threading/spinning_mutex.h>
+#include <cstring>
+#include <mutex>
 
 namespace base {
 namespace {
 thread_local constinit MemoryCategory current_token{kGeneralMemory};
+static std::mutex s_tracker_mutex;
 
 MemoryCategory FindFreeTokenIndex(MemoryTracker& tracker) {
   MemoryCategory index{kInvalidCategory};
@@ -28,9 +29,7 @@ MemoryCategory FindFreeTokenIndex(MemoryTracker& tracker) {
 }  // namespace
 
 MemoryCategory AddMemoryCategory(const char* name) {
-  // lock
-  base::ScopedLockGuard<base::SpinningMutex> _;
-  (void)_;
+  std::lock_guard<std::mutex> lock(s_tracker_mutex);
 
   auto& tracker_instance = memory_tracker();
   const MemoryCategory index = FindFreeTokenIndex(tracker_instance);
@@ -44,9 +43,7 @@ MemoryCategory AddMemoryCategory(const char* name) {
 }
 
 void RemoveMemoryCategory(MemoryCategory id) {
-  // lock
-  base::ScopedLockGuard<base::SpinningMutex> _;
-  (void)_;
+  std::lock_guard<std::mutex> lock(s_tracker_mutex);
 
   auto& tracker_instance = memory_tracker();
   for (auto i = 0; i < kTrackingLimit; i++) {
@@ -66,24 +63,17 @@ void RemoveMemoryCategory(MemoryCategory id) {
 
 static constinit bool HACK_INITED{false};
 
-void MemoryTracker::TrackOperation(void* pointer, pointer_diff size) {
-  // pretty expensive to test for mistakes here
-  // DCHECK(current_token != kInvalidCategory, "Category not set");
-  //  DCHECK(pointer_diff((memory_sizes[current_token] + size) /*atomic op*/) <
-  //  0,
-  //         "Underflow into tracking storage");
-
+void MemoryTracker::TrackOperation(void* /*pointer*/, pointer_diff size) {
   if (!HACK_INITED) {
     WipeStats();
     HACK_INITED = true;
   }
-
   memory_sizes[current_token].fetch_add(size);
 }
 
 void MemoryTracker::WipeStats() {
   memset(&token_bucket, kInvalidCategory, sizeof(token_bucket));
-  memset(&name_bucket, 0xA, sizeof(name_bucket));
+  memset(&name_bucket, 0, sizeof(name_bucket));
   memset(&memory_sizes, 0, sizeof(memory_sizes));
 }
 

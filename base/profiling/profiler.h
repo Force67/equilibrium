@@ -2,12 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <base/logging.h>
-
 #if defined(ENABLE_PROFILE)
 
 #ifndef TRACY_ENABLE
-#define TRACY_ENABLE  // just to make sure
+#define TRACY_ENABLE
 #endif
 
 #ifndef TRACY_HAS_CALLSTACK

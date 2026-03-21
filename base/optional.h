@@ -1,17 +1,5 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-//
-// The class template std::optional manages an optional contained value, i.e. a
-// value that may or may not be present. A common use case for optional is the
-// return value of a function that may fail. As opposed to other approaches,
-// such as std::pair<T,bool>, optional handles expensive-to-construct objects
-// well and is more readable, as the intent is expressed explicitly. Any
-// instance of optional<T> at any given point in time either contains a value or
-// does not contain a value. If an optional<T> contains a value, the value is
-// guaranteed to be allocated as part of the optional object footprint, i.e. no
-// dynamic memory allocation ever takes place. Thus, an optional object models
-// an object, not a pointer, even though operator*() and operator->() are
-// defined.
 #pragma once
 
 #include <base/arch.h>
@@ -19,69 +7,126 @@
 #include <base/memory/move.h>
 #include <base/memory/cxx_lifetime.h>
 
+#include <new>
+
 namespace base {
 
 template <typename T>
 class Optional {
-  // BASE_NOMOVE(Expected);
  public:
-  inline Optional(T value) : is_empty_(false) { *storage() = value; }
-  // empty
-  inline Optional() : is_empty_(true) {}
+  Optional() noexcept : is_empty_(true) {}
+
+  Optional(const T& value) : is_empty_(false) {
+    ::new (&storage_[0]) T(value);
+  }
+
+  Optional(T&& value) : is_empty_(false) {
+    ::new (&storage_[0]) T(base::move(value));
+  }
+
+  Optional(const Optional& other) : is_empty_(other.is_empty_) {
+    if (!is_empty_)
+      ::new (&storage_[0]) T(*other.storage());
+  }
+
+  Optional(Optional&& other) noexcept : is_empty_(other.is_empty_) {
+    if (!is_empty_) {
+      ::new (&storage_[0]) T(base::move(*other.storage()));
+      other.reset();
+    }
+  }
 
   ~Optional() {
     if (!is_empty_)
       storage()->~T();
   }
 
+  Optional& operator=(const Optional& other) {
+    if (this != &other) {
+      reset();
+      if (!other.is_empty_) {
+        ::new (&storage_[0]) T(*other.storage());
+        is_empty_ = false;
+      }
+    }
+    return *this;
+  }
+
+  Optional& operator=(Optional&& other) noexcept {
+    if (this != &other) {
+      reset();
+      if (!other.is_empty_) {
+        ::new (&storage_[0]) T(base::move(*other.storage()));
+        is_empty_ = false;
+        other.reset();
+      }
+    }
+    return *this;
+  }
+
+  Optional& operator=(const T& value) {
+    reset();
+    ::new (&storage_[0]) T(value);
+    is_empty_ = false;
+    return *this;
+  }
+
+  Optional& operator=(T&& value) {
+    reset();
+    ::new (&storage_[0]) T(base::move(value));
+    is_empty_ = false;
+    return *this;
+  }
+
   template <typename... Args>
   void emplace(Args&&... args) {
-    BASE_DCHECK(is_empty_,
-                "base::Optional::emplace(): tried to emplace into non-empty Optional");
-    is_empty_ = false;
+    reset();
     ::new (&storage_[0]) T(base::forward<Args>(args)...);
-#if defined(CONFIG_DEBUG)
-    has_checked_validity_ = true;
-#endif
+    is_empty_ = false;
   }
 
-  bool failed() noexcept {
-#if defined(CONFIG_DEBUG)
-    has_checked_validity_ = true;
-#endif
-    return is_empty_;
+  void reset() {
+    if (!is_empty_) {
+      storage()->~T();
+      is_empty_ = true;
+    }
   }
 
-  bool has_value() BASE_CONST_ND noexcept {
-#if defined(CONFIG_DEBUG)
-    has_checked_validity_ = true;
-#endif
-    return !is_empty_;
-  }
+  bool has_value() const noexcept { return !is_empty_; }
+  explicit operator bool() const noexcept { return !is_empty_; }
 
-  BASE_CONSTEXPR_ND T& value() noexcept {
+  T& value() noexcept {
     BASE_DCHECK(!is_empty_, "base::Optional::value(): tried to access empty value");
-#if defined(CONFIG_DEBUG)
-    BASE_DCHECK(has_checked_validity_, "Validy wasn't checked before accessing value");
-#endif
     return *storage();
   }
 
-  Optional& operator=(Optional& rhs) {
-    is_empty_ = rhs.is_empty_;
-    memcpy(&storage_[0], &rhs.storage_[0], sizeof(storage_));
-    ::new (&storage_[0]) T(*rhs.storage());
-    return *this;
+  const T& value() const noexcept {
+    BASE_DCHECK(!is_empty_, "base::Optional::value(): tried to access empty value");
+    return *storage();
+  }
+
+  T& operator*() noexcept { return value(); }
+  const T& operator*() const noexcept { return value(); }
+
+  T* operator->() noexcept {
+    BASE_DCHECK(!is_empty_);
+    return storage();
+  }
+  const T* operator->() const noexcept {
+    BASE_DCHECK(!is_empty_);
+    return storage();
+  }
+
+  T value_or(const T& default_value) const {
+    return is_empty_ ? default_value : *storage();
   }
 
  private:
   T* storage() { return reinterpret_cast<T*>(&storage_[0]); }
+  const T* storage() const { return reinterpret_cast<const T*>(&storage_[0]); }
 
  private:
   alignas(T) byte storage_[sizeof(T)]{};
-  bool is_empty_ : 1;
-#if defined(CONFIG_DEBUG)
-  bool has_checked_validity_ : 1 {false};
-#endif
+  bool is_empty_;
 };
 }  // namespace base

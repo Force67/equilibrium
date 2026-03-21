@@ -18,64 +18,106 @@
 namespace base {
 
 enum class VectorReservePolicy {
-  kForPushback,  // < This optimization allows you to utilize push_back without
-                 // immediately increasing the capacity, reserving additional
-                 // space only when necessary.
-  kForData,      // < This reserve operation functions similarly to what you're
-                 // accustomed to with std::vector. It preallocates capacity,
-                 // effectively simulating the insertion of a number of "empty"
-  // elements. If you intend to copy data, especially using .data(),
-  // opt for this approach.
+  kForPushback,
+  kForData,
 };
 
 template <typename T, class TAllocator = base::DefaultAllocator>
 class Vector {
  public:
   using value_type = T;
-  using raw_value_type = base::remove_pointer<T>::type;
+  using raw_value_type = typename base::remove_pointer<T>::type;
   using allocator_type = TAllocator;
   using value_reference = T&;
   using const_value_reference = const T&;
+  using iterator = T*;
+  using const_iterator = const T*;
 
-  // indicates how much to overallocate
   constexpr static mem_size kDefaultMult = 2;
 
   Vector() : data_(nullptr), end_(nullptr), capacity_(nullptr) {}
 
-  Vector(mem_size reserve_count,
-         // we default to nothing for the policy since we want the user to think
-         // about what they are doing.
-         const VectorReservePolicy policy) {
-    data_ = Vector::Allocate(reserve_count);
-    capacity_ = &data_[reserve_count];
-    end_ = policy == VectorReservePolicy::kForPushback ? data_ : capacity_;
+  Vector(mem_size reserve_count, const VectorReservePolicy policy)
+      : data_(nullptr), end_(nullptr), capacity_(nullptr) {
+    if (reserve_count > 0) {
+      data_ = Vector::Allocate(reserve_count);
+      capacity_ = &data_[reserve_count];
+      if (policy == VectorReservePolicy::kForData) {
+        // Default-construct all elements
+        T* current = data_;
+        for (mem_size i = 0; i < reserve_count; ++i, ++current) {
+          ::new (static_cast<void*>(current)) T();
+        }
+        end_ = capacity_;
+      } else {
+        end_ = data_;
+      }
+    }
   }
 
   // from braces {}
-  Vector(std::initializer_list<value_type> list) {
+  Vector(std::initializer_list<value_type> list)
+      : data_(nullptr), end_(nullptr), capacity_(nullptr) {
     const auto count = list.size();
-    data_ = Vector::Allocate(count);
-    capacity_ = data_ + count;
-    end_ = data_;  // Start at the beginning
-    T* current = data_;
-    for (const auto& item : list) {
-      ::new (static_cast<void*>(current++)) T(item);
+    if (count > 0) {
+      data_ = Vector::Allocate(count);
+      capacity_ = data_ + count;
+      T* current = data_;
+      for (const auto& item : list) {
+        ::new (static_cast<void*>(current++)) T(item);
+      }
+      end_ = current;
     }
-    end_ = current;  // Set end_ to its final position
+  }
+
+  // copy constructor
+  Vector(const Vector& other) : data_(nullptr), end_(nullptr), capacity_(nullptr) {
+    const auto count = other.size();
+    if (count > 0) {
+      data_ = Vector::Allocate(count);
+      capacity_ = &data_[count];
+      T* dest = data_;
+      const T* src = other.data_;
+      for (mem_size i = 0; i < count; ++i, ++src, ++dest) {
+        ::new (static_cast<void*>(dest)) T(*src);
+      }
+      end_ = dest;
+    }
+  }
+
+  // copy assignment operator
+  Vector& operator=(const Vector& other) {
+    if (this != &other) {
+      base::DestructRange(data_, end_);
+      Free(data_, capacity());
+      data_ = nullptr;
+      end_ = nullptr;
+      capacity_ = nullptr;
+
+      const auto count = other.size();
+      if (count > 0) {
+        data_ = Vector::Allocate(count);
+        capacity_ = &data_[count];
+        T* dest = data_;
+        const T* src = other.data_;
+        for (mem_size i = 0; i < count; ++i, ++src, ++dest) {
+          ::new (static_cast<void*>(dest)) T(*src);
+        }
+        end_ = dest;
+      }
+    }
+    return *this;
   }
 
   // move constructor
-  Vector(Vector&& other) noexcept {
-    data_ = other.data_;
-    end_ = other.end_;
-    capacity_ = other.capacity_;
+  Vector(Vector&& other) noexcept
+      : data_(other.data_), end_(other.end_), capacity_(other.capacity_) {
     other.data_ = nullptr;
     other.end_ = nullptr;
     other.capacity_ = nullptr;
   }
 
   ~Vector() {
-    // clear all without resetting pointers
     base::DestructRange(data_, end_);
     Vector::Free(data_, capacity());
   }
@@ -97,39 +139,53 @@ class Vector {
     return *this;
   }
 
-  void resize(mem_size new_capacity, const value_type& value) {
-    if (new_capacity > size()) [[likely]]
-      InsertValueAtEnd(new_capacity - size(), value);
-    else {
-      base::DestructRange(data_ + new_capacity, end_);
-      end_ = data_ + new_capacity;
+  void resize(mem_size new_size, const value_type& value) {
+    const auto current_size = size();
+    if (new_size > current_size) {
+      const auto count = new_size - current_size;
+      if (new_size > capacity()) {
+        GrowCapacity(current_size, new_size);
+      }
+      T* ptr = data_ + current_size;
+      for (mem_size i = 0; i < count; ++i) {
+        ::new (static_cast<void*>(ptr++)) T(value);
+      }
+      end_ = data_ + new_size;
+    } else if (new_size < current_size) {
+      base::DestructRange(data_ + new_size, end_);
+      end_ = data_ + new_size;
     }
   }
 
-  void resize(mem_size new_capacity) {
-    if (new_capacity > size()) [[likely]]
-      InsertNValuesAtEnd(new_capacity - size());
-    else {
-      base::DestructRange(data_ + new_capacity, end_);
-      end_ = data_ + new_capacity;
+  void resize(mem_size new_size) {
+    const auto current_size = size();
+    if (new_size > current_size) {
+      const auto count = new_size - current_size;
+      if (new_size > capacity()) {
+        GrowCapacity(current_size, new_size);
+      }
+      T* ptr = data_ + current_size;
+      for (mem_size i = 0; i < count; ++i) {
+        ::new (static_cast<void*>(ptr++)) T();
+      }
+      end_ = data_ + new_size;
+    } else if (new_size < current_size) {
+      base::DestructRange(data_ + new_size, end_);
+      end_ = data_ + new_size;
     }
   }
 
-  // increase internal capacity
+  // increase internal capacity (does not change size)
   void reserve(mem_size new_reserved_capacity) {
-    BASE_DCHECK(new_reserved_capacity != 0 && capacity() != 0,
-           "Vector::reserve: Use resize instead of resize for populating an empty "
-           "Vector");
-
-    if (new_reserved_capacity > capacity()) [[likely]]
-      GrowCapacity(capacity(), new_reserved_capacity);
+    if (new_reserved_capacity == 0)
+      return;
+    if (new_reserved_capacity > capacity())
+      GrowCapacity(size(), new_reserved_capacity);
   }
 
-  // reduces .capacity to .size
   mem_size shrink_to_fit() {
     if (end_ != capacity_) [[likely]] {
       if (data_ == end_) {
-        // nothing to do, just clear everything out.
         ReleaseAll();
       } else {
         const auto current_size = size();
@@ -137,7 +193,6 @@ class Vector {
 
         auto* src = data_;
         auto* dest = new_block;
-
         for (; src != end_; ++src, ++dest) {
           ::new (reinterpret_cast<void*>(dest)) T(base::move(*src));
         }
@@ -154,7 +209,6 @@ class Vector {
   }
 
   void push_back(const value_type& value) {
-    // cram it into pre over reserved space
     if (end_ < capacity_) [[likely]]
       ::new (static_cast<void*>(end_++)) value_type(value);
     else
@@ -177,6 +231,12 @@ class Vector {
     return back();
   }
 
+  void pop_back() {
+    BASE_DCHECK(!empty(), "Vector::pop_back: empty vector");
+    --end_;
+    end_->~T();
+  }
+
   [[nodiscard]] constexpr raw_value_type* at(mem_size pos) const {
     if (pos >= size()) {
       return nullptr;
@@ -190,18 +250,16 @@ class Vector {
 
   [[nodiscard]] T* find(const T& element_match) {
     for (auto* it = begin(); it != end(); ++it) {
-      if (*it == element_match) {
+      if (*it == element_match)
         return it;
-      }
     }
     return nullptr;
   }
 
   [[nodiscard]] const T* find(const T& element_match) const {
     for (const auto* it = begin(); it != end(); ++it) {
-      if (*it == element_match) {
+      if (*it == element_match)
         return it;
-      }
     }
     return nullptr;
   }
@@ -210,7 +268,7 @@ class Vector {
     return find(element_match) != nullptr;
   }
 
-  // single element at a specified position.
+  // single element at a specified position
   T* insert(T* pos, const T& value) {
     BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
     const auto index = pos - begin();
@@ -218,24 +276,23 @@ class Vector {
     if (size() == capacity()) {
       const mem_size new_cap = CalculateNewCapacity(size());
       GrowCapacity(size(), new_cap);
-      pos = begin() + index;  // Recalculate iterator after growth
+      pos = begin() + index;
     }
 
     MakeHoleForInsert(pos, 1);
 
-    // Safely place the new value.
     if (pos < end_) {
-      *pos = value;  // Assign into the now-vacant (moved-from) spot.
+      *pos = value;
     } else {
-      ::new (static_cast<void*>(pos)) T(value);  // Construct at the end.
+      ::new (static_cast<void*>(pos)) T(value);
     }
 
     end_++;
     return begin() + index;
   }
 
-  // Inserts multiple copies of an element.
-  void insert(T* pos, size_t count, const T& value) {
+  // Inserts multiple copies of an element
+  void insert(T* pos, mem_size count, const T& value) {
     if (count == 0)
       return;
     BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
@@ -244,23 +301,21 @@ class Vector {
     if (size() + count > capacity()) {
       const mem_size new_cap = CalculateNewCapacity(size() + count);
       GrowCapacity(size(), new_cap);
-      pos = begin() + index;  // Recalculate iterator
+      pos = begin() + index;
     }
 
     MakeHoleForInsert(pos, count);
 
-    // Fill the hole with the new value.
-    for (size_t i = 0; i < count; ++i) {
-      ::new (static_cast<void*>(pos + i)) T(value);  // Always safe to construct here
+    for (mem_size i = 0; i < count; ++i) {
+      ::new (static_cast<void*>(pos + i)) T(value);
     }
 
     end_ += count;
   }
 
-  // Inserts a range of elements.
+  // Inserts a range of elements
   template <class InputIt>
   void insert(T* pos, InputIt first, InputIt last) {
-    // Manually calculate distance
     mem_size count = 0;
     for (InputIt it = first; it != last; ++it) {
       count++;
@@ -274,12 +329,11 @@ class Vector {
     if (size() + count > capacity()) {
       const mem_size new_cap = CalculateNewCapacity(size() + count);
       GrowCapacity(size(), new_cap);
-      pos = begin() + index;  // Recalculate iterator
+      pos = begin() + index;
     }
 
     MakeHoleForInsert(pos, count);
 
-    // Fill the hole from the source range.
     T* dest = pos;
     for (InputIt it = first; it != last; ++it, ++dest) {
       ::new (static_cast<void*>(dest)) T(*it);
@@ -288,41 +342,55 @@ class Vector {
     end_ += count;
   }
 
+  // erase by index - properly handles non-trivial types
   bool erase(mem_size pos) {
-    T* dest = &data_[pos];
-    if (dest == (end_ - 1)) {
-      --end_;
-      end_->~T();
-      return true;
-    }
-
-    const T* source = &data_[pos + 1];
-    if (dest > end_ || source > end_)
+    if (pos >= size())
       return false;
 
-    // if we remove in the middle, we memmove the upper objects down by one
-    // place.
-    memmove(dest, source, end_ - source);
+    T* dest = &data_[pos];
+
+    // Move-assign all elements after pos down by one
+    for (T* it = dest + 1; it != end_; ++it) {
+      *(it - 1) = base::move(*it);
+    }
+
     --end_;
     end_->~T();
     return true;
   }
 
+  // erase by pointer
   bool erase(T* element_ptr) {
-    if (element_ptr < data_ || element_ptr >= end_) {
-      return false;  // Pointer is out of bounds
+    if (element_ptr < data_ || element_ptr >= end_)
+      return false;
+
+    for (T* it = element_ptr + 1; it != end_; ++it) {
+      *(it - 1) = base::move(*it);
     }
 
-    // Move the elements after the erased element
-    T* next = element_ptr + 1;
-    if (next != end_) {
-      base::move(next, end_, element_ptr);
-    }
-
-    // Destroy the last element since it is now a duplicate
     --end_;
     end_->~T();
     return true;
+  }
+
+  // erase range [first, last)
+  T* erase(T* first, T* last) {
+    BASE_DCHECK(first >= begin() && first <= end(), "Vector::erase: invalid first");
+    BASE_DCHECK(last >= first && last <= end(), "Vector::erase: invalid last");
+
+    if (first == last)
+      return first;
+
+    // Move elements after the range down
+    T* dest = first;
+    for (T* src = last; src != end_; ++src, ++dest) {
+      *dest = base::move(*src);
+    }
+
+    // Destroy trailing elements
+    base::DestructRange(dest, end_);
+    end_ = dest;
+    return first;
   }
 
   void clear() noexcept {
@@ -331,10 +399,8 @@ class Vector {
   }
 
   void reset() {
-    // clear all without resetting pointers
     base::DestructRange(data_, end_);
     Vector::Free(data_, capacity());
-
     data_ = nullptr;
     end_ = nullptr;
     capacity_ = nullptr;
@@ -345,7 +411,6 @@ class Vector {
     return data_[0];
   }
 
-  // Access first element (const)
   const T& front() const {
     BASE_DCHECK(!empty(), "Vector is empty.");
     return data_[0];
@@ -371,9 +436,21 @@ class Vector {
   [[nodiscard]] mem_size capacity() const { return capacity_ - data_; }
 
   [[nodiscard]] BASE_CONSTEXPR_ND T& operator[](mem_size pos) const {
-    BASE_DCHECK(pos <= size(), "Vector::[]: Access out of bounds");
+    BASE_DCHECK(pos < size(), "Vector::[]: Access out of bounds");
     return data_[pos];
   }
+
+  bool operator==(const Vector& other) const {
+    if (size() != other.size())
+      return false;
+    for (mem_size i = 0; i < size(); ++i) {
+      if (!(data_[i] == other.data_[i]))
+        return false;
+    }
+    return true;
+  }
+
+  bool operator!=(const Vector& other) const { return !(*this == other); }
 
   template <typename TFunc>
   void ForEach(TFunc&& func) {
@@ -393,19 +470,16 @@ class Vector {
 
  private:
   mem_size CalculateNewCapacity(mem_size cap) {
-    return cap > 0 ? cap * /*capacity_mult_*/ kDefaultMult : 1;
+    return cap > 0 ? cap * kDefaultMult : 1;
   }
 
   void MakeHoleForInsert(T* pos, mem_size count) {
     const mem_size elements_to_move = end_ - pos;
-    if (elements_to_move == 0 || count == 0) {
-      return;  // Nothing to shift.
-    }
+    if (elements_to_move == 0 || count == 0)
+      return;
 
     T* const old_end = end_;
 
-    // Elements being shifted into what was previously beyond the vector's end
-    // must be move-constructed into uninitialized memory.
     const mem_size num_to_construct = base::Min(count, elements_to_move);
     for (mem_size i = 0; i < num_to_construct; ++i) {
       T* source = old_end - (i + 1);
@@ -413,8 +487,6 @@ class Vector {
       ::new (static_cast<void*>(dest)) T(base::move(*source));
     }
 
-    // Elements being shifted into memory that was already occupied by other
-    // elements can be safely move-assigned.
     for (mem_size i = num_to_construct; i < elements_to_move; ++i) {
       T* source = old_end - (i + 1);
       T* dest = source + count;
@@ -424,97 +496,50 @@ class Vector {
 
   template <typename... TArgs>
   void InsertAtEnd(TArgs&&... args) {
-    const auto current_cap = size();
-    const auto new_cap = CalculateNewCapacity(current_cap);
-
-    GrowCapacity(current_cap, new_cap);
-    // insert at end
+    const auto current_size = size();
+    const auto new_cap = CalculateNewCapacity(current_size);
+    GrowCapacity(current_size, new_cap);
     ::new (static_cast<void*>(end_++)) T(base::forward<TArgs>(args)...);
   }
 
-  void InsertValueAtEnd(mem_size n, const T& value) {
-    if (n > mem_size(capacity_ - end_)) {
-      const auto current_cap = size();
-      const auto grow_size = CalculateNewCapacity(current_cap);
-      const auto new_size = grow_size < current_cap + n ? current_cap + n : grow_size;
-
-      GrowCapacity(current_cap, new_size);
-
-      T* formal_ptr = &data_[current_cap];
-
-      for (auto i = current_cap; i < new_size; i++) {
-        ::new (static_cast<void*>(formal_ptr++)) T(value);
-      }
-
-      // TODO: this should be done nicer.
-      end_ = &data_[new_size];
-    }
-  }
-
-  void InsertNValuesAtEnd(mem_size n) {
-    if (n > mem_size(capacity_ - end_)) {
-      const auto current_cap = size();
-      const auto grow_size = CalculateNewCapacity(current_cap);
-      const auto new_size = grow_size < current_cap + n ? current_cap + n : grow_size;
-
-      GrowCapacity(current_cap, new_size);
-
-      T* formal_ptr = &data_[current_cap];
-      for (auto i = current_cap; i < new_size; i++) {
-        ::new (static_cast<void*>(formal_ptr++)) T();
-      }
-
-      // TODO: this should be done nicer.
-      end_ = &data_[new_size];
-    }
-  }
-
-  void GrowCapacity(mem_size current_cap, mem_size new_cap) {
-    // remember: param is cap not size.
+  void GrowCapacity(mem_size current_size, mem_size new_cap) {
     T* new_block = Vector::Allocate(new_cap);
 
     if (data_) {
-      // manually move construct at new place!
-      // https://github.com/electronicarts/EASTL/blob/db160651d4f980c04d260cece06edee00c10bb33/include/EASTL/memory.h#L702
-      // basically this, it could be moved to its own sub later.
-      {
-        auto* first = data_;
-        auto* last = end_;
-
-        auto* new_spot = new_block;
-        for (; first != last; ++first, ++new_spot) {
-          ::new (reinterpret_cast<void*>(new_spot)) T(base::move(*first));
-        }
+      auto* first = data_;
+      auto* last = end_;
+      auto* new_spot = new_block;
+      for (; first != last; ++first, ++new_spot) {
+        ::new (reinterpret_cast<void*>(new_spot)) T(base::move(*first));
       }
       base::DestructRange(data_, end_);
-      Vector::Free(data_, current_cap);
+      Vector::Free(data_, capacity());
     }
 
     data_ = new_block;
-    end_ = &new_block[current_cap];
+    end_ = &new_block[current_size];
     capacity_ = &new_block[new_cap];
   }
 
   void ReleaseAll() {
-    if (data_ && end_ && capacity_) {
+    if (data_) {
       base::DestructRange(data_, end_);
       Vector::Free(data_, capacity());
       data_ = end_ = capacity_ = nullptr;
     }
   }
 
-  // memory primitives for cap sizes
-  T* Allocate(mem_size capacity) {
-    return static_cast<T*>(TAllocator::Allocate(capacity * sizeof(T)));
+  T* Allocate(mem_size cap) {
+    return static_cast<T*>(TAllocator::Allocate(cap * sizeof(T)));
   }
   void Free(T* block, mem_size n) {
-    TAllocator::Free(reinterpret_cast<void*>(block), n * sizeof(T));
+    if (block)
+      TAllocator::Free(reinterpret_cast<void*>(block), n * sizeof(T));
   }
 
  private:
   T* data_;
   T* end_;
   T* capacity_;
-  // mem_size capacity_mult_;
 };
 }  // namespace base

@@ -30,4 +30,13 @@ static constexpr u64 FNV1a64(const TChar* str,
                              u64 prime = 0x100000001b3) {
   return FNV1a<u64>(str, hash, prime);
 }
+// Raw bytes FNV-1a hash
+inline u64 fnv1a(const u8* data, mem_size len) {
+  u64 hash = 0xcbf29ce484222325ULL;
+  for (mem_size i = 0; i < len; ++i) {
+    hash ^= data[i];
+    hash *= 0x100000001b3ULL;
+  }
+  return hash;
+}
 }  // namespace base

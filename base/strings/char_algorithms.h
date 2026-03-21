@@ -4,7 +4,6 @@
 
 #include <base/check.h>
 #include <base/arch.h>
-#include <type_traits>
 #include <base/numeric_limits.h>
 
 namespace base {

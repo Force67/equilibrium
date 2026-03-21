@@ -14,7 +14,7 @@
 #include <base/strings/char_algorithms.h>
 
 #include <cstring>
-#include <algorithm>
+#include <base/math/value_bounds.h>
 
 #define HAS_BASE_STRING_TRAITS 1
 
@@ -393,7 +393,7 @@ class BasicBaseString {
   void erase(size_type pos = 0, size_type count = npos) {
     const size_type current_size = get_size();
     BASE_BUGCHECK(pos <= current_size, "Invalid position");
-    count = std::min(count, current_size - pos);
+    count = base::Min(count, current_size - pos);
     if (count == 0)
       return;
 
@@ -425,7 +425,7 @@ class BasicBaseString {
   BasicBaseString substr(size_type pos = 0, size_type count = npos) const {
     const size_type current_size = get_size();
     BASE_BUGCHECK(pos <= current_size, "Invalid position");
-    count = std::min(count, current_size - pos);
+    count = base::Min(count, current_size - pos);
     return BasicBaseString(get_data() + pos, count);
   }
 
@@ -434,7 +434,7 @@ class BasicBaseString {
   int compare(const BasicBaseString& other) const noexcept {
     const size_type left_size = get_size();
     const size_type right_size = other.get_size();
-    const size_type min_size = std::min(left_size, right_size);
+    const size_type min_size = base::Min(left_size, right_size);
     int result = memcmp(get_data(), other.get_data(), min_size * sizeof(character_type));
     if (result != 0)
       return result;
@@ -448,7 +448,7 @@ class BasicBaseString {
   int compare(const character_type* str) const noexcept {
     const size_type left_size = get_size();
     const size_type right_size = base::CountStringLength(str);
-    const size_type min_size = std::min(left_size, right_size);
+    const size_type min_size = base::Min(left_size, right_size);
     int result = memcmp(get_data(), str, min_size * sizeof(character_type));
     if (result != 0)
       return result;
@@ -461,7 +461,7 @@ class BasicBaseString {
 
   int compare(const character_type* str, size_type count) const noexcept {
     const size_type left_size = get_size();
-    const size_type min_size = std::min(left_size, count);
+    const size_type min_size = base::Min(left_size, count);
     int result = memcmp(get_data(), str, min_size * sizeof(character_type));
     if (result != 0)
       return result;
@@ -478,7 +478,7 @@ class BasicBaseString {
               const character_type* str) const noexcept {
     BASE_BUGCHECK(offset < get_size(), "Offset out of bounds");
     const size_type left_size = get_size() - offset;
-    const size_type min_size = std::min(left_size, count);
+    const size_type min_size = base::Min(left_size, count);
     int result = memcmp(get_data() + offset, str, min_size * sizeof(character_type));
     if (result != 0)
       return result;
@@ -492,9 +492,9 @@ class BasicBaseString {
   int compare(size_type pos, size_type len, const BasicBaseString& str) const noexcept {
     BASE_BUGCHECK(pos <= get_size(), "Position out of bounds");
 
-    const size_type rlen = std::min(len, get_size() - pos);
+    const size_type rlen = base::Min(len, get_size() - pos);
     const size_type other_len = str.get_size();
-    const size_type min_len = std::min(rlen, other_len);
+    const size_type min_len = base::Min(rlen, other_len);
 
     int result =
         memcmp(get_data() + pos, str.get_data(), min_len * sizeof(character_type));
@@ -650,5 +650,9 @@ BasicBaseString<CharT, TSizeType, TAllocator> operator+(
   result.append(rhs);
   return result;
 }
+
+// Convenience typedefs
+using String = BasicBaseString<char>;
+using WString = BasicBaseString<wchar_t>;
 
 }  // namespace base
