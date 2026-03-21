@@ -35,7 +35,7 @@ class DefaultCRTRouter {
   void* ReAllocate(void* former,
                    mem_size new_size,
                    pointer_diff& diff_out) {
-    diff_out = new_size - block_size(former);
+    diff_out = 0;  // can't safely query old block size with custom allocators
     return ::realloc(former, new_size);
   }
 
@@ -80,14 +80,12 @@ class DefaultCRTRouter {
 
  private:
   mem_size block_size(void* block) {
-#if defined(BASE_WIN_ALLOC)
-    return static_cast<mem_size>(::_msize(block));
-#elif defined(BASE_POSIX_ALLOC)
-    return static_cast<mem_size>(::malloc_usable_size(block));
-#else
+    // Note: malloc_usable_size is NOT safe when a custom allocator like
+    // mimalloc intercepts malloc/free but doesn't intercept malloc_usable_size.
+    // Calling glibc's malloc_usable_size on a mimalloc block causes heap
+    // corruption. Return 0 since the size is only used for stats tracking.
     (void)block;
     return 0;
-#endif
   }
 };
 }  // namespace base
