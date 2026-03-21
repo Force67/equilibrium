@@ -7,6 +7,7 @@
 #ifdef BASE_MAY_USE_MEMORY_COORDINATOR
 
 #include <base/compiler.h>            //< for STRONG_INLINE
+#include <base/export.h>
 #include <base/profiling/profiler.h>  //< for BASE_PROFILE_ALLOCATION
 
 #include <base/allocator/allocator_primitives.h>
