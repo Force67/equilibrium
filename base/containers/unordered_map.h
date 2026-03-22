@@ -151,8 +151,9 @@ class UnorderedMap {
     }
   }
 
-  void GrowAndRehash() {
-    const mem_size new_count = bucket_count_ == 0 ? 16 : bucket_count_ * 2;
+  void GrowAndRehash(mem_size target_count = 0) {
+    const mem_size new_count = target_count > 0 ? target_count
+        : (bucket_count_ == 0 ? 16 : bucket_count_ * 2);
     Slot* new_slots = AllocSlots(new_count);
 
     if (slots_) {
@@ -426,6 +427,26 @@ class UnorderedMap {
   [[nodiscard]] mem_size size() const { return size_; }
   [[nodiscard]] bool empty() const { return size_ == 0; }
   [[nodiscard]] mem_size bucket_count() const { return bucket_count_; }
+
+  // Pre-allocate enough buckets for at least |count| elements without
+  // triggering a rehash.  Useful when the map is accessed via raw
+  // pointers from concurrent code that must not observe a rehash.
+  void reserve(mem_size count) {
+    mem_size required = static_cast<mem_size>(
+        static_cast<f64>(count) / kMaxLoadFactor) + 1;
+    // Round up to next power of two
+    mem_size target = 16;
+    while (target < required) target *= 2;
+    if (target > bucket_count_) GrowAndRehash(target);
+  }
+
+  // Returns the number of elements that can be inserted before a rehash.
+  [[nodiscard]] mem_size remaining_capacity() const {
+    if (bucket_count_ == 0) return 0;
+    mem_size threshold = static_cast<mem_size>(bucket_count_ * kMaxLoadFactor);
+    mem_size used = size_ + tombstone_count_;
+    return (threshold > used) ? (threshold - used) : 0;
+  }
 
   // Key-value reference for structured bindings
   struct KeyValueRef {
