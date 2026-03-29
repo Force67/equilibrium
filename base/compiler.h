@@ -60,7 +60,7 @@
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-#define DEBUG_TRAP __asm__ volatile("int $0x03")
+#define DEBUG_TRAP __builtin_trap()
 #elif defined(_MSC_VER)
 #define DEBUG_TRAP __debugbreak()
 #else
