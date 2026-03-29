@@ -30,19 +30,19 @@ bool IsDebuggerAttached() {
 // Try to demangle a single backtrace_symbols frame string.
 // Input looks like: "./build/voxel_beta(_ZN7physics...+0x1a) [0x55...]"
 // We extract the mangled name between '(' and '+' and demangle it.
-static String DemangleFrame(const char* raw) {
+static base::String DemangleFrame(const char* raw) {
   const char* lparen = std::strchr(raw, '(');
   const char* plus = lparen ? std::strchr(lparen, '+') : nullptr;
 
   if (!lparen || !plus || plus <= lparen + 1) {
-    return String(raw);
+    return base::String(raw);
   }
 
   // Extract mangled name.
   i32 len = static_cast<i32>(plus - lparen - 1);
   char mangled[512];
   if (len >= static_cast<i32>(sizeof(mangled))) {
-    return String(raw);
+    return base::String(raw);
   }
   std::memcpy(mangled, lparen + 1, len);
   mangled[len] = '\0';
@@ -51,23 +51,19 @@ static String DemangleFrame(const char* raw) {
   int status = 0;
   char* demangled = abi::__cxa_demangle(mangled, nullptr, nullptr, &status);
   if (status != 0 || !demangled) {
-    return String(raw);
+    return base::String(raw);
   }
 
   // Build a clean string: "demangled+offset"
-  String result(demangled);
-  result += String(plus, static_cast<i32>(std::strlen(plus)));
+  base::String result(demangled);
+  result += base::String(plus, static_cast<i32>(std::strlen(plus)));
   std::free(demangled);
-
-  // Strip the [0x...] address suffix if present.
-  // Find the last ']' and the '[' before it.
-  // Actually keep it for debugging — the address can be useful.
 
   return result;
 }
 
-Vector<String> CaptureCallstack(i32 skipFrames, i32 maxFrames) {
-  Vector<String> result;
+base::Vector<base::String> CaptureCallstack(i32 skipFrames, i32 maxFrames) {
+  base::Vector<base::String> result;
 
   void* buffer[64];
   i32 total = maxFrames;
