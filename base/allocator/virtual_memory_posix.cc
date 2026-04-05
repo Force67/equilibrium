@@ -108,7 +108,7 @@ byte* VirtualMemoryAllocate(void* address,
     flags |= MAP_FIXED;
   }
   if (reserve) {
-    flags |= MAP_NORESERVE;  // Don't commit physical memory yet
+    flags |= MAP_NORESERVE;
   }
   void* result = ::mmap(address, size, prot, flags, -1, 0);
   if (result == MAP_FAILED)

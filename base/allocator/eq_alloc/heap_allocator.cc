@@ -11,14 +11,24 @@
 
 namespace base {
 
-HeapAllocator::HeapAllocator(PageTable& page_table) : page_table_(page_table) {}
+HeapAllocator::HeapAllocator(PageTable& page_table)
+    : page_table_(page_table), page_size_(page_table.page_size()) {}
 
 mem_size HeapAllocator::PagesRequired(mem_size user_size) const {
-  const mem_size ps = page_table_.page_size();
-  return (user_size + sizeof(BlockHeader) + ps - 1) / ps;
+  return (user_size + sizeof(BlockHeader) + page_size_ - 1) / page_size_;
 }
 
-// ---- free list (size-sorted, ascending) ----
+bool HeapAllocator::GrowArena() {
+  mem_size chunk_size = 0;
+  void* chunk = page_table_.RequestPages(kArenaChunkPages,
+                                         PageProtectionFlags::RW, &chunk_size);
+  if (!chunk)
+    return false;
+  arena_base_ = static_cast<byte*>(chunk);
+  arena_cursor_ = arena_base_;
+  arena_end_ = arena_base_ + chunk_size;
+  return true;
+}
 
 void HeapAllocator::FreeListInsert(BlockHeader* block) {
   block->flags = BlockHeader::kFree;
@@ -30,7 +40,6 @@ void HeapAllocator::FreeListInsert(BlockHeader* block) {
     return;
   }
 
-  // walk until we find a node whose total_size >= block's
   BlockHeader* prev = nullptr;
   BlockHeader* curr = free_list_;
   while (curr && curr->total_size < block->total_size) {
@@ -61,9 +70,7 @@ void HeapAllocator::FreeListRemove(BlockHeader* block) {
 
 HeapAllocator::BlockHeader* HeapAllocator::FreeListFindBestFit(
     mem_size required_pages) {
-  const mem_size required_size = required_pages * page_table_.page_size();
-  // list is sorted ascending by total_size, so the first block that fits is
-  // best-fit
+  const mem_size required_size = required_pages * page_size_;
   BlockHeader* curr = free_list_;
   while (curr) {
     if (curr->total_size >= required_size)
@@ -73,18 +80,17 @@ HeapAllocator::BlockHeader* HeapAllocator::FreeListFindBestFit(
   return nullptr;
 }
 
-// ---- Allocator interface ----
-
 void* HeapAllocator::Allocate(mem_size size, mem_size /*user_alignment*/) {
   if (size == 0)
     return nullptr;
 
   const mem_size pages = PagesRequired(size);
+  const mem_size alloc_bytes = pages * page_size_;
 
   base::NonOwningScopedLockGuard _(lock_);
   (void)_;
 
-  // try to reuse a freed block
+  // 1) try free list reuse
   if (BlockHeader* block = FreeListFindBestFit(pages)) {
     FreeListRemove(block);
     block->flags = BlockHeader::kInUse;
@@ -92,7 +98,37 @@ void* HeapAllocator::Allocate(mem_size size, mem_size /*user_alignment*/) {
     return block->UserData();
   }
 
-  // allocate fresh pages
+  // 2) try bump from pre-committed arena (no syscall)
+  if (arena_cursor_ + alloc_bytes <= arena_end_) {
+    auto* header = reinterpret_cast<BlockHeader*>(arena_cursor_);
+    arena_cursor_ += alloc_bytes;
+
+    header->magic = BlockHeader::kMagic;
+    header->page_count = static_cast<u32>(pages);
+    header->total_size = alloc_bytes;
+    header->user_size = size;
+    header->flags = BlockHeader::kInUse;
+    header->next_free = nullptr;
+    header->prev_free = nullptr;
+    return header->UserData();
+  }
+
+  // 3) grow arena and retry
+  if (GrowArena() && arena_cursor_ + alloc_bytes <= arena_end_) {
+    auto* header = reinterpret_cast<BlockHeader*>(arena_cursor_);
+    arena_cursor_ += alloc_bytes;
+
+    header->magic = BlockHeader::kMagic;
+    header->page_count = static_cast<u32>(pages);
+    header->total_size = alloc_bytes;
+    header->user_size = size;
+    header->flags = BlockHeader::kInUse;
+    header->next_free = nullptr;
+    header->prev_free = nullptr;
+    return header->UserData();
+  }
+
+  // 4) single allocation too large for a chunk — fall back to direct pages
   mem_size allocated_size = 0;
   void* memory =
       page_table_.RequestPages(pages, PageProtectionFlags::RW, &allocated_size);
@@ -101,7 +137,6 @@ void* HeapAllocator::Allocate(mem_size size, mem_size /*user_alignment*/) {
     return nullptr;
   }
 
-  // place header at page base
   auto* header = reinterpret_cast<BlockHeader*>(memory);
   header->magic = BlockHeader::kMagic;
   header->page_count = static_cast<u32>(pages);
@@ -110,7 +145,6 @@ void* HeapAllocator::Allocate(mem_size size, mem_size /*user_alignment*/) {
   header->flags = BlockHeader::kInUse;
   header->next_free = nullptr;
   header->prev_free = nullptr;
-
   return header->UserData();
 }
 
@@ -129,13 +163,11 @@ void* HeapAllocator::ReAllocate(void* former_block,
 
   const mem_size old_user_size = header->user_size;
 
-  // if the existing span already has enough room, just update user_size
   if (PagesRequired(new_size) <= header->page_count) {
     header->user_size = new_size;
     return former_block;
   }
 
-  // growing: allocate new, copy, free old
   void* new_block = Allocate(new_size, user_alignment);
   if (!new_block)
     return nullptr;

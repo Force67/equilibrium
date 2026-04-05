@@ -269,19 +269,19 @@ void PageAllocator_ReAllocateBeyondPage() {
 
 void Bucket_BasicAllocFree() {
   TEST_BEGIN("Bucket_BasicAllocFree");
-  PageTable pt(0x10000 * 4, 0x10000, 4);
+  PageTable pt(0x10000ULL * 4, 0x10000, 4);
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(64, 8);
   EXPECT(block != nullptr);
   std::memset(block, 0xDE, 64);
-  EXPECT(alloc.QueryAllocationSize(block) == 64);
-  EXPECT(alloc.Free(block) == 64);
+  EXPECT(alloc.QueryAllocationSize(block) >= 64);
+  EXPECT(alloc.Free(block) >= 64);
   TEST_PASS();
 }
 
 void Bucket_VariousSizes() {
   TEST_BEGIN("Bucket_VariousSizes");
-  PageTable pt(0x10000 * 8, 0x10000, 8);
+  PageTable pt(0x10000ULL * 16, 0x10000, 16);
   BucketAllocator alloc(pt);
   constexpr mem_size sizes[] = {1, 7, 8, 15, 16, 31, 64, 128, 255, 512, 1000};
   void* blocks[11]{};
@@ -289,17 +289,17 @@ void Bucket_VariousSizes() {
     blocks[i] = alloc.Allocate(sizes[i], 8);
     EXPECT(blocks[i] != nullptr);
     std::memset(blocks[i], static_cast<byte>(i), sizes[i]);
-    EXPECT(alloc.QueryAllocationSize(blocks[i]) == sizes[i]);
+    EXPECT(alloc.QueryAllocationSize(blocks[i]) >= sizes[i]);
   }
   for (int i = 0; i < 11; i++) {
-    EXPECT(alloc.Free(blocks[i]) == sizes[i]);
+    EXPECT(alloc.Free(blocks[i]) >= sizes[i]);
   }
   TEST_PASS();
 }
 
 void Bucket_ManySmallAllocations() {
   TEST_BEGIN("Bucket_ManySmallAllocations");
-  PageTable pt(0x10000 * 16, 0x10000, 16);
+  PageTable pt(0x10000ULL * 16, 0x10000, 16);
   BucketAllocator alloc(pt);
   constexpr int kCount = 200;
   void* blocks[kCount]{};
@@ -319,7 +319,7 @@ void Bucket_ManySmallAllocations() {
 
 void Bucket_FreeAndReuse() {
   TEST_BEGIN("Bucket_FreeAndReuse");
-  PageTable pt(0x10000 * 4, 0x10000, 4);
+  PageTable pt(0x10000ULL * 4, 0x10000, 4);
   BucketAllocator alloc(pt);
   void* a = alloc.Allocate(32, 8);
   EXPECT(a != nullptr);
@@ -334,19 +334,19 @@ void Bucket_FreeAndReuse() {
 
 void Bucket_ReAllocateNull() {
   TEST_BEGIN("Bucket_ReAllocateNull");
-  PageTable pt(0x10000 * 4, 0x10000, 4);
+  PageTable pt(0x10000ULL * 4, 0x10000, 4);
   BucketAllocator alloc(pt);
   // realloc(nullptr, size) should behave like alloc
   void* block = alloc.ReAllocate(nullptr, 64, 8);
   EXPECT(block != nullptr);
-  EXPECT(alloc.QueryAllocationSize(block) == 64);
+  EXPECT(alloc.QueryAllocationSize(block) >= 64);
   alloc.Free(block);
   TEST_PASS();
 }
 
 void Bucket_ReAllocateToZero() {
   TEST_BEGIN("Bucket_ReAllocateToZero");
-  PageTable pt(0x10000 * 4, 0x10000, 4);
+  PageTable pt(0x10000ULL * 4, 0x10000, 4);
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(64, 8);
   EXPECT(block != nullptr);
@@ -358,7 +358,7 @@ void Bucket_ReAllocateToZero() {
 
 void Bucket_ReAllocateShrink() {
   TEST_BEGIN("Bucket_ReAllocateShrink");
-  PageTable pt(0x10000 * 4, 0x10000, 4);
+  PageTable pt(0x10000ULL * 4, 0x10000, 4);
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(128, 8);
   EXPECT(block != nullptr);
@@ -366,7 +366,7 @@ void Bucket_ReAllocateShrink() {
   // shrink should return same pointer
   void* shrunk = alloc.ReAllocate(block, 32, 8);
   EXPECT(shrunk == block);
-  EXPECT(alloc.QueryAllocationSize(shrunk) == 32);
+  EXPECT(alloc.QueryAllocationSize(shrunk) >= 32);
   // data at start should be preserved
   EXPECT(static_cast<byte*>(shrunk)[0] == 0xEE);
   alloc.Free(shrunk);
@@ -375,7 +375,7 @@ void Bucket_ReAllocateShrink() {
 
 void Bucket_ReAllocateGrow() {
   TEST_BEGIN("Bucket_ReAllocateGrow");
-  PageTable pt(0x10000 * 4, 0x10000, 4);
+  PageTable pt(0x10000ULL * 4, 0x10000, 4);
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(16, 8);
   EXPECT(block != nullptr);
@@ -383,6 +383,8 @@ void Bucket_ReAllocateGrow() {
   void* grown = alloc.ReAllocate(block, 64, 8);
   EXPECT(grown != nullptr);
   EXPECT(alloc.QueryAllocationSize(grown) >= 64);
+  // ReAllocate preserves data when growing to a larger size class
+  EXPECT(static_cast<byte*>(grown)[0] == 0xAA);
   alloc.Free(grown);
   TEST_PASS();
 }

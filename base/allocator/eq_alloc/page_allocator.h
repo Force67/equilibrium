@@ -3,11 +3,13 @@
 #pragma once
 
 #include <base/allocator/eq_alloc/allocator.h>
+#include <base/threading/spinning_mutex.h>
 
 namespace base {
 
-// This allocator is used to allocate memory in pages.
-// whole pages that is. no sub-page allocation is possible.
+// Allocates whole 64 KiB pages for medium-sized requests (1-64 KiB).
+// Freed pages are cached in a lock-free stack to avoid mmap/munmap syscalls
+// on the hot path.
 class PageAllocator final : public Allocator {
  public:
   inline PageAllocator(PageTable& t) : page_table_(t) {}
@@ -23,6 +25,13 @@ class PageAllocator final : public Allocator {
   mem_size QueryAllocationSize(void* block) override;
 
  private:
+  // intrusive free-page stack: the first pointer_size bytes of a freed page
+  // store the pointer to the next free page.
+  void* PopFreePage();
+  void PushFreePage(void* page);
+
   PageTable& page_table_;
+  base::SpinningMutex lock_;
+  void* free_stack_{nullptr};
 };
 }  // namespace base

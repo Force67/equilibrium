@@ -11,8 +11,6 @@
 
 #include <base/threading/lock_guard.h>
 
-#include <cstring>
-
 namespace base {
 
 namespace {
@@ -46,10 +44,17 @@ bool PageTable::ReserveAddressSpace(const mem_size address_space_size,
                                     const mem_size page_size) {
   space_size_ = address_space_size;
   page_size_ = page_size;
-  address_space_ = reinterpret_cast<pointer_size>(
-      base::VirtualMemoryReserve(nullptr, address_space_size));
-  if (!address_space_)
+
+  // over-reserve so we can align the usable region to page_size.
+  // this guarantees (address_space_ & (page_size-1)) == 0, enabling
+  // single-AND mask lookups from any interior pointer to its page base.
+  const mem_size extra = page_size - 1;
+  byte* raw =
+      base::VirtualMemoryReserve(nullptr, address_space_size + extra);
+  if (!raw)
     DEBUG_TRAP;
+  address_space_ =
+      (reinterpret_cast<pointer_size>(raw) + extra) & ~extra;
   // we also need to allocate a management page.
   if (!metadata_page_) {
     const auto memory_size = (sizeof(PageEntry) * page_reserve_count_);
@@ -86,18 +91,16 @@ PageTable::PageEntry* PageTable::FindBackingPage(void* block) {
   return nullptr;
 }
 
-static byte* AllocatePage(void* at_address,
-                          mem_size page_size,
-                          PageProtectionFlags page_flags) {
+static byte* CommitRange(void* at_address,
+                         mem_size total_size,
+                         PageProtectionFlags page_flags) {
   byte* block = reinterpret_cast<byte*>(
-      base::VirtualMemoryAllocate(at_address, page_size, page_flags, false));
+      base::VirtualMemoryAllocate(at_address, total_size, page_flags, false));
   if (!block)
     DEBUG_TRAP;
-  // whoa, we didn't get the address we wanted in the reserved block. Did you
-  // call reserve?
   if (block != at_address)
     DEBUG_TRAP;
-  memset(block, 0xFF, page_size);  // not really ideal, but for safety
+  // mmap(MAP_ANONYMOUS) returns zeroed pages — no memset needed
   return block;
 }
 
@@ -109,7 +112,7 @@ void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out)
     if (entry->address == 0u)
       DEBUG_TRAP;
     byte* block =
-        AllocatePage(reinterpret_cast<void*>(entry->address), page_size_, page_flags);
+        CommitRange(reinterpret_cast<void*>(entry->address), page_size_, page_flags);
     entry->size = page_size_;
     entry->flags = PageEntry::Flags::IN_USE;
     entry->address = reinterpret_cast<pointer_size>(block);
@@ -146,15 +149,12 @@ void* PageTable::RequestPages(mem_size count,
     if (!all_free)
       continue;
 
-    // commit every page in the run
-    byte* base = nullptr;
+    // commit the entire contiguous range in a single syscall
+    byte* base = CommitRange(reinterpret_cast<void*>(entries[i].address),
+                             page_size_ * count, page_flags);
     for (mem_size j = 0; j < count; j++) {
-      auto& e = entries[i + j];
-      byte* page = AllocatePage(reinterpret_cast<void*>(e.address), page_size_, page_flags);
-      if (j == 0)
-        base = page;
-      e.size = page_size_;
-      e.flags = PageEntry::Flags::IN_USE;
+      entries[i + j].size = page_size_;
+      entries[i + j].flags = PageEntry::Flags::IN_USE;
     }
     current_page_count_ += count;
     if (size_out)

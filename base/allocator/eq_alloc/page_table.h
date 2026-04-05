@@ -53,6 +53,7 @@ class PageTable {
 
   mem_size page_size() const { return page_size_; }
   mem_size space_size() const { return space_size_; }
+  pointer_size address_base() const { return address_space_; }
 
  private:
   bool ReserveAddressSpace(const mem_size address_space_size, const mem_size page_size);
