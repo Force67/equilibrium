@@ -72,9 +72,11 @@ void MemoryTracker::TrackOperation(void* /*pointer*/, pointer_diff size) {
 }
 
 void MemoryTracker::WipeStats() {
-  memset(&token_bucket, kInvalidCategory, sizeof(token_bucket));
-  memset(&name_bucket, 0, sizeof(name_bucket));
-  memset(&memory_sizes, 0, sizeof(memory_sizes));
+  for (MemoryCategory i = 0; i < kTrackingLimit; i++) {
+    token_bucket[i] = kInvalidCategory;
+    name_bucket[i] = nullptr;
+    memory_sizes[i].store(0, std::memory_order_relaxed);
+  }
 }
 
 MemoryCategory current_memory_category() {

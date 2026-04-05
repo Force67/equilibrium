@@ -9,7 +9,6 @@
 #include "arch.h"
 #include "compiler.h"
 
-#include <base/threading/spinning_mutex.h>
 #include <base/threading/lock_guard.h>
 
 #include <cstring>
@@ -24,7 +23,11 @@ constexpr mem_size kPageGrowByRatio = 2;
 PageTable::PageTable(const mem_size space_size,
                      const mem_size page_size,
                      const mem_size reserve_count)
-    : page_reserve_count_(reserve_count) {
+    : page_reserve_count_(reserve_count),
+      address_space_(0),
+      space_size_(0),
+      page_size_(0),
+      current_page_count_(0) {
   ReserveAddressSpace(space_size, page_size);
 }
 
@@ -99,7 +102,7 @@ static byte* AllocatePage(void* at_address,
 }
 
 void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out) {
-  base::ScopedLockGuard<base::SpinningMutex> _;
+  base::NonOwningScopedLockGuard _(lock_);
   (void)_;
   // do we have any free pages?
   if (PageEntry* entry = FindFreePage()) {
@@ -118,8 +121,60 @@ void* PageTable::RequestPage(PageProtectionFlags page_flags, mem_size* size_out)
   return nullptr;
 }
 
+void* PageTable::RequestPages(mem_size count,
+                              PageProtectionFlags page_flags,
+                              mem_size* size_out) {
+  if (count == 0)
+    return nullptr;
+  if (count == 1)
+    return RequestPage(page_flags, size_out);
+
+  base::NonOwningScopedLockGuard _(lock_);
+  (void)_;
+  PageEntry* entries = reinterpret_cast<PageEntry*>(metadata_page_.load());
+
+  // find a contiguous run of 'count' free page entries
+  for (mem_size i = 0; i + count <= page_reserve_count_; i++) {
+    bool all_free = true;
+    for (mem_size j = 0; j < count; j++) {
+      if (!entries[i + j].available()) {
+        all_free = false;
+        i += j;  // skip past the occupied entry
+        break;
+      }
+    }
+    if (!all_free)
+      continue;
+
+    // commit every page in the run
+    byte* base = nullptr;
+    for (mem_size j = 0; j < count; j++) {
+      auto& e = entries[i + j];
+      byte* page = AllocatePage(reinterpret_cast<void*>(e.address), page_size_, page_flags);
+      if (j == 0)
+        base = page;
+      e.size = page_size_;
+      e.flags = PageEntry::Flags::IN_USE;
+    }
+    current_page_count_ += count;
+    if (size_out)
+      *size_out = page_size_ * count;
+    return base;
+  }
+  return nullptr;
+}
+
+mem_size PageTable::ReleasePages(void* address, mem_size count) {
+  mem_size total = 0;
+  byte* addr = static_cast<byte*>(address);
+  for (mem_size i = 0; i < count; i++) {
+    total += ReleasePage(addr + (page_size_ * i));
+  }
+  return total;
+}
+
 mem_size PageTable::ReleasePage(void* page_pointer) {
-  base::ScopedLockGuard<base::SpinningMutex> _;
+  base::NonOwningScopedLockGuard _(lock_);
   // Deallocate the page memory
   if (!page_pointer || !base::VirtualMemoryFree(page_pointer, page_size_))
     return 0u;

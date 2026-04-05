@@ -92,14 +92,17 @@ byte* VirtualMemoryReserve(void* address, mem_size size) {
   if (address) {
     flags |= MAP_FIXED;
   }
-  return reinterpret_cast<byte*>(::mmap(address, size, PROT_NONE, flags, -1, 0));
+  void* result = ::mmap(address, size, PROT_NONE, flags, -1, 0);
+  if (result == MAP_FAILED)
+    return nullptr;
+  return reinterpret_cast<byte*>(result);
 }
 
 byte* VirtualMemoryAllocate(void* address,
                             mem_size size,
                             PageProtectionFlags protection,
                             const bool reserve) {
-  int prot = static_cast<int>(protection);
+  int prot = TranslateToNativePageProtection(protection);
   int flags = MAP_ANONYMOUS | MAP_PRIVATE;
   if (address) {
     flags |= MAP_FIXED;
@@ -107,7 +110,10 @@ byte* VirtualMemoryAllocate(void* address,
   if (reserve) {
     flags |= MAP_NORESERVE;  // Don't commit physical memory yet
   }
-  return reinterpret_cast<byte*>(::mmap(address, size, prot, flags, -1, 0));
+  void* result = ::mmap(address, size, prot, flags, -1, 0);
+  if (result == MAP_FAILED)
+    return nullptr;
+  return reinterpret_cast<byte*>(result);
 }
 
 bool VirtualMemoryFree(void* address, mem_size size) {
@@ -115,7 +121,7 @@ bool VirtualMemoryFree(void* address, mem_size size) {
 }
 
 bool VirtualMemoryProtect(void* address, mem_size size, PageProtectionFlags protection) {
-  int prot = static_cast<int>(protection);
+  int prot = TranslateToNativePageProtection(protection);
   return ::mprotect(address, size, prot) == 0;
 }
 }  // namespace base

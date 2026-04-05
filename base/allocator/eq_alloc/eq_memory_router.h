@@ -6,6 +6,8 @@
 #include <base/compiler.h>
 #include <base/numeric_limits.h>
 
+#include <cstring>
+
 #include <base/allocator/memory_context.h>
 #include <base/allocator/eq_alloc/allocator.h>
 #include <base/allocator/eq_alloc/page_table.h>
@@ -57,9 +59,14 @@ struct EQMemoryRouter {
           allocators_[AllocatorID::kHeapAllocator]->Allocate(size, nextPowerOfTwo(size));
     }
 
+    // map every MiB block that this allocation spans so FindOwningAllocator
+    // can resolve any interior pointer back to the correct allocator
     uintptr_t po = page_tab.PageOffset(block);
-    auto index = po >> kMibShift;
-    allocator_mapping_table_[index] = allocator_id;
+    mem_size first_idx = po >> kMibShift;
+    mem_size last_idx = (po + size - 1) >> kMibShift;
+    for (mem_size idx = first_idx; idx <= last_idx; idx++) {
+      allocator_mapping_table_[idx] = allocator_id;
+    }
     return block;
   }
 
@@ -107,27 +114,19 @@ struct EQMemoryRouter {
                                         mem_size former_size,
                                         mem_size new_size,
                                         mem_size alignment) {
-    DEBUG_TRAP;
-    return nullptr;
-#if 0
-    // Allocate a new block with the desired size and alignment.
-    void* new_block = allocators_[AllocatorID::kHeapAllocator]->AllocateAligned(
-        new_size, alignment);
-
-    if (!new_block) {
-      // Allocation failed.
+    void* new_block = AllocateAligned(new_size, alignment);
+    if (!new_block)
       return nullptr;
-    }
 
-    // Copy the old data to the new block.
     mem_size copy_size = former_size < new_size ? former_size : new_size;
-    memcpy(new_block, former_block, copy_size);
+    std::memcpy(new_block, former_block, copy_size);
 
-    // Free the old block.
-    allocators_[AllocatorID::kHeapAllocator]->Free(former_block);
+    // recover the raw (pre-alignment) pointer and free it
+    mem_size adjustment = reinterpret_cast<mem_size*>(former_block)[-1];
+    void* raw_former = static_cast<byte*>(former_block) - adjustment;
+    Free(raw_former);
 
     return new_block;
-#endif
   }
 
   STRONG_INLINE mem_size Free(void* block) {

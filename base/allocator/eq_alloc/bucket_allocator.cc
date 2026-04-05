@@ -288,12 +288,14 @@ BucketAllocator::BucketInfo* BucketAllocator::FindAndClaimFreeBucket(
     // No suitable gap found, allocate at the end
     byte* data_end =
         page_end - (sizeof(BucketInfo) * (node->value()->tag.bucket_count + 1));
-    BucketInfo* last_buck = reinterpret_cast<BucketInfo*>(
-        page_end - (sizeof(BucketInfo) * (node->value()->tag.bucket_count)));
-    auto offset = last_buck->offset_ + last_buck->size();
+    u32 offset = 0;
+    if (node->value()->tag.bucket_count > 0) {
+      BucketInfo* last_buck = reinterpret_cast<BucketInfo*>(
+          page_end - (sizeof(BucketInfo) * (node->value()->tag.bucket_count)));
+      offset = last_buck->offset_ + last_buck->size();
+    }
     if (data_end - (data_start + offset) < size) {
-      DEBUG_TRAP;  // not enough space
-      return nullptr;
+      continue;  // not enough space in this page, try next
     }
 
     BucketInfo* free_bucket = new (data_end) BucketInfo(
@@ -311,8 +313,8 @@ BucketAllocator::BucketInfo* BucketAllocator::FindBucket(pointer_size address) {
     byte* page_start = reinterpret_cast<byte*>(node);
     byte* page_end = node->value()->tag.end();
 
-    if (address < reinterpret_cast<pointer_size>(page_start) &&
-        address > reinterpret_cast<pointer_size>(page_end)) {
+    if (address < reinterpret_cast<pointer_size>(page_start) ||
+        address >= reinterpret_cast<pointer_size>(page_end)) {
       continue;
     }
 

@@ -10,6 +10,7 @@
 
 #include <base/allocator/memory_range.h>
 #include <base/allocator/virtual_memory.h>
+#include <base/threading/spinning_mutex.h>
 
 #include <base/enum_traits.h>
 
@@ -30,8 +31,18 @@ class PageTable {
   void* RequestPage(PageProtectionFlags page_flags,
                     mem_size* size_optional_out = nullptr);
 
+  // request N contiguous pages from the page table.
+  // returns the base address of the first page, or nullptr on failure.
+  void* RequestPages(mem_size count,
+                     PageProtectionFlags page_flags,
+                     mem_size* size_optional_out = nullptr);
+
   // returns the page size or 0 if the page was not found
   mem_size ReleasePage(void* address);
+
+  // release N contiguous pages starting at address.
+  // returns total bytes released.
+  mem_size ReleasePages(void* address, mem_size count);
 
   uintptr_t PageOffset(void* address) {
     auto b = reinterpret_cast<uintptr_t>(address);
@@ -66,7 +77,7 @@ class PageTable {
     PageEntry(pointer_size address, mem_size size) : address(address), size(size) {}
 
     inline bool Contains(pointer_size block) const {
-      return address >= block && block <= (address + size);
+      return block >= address && block < (address + size);
     }
 
     inline bool Contains(const void* pointer) const {
@@ -98,6 +109,7 @@ class PageTable {
   // +-----------------------Page-Space (1-Tib)--------------------------+
   // | Page 1 | Page 2 | Page 3 | ... | Reserved | Reserved | Reserved   |
   // +-------------------------------------------------------------------+
+  base::SpinningMutex lock_;
   pointer_size address_space_;
   mem_size space_size_;
   mem_size page_size_;
