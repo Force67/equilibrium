@@ -21,9 +21,15 @@ constexpr MemoryCategory kInvalidCategory{kTrackingLimit};
 struct MemoryTracker {
   MemoryTracker() {};
 
-  // since a negative complement gets added with a + anyway, we simply only ever
-  // add
-  void TrackOperation(void* pointer, pointer_diff size /*signed number*/);
+  // hot path — called on every alloc/free through the memory coordinator.
+  // must be inline so the compiler can fold it into the caller.
+  inline void TrackOperation(void* pointer, pointer_diff size) {
+    (void)pointer;
+    memory_sizes[CurrentCategory()].fetch_add(size, std::memory_order_relaxed);
+  }
+
+  // thread-local category accessor (defined in .cc, declared here for inline use)
+  static MemoryCategory CurrentCategory();
 
   void WipeStats();
 
@@ -31,12 +37,12 @@ struct MemoryTracker {
   // 0 means that we fall under the general category,
   // e.g noname
 
-  // is this even smart, or can we use a bitset?
-  MemoryCategory token_bucket[kTrackingLimit]{
-      kInvalidCategory};  // wouldnd a bitset suffice, as the index would
-                          // indicate the offset?
-  const char* name_bucket[kTrackingLimit]{"<noname>"};
-  base::Atomic<mem_size> memory_sizes[kTrackingLimit]{0};
+  // token_bucket[i] == kInvalidCategory means slot i is free.
+  // NOTE: can't brace-init to kInvalidCategory here (only sets [0]),
+  // so WipeStats() must be called before use.
+  MemoryCategory token_bucket[kTrackingLimit]{};
+  const char* name_bucket[kTrackingLimit]{};
+  base::Atomic<mem_size> memory_sizes[kTrackingLimit]{};
 };
 
 MemoryCategory current_memory_category();

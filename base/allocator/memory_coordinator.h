@@ -23,7 +23,14 @@
 
 namespace base {
 
-BASE_EXPORT MemoryTracker& memory_tracker();
+// inline so the compiler can fold TrackOperation into the alloc hot path
+// without a function-call indirection.  the static storage has the same
+// address across all TUs (C++17 inline variable guarantee).
+inline MemoryTracker& memory_tracker() {
+  alignas(MemoryTracker) static constinit u8
+      storage[sizeof(MemoryTracker)]{};
+  return reinterpret_cast<MemoryTracker&>(storage);
+}
 
 // do not instantiate any complex routers.
 // goal is to have these folded in the ::new/alloc operators

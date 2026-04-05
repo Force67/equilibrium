@@ -16,22 +16,28 @@ thread_local constinit MemoryCategory current_token{kGeneralMemory};
 static std::mutex s_tracker_mutex;
 
 MemoryCategory FindFreeTokenIndex(MemoryTracker& tracker) {
-  MemoryCategory index{kInvalidCategory};
-  for (auto i = 0; i < (kTrackingLimit - 1); i++) {
+  // scan slots 0..253 (254 = kGeneralMemory is reserved)
+  for (int i = 0; i < static_cast<int>(kGeneralMemory); i++) {
     MemoryCategory& token_entry = tracker.token_bucket[i];
     if (token_entry == kInvalidCategory) {
-      token_entry = index = i;
-      break;
+      token_entry = static_cast<MemoryCategory>(i);
+      return static_cast<MemoryCategory>(i);
     }
   }
-  return index;
+  return kInvalidCategory;
 }
 }  // namespace
+
+static bool s_categories_inited = false;
 
 MemoryCategory AddMemoryCategory(const char* name) {
   std::lock_guard<std::mutex> lock(s_tracker_mutex);
 
   auto& tracker_instance = memory_tracker();
+  if (!s_categories_inited) {
+    tracker_instance.WipeStats();
+    s_categories_inited = true;
+  }
   const MemoryCategory index = FindFreeTokenIndex(tracker_instance);
 
   if (index < kInvalidCategory)
@@ -61,14 +67,8 @@ void RemoveMemoryCategory(MemoryCategory id) {
   }
 }
 
-static constinit bool HACK_INITED{false};
-
-void MemoryTracker::TrackOperation(void* /*pointer*/, pointer_diff size) {
-  if (!HACK_INITED) {
-    WipeStats();
-    HACK_INITED = true;
-  }
-  memory_sizes[current_token].fetch_add(size);
+MemoryCategory MemoryTracker::CurrentCategory() {
+  return current_token;
 }
 
 void MemoryTracker::WipeStats() {
@@ -77,6 +77,9 @@ void MemoryTracker::WipeStats() {
     name_bucket[i] = nullptr;
     memory_sizes[i].store(0, std::memory_order_relaxed);
   }
+  // reserve the general category slot
+  token_bucket[kGeneralMemory] = kGeneralMemory;
+  name_bucket[kGeneralMemory] = "<general>";
 }
 
 MemoryCategory current_memory_category() {

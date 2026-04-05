@@ -147,9 +147,8 @@ struct EQMemoryRouter {
 
  private:
   Allocator* FindOwningAllocator(base::PageTable& page_table, void* block) {
-    // the limit for an index is 1048576
     auto index = page_table.PageOffset(block) >> kMibShift;
-    BASE_DCHECK(index <= sizeof(allocator_mapping_table_),
+    BASE_DCHECK(index < (kVirtualAddressRange >> kMibShift),
            "Allocator index too large (over 1tib)");
     BASE_DCHECK(index != kMaxAllocators, "Unowned memory (no allocator knows its origin)");
 

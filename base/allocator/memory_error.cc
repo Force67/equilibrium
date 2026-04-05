@@ -1,7 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <base/allocator/memory_errror.h>
+#include <base/allocator/memory_error.h>
 #include <base/allocator/memory_coordinator.h>
 
 namespace base {

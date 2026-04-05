@@ -21,7 +21,8 @@ constexpr mem_size kPageGrowByRatio = 2;
 PageTable::PageTable(const mem_size space_size,
                      const mem_size page_size,
                      const mem_size reserve_count)
-    : page_reserve_count_(reserve_count),
+    : metadata_page_(0),
+      page_reserve_count_(reserve_count),
       address_space_(0),
       space_size_(0),
       page_size_(0),
@@ -36,7 +37,9 @@ PageTable::~PageTable() {
   }
   // and the metadata page
   if (metadata_page_) {
-    base::VirtualMemoryFree(reinterpret_cast<void*>(metadata_page_.load()), 0);
+    const mem_size metadata_size = sizeof(PageEntry) * page_reserve_count_;
+    base::VirtualMemoryFree(reinterpret_cast<void*>(metadata_page_.load()),
+                            metadata_size);
   }
 }
 

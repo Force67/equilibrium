@@ -9,7 +9,7 @@
 #include <base/win/minwin.h>
 #include <base/dynamic_library.h>
 #include <base/filesystem/path.h>
-#include <base/allocator/memory_errror.h>
+#include <base/allocator/memory_error.h>
 #include <base/allocator/memory_coordinator.h>
 
 namespace base {
