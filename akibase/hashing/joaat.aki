@@ -1,0 +1,34 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Jenkins One-At-A-Time hash - aki equivalent of base/hashing/joaat.h
+
+module joaat;
+
+pub fn joaat_32(data: str): u32 {
+    var hash: u32 = 0;
+    let len = str_len(data);
+    for (i in 0..len) {
+        let c = str_char_at(data, i) as u32;
+        hash = hash + c;
+        hash = hash + (hash << 10);
+        hash = hash ^ (hash >> 6);
+    }
+    hash = hash + (hash << 3);
+    hash = hash ^ (hash >> 11);
+    hash = hash + (hash << 15);
+    return hash;
+}
+
+pub fn joaat_16(data: str): u16 {
+    var hash: u16 = 0;
+    let len = str_len(data);
+    for (i in 0..len) {
+        let c = str_char_at(data, i) as u16;
+        hash = hash + c;
+        hash = hash + (hash << 5);
+        hash = hash ^ (hash >> 3);
+    }
+    hash = hash + (hash << 2);
+    hash = hash ^ (hash >> 4);
+    hash = hash + (hash << 7);
+    return hash;
+}

@@ -1,0 +1,18 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Three-state boolean type - aki equivalent of base/tristate.h
+
+module tristate;
+
+pub enum TriState {
+    Unknown,
+    False,
+    True
+}
+
+pub fn tri_failed(s: TriState): bool {
+    return s == TriState::False || s == TriState::Unknown;
+}
+
+pub fn tri_is_true(s: TriState): bool {
+    return s == TriState::True;
+}

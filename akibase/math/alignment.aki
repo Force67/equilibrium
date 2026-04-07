@@ -1,0 +1,37 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Alignment utilities - aki equivalent of base/math/alignment.h
+
+module alignment;
+
+// Align n up to a multiple of `to`.
+// e.g. align(69, 1024) -> 1024
+pub fn align(n: u64, to: u64): u64 {
+    return (n + to - 1) & ~(to - 1);
+}
+
+// Align with skew offset.
+pub fn align_skew(n: u64, to: u64, skew: u64): u64 {
+    var s = skew % to;
+    return ((n + to - 1 - s) & ~(to - 1)) + s;
+}
+
+// Check if byte_size is a multiple of alignment.
+pub fn is_aligned(alignment: u64, byte_size: u64): bool {
+    return byte_size % alignment == 0;
+}
+
+// Check if a value is a power of 2.
+pub fn is_power_of_2(n: u64): bool {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+
+// Integer log2 (floor).
+pub fn log2(n: u64): u64 {
+    var result: u64 = 0;
+    var v = n;
+    while (v > 1) {
+        v = v >> 1;
+        result = result + 1;
+    }
+    return result;
+}

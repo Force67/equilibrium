@@ -1,0 +1,77 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Ring buffer - fixed-size circular buffer for i32 values.
+// aki equivalent of base/containers/ring_buffer.h
+// Layout: [buffer: i64, capacity: i64, current_index: i64]  (24 bytes)
+
+module ring_buffer;
+
+import { ab_read_i64, ab_write_i64 } from "../mem.aki";
+
+// Local variants: these take i64 index (not i32), so they can't use mem.aki's versions.
+pub fn ab_read_i32_i64(base: i64, index: i64): i32 {
+    var val: i32 = 0;
+    raw_memcpy(&val, base + index * 4, 4);
+    return val;
+}
+
+pub fn ab_write_i32_i64(base: i64, index: i64, val: i32) {
+    var v: i32 = val;
+    raw_memcpy(base + index * 4, &v, 4);
+}
+
+// Create a ring buffer with the given capacity.
+pub fn rb_new(capacity: i32): i64 {
+    let rb: i64 = raw_malloc(24);
+    let buf: i64 = raw_malloc(capacity as i64 * 4);
+    raw_memset(buf, 0, capacity as i64 * 4);
+    ab_write_i64(rb, buf);
+    ab_write_i64(rb + 8, capacity as i64);
+    ab_write_i64(rb + 16, 0);
+    return rb;
+}
+
+pub fn rb_capacity(rb: i64): i32 {
+    return ab_read_i64(rb + 8) as i32;
+}
+
+pub fn rb_current_index(rb: i64): i32 {
+    return ab_read_i64(rb + 16) as i32;
+}
+
+pub fn rb_buffer_index(rb: i64, n: i64): i64 {
+    let cap = ab_read_i64(rb + 8);
+    let cur = ab_read_i64(rb + 16);
+    return (cur + n) % cap;
+}
+
+pub fn rb_is_filled(rb: i64, n: i32): bool {
+    let idx = rb_buffer_index(rb, n as i64);
+    let cur = ab_read_i64(rb + 16);
+    return idx < cur;
+}
+
+// Read the element at logical index n.
+// n=0 is the oldest, n=capacity-1 is the newest.
+pub fn rb_read(rb: i64, n: i32): i32 {
+    let buf = ab_read_i64(rb);
+    let idx = rb_buffer_index(rb, n as i64);
+    return ab_read_i32_i64(buf, idx);
+}
+
+// Save a value to the buffer (advances the write head).
+pub fn rb_save(rb: i64, value: i32) {
+    let buf = ab_read_i64(rb);
+    let idx = rb_buffer_index(rb, 0);
+    ab_write_i32_i64(buf, idx, value);
+    let cur = ab_read_i64(rb + 16);
+    ab_write_i64(rb + 16, cur + 1);
+}
+
+pub fn rb_clear(rb: i64) {
+    ab_write_i64(rb + 16, 0);
+}
+
+pub fn rb_free(rb: i64) {
+    raw_free(ab_read_i64(rb));
+    raw_free(rb);
+}

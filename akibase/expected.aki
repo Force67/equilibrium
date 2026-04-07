@@ -1,0 +1,42 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Expected - a Result-like type for error handling.
+// aki equivalent of base/expected.h
+// Since aki has native T? (optional), Expected adds typed errors.
+// Layout: [has_error: i64, value_or_error: i64]  (16 bytes)
+// For i32 values / i32 error codes.
+
+module expected;
+
+import { ab_read_i64, ab_write_i64 } from "mem.aki";
+
+// Create an Expected holding a success value.
+pub fn expected_ok(value: i32): i64 {
+    let e: i64 = raw_malloc(16);
+    ab_write_i64(e, 0);
+    ab_write_i64(e + 8, value as i64);
+    return e;
+}
+
+// Create an Expected holding an error.
+pub fn expected_err(error: i32): i64 {
+    let e: i64 = raw_malloc(16);
+    ab_write_i64(e, 1);
+    ab_write_i64(e + 8, error as i64);
+    return e;
+}
+
+pub fn expected_has_error(e: i64): bool {
+    return ab_read_i64(e) != 0;
+}
+
+pub fn expected_value(e: i64): i32 {
+    return ab_read_i64(e + 8) as i32;
+}
+
+pub fn expected_error(e: i64): i32 {
+    return ab_read_i64(e + 8) as i32;
+}
+
+pub fn expected_free(e: i64) {
+    raw_free(e);
+}

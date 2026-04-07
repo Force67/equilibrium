@@ -1,0 +1,156 @@
+// Copyright (C) 2026 Vincent Hengel.
+// STL-free algorithms - aki equivalent of base/algorithm.h
+// Uses i64 addresses and raw_memcpy for memory access (aki idiom).
+
+module algorithm;
+
+import { ab_read_i32, ab_write_i32 } from "mem.aki";
+
+// ── Swap ────────────────────────────────────────────────────────────
+pub fn swap_i32(arr: i64, i: i32, j: i32) {
+    let tmp = ab_read_i32(arr, i);
+    ab_write_i32(arr, i, ab_read_i32(arr, j));
+    ab_write_i32(arr, j, tmp);
+}
+
+// ── Fill ────────────────────────────────────────────────────────────
+pub fn fill_i32(arr: i64, len: i32, value: i32) {
+    for (i in 0..len) {
+        ab_write_i32(arr, i, value);
+    }
+}
+
+// ── Reverse ─────────────────────────────────────────────────────────
+pub fn reverse_i32(arr: i64, len: i32) {
+    var lo: i32 = 0;
+    var hi: i32 = len - 1;
+    while (lo < hi) {
+        swap_i32(arr, lo, hi);
+        lo = lo + 1;
+        hi = hi - 1;
+    }
+}
+
+// ── Find ────────────────────────────────────────────────────────────
+pub fn find_i32(arr: i64, len: i32, value: i32): i32 {
+    for (i in 0..len) {
+        if (ab_read_i32(arr, i) == value) { return i; }
+    }
+    return -1;
+}
+
+// ── Count ───────────────────────────────────────────────────────────
+pub fn count_i32(arr: i64, len: i32, value: i32): i32 {
+    var n: i32 = 0;
+    for (i in 0..len) {
+        if (ab_read_i32(arr, i) == value) { n = n + 1; }
+    }
+    return n;
+}
+
+// ── Insertion sort ──────────────────────────────────────────────────
+pub fn insertion_sort_impl(arr: i64, len: i32) {
+    for (i in 1..len) {
+        let key = ab_read_i32(arr, i);
+        var j: i32 = i - 1;
+        while (j >= 0 && ab_read_i32(arr, j) > key) {
+            ab_write_i32(arr, j + 1, ab_read_i32(arr, j));
+            j = j - 1;
+        }
+        ab_write_i32(arr, j + 1, key);
+    }
+}
+
+// ── Partition ───────────────────────────────────────────────────────
+pub fn partition_impl(arr: i64, lo: i32, hi: i32): i32 {
+    let pivot = ab_read_i32(arr, hi);
+    var i: i32 = lo;
+    for (j in lo..hi) {
+        if (ab_read_i32(arr, j) < pivot) {
+            swap_i32(arr, i, j);
+            i = i + 1;
+        }
+    }
+    swap_i32(arr, i, hi);
+    return i;
+}
+
+// ── Introsort impl ──────────────────────────────────────────────────
+pub fn introsort_impl(arr: i64, lo: i32, hi: i32, depth: i32) {
+    if (hi - lo < 16) {
+        // Small range: use insertion sort on the sub-range
+        let sub_len = hi - lo + 1;
+        let sub_addr = arr + lo as i64 * 4;
+        insertion_sort_impl(sub_addr, sub_len);
+        return;
+    }
+    if (depth == 0) {
+        let sub_len = hi - lo + 1;
+        let sub_addr = arr + lo as i64 * 4;
+        insertion_sort_impl(sub_addr, sub_len);
+        return;
+    }
+    let p = partition_impl(arr, lo, hi);
+    introsort_impl(arr, lo, p - 1, depth - 1);
+    introsort_impl(arr, p + 1, hi, depth - 1);
+}
+
+pub fn log2_i32(n: i32): i32 {
+    var k: i32 = 0;
+    var v: i32 = n;
+    while (v > 1) {
+        v = v >> 1;
+        k = k + 1;
+    }
+    return k;
+}
+
+// ── Sort (public) ───────────────────────────────────────────────────
+pub fn sort_i32(arr: i64, len: i32) {
+    if (len <= 1) { return; }
+    let max_depth: i32 = 2 * log2_i32(len);
+    introsort_impl(arr, 0, len - 1, max_depth);
+}
+
+// ── Binary search (lower bound) ────────────────────────────────────
+pub fn lower_bound_i32(arr: i64, len: i32, value: i32): i32 {
+    var lo: i32 = 0;
+    var hi: i32 = len;
+    while (lo < hi) {
+        let mid = lo + (hi - lo) / 2;
+        if (ab_read_i32(arr, mid) < value) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    return lo;
+}
+
+// ── AnyOf / AllOf ───────────────────────────────────────────────────
+// Note: aki doesn't have function pointers with predicates easily,
+// so these are value-based variants.
+
+pub fn any_of_i32(arr: i64, len: i32, value: i32): bool {
+    return find_i32(arr, len, value) != -1;
+}
+
+pub fn all_eq_i32(arr: i64, len: i32, value: i32): bool {
+    return count_i32(arr, len, value) == len;
+}
+
+// ── Iota ────────────────────────────────────────────────────────────
+pub fn iota_i32(arr: i64, len: i32, start: i32) {
+    for (i in 0..len) {
+        ab_write_i32(arr, i, start + i);
+    }
+}
+
+// ── Accumulate ──────────────────────────────────────────────────────
+pub fn accumulate_i32(arr: i64, len: i32, init: i32): i32 {
+    var sum: i32 = init;
+    for (i in 0..len) {
+        sum = sum + ab_read_i32(arr, i);
+    }
+    return sum;
+}

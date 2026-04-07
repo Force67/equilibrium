@@ -1,0 +1,124 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Doubly-linked list for i32 values - aki equivalent of base/containers/linked_list.h
+// Node layout: [prev: i64, next: i64, value: i64]  (24 bytes)
+// List layout: [head: i64, tail: i64, count: i64]  (24 bytes)
+
+module linked_list;
+
+import { ab_read_i64, ab_write_i64 } from "../mem.aki";
+
+pub fn node_new(value: i32): i64 {
+    let n: i64 = raw_malloc(24);
+    ab_write_i64(n, 0);        // prev = null
+    ab_write_i64(n + 8, 0);    // next = null
+    ab_write_i64(n + 16, value as i64);
+    return n;
+}
+
+pub fn node_prev(n: i64): i64 { return ab_read_i64(n); }
+pub fn node_next(n: i64): i64 { return ab_read_i64(n + 8); }
+pub fn node_value(n: i64): i32 { return ab_read_i64(n + 16) as i32; }
+
+pub fn node_set_prev(n: i64, p: i64) { ab_write_i64(n, p); }
+pub fn node_set_next(n: i64, p: i64) { ab_write_i64(n + 8, p); }
+
+// Create a new empty list.
+pub fn ll_new(): i64 {
+    let list: i64 = raw_malloc(24);
+    ab_write_i64(list, 0);      // head = null
+    ab_write_i64(list + 8, 0);  // tail = null
+    ab_write_i64(list + 16, 0); // count = 0
+    return list;
+}
+
+pub fn ll_head(list: i64): i64 { return ab_read_i64(list); }
+pub fn ll_tail(list: i64): i64 { return ab_read_i64(list + 8); }
+pub fn ll_count(list: i64): i32 { return ab_read_i64(list + 16) as i32; }
+pub fn ll_empty(list: i64): bool { return ab_read_i64(list + 16) == 0; }
+
+// Get next node (for iteration).
+pub fn ll_next(node: i64): i64 { return node_next(node); }
+// Get value from a node.
+pub fn ll_node_value(node: i64): i32 { return node_value(node); }
+
+// Append to end.
+pub fn ll_append(list: i64, value: i32) {
+    let n = node_new(value);
+    let tail = ab_read_i64(list + 8);
+    if (tail == 0) {
+        // Empty list
+        ab_write_i64(list, n);     // head = n
+        ab_write_i64(list + 8, n); // tail = n
+    } else {
+        node_set_next(tail, n);
+        node_set_prev(n, tail);
+        ab_write_i64(list + 8, n); // tail = n
+    }
+    let count = ab_read_i64(list + 16);
+    ab_write_i64(list + 16, count + 1);
+}
+
+// Prepend to front.
+pub fn ll_prepend(list: i64, value: i32) {
+    let n = node_new(value);
+    let head = ab_read_i64(list);
+    if (head == 0) {
+        ab_write_i64(list, n);
+        ab_write_i64(list + 8, n);
+    } else {
+        node_set_next(n, head);
+        node_set_prev(head, n);
+        ab_write_i64(list, n);
+    }
+    let count = ab_read_i64(list + 16);
+    ab_write_i64(list + 16, count + 1);
+}
+
+// Remove a specific node (by pointer).
+pub fn ll_remove_node(list: i64, node: i64) {
+    let prev = node_prev(node);
+    let next = node_next(node);
+
+    if (prev != 0) {
+        node_set_next(prev, next);
+    } else {
+        ab_write_i64(list, next); // new head
+    }
+
+    if (next != 0) {
+        node_set_prev(next, prev);
+    } else {
+        ab_write_i64(list + 8, prev); // new tail
+    }
+
+    let count = ab_read_i64(list + 16);
+    ab_write_i64(list + 16, count - 1);
+    raw_free(node);
+}
+
+// Remove the first element.
+pub fn ll_pop_front(list: i64): i32 {
+    let head = ab_read_i64(list);
+    let val = node_value(head);
+    ll_remove_node(list, head);
+    return val;
+}
+
+// Remove the last element.
+pub fn ll_pop_back(list: i64): i32 {
+    let tail = ab_read_i64(list + 8);
+    let val = node_value(tail);
+    ll_remove_node(list, tail);
+    return val;
+}
+
+// Free all nodes and the list.
+pub fn ll_free(list: i64) {
+    var node = ab_read_i64(list);
+    while (node != 0) {
+        let next = node_next(node);
+        raw_free(node);
+        node = next;
+    }
+    raw_free(list);
+}

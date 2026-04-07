@@ -1,0 +1,20 @@
+// Copyright (C) 2026 Vincent Hengel.
+// ELF/PJW hash - aki equivalent of base/hashing/elf.h
+
+module elf;
+
+pub fn elf_hash(data: str): u32 {
+    var hash: u32 = 0;
+    let len = str_len(data);
+    for (i in 0..len) {
+        let c = str_char_at(data, i) as u32;
+        hash = (hash << 4) + c;
+        // Check high nibble
+        let high = hash & 4026531840;  // 0xF0000000
+        if (high != 0) {
+            hash = hash ^ (high >> 24);
+        }
+        hash = hash & ~high;
+    }
+    return hash;
+}

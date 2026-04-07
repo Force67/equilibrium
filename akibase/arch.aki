@@ -1,0 +1,13 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Core type definitions - aki equivalents of base/arch.h
+// Note: aki has native i8..i64, u8..u64, f32, f64, and byte types.
+// This module provides the extra aliases and utilities.
+
+module arch;
+
+using mem_size = u64;
+using xsize = u64;
+using pointer_size = u64;
+using pointer_diff = i64;
+
+const kCharBit = 8;

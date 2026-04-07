@@ -1,0 +1,33 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Min/Max utilities - aki equivalent of base/math/value_bounds.h
+
+module value_bounds;
+
+pub fn min<T>(a: T, b: T): T {
+    if (a < b) { return a; }
+    return b;
+}
+
+pub fn max<T>(a: T, b: T): T {
+    if (a > b) { return a; }
+    return b;
+}
+
+pub fn clamp<T>(value: T, lo: T, hi: T): T {
+    return max(lo, min(value, hi));
+}
+
+pub fn abs_i32(x: i32): i32 {
+    if (x < 0) { return 0 - x; }
+    return x;
+}
+
+pub fn abs_i64(x: i64): i64 {
+    if (x < 0) { return 0 - x; }
+    return x;
+}
+
+pub fn abs_f64(x: f64): f64 {
+    if (x < 0.0) { return 0.0 - x; }
+    return x;
+}

@@ -1,0 +1,26 @@
+// Copyright (C) 2026 Vincent Hengel.
+// DJB2 hash - aki equivalent of base/hashing/djb2.h
+
+module djb2;
+
+pub fn djb2_32(data: str): u32 {
+    var hash: u32 = 5381;
+    let len = str_len(data);
+    for (i in 0..len) {
+        let c = str_char_at(data, i) as u32;
+        hash = ((hash << 5) + hash) + c;
+    }
+    return hash;
+}
+
+pub fn djb2_64(data: str): u64 {
+    var hash: u64 = 5381;
+    var hash2: u64 = 52711;
+    let len = str_len(data);
+    for (i in 0..len) {
+        let c = str_char_at(data, i) as u64;
+        hash = ((hash << 5) + hash) + c;
+        hash2 = ((hash << 5) + hash) + c;
+    }
+    return hash * 4096 + hash2;
+}

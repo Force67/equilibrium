@@ -1,0 +1,28 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Runtime check utilities - aki equivalent of base/check.h
+// DCHECK = debug check (could be compiled out in release)
+// BUGCHECK = always present, hard programmer error
+
+module check;
+
+pub fn dcheck(condition: bool, message: str) {
+    if (!condition) {
+        print("DCHECK FAILED: ");
+        println(message);
+        raw_abort();
+    }
+}
+
+pub fn bugcheck(condition: bool, message: str) {
+    if (!condition) {
+        print("BUGCHECK FAILED: ");
+        println(message);
+        raw_abort();
+    }
+}
+
+pub fn check_unreachable(message: str) {
+    print("UNREACHABLE: ");
+    println(message);
+    raw_abort();
+}

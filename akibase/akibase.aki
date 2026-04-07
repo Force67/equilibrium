@@ -1,0 +1,37 @@
+// Copyright (C) 2026 Vincent Hengel.
+// akibase - barrel module that re-exports all library components.
+// Compile as shared library: akic --shared -O2 akibase.aki -o libakibase.so
+
+// Shared memory helpers (used by containers & algorithms)
+import "mem.aki";
+
+// Core types & utilities
+import "arch.aki";
+import "tristate.aki";
+import "version.aki";
+import "check.aki";
+import "expected.aki";
+import "endianess.aki";
+import "numeric_limits.aki";
+
+// Math
+import "math/value_bounds.aki";
+import "math/alignment.aki";
+import "math/vec.aki";
+
+// Hashing
+import "hashing/fnv1a.aki";
+import "hashing/djb2.aki";
+import "hashing/joaat.aki";
+import "hashing/elf.aki";
+import "hashing/crc.aki";
+
+// Algorithms
+import "algorithm.aki";
+
+// Containers
+import "containers/pair.aki";
+import "containers/span.aki";
+import "containers/ring_buffer.aki";
+import "containers/linked_list.aki";
+import "containers/bitset.aki";

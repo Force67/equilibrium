@@ -1,0 +1,45 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Span - a lightweight view over contiguous i32 memory.
+// aki equivalent of base/containers/span.h
+// Layout: [ptr: i64, len: i64]  (16 bytes)
+
+module span;
+
+import { ab_read_i64, ab_write_i64, ab_read_i32 } from "../mem.aki";
+
+// Create a span from a raw pointer and length.
+pub fn span_new(ptr: i64, len: i32): i64 {
+    let s: i64 = raw_malloc(16);
+    ab_write_i64(s, ptr);
+    ab_write_i64(s + 8, len as i64);
+    return s;
+}
+
+pub fn span_data(s: i64): i64 {
+    return ab_read_i64(s);
+}
+
+pub fn span_len(s: i64): i32 {
+    return ab_read_i64(s + 8) as i32;
+}
+
+pub fn span_empty(s: i64): bool {
+    return ab_read_i64(s + 8) == 0;
+}
+
+pub fn span_get(s: i64, index: i32): i32 {
+    return ab_read_i32(ab_read_i64(s), index);
+}
+
+pub fn span_front(s: i64): i32 {
+    return ab_read_i32(ab_read_i64(s), 0);
+}
+
+pub fn span_back(s: i64): i32 {
+    let len = ab_read_i64(s + 8) as i32;
+    return ab_read_i32(ab_read_i64(s), len - 1);
+}
+
+pub fn span_free(s: i64) {
+    raw_free(s);
+}

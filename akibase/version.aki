@@ -1,0 +1,21 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Version key encoding/decoding - aki equivalent of base/version.h
+// Encodes major.minor.patch into a single integer: major*10000 + minor*100 + patch
+
+module version;
+
+pub fn make_version_key(major: u64, minor: u64, patch: u64): u64 {
+    return major * 10000 + minor * 100 + patch;
+}
+
+pub fn version_major(key: u64): u64 {
+    return key / 10000;
+}
+
+pub fn version_minor(key: u64): u64 {
+    return (key / 100) % 100;
+}
+
+pub fn version_patch(key: u64): u64 {
+    return key % 100;
+}
