@@ -81,3 +81,4 @@ rsbase/**/*.rs.bk
 .vscode/tasks.json
 /.ropeproject
 /.zed
+akibase/libakibase.so

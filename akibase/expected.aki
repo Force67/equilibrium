@@ -1,42 +1,40 @@
 // Copyright (C) 2026 Vincent Hengel.
-// Expected - a Result-like type for error handling.
+// Expected<T> - a Result-like type for error handling.
 // aki equivalent of base/expected.h
-// Since aki has native T? (optional), Expected adds typed errors.
-// Layout: [has_error: i64, value_or_error: i64]  (16 bytes)
-// For i32 values / i32 error codes.
+// On success holds a T value, on failure holds an i32 error code.
+//
+// Usage:
+//   let ok = Expected<i32>(42);           // success
+//   var err = Expected<i32>(0);           // create with default
+//   err.set_error(-1);                    // mark as error
 
 module expected;
 
-import { ab_read_i64, ab_write_i64 } from "mem.aki";
+pub complex Expected<T> {
+    let val: T;
+    let err: i32;
+    let has_err: bool;
 
-// Create an Expected holding a success value.
-pub fn expected_ok(value: i32): i64 {
-    let e: i64 = raw_malloc(16);
-    ab_write_i64(e, 0);
-    ab_write_i64(e + 8, value as i64);
-    return e;
-}
+    fn Expected(v: T) {
+        self.val = v;
+        self.err = 0;
+        self.has_err = false;
+    }
 
-// Create an Expected holding an error.
-pub fn expected_err(error: i32): i64 {
-    let e: i64 = raw_malloc(16);
-    ab_write_i64(e, 1);
-    ab_write_i64(e + 8, error as i64);
-    return e;
-}
+    fn set_error(code: i32) {
+        self.has_err = true;
+        self.err = code;
+    }
 
-pub fn expected_has_error(e: i64): bool {
-    return ab_read_i64(e) != 0;
-}
+    fn has_error(): bool {
+        return self.has_err;
+    }
 
-pub fn expected_value(e: i64): i32 {
-    return ab_read_i64(e + 8) as i32;
-}
+    fn value(): T {
+        return self.val;
+    }
 
-pub fn expected_error(e: i64): i32 {
-    return ab_read_i64(e + 8) as i32;
-}
-
-pub fn expected_free(e: i64) {
-    raw_free(e);
+    fn error(): i32 {
+        return self.err;
+    }
 }

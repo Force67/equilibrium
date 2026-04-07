@@ -285,13 +285,13 @@ fn test_pair_i32() {
 #[test]
 fn test_span() {
     var arr: [i32, 5] = {10, 20, 30, 40, 50};
-    let s = span_new(&arr, 5);
-    assert_eq(span_len(s), 5);
-    assert_eq(span_get(s, 0), 10);
-    assert_eq(span_get(s, 4), 50);
-    assert_eq(span_front(s), 10);
-    assert_eq(span_back(s), 50);
-    span_free(s);
+    let s = Span<i32>(&arr, 5);
+    assert_eq(s.size(), 5);
+    assert_false(s.empty(), "not empty");
+    assert_eq(s.get(0), 10);
+    assert_eq(s.get(4), 50);
+    assert_eq(s.front(), 10);
+    assert_eq(s.back(), 50);
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -375,18 +375,17 @@ fn test_bitset_ops() {
 
 #[test]
 fn test_expected_ok() {
-    let e = expected_ok(42);
-    assert_false(expected_has_error(e), "no error");
-    assert_eq(expected_value(e), 42);
-    expected_free(e);
+    let e = Expected<i32>(42);
+    assert_false(e.has_error(), "no error");
+    assert_eq(e.value(), 42);
 }
 
 #[test]
 fn test_expected_err() {
-    let e = expected_err(-1);
-    assert_true(expected_has_error(e), "has error");
-    assert_eq(expected_error(e), -1);
-    expected_free(e);
+    var e = Expected<i32>(0);
+    e.set_error(-1);
+    assert_true(e.has_error(), "has error");
+    assert_eq(e.error(), -1);
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -395,8 +394,9 @@ fn test_expected_err() {
 
 #[test]
 fn test_dcheck() {
-    dcheck(true, "should pass");
-    dcheck(1 == 1, "equality");
+    dcheck!(true, "should pass");
+    dcheck!(1 == 1, "equality");
+    bugcheck!(true, "should pass");
 }
 
 // ════════════════════════════════════════════════════════════════════
