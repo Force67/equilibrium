@@ -1,26 +1,23 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Shared memory access helpers for akibase containers.
 // Prefixed with ab_ to avoid conflicts with stdlib internals.
-
 module mem;
 
 pub fn ab_read_i64(addr: i64): i64 {
-    var val: i64 = 0;
-    raw_memcpy(&val, addr, 8);
-    return val;
+  var val: i64 = 0;
+  raw_memcpy(&val, addr, 8);
+  return val;
 }
 
-pub fn ab_write_i64(addr: i64, val: i64) {
-    raw_memcpy(addr, &val, 8);
-}
+pub fn ab_write_i64(addr: i64, val: i64) { raw_memcpy(addr, &val, 8); }
 
 pub fn ab_read_i32(base: i64, index: i32): i32 {
-    var val: i32 = 0;
-    raw_memcpy(&val, base + index as i64 * 4, 4);
-    return val;
+  var val: i32 = 0;
+  raw_memcpy(&val, base + index as i64 * 4, 4);
+  return val;
 }
 
 pub fn ab_write_i32(base: i64, index: i32, val: i32) {
-    var v: i32 = val;
-    raw_memcpy(base + index as i64 * 4, &v, 4);
+  var v: i32 = val;
+  raw_memcpy(base + index as i64 * 4, &v, 4);
 }

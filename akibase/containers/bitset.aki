@@ -1,61 +1,42 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Fixed 64-bit bitset - aki equivalent of base/containers/bitsets/bitset.h
 // Uses a single u64 word. For larger bitsets, use dynamic_bitset.
-
 module bitset;
 
 // Create a new bitset (64 bits, all zeros).
-pub fn bs_new(): u64 {
-    return 0;
-}
+pub fn bs_new(): u64 { return 0; }
 
 // Set bit at position pos.
-pub fn bs_set(bits: u64, pos: i32): u64 {
-    return bits | (1 << pos as u64);
-}
+pub fn bs_set(bits: u64, pos: i32): u64 { return bits | (1 << pos as u64); }
 
 // Clear bit at position pos.
-pub fn bs_clear(bits: u64, pos: i32): u64 {
-    return bits & ~(1 << pos as u64);
-}
+pub fn bs_clear(bits: u64, pos: i32): u64 { return bits & ~(1 << pos as u64); }
 
 // Toggle bit at position pos.
-pub fn bs_flip(bits: u64, pos: i32): u64 {
-    return bits ^ (1 << pos as u64);
-}
+pub fn bs_flip(bits: u64, pos: i32): u64 { return bits ^ (1 << pos as u64); }
 
 // Test if bit at position pos is set.
-pub fn bs_test(bits: u64, pos: i32): bool {
-    return (bits & (1 << pos as u64)) != 0;
-}
+pub fn bs_test(bits: u64, pos: i32): bool { return (bits & (1 << pos as u64)) != 0; }
 
 // Count set bits (popcount).
 pub fn bs_count(bits: u64): i32 {
-    var n = bits;
-    var count: i32 = 0;
-    while (n != 0) {
-        n = n & (n - 1);
-        count = count + 1;
-    }
-    return count;
+  var n = bits;
+  var count: i32 = 0;
+  while (n != 0) {
+    n = n & (n - 1);
+    count = count + 1;
+  }
+  return count;
 }
 
 // Reset all bits.
-pub fn bs_reset(): u64 {
-    return 0;
-}
+pub fn bs_reset(): u64 { return 0; }
 
 // Bitwise AND of two bitsets.
-pub fn bs_and(a: u64, b: u64): u64 {
-    return a & b;
-}
+pub fn bs_and(a: u64, b: u64): u64 { return a & b; }
 
 // Bitwise OR of two bitsets.
-pub fn bs_or(a: u64, b: u64): u64 {
-    return a | b;
-}
+pub fn bs_or(a: u64, b: u64): u64 { return a | b; }
 
 // Bitwise XOR of two bitsets.
-pub fn bs_xor(a: u64, b: u64): u64 {
-    return a ^ b;
-}
+pub fn bs_xor(a: u64, b: u64): u64 { return a ^ b; }

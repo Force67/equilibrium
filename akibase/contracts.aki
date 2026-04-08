@@ -1,31 +1,30 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Core contracts (traits) for akibase.
 // aki equivalent of C++ concepts / Rust traits.
-
 module contracts;
 
 // A type that can be converted to a string representation.
 pub contract Printable {
-    fn to_string(): str;
+  fn to_string(): str;
 }
 
 // A type that can be compared for equality.
 pub contract Equatable {
-    fn eq(other: i64): bool;
+  fn eq(other: i64): bool;
 }
 
 // A type that supports ordering comparisons.
 // Returns: <0 if self < other, 0 if equal, >0 if self > other.
 pub contract Comparable {
-    fn compare(other: i64): i32;
+  fn compare(other: i64): i32;
 }
 
 // A type that can produce a hash value.
 pub contract Hashable {
-    fn hash(): u64;
+  fn hash(): u64;
 }
 
 // A type that can be cloned (deep copy).
 pub contract Cloneable {
-    fn clone(): i64;
+  fn clone(): i64;
 }

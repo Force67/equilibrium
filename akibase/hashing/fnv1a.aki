@@ -1,28 +1,27 @@
 // Copyright (C) 2026 Vincent Hengel.
 // FNV-1a hash - aki equivalent of base/hashing/fnv1a.h
-
 module fnv1a;
 
 pub fn fnv1a_32(data: str): u32 {
-    var hash: u32 = 2166136261;
-    let len = str_len(data);
-    for (i in 0..len) {
-        let c = str_char_at(data, i);
-        hash = hash ^ (c as u32);
-        hash = hash * 16777619;
-    }
-    return hash;
+  var hash: u32 = 2166136261;
+  let len = str_len(data);
+  for (i in 0..len) {
+    let c = str_char_at(data, i);
+    hash = hash ^ (c as u32);
+    hash = hash * 16777619;
+  }
+  return hash;
 }
 
 pub fn fnv1a_64(data: str): u64 {
-    // FNV offset basis: 0xcbf29ce484222325
-    var hash: u64 = 14695981039346656037;
-    let len = str_len(data);
-    for (i in 0..len) {
-        let c = str_char_at(data, i);
-        hash = hash ^ (c as u64);
-        // FNV prime: 0x100000001b3
-        hash = hash * 1099511628211;
-    }
-    return hash;
+  // FNV offset basis: 0xcbf29ce484222325
+  var hash: u64 = 14695981039346656037;
+  let len = str_len(data);
+  for (i in 0..len) {
+    let c = str_char_at(data, i);
+    hash = hash ^ (c as u64);
+    // FNV prime: 0x100000001b3
+    hash = hash * 1099511628211;
+  }
+  return hash;
 }

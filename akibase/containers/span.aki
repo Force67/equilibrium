@@ -1,28 +1,24 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Span<T> - a lightweight non-owning view over contiguous memory.
 // aki equivalent of base/containers/span.h
-
 module span;
 
 pub complex Span<T> {
-    let ptr: i64;
-    let len: i32;
+  let ptr: i64;
+  let len: i32;
 
-    fn Span(p: i64, n: i32) {
-        self.ptr = p;
-        self.len = n;
-    }
-
-    fn size(): i32 { return self.len; }
-    fn empty(): bool { return self.len == 0; }
-    fn data(): i64 { return self.ptr; }
-
-    fn get(index: i32): T {
-        var val: T;
-        raw_memcpy(&val, self.ptr + index as i64 * sizeof(T), sizeof(T));
-        return val;
-    }
-
-    fn front(): T { return self.get(0); }
-    fn back(): T { return self.get(self.len - 1); }
+  fn Span(p: i64, n: i32) {
+    self.ptr = p;
+    self.len = n;
+  }
+  fn size(): i32 { return self.len; }
+  fn empty(): bool { return self.len == 0; }
+  fn data(): i64 { return self.ptr; }
+  fn get(index: i32): T {
+    var val: T;
+    raw_memcpy(&val, self.ptr + index as i64 * sizeof(T), sizeof(T));
+    return val;
+  }
+  fn front(): T { return self.get(0); }
+  fn back(): T { return self.get(self.len - 1); }
 }

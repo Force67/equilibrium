@@ -8,157 +8,148 @@
 //   m.put("alice", 30);
 //   println(m.get("alice"));    // 30
 //   m.free();
-
 module hashmap;
 
 pub fn hm_fnv(key: str): i64 {
-    var h: i64 = 14695981039346656037;
-    let n = str_len(key);
-    for (i in 0..n) {
-        h = h ^ (str_char_at(key, i) as i64);
-        h = h * 1099511628211;
-    }
-    if (h < 0) { h = 0 - h; }
-    return h;
+  var h: i64 = 14695981039346656037;
+  let n = str_len(key);
+  for (i in 0..n) {
+    h = h ^ (str_char_at(key, i) as i64);
+    h = h * 1099511628211;
+  }
+  if (h < 0) { h = 0 - h; }
+  return h;
 }
 
-pub fn hm_r8(addr: i64): i64 { var v: i64 = 0; raw_memcpy(&v, addr, 8); return v; }
+pub fn hm_r8(addr: i64): i64 {
+  var v: i64 = 0;
+  raw_memcpy(&v, addr, 8);
+  return v;
+}
+
 pub fn hm_w8(addr: i64, val: i64) { raw_memcpy(addr, &val, 8); }
 
 pub complex Map<V> {
-    let buf: i64;
-    let cap: i32;
-    let count: i32;
+  let buf: i64;
+  let cap: i32;
+  let count: i32;
 
-    fn Map(initial: i32) {
-        var c: i32 = 16;
-        while (c < initial) { c = c * 2; }
-        self.cap = c;
-        self.count = 0;
-        self.buf = raw_malloc(c as i64 * 32);
-        raw_memset(self.buf, 0, c as i64 * 32);
+  fn Map(initial: i32) {
+    var c: i32 = 16;
+    while (c < initial) { c = c * 2; }
+    self.cap = c;
+    self.count = 0;
+    self.buf = raw_malloc(c as i64 * 32);
+    raw_memset(self.buf, 0, c as i64 * 32);
+  }
+  fn len(): i32 { return self.count; }
+  fn is_empty(): bool { return self.count == 0; }
+  fn capacity(): i32 { return self.cap; }
+  fn put(key: str, value: V) {
+    if (self.count * 4 >= self.cap * 3) { self.grow(); }
+    let hash = hm_fnv(key);
+    let mask = self.cap - 1;
+    var idx: i32 = (hash % self.cap as i64) as i32;
+    for (probe in 0..self.cap) {
+      let slot = self.buf + idx as i64 * 32;
+      let state = hm_r8(slot);
+      if (state == 0 || state == 2) {
+        hm_w8(slot, 1);
+        hm_w8(slot + 8, hash);
+        hm_w8(slot + 16, key as i64);
+        hm_w8(slot + 24, value as i64);
+        self.count = self.count + 1;
+        return;
+      }
+      if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) {
+        hm_w8(slot + 24, value as i64);
+        return;
+      }
+      idx = (idx + 1) & mask;
     }
-
-    fn len(): i32 { return self.count; }
-    fn is_empty(): bool { return self.count == 0; }
-    fn capacity(): i32 { return self.cap; }
-
-    fn put(key: str, value: V) {
-        if (self.count * 4 >= self.cap * 3) { self.grow(); }
-        let hash = hm_fnv(key);
-        let mask = self.cap - 1;
-        var idx: i32 = (hash % self.cap as i64) as i32;
-        for (probe in 0..self.cap) {
-            let slot = self.buf + idx as i64 * 32;
-            let state = hm_r8(slot);
-            if (state == 0 || state == 2) {
-                hm_w8(slot, 1);
-                hm_w8(slot + 8, hash);
-                hm_w8(slot + 16, key as i64);
-                hm_w8(slot + 24, value as i64);
-                self.count = self.count + 1;
-                return;
-            }
-            if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) {
-                hm_w8(slot + 24, value as i64);
-                return;
-            }
-            idx = (idx + 1) & mask;
+  }
+  fn get(key: str): V {
+    let hash = hm_fnv(key);
+    let mask = self.cap - 1;
+    var idx: i32 = (hash % self.cap as i64) as i32;
+    for (probe in 0..self.cap) {
+      let slot = self.buf + idx as i64 * 32;
+      let state = hm_r8(slot);
+      if (state == 0) { return 0 as V; }
+      if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) { return hm_r8(slot + 24) as V; }
+      idx = (idx + 1) & mask;
+    }
+    return 0 as V;
+  }
+  fn get_or(key: str, fallback: V): V {
+    if (self.contains(key)) { return self.get(key); }
+    return fallback;
+  }
+  fn contains(key: str): bool {
+    let hash = hm_fnv(key);
+    let mask = self.cap - 1;
+    var idx: i32 = (hash % self.cap as i64) as i32;
+    for (probe in 0..self.cap) {
+      let slot = self.buf + idx as i64 * 32;
+      let state = hm_r8(slot);
+      if (state == 0) { return false; }
+      if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) { return true; }
+      idx = (idx + 1) & mask;
+    }
+    return false;
+  }
+  fn remove(key: str): bool {
+    let hash = hm_fnv(key);
+    let mask = self.cap - 1;
+    var idx: i32 = (hash % self.cap as i64) as i32;
+    for (probe in 0..self.cap) {
+      let slot = self.buf + idx as i64 * 32;
+      let state = hm_r8(slot);
+      if (state == 0) { return false; }
+      if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) {
+        hm_w8(slot, 2);
+        self.count = self.count - 1;
+        return true;
+      }
+      idx = (idx + 1) & mask;
+    }
+    return false;
+  }
+  fn clear() {
+    raw_memset(self.buf, 0, self.cap as i64 * 32);
+    self.count = 0;
+  }
+  fn grow() {
+    let old_buf = self.buf;
+    let old_cap = self.cap;
+    let new_cap = old_cap * 2;
+    self.buf = raw_malloc(new_cap as i64 * 32);
+    raw_memset(self.buf, 0, new_cap as i64 * 32);
+    self.cap = new_cap;
+    self.count = 0;
+    let mask = new_cap - 1;
+    for (i in 0..old_cap) {
+      let src = old_buf + i as i64 * 32;
+      if (hm_r8(src) == 1) {
+        let hash = hm_r8(src + 8);
+        let key = hm_r8(src + 16);
+        let val = hm_r8(src + 24);
+        var idx: i32 = (hash % new_cap as i64) as i32;
+        for (p in 0..new_cap) {
+          let dst = self.buf + idx as i64 * 32;
+          if (hm_r8(dst) == 0) {
+            hm_w8(dst, 1);
+            hm_w8(dst + 8, hash);
+            hm_w8(dst + 16, key);
+            hm_w8(dst + 24, val);
+            self.count = self.count + 1;
+            break;
+          }
+          idx = (idx + 1) & mask;
         }
+      }
     }
-
-    fn get(key: str): V {
-        let hash = hm_fnv(key);
-        let mask = self.cap - 1;
-        var idx: i32 = (hash % self.cap as i64) as i32;
-        for (probe in 0..self.cap) {
-            let slot = self.buf + idx as i64 * 32;
-            let state = hm_r8(slot);
-            if (state == 0) { return 0 as V; }
-            if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) {
-                return hm_r8(slot + 24) as V;
-            }
-            idx = (idx + 1) & mask;
-        }
-        return 0 as V;
-    }
-
-    fn get_or(key: str, fallback: V): V {
-        if (self.contains(key)) { return self.get(key); }
-        return fallback;
-    }
-
-    fn contains(key: str): bool {
-        let hash = hm_fnv(key);
-        let mask = self.cap - 1;
-        var idx: i32 = (hash % self.cap as i64) as i32;
-        for (probe in 0..self.cap) {
-            let slot = self.buf + idx as i64 * 32;
-            let state = hm_r8(slot);
-            if (state == 0) { return false; }
-            if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) {
-                return true;
-            }
-            idx = (idx + 1) & mask;
-        }
-        return false;
-    }
-
-    fn remove(key: str): bool {
-        let hash = hm_fnv(key);
-        let mask = self.cap - 1;
-        var idx: i32 = (hash % self.cap as i64) as i32;
-        for (probe in 0..self.cap) {
-            let slot = self.buf + idx as i64 * 32;
-            let state = hm_r8(slot);
-            if (state == 0) { return false; }
-            if (state == 1 && hm_r8(slot + 8) == hash && str_eq(hm_r8(slot + 16) as str, key)) {
-                hm_w8(slot, 2);
-                self.count = self.count - 1;
-                return true;
-            }
-            idx = (idx + 1) & mask;
-        }
-        return false;
-    }
-
-    fn clear() {
-        raw_memset(self.buf, 0, self.cap as i64 * 32);
-        self.count = 0;
-    }
-
-    fn grow() {
-        let old_buf = self.buf;
-        let old_cap = self.cap;
-        let new_cap = old_cap * 2;
-        self.buf = raw_malloc(new_cap as i64 * 32);
-        raw_memset(self.buf, 0, new_cap as i64 * 32);
-        self.cap = new_cap;
-        self.count = 0;
-        let mask = new_cap - 1;
-        for (i in 0..old_cap) {
-            let src = old_buf + i as i64 * 32;
-            if (hm_r8(src) == 1) {
-                let hash = hm_r8(src + 8);
-                let key = hm_r8(src + 16);
-                let val = hm_r8(src + 24);
-                var idx: i32 = (hash % new_cap as i64) as i32;
-                for (p in 0..new_cap) {
-                    let dst = self.buf + idx as i64 * 32;
-                    if (hm_r8(dst) == 0) {
-                        hm_w8(dst, 1);
-                        hm_w8(dst + 8, hash);
-                        hm_w8(dst + 16, key);
-                        hm_w8(dst + 24, val);
-                        self.count = self.count + 1;
-                        break;
-                    }
-                    idx = (idx + 1) & mask;
-                }
-            }
-        }
-        raw_free(old_buf);
-    }
-
-    fn free() { raw_free(self.buf); }
+    raw_free(old_buf);
+  }
+  fn free() { raw_free(self.buf); }
 }

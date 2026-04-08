@@ -1,28 +1,19 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Generic utility functions with trait constraints.
 // Demonstrates constrained generics on real akibase code.
-
 module generic_utils;
-
 import "contracts.aki";
-
 // Print any Printable type.
-pub fn display<T: Printable>(item: T) {
-    println(item.to_string());
-}
+pub fn display<T: Printable>(item: T) { println(item.to_string()); }
 
 // Print with a label.
-pub fn display_labeled<T: Printable>(label: str, item: T) {
-    println(label + ": " + item.to_string());
-}
+pub fn display_labeled<T: Printable>(label: str, item: T) { println(label + ": " + item.to_string()); }
 
 // Compare two Comparable items. Returns the smaller one's value.
 pub fn min_by<T: Comparable>(a: T, b: T): i64 {
-    if (a.compare(b as i64) < 0) { return a as i64; }
-    return b as i64;
+  if (a.compare(b as i64) < 0) { return a as i64; }
+  return b as i64;
 }
 
 // Check if a Hashable item has a specific hash.
-pub fn hash_matches<T: Hashable>(item: T, expected: u64): bool {
-    return item.hash() == expected;
-}
+pub fn hash_matches<T: Hashable>(item: T, expected: u64): bool { return item.hash() == expected; }

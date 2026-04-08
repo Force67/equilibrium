@@ -1,44 +1,37 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Pair type - aki equivalent of base/containers/pair.h
-
 module pair;
 
 pub complex Pair<T> {
-    let first: T;
-    let second: T;
+  let first: T;
+  let second: T;
 
-    fn Pair(a: T, b: T) {
-        self.first = a;
-        self.second = b;
-    }
-
-    fn get_first(): T {
-        return self.first;
-    }
-
-    fn get_second(): T {
-        return self.second;
-    }
+  fn Pair(a: T, b: T) {
+    self.first = a;
+    self.second = b;
+  }
+  fn get_first(): T { return self.first; }
+  fn get_second(): T { return self.second; }
 }
 
 // Int-specific pair for convenience
 pub complex PairI32 {
-    let first: i32;
-    let second: i32;
+  let first: i32;
+  let second: i32;
 
-    fn PairI32(a: i32, b: i32) {
-        self.first = a;
-        self.second = b;
-    }
+  fn PairI32(a: i32, b: i32) {
+    self.first = a;
+    self.second = b;
+  }
 }
 
 // String pair
 pub complex PairStr {
-    let first: str;
-    let second: str;
+  let first: str;
+  let second: str;
 
-    fn PairStr(a: str, b: str) {
-        self.first = a;
-        self.second = b;
-    }
+  fn PairStr(a: str, b: str) {
+    self.first = a;
+    self.second = b;
+  }
 }

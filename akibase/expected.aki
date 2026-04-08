@@ -7,34 +7,23 @@
 //   let ok = Expected<i32>(42);           // success
 //   var err = Expected<i32>(0);           // create with default
 //   err.set_error(-1);                    // mark as error
-
 module expected;
 
 pub complex Expected<T> {
-    let val: T;
-    let err: i32;
-    let has_err: bool;
+  let val: T;
+  let err: i32;
+  let has_err: bool;
 
-    fn Expected(v: T) {
-        self.val = v;
-        self.err = 0;
-        self.has_err = false;
-    }
-
-    fn set_error(code: i32) {
-        self.has_err = true;
-        self.err = code;
-    }
-
-    fn has_error(): bool {
-        return self.has_err;
-    }
-
-    fn value(): T {
-        return self.val;
-    }
-
-    fn error(): i32 {
-        return self.err;
-    }
+  fn Expected(v: T) {
+    self.val = v;
+    self.err = 0;
+    self.has_err = false;
+  }
+  fn set_error(code: i32) {
+    self.has_err = true;
+    self.err = code;
+  }
+  fn has_error(): bool { return self.has_err; }
+  fn value(): T { return self.val; }
+  fn error(): i32 { return self.err; }
 }

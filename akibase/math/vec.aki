@@ -1,93 +1,72 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Vector types with operator overloading - aki equivalent of base/math/vec2.h, vec3.h, vec4.h
 // Operators: +, -, ==, != are supported via method names (add, sub, eq, ne).
-
 module vec;
 
 pub complex Vec2<T> {
-    let a: T;
-    let b: T;
+  let a: T;
+  let b: T;
 
-    fn Vec2(x: T, y: T) {
-        self.a = x;
-        self.b = y;
-    }
-
-    fn add(other: Vec2<T>): Vec2<T> {
-        return Vec2<T>(self.a + other.a, self.b + other.b);
-    }
-
-    fn sub(other: Vec2<T>): Vec2<T> {
-        return Vec2<T>(self.a - other.a, self.b - other.b);
-    }
-
-    fn eq(other: Vec2<T>): bool {
-        return self.a == other.a && self.b == other.b;
-    }
-
-    fn ne(other: Vec2<T>): bool {
-        return self.a != other.a || self.b != other.b;
-    }
+  fn Vec2(x: T, y: T) {
+    self.a = x;
+    self.b = y;
+  }
+  fn add(other: Vec2<T>): Vec2<T> {
+    return Vec2<T>(self.a + other.a, self.b + other.b);
+  }
+  fn sub(other: Vec2<T>): Vec2<T> {
+    return Vec2<T>(self.a - other.a, self.b - other.b);
+  }
+  fn eq(other: Vec2<T>): bool { return self.a == other.a && self.b == other.b; }
+  fn ne(other: Vec2<T>): bool { return self.a != other.a || self.b != other.b; }
 }
 
 pub complex Vec3<T> {
-    let a: T;
-    let b: T;
-    let c: T;
+  let a: T;
+  let b: T;
+  let c: T;
 
-    fn Vec3(x: T, y: T, z: T) {
-        self.a = x;
-        self.b = y;
-        self.c = z;
-    }
-
-    fn add(other: Vec3<T>): Vec3<T> {
-        return Vec3<T>(self.a + other.a, self.b + other.b, self.c + other.c);
-    }
-
-    fn sub(other: Vec3<T>): Vec3<T> {
-        return Vec3<T>(self.a - other.a, self.b - other.b, self.c - other.c);
-    }
-
-    fn eq(other: Vec3<T>): bool {
-        return self.a == other.a && self.b == other.b && self.c == other.c;
-    }
-
-    fn ne(other: Vec3<T>): bool {
-        return !(self.a == other.a && self.b == other.b && self.c == other.c);
-    }
+  fn Vec3(x: T, y: T, z: T) {
+    self.a = x;
+    self.b = y;
+    self.c = z;
+  }
+  fn add(other: Vec3<T>): Vec3<T> {
+    return Vec3<T>(self.a + other.a, self.b + other.b, self.c + other.c);
+  }
+  fn sub(other: Vec3<T>): Vec3<T> {
+    return Vec3<T>(self.a - other.a, self.b - other.b, self.c - other.c);
+  }
+  fn eq(other: Vec3<T>): bool {
+    return self.a == other.a && self.b == other.b && self.c == other.c;
+  }
+  fn ne(other: Vec3<T>): bool {
+    return !(self.a == other.a && self.b == other.b && self.c == other.c);
+  }
 }
 
 pub complex Vec4<T> {
-    let a: T;
-    let b: T;
-    let c: T;
-    let d: T;
+  let a: T;
+  let b: T;
+  let c: T;
+  let d: T;
 
-    fn Vec4(x: T, y: T, z: T, w: T) {
-        self.a = x;
-        self.b = y;
-        self.c = z;
-        self.d = w;
-    }
-
-    fn add(other: Vec4<T>): Vec4<T> {
-        return Vec4<T>(self.a + other.a, self.b + other.b,
-                       self.c + other.c, self.d + other.d);
-    }
-
-    fn sub(other: Vec4<T>): Vec4<T> {
-        return Vec4<T>(self.a - other.a, self.b - other.b,
-                       self.c - other.c, self.d - other.d);
-    }
-
-    fn eq(other: Vec4<T>): bool {
-        return self.a == other.a && self.b == other.b &&
-               self.c == other.c && self.d == other.d;
-    }
-
-    fn ne(other: Vec4<T>): bool {
-        return !(self.a == other.a && self.b == other.b &&
-                 self.c == other.c && self.d == other.d);
-    }
+  fn Vec4(x: T, y: T, z: T, w: T) {
+    self.a = x;
+    self.b = y;
+    self.c = z;
+    self.d = w;
+  }
+  fn add(other: Vec4<T>): Vec4<T> {
+    return Vec4<T>(self.a + other.a, self.b + other.b, self.c + other.c, self.d + other.d);
+  }
+  fn sub(other: Vec4<T>): Vec4<T> {
+    return Vec4<T>(self.a - other.a, self.b - other.b, self.c - other.c, self.d - other.d);
+  }
+  fn eq(other: Vec4<T>): bool {
+    return self.a == other.a && self.b == other.b && self.c == other.c && self.d == other.d;
+  }
+  fn ne(other: Vec4<T>): bool {
+    return !(self.a == other.a && self.b == other.b && self.c == other.c && self.d == other.d);
+  }
 }

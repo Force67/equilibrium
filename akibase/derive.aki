@@ -1,0 +1,38 @@
+// Copyright (C) 2026 Vincent Hengel.
+// Derive macros using compile-time reflection (@fields, @variants).
+// Generates boilerplate code automatically.
+//
+// Usage:
+//   fields_to_string!(MyType);    // _result = "MyType(field1, field2)"
+//   enum_to_string!(MyEnum, val); // _name = variant name string
+//   print_fields!(MyType);        // prints each field name
+//   print_variants!(MyEnum);      // prints each variant name
+module derive;
+
+macro fields_to_string!(type_name: ident) {
+  var _result: str = @stringify(type_name) + "{{";
+  var _first: bool = true;
+  for (_fname in @fields(type_name)) {
+    if (!_first) { _result = _result + ", "; }
+    _result = _result + _fname;
+    _first = false;
+  }
+  _result = _result + "}}";
+}
+
+macro enum_to_string!(enum_name: ident, value: expr) {
+  var _name: str = "?";
+  var _idx: i32 = 0;
+  for (_vname in @variants(enum_name)) {
+    if (value as i32 == _idx) { _name = _vname; }
+    _idx = _idx + 1;
+  }
+}
+
+macro print_fields!(type_name: ident) {
+  for (_f in @fields(type_name)) { println("  " + _f); }
+}
+
+macro print_variants!(enum_name: ident) {
+  for (_v in @variants(enum_name)) { println("  " + _v); }
+}

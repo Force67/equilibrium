@@ -2,16 +2,15 @@
 // Runtime check macros - aki equivalent of base/check.h
 // Captures source location automatically via @file, @line, @fn.
 // dcheck!() is stripped in release builds (--cfg release).
-
 module check;
 
 #[cfg(not, release)]
 macro dcheck!(condition: expr, message: str) {
-    if (!condition) {
-        print("DCHECK FAILED [" + @file + ":" + @line + " in " + @fn + "] ");
-        println(message);
-        raw_abort();
-    }
+  if (!condition) {
+    print("DCHECK FAILED [" + @file + ":" + @line + " in " + @fn + "] ");
+    println(message);
+    raw_abort();
+  }
 }
 
 #[cfg(release)]
@@ -19,15 +18,15 @@ macro dcheck!(condition: expr, message: str) {
 }
 
 macro bugcheck!(condition: expr, message: str) {
-    if (!condition) {
-        print("BUG [" + @file + ":" + @line + " in " + @fn + "] ");
-        println(message);
-        raw_abort();
-    }
+  if (!condition) {
+    print("BUG [" + @file + ":" + @line + " in " + @fn + "] ");
+    println(message);
+    raw_abort();
+  }
 }
 
 macro check_unreachable!(message: str) {
-    print("UNREACHABLE [" + @file + ":" + @line + " in " + @fn + "] ");
-    println(message);
-    raw_abort();
+  print("UNREACHABLE [" + @file + ":" + @line + " in " + @fn + "] ");
+  println(message);
+  raw_abort();
 }

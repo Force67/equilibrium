@@ -1,40 +1,39 @@
 // Copyright (C) 2026 Vincent Hengel.
 // CRC32 software implementation - aki equivalent of base/hashing/crc.h
-
 module crc;
 
 // CRC32 using standard Ethernet/ZIP polynomial (0xEDB88320 reflected).
 pub fn crc32(data: str): u32 {
-    var crc: u32 = 4294967295;  // 0xFFFFFFFF
-    let len = str_len(data);
-    for (i in 0..len) {
-        let b = str_char_at(data, i) as u32;
-        crc = crc ^ b;
-        for (j in 0..8) {
-            if ((crc & 1) != 0) {
-                crc = (crc >> 1) ^ 3988292384;  // 0xEDB88320
-            } else {
-                crc = crc >> 1;
-            }
-        }
+  var crc: u32 = 4294967295; // 0xFFFFFFFF
+  let len = str_len(data);
+  for (i in 0..len) {
+    let b = str_char_at(data, i) as u32;
+    crc = crc ^ b;
+    for (j in 0..8) {
+      if ((crc & 1) != 0) {
+        crc = (crc >> 1) ^ 3988292384; // 0xEDB88320
+      } else {
+        crc = crc >> 1;
+      }
     }
-    return ~crc;
+  }
+  return ~crc;
 }
 
 // CRC32C using Castagnoli polynomial (0x82f63b78 reflected).
 pub fn crc32c(data: str): u32 {
-    var crc: u32 = 4294967295;  // 0xFFFFFFFF
-    let len = str_len(data);
-    for (i in 0..len) {
-        let b = str_char_at(data, i) as u32;
-        crc = crc ^ b;
-        for (j in 0..8) {
-            if ((crc & 1) != 0) {
-                crc = (crc >> 1) ^ 2197175160;  // 0x82F63B78
-            } else {
-                crc = crc >> 1;
-            }
-        }
+  var crc: u32 = 4294967295; // 0xFFFFFFFF
+  let len = str_len(data);
+  for (i in 0..len) {
+    let b = str_char_at(data, i) as u32;
+    crc = crc ^ b;
+    for (j in 0..8) {
+      if ((crc & 1) != 0) {
+        crc = (crc >> 1) ^ 2197175160; // 0x82F63B78
+      } else {
+        crc = crc >> 1;
+      }
     }
-    return ~crc;
+  }
+  return ~crc;
 }

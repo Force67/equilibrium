@@ -1,43 +1,39 @@
 // Copyright (C) 2026 Vincent Hengel.
 // Byte swap utilities - aki equivalent of base/endianess.h
-
 module endianess;
 
 // Byte swap a 16-bit value.
 pub fn byte_swap_16(val: u16): u16 {
-    return ((val & 255) << 8) | ((val >> 8) & 255);
+  return ((val & 255) << 8) | ((val >> 8) & 255);
 }
 
 // Byte swap a 32-bit value.
 pub fn byte_swap_32(val: u32): u32 {
-    var v = val;
-    v = ((v & 255) << 24) |
-        ((v & 65280) << 8) |        // 0xFF00
-        ((v >> 8) & 65280) |
-        ((v >> 24) & 255);
-    return v;
+  var v = val;
+  v = ((v & 255) << 24) | ((v & 65280) << 8) | // 0xFF00
+       ((v >> 8) & 65280) | ((v >> 24) & 255);
+  return v;
 }
 
 // Byte swap a 64-bit value.
 pub fn byte_swap_64(val: u64): u64 {
-    var v = val;
-    v = ((v & 255) << 56) |
-        (((v >> 8) & 255) << 48) |
-        (((v >> 16) & 255) << 40) |
-        (((v >> 24) & 255) << 32) |
-        (((v >> 32) & 255) << 24) |
-        (((v >> 40) & 255) << 16) |
-        (((v >> 48) & 255) << 8) |
-        ((v >> 56) & 255);
-    return v;
+  var v = val;
+  v = ((v & 255) << 56) | (((v >> 8) & 255) << 48) | (((v >> 16) & 255) << 40) | (((v >> 24) & 255)
+      << 32) | (((v >> 32) & 255) << 24) | (((v >> 40) & 255) << 16) | (((v >> 48) & 255) << 8) | ((v >> 56)
+      & 255);
+  return v;
 }
 
 // We assume little-endian (x86/ARM in LE mode).
 // To LE is identity, to BE is swap.
 pub fn to_little_endian_16(val: u16): u16 { return val; }
+
 pub fn to_little_endian_32(val: u32): u32 { return val; }
+
 pub fn to_little_endian_64(val: u64): u64 { return val; }
 
 pub fn to_big_endian_16(val: u16): u16 { return byte_swap_16(val); }
+
 pub fn to_big_endian_32(val: u32): u32 { return byte_swap_32(val); }
+
 pub fn to_big_endian_64(val: u64): u64 { return byte_swap_64(val); }
