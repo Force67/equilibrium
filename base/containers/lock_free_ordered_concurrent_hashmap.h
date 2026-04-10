@@ -13,8 +13,12 @@ class OrderedLockFreeHashMap {
   struct Node {
     std::pair<Key, Value> keyValue;
     std::atomic<Node*> next;
-    Node* orderNext;
-    Node* orderPrev;
+    // orderNext / orderPrev are atomic so concurrent inserts can splice
+    // nodes in without data races. The list itself is still single-writer-
+    // friendly (concurrent erase races with inserts), but pure concurrent
+    // inserts followed by reads are now well-defined.
+    std::atomic<Node*> orderNext;
+    std::atomic<Node*> orderPrev;
 
     Node(const Key& k, Value&& v)
         : keyValue(std::make_pair(k, std::move(v))),
@@ -104,25 +108,42 @@ class OrderedLockFreeHashMap {
     size_t index = hash(key);
     Node* oldHead = buckets[index].load(std::memory_order_acquire);
 
-    // Insertion into the bucket list
+    // Insertion into the bucket list (Treiber-style head push).
     do {
       newNode->next.store(oldHead, std::memory_order_relaxed);
     } while (!buckets[index].compare_exchange_weak(
         oldHead, newNode, std::memory_order_release, std::memory_order_acquire));
 
-    // Insertion into the ordered list
-    // WARNING: orderNext/orderPrev are NOT atomic. This is only safe
-    // if the ordered list is not read concurrently with insert.
-    Node* oldTail = orderTail.load(std::memory_order_acquire);
-    do {
-      newNode->orderPrev = oldTail;
-      if (oldTail) {
-        oldTail->orderNext = newNode;
-      } else {
-        orderHead.store(newNode, std::memory_order_release);
+    // Insertion into the ordered list:
+    //   1. CAS orderTail from oldTail → newNode. Whichever thread wins owns
+    //      the right to publish the back-link `oldTail->orderNext = newNode`.
+    //   2. After the CAS succeeds, publish the back-link. Each `oldTail`
+    //      value is consumed by exactly one CAS winner, so this write has a
+    //      single writer and is race-free.
+    //
+    // The newNode->orderPrev write happens before the CAS, while newNode is
+    // still private to this thread (no other thread can reach it yet).
+    //
+    // Concurrent ordered-list READS are still considered unsafe with
+    // concurrent inserts because a reader could observe a tail node whose
+    // orderNext hasn't been published yet (it would see a "short" list).
+    // After all writers join, the list is fully linked.
+    Node* oldTail;
+    for (;;) {
+      oldTail = orderTail.load(std::memory_order_acquire);
+      newNode->orderPrev.store(oldTail, std::memory_order_relaxed);
+      if (orderTail.compare_exchange_weak(
+              oldTail, newNode,
+              std::memory_order_release,
+              std::memory_order_relaxed)) {
+        break;
       }
-    } while (!orderTail.compare_exchange_weak(
-        oldTail, newNode, std::memory_order_release, std::memory_order_acquire));
+    }
+    if (oldTail) {
+      oldTail->orderNext.store(newNode, std::memory_order_release);
+    } else {
+      orderHead.store(newNode, std::memory_order_release);
+    }
   }
 
   bool find(const Key& key, Value& value) {
@@ -158,18 +179,22 @@ class OrderedLockFreeHashMap {
           continue;
         }
 
-        // Remove from the ordered list
-        // WARNING: orderNext/orderPrev are NOT atomic.
-        if (current->orderPrev) {
-          current->orderPrev->orderNext = current->orderNext;
+        // Remove from the ordered list. This is single-writer territory:
+        // erase races with other inserts/erases are still unsafe (would need
+        // hazard pointers / RCU). The atomic loads/stores on orderNext/Prev
+        // are required for the C++ memory model even in the single-writer
+        // case to avoid data races against the atomic writes inside insert().
+        Node* prev_o = current->orderPrev.load(std::memory_order_acquire);
+        Node* next_o = current->orderNext.load(std::memory_order_acquire);
+        if (prev_o) {
+          prev_o->orderNext.store(next_o, std::memory_order_release);
         } else {
-          orderHead.store(current->orderNext, std::memory_order_release);
+          orderHead.store(next_o, std::memory_order_release);
         }
-
-        if (current->orderNext) {
-          current->orderNext->orderPrev = current->orderPrev;
+        if (next_o) {
+          next_o->orderPrev.store(prev_o, std::memory_order_release);
         } else {
-          orderTail.store(current->orderPrev, std::memory_order_release);
+          orderTail.store(prev_o, std::memory_order_release);
         }
 
         delete current;

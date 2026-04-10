@@ -2,6 +2,10 @@
 #include "lock_free_ordered_concurrent_hashmap.h"
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <thread>
+#include <vector>
+
 class OrderedLockFreeHashMapTest : public ::testing::Test {
  protected:
   base::OrderedLockFreeHashMap<int, std::string> map;
@@ -18,9 +22,9 @@ TEST_F(OrderedLockFreeHashMapTest, InsertionOrder) {
 
   auto node = map.orderHead.load();
   EXPECT_EQ(node->keyValue.second, "First");
-  node = node->orderNext;
+  node = node->orderNext.load();
   EXPECT_EQ(node->keyValue.second, "Second");
-  node = node->orderNext;
+  node = node->orderNext.load();
   EXPECT_EQ(node->keyValue.second, "Third");
 }
 
@@ -41,9 +45,9 @@ TEST_F(OrderedLockFreeHashMapTest, RemoveAndOrder) {
 
   auto node = map.orderHead.load();
   EXPECT_EQ(node->keyValue.second, "First");
-  node = node->orderNext;
+  node = node->orderNext.load();
   EXPECT_EQ(node->keyValue.second, "Third");
-  EXPECT_EQ(node->orderNext, nullptr);
+  EXPECT_EQ(node->orderNext.load(), nullptr);
 }
 
 class LargeInsertionTest : public ::testing::Test {
@@ -72,6 +76,66 @@ TEST_F(LargeInsertionTest, VerifyOrderAfterManyInsertions) {
   for (int i = 0; i < numElements; ++i) {
     ASSERT_NE(node, nullptr);
     EXPECT_EQ(node->keyValue.first, insertedOrder[i]);
-    node = node->orderNext;
+    node = node->orderNext.load();
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Stress: concurrent inserts. The original implementation does NOT splice
+// new nodes into the ordered list atomically (orderNext/orderPrev are plain
+// pointers written inside the CAS loop), so this should expose lost links,
+// stale links, or simply fewer than N nodes reachable from orderHead.
+// ─────────────────────────────────────────────────────────────────────────
+
+TEST(OrderedLockFreeHashMapStress, ConcurrentInsertReachability) {
+  constexpr int kThreads = 8;
+  constexpr int kPerThread = 2000;
+  constexpr int kTotal = kThreads * kPerThread;
+
+  base::OrderedLockFreeHashMap<int, int> map(256);
+  std::atomic<bool> go{false};
+  std::vector<std::thread> ts;
+  ts.reserve(kThreads);
+  for (int t = 0; t < kThreads; ++t) {
+    ts.emplace_back([&, t] {
+      while (!go.load()) {}
+      for (int i = 0; i < kPerThread; ++i) {
+        const int k = t * kPerThread + i;
+        map.insert(k, int{k});
+      }
+    });
+  }
+  go.store(true);
+  for (auto& th : ts) th.join();
+
+  // Every key must be findable through the bucket index. This is the
+  // strongest invariant we can verify after concurrent inserts; the ordered
+  // list is documented as unsafe under concurrent insert.
+  for (int k = 0; k < kTotal; ++k) {
+    int v = -1;
+    ASSERT_TRUE(map.find(k, v)) << "key " << k << " missing after concurrent insert";
+    ASSERT_EQ(v, k);
+  }
+
+  // Walk the ordered list forward and count reachable nodes. With the fixed
+  // insert(), every node is reachable from orderHead after all writers join.
+  int forward = 0;
+  auto* node = map.orderHead.load();
+  while (node && forward <= kTotal + 8) {
+    ++forward;
+    node = node->orderNext.load();
+  }
+  EXPECT_EQ(forward, kTotal)
+      << "ordered forward walk reached " << forward << " of " << kTotal
+      << " — orderNext links were corrupted by concurrent insert";
+
+  // Also walk backward from orderTail and verify the same count.
+  int backward = 0;
+  node = map.orderTail.load();
+  while (node && backward <= kTotal + 8) {
+    ++backward;
+    node = node->orderPrev.load();
+  }
+  EXPECT_EQ(backward, kTotal)
+      << "ordered backward walk reached " << backward << " of " << kTotal;
 }

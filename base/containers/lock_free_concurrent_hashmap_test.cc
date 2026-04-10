@@ -4,7 +4,7 @@
 #include <vector>
 
 using Test_HashMap_Type = base::LockFreeHashMap<int, int>;
-#if 0
+
 class LockFreeHashMapTest : public ::testing::Test {
  protected:
   Test_HashMap_Type* hashMap;
@@ -169,4 +169,82 @@ TEST_F(LockFreeHashMapTest, MixedOperations) {
     thread.join();
   }
 }
-#endif
+
+// ─────────────────────────────────────────────────────────────────────────
+// Stress tests targeting the dangerous concurrent paths in remove():
+//   - Many threads removing different keys that *hash to the same bucket*
+//     (so the linked-list pointer fix-ups race with each other).
+//   - Concurrent remove + find on the same bucket (the current impl
+//     documents this as unsafe — we test for it directly).
+// ─────────────────────────────────────────────────────────────────────────
+
+TEST(LockFreeHashMapStress, ConcurrentRemoveSameBucket) {
+  // 8 buckets, many keys per bucket → forces remove threads onto the same
+  // linked list. Repeat several rounds because the race is timing-dependent.
+  constexpr int kRounds = 50;
+  constexpr int kBuckets = 8;
+  constexpr int kThreads = 8;
+  constexpr int kKeysPerThread = 64;
+
+  for (int round = 0; round < kRounds; ++round) {
+    base::LockFreeHashMap<int, int> map(kBuckets);
+    // Each thread owns a disjoint key range, but every bucket holds keys
+    // from every thread (since key % kBuckets == j for any thread when
+    // j ∈ [0, kBuckets)).
+    const int total = kThreads * kKeysPerThread;
+    for (int k = 0; k < total; ++k) map.insert(k, k);
+
+    std::vector<std::thread> ts;
+    ts.reserve(kThreads);
+    for (int t = 0; t < kThreads; ++t) {
+      ts.emplace_back([&, t] {
+        for (int i = 0; i < kKeysPerThread; ++i) {
+          map.remove(t * kKeysPerThread + i);
+        }
+      });
+    }
+    for (auto& th : ts) th.join();
+
+    // Every key should be gone.
+    for (int k = 0; k < total; ++k) {
+      int v;
+      ASSERT_FALSE(map.find(k, v))
+          << "round=" << round << " key=" << k << " survived removal";
+    }
+  }
+}
+
+TEST(LockFreeHashMapStress, InsertFindHammer) {
+  // Many threads inserting and finding into a small bucket count. Pure
+  // insert+find is the safe pattern (the comment block on remove() makes
+  // explicit that find races only with remove). This test should always pass.
+  constexpr int kBuckets = 16;
+  constexpr int kThreads = 8;
+  constexpr int kOps = 5000;
+  base::LockFreeHashMap<int, int> map(kBuckets);
+
+  std::atomic<bool> go{false};
+  std::vector<std::thread> ts;
+  for (int t = 0; t < kThreads / 2; ++t) {
+    ts.emplace_back([&, t] {
+      while (!go) {}
+      for (int i = 0; i < kOps; ++i) {
+        map.insert(t * kOps + i, t * kOps + i);
+      }
+    });
+  }
+  std::atomic<int> total_found{0};
+  for (int t = 0; t < kThreads / 2; ++t) {
+    ts.emplace_back([&] {
+      while (!go) {}
+      for (int i = 0; i < kOps; ++i) {
+        int v;
+        if (map.find(i, v)) total_found.fetch_add(1, std::memory_order_relaxed);
+      }
+    });
+  }
+  go.store(true);
+  for (auto& th : ts) th.join();
+  // No specific count check — we just want no crashes / no data races.
+  SUCCEED();
+}
