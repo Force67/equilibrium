@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "base_string.h"
+#include "xstring.h"  // base::String, base::StringW, etc.
 
 namespace {
 static const char kTestSentence[] = "Hello, world!";
@@ -53,10 +54,12 @@ TYPED_TEST(BaseStringTest, Construction) {
   using BaseStringType = typename TestFixture::BaseStringType;
   using StdStringType = typename TestFixture::StdStringType;
 
-  // Default construction
+  // Default construction. Note: capacity() is non-zero on a fresh instance
+  // because BasicBaseString uses SSO — the inline buffer is always usable.
   BaseStringType base_str;
   ASSERT_EQ(base_str.size(), 0);
-  ASSERT_EQ(base_str.capacity(), 0);
+  ASSERT_TRUE(base_str.empty());
+  ASSERT_GT(base_str.capacity(), 0u);
 
   // Construction from C-style string
   const typename BaseStringType::character_type* c_str = this->GetTestSentence();
@@ -131,25 +134,24 @@ TEST(BaseStringTest, CompareSubstring) {
   const BaseStringType str1("Hello, World!");
   const BaseStringType str2("World");
 
-  // Compare with the same string
+  // Compare full string with itself.
   ASSERT_EQ(str1.compare(0, str1.size(), str1), 0);
 
-  // Compare with a substring
+  // Substring of str1 starting at 7 with length 5 == "World".
   ASSERT_EQ(str1.compare(7, 5, str2), 0);
 
-  // Substring starts outside the string
-  ASSERT_EQ(str1.compare(14, 1, str2), -1);
+  // len is clamped to remaining size: "World!" (6) vs "World" (5).
+  // Equal first 5 chars, ours is longer → result > 0.
+  ASSERT_GT(str1.compare(7, 10, str2), 0);
 
-  // Substring length exceeds string length
-  ASSERT_EQ(str1.compare(7, 10, str2), 1);
+  // Empty substring is "less than" any non-empty string.
+  ASSERT_LT(str1.compare(0, 0, str2), 0);
 
-  // String is shorter than substring
-  ASSERT_EQ(str1.compare(0, 20, str2), -1);
+  // First-13-chars of str1 ("Hello, World!") vs "World":
+  // 'H' < 'W' on the first byte → result < 0.
+  ASSERT_LT(str1.compare(0, 20, str2), 0);
 
-  // Empty substring
-  ASSERT_EQ(str1.compare(0, 0, str2), 0);
-
-  // Different strings
+  // Different strings.
   const BaseStringType str3("Hello, Universe!");
   ASSERT_NE(str1.compare(0, str1.size(), str3), 0);
 }
@@ -450,4 +452,99 @@ TYPED_TEST(BaseStringTest, Substring) {
 #endif
 
 #endif
+
+// ──────────────────────────────────────────────────────────────────────────
+// Regression tests for the SSO/aliasing/wide-char bugs (see review).
+// ──────────────────────────────────────────────────────────────────────────
+
+// Layout: every default-instantiated BasicBaseString must fit in one
+// 3-pointer footprint regardless of char width. This catches a regression
+// where wide-char instantiations bloated to 4× the intended size.
+static_assert(sizeof(base::BasicBaseString<char>) == 3 * sizeof(void*));
+static_assert(sizeof(base::BasicBaseString<char8_t>) == 3 * sizeof(void*));
+static_assert(sizeof(base::BasicBaseString<char16_t>) == 3 * sizeof(void*));
+static_assert(sizeof(base::BasicBaseString<char32_t>) == 3 * sizeof(void*));
+static_assert(sizeof(base::BasicBaseString<wchar_t>) == 3 * sizeof(void*));
+
+// Wide-char fill ctor must use the actual wide-char value, not memset's
+// byte fill. memset(d, L'A', n*4) would give garbage like L"䅁䅁䅁".
+TEST(BaseStringRegressions, FillCtorWideChar) {
+  base::BasicBaseString<wchar_t> ws(5, L'A');
+  ASSERT_EQ(ws.size(), 5u);
+  for (size_t i = 0; i < ws.size(); ++i) ASSERT_EQ(ws[i], L'A') << "i=" << i;
+  ASSERT_EQ(ws.c_str()[ws.size()], L'\0');
+
+  base::BasicBaseString<char16_t> us(5, u'B');
+  for (size_t i = 0; i < us.size(); ++i) ASSERT_EQ(us[i], u'B');
+
+  base::BasicBaseString<char32_t> Us(5, U'C');
+  for (size_t i = 0; i < Us.size(); ++i) ASSERT_EQ(Us[i], U'C');
+}
+
+// Same bug in insert(pos, count, c).
+TEST(BaseStringRegressions, InsertFillWideChar) {
+  base::BasicBaseString<wchar_t> ws(L"abc");
+  ws.insert(1, 3, L'Z');  // expect L"aZZZbc"
+  ASSERT_EQ(ws.size(), 6u);
+  ASSERT_EQ(ws[0], L'a');
+  ASSERT_EQ(ws[1], L'Z');
+  ASSERT_EQ(ws[2], L'Z');
+  ASSERT_EQ(ws[3], L'Z');
+  ASSERT_EQ(ws[4], L'b');
+  ASSERT_EQ(ws[5], L'c');
+}
+
+// Self-aliasing assign: source pointer is inside our own buffer. The old
+// implementation freed the buffer before reading from it.
+TEST(BaseStringRegressions, AssignFromSelfSubrange) {
+  base::String s("hello world this is a long string here");  // heap
+  ASSERT_GE(s.size(), 22u);
+  s.assign(s.c_str() + 6, 5);
+  EXPECT_EQ(s.size(), 5u);
+  EXPECT_STREQ(s.c_str(), "world");
+}
+
+TEST(BaseStringRegressions, AssignFromSelfSmall) {
+  base::String s("hello world");  // small / inline
+  s.assign(s.c_str() + 6, 5);
+  EXPECT_EQ(s.size(), 5u);
+  EXPECT_STREQ(s.c_str(), "world");
+}
+
+// Self-aliasing append: source is our own data, growth-triggering.
+TEST(BaseStringRegressions, AppendFromSelfTriggersGrowth) {
+  base::String s("0123456789012345");  // 16 chars, fits SSO (≤22)
+  ASSERT_LE(s.size(), 22u);
+  s.append(s.c_str(), s.size());        // double — pushes us over SSO
+  EXPECT_EQ(s.size(), 32u);
+  EXPECT_STREQ(s.c_str(), "01234567890123450123456789012345");
+
+  // And again from heap state.
+  s.append(s.c_str(), s.size());
+  EXPECT_EQ(s.size(), 64u);
+  for (size_t i = 0; i < 32; ++i) EXPECT_EQ(s[i], s[i + 32]);
+}
+
+TEST(BaseStringRegressions, AppendFromSelfWhileLarge) {
+  base::String s("0123456789012345678901234567890");  // 31 chars, on heap
+  ASSERT_FALSE(s.size() <= 22);
+  const auto orig_size = s.size();
+  s.append(s.c_str(), s.size());
+  EXPECT_EQ(s.size(), orig_size * 2);
+  for (size_t i = 0; i < orig_size; ++i) {
+    EXPECT_EQ(s[i], s[i + orig_size]);
+  }
+}
+
+// O(n²) sanity: 50k push_back calls must not be quadratic. With the old
+// reserve-exact path this took quadratically long; with grow_to_at_least
+// it's linear and finishes in milliseconds.
+TEST(BaseStringRegressions, PushBackIsLinear) {
+  base::String s;
+  constexpr size_t kN = 50000;
+  for (size_t i = 0; i < kN; ++i) s.push_back('x');
+  EXPECT_EQ(s.size(), kN);
+  for (size_t i = 0; i < kN; ++i) EXPECT_EQ(s[i], 'x');
+}
+
 }  // namespace

@@ -9,6 +9,7 @@
 
 // we try to avoid expensive headers.
 #include <base/arch.h>
+#include <base/check.h>
 #include <base/numeric_limits.h>
 #include <base/containers/container_traits.h>
 #include <base/strings/char_algorithms.h>
@@ -48,137 +49,173 @@ class BasicBaseString {
   static constexpr size_type npos = base::MinMax<size_type>::max();
 
  private:
-  // This structure defines the memory footprint of the string object.
-  // On a 64-bit system, this is typically 24 bytes.
+  // Heap-mode footprint. On 64-bit with default size_type this is 24 bytes.
   struct LargeLayout {
     character_type* data_;
     size_type size_;
     size_type capacity_;
   };
 
-  // The last byte of a small string stores its size and the mode flag.
-  // The MSB is the flag: 1 for Large, 0 for Small.
-  // The remaining 7 bits store the size of the small string.
+  // The flag bit lives in the very last byte of the union, which (on
+  // little-endian) overlaps the high byte of large_.capacity_. The MSB of
+  // that byte is the is-large discriminator; the low 7 bits store the
+  // small-mode size. So kSmallCapacity must fit in 7 bits.
   static constexpr unsigned char kLargeFlag = 0x80;
 
-  // The small string stores its data inside the object's footprint.
-  // data_ holds up to kSmallCapacity chars PLUS the null terminator.
-  // kSmallCapacity is the max string length (not counting null).
-  // Layout: [data_[0] ... data_[kSmallCapacity-1] null_term_byte size_and_flag_]
-  //         |<--- sizeof(LargeLayout) - 1 bytes --->|<-- 1 byte -->|
-  //
-  // We need data_ to be large enough for kSmallCapacity chars + 1 null.
-  // The flag byte is the very last byte. So:
-  //   sizeof(data_) >= kSmallCapacity + 1  (for chars + null)
-  //   sizeof(data_) + sizeof(size_and_flag_) == sizeof(LargeLayout)
-  //   sizeof(data_) == sizeof(LargeLayout) - 1
-  //   kSmallCapacity + 1 <= sizeof(LargeLayout) - 1
-  //   kSmallCapacity <= sizeof(LargeLayout) - 2
+  // Inline char count (not counting the trailing null). Picked so that
+  //   (kSmallCapacity + 1) chars + at least one tail byte (the flag)
+  //   fit inside sizeof(LargeLayout).
   static constexpr size_type kSmallCapacity =
       (sizeof(LargeLayout) - 1) / sizeof(character_type) - 1;
+
+  // Bytes after the inline char array. For `char` this is exactly 1
+  // (the flag byte itself). For wider char types we need extra padding
+  // bytes so the flag still lands at offset (sizeof(LargeLayout) - 1) —
+  // i.e. always the very last byte of the union, always overlapping the
+  // high byte of large_.capacity_ on little-endian.
+  static constexpr size_type kSmallTailBytes =
+      sizeof(LargeLayout) - (kSmallCapacity + 1) * sizeof(character_type);
+
+  static_assert(kSmallTailBytes >= 1, "no room for the flag byte");
+  static_assert(kSmallCapacity < 128, "kSmallCapacity must fit in 7 bits");
 
   union {
     LargeLayout large_;
     struct {
-      // data_ has room for kSmallCapacity chars + null terminator.
-      // The null at data_[kSmallCapacity] does NOT overlap size_and_flag_.
-      character_type data_[sizeof(LargeLayout) - 1];
-      unsigned char size_and_flag_;
+      // kSmallCapacity user chars + 1 null terminator slot.
+      character_type data_[kSmallCapacity + 1];
+      // Trailing padding bytes; the LAST byte is the flag/size byte.
+      // For char this array is exactly [1]; for wide chars it's larger
+      // and only the last element carries semantic information.
+      unsigned char tail_[kSmallTailBytes];
     } small_;
   };
 
-  // SSO (Small String Optimization) Helper Functions
-  bool is_large() const noexcept { return (small_.size_and_flag_ & kLargeFlag) != 0; }
+  // -- Layout helpers --
 
-  size_type get_size() const noexcept {
-    return is_large() ? large_.size_ : (small_.size_and_flag_ & ~kLargeFlag);
+  unsigned char& flag_byte() noexcept {
+    return small_.tail_[kSmallTailBytes - 1];
+  }
+  unsigned char flag_byte() const noexcept {
+    return small_.tail_[kSmallTailBytes - 1];
   }
 
-  character_type* get_data() noexcept { return is_large() ? large_.data_ : small_.data_; }
+  bool is_large() const noexcept { return (flag_byte() & kLargeFlag) != 0; }
 
+  size_type get_size() const noexcept {
+    return is_large() ? large_.size_
+                      : static_cast<size_type>(flag_byte() & ~kLargeFlag);
+  }
+
+  character_type* get_data() noexcept {
+    return is_large() ? large_.data_ : small_.data_;
+  }
   const character_type* get_data() const noexcept {
     return is_large() ? large_.data_ : small_.data_;
   }
 
   size_type get_capacity() const noexcept {
     if (!is_large()) return kSmallCapacity;
-    // The MSB of capacity_ overlaps with size_and_flag_ (the flag byte).
-    // Mask out the flag bit so we get the true capacity.
-    return large_.capacity_ & ~(static_cast<size_type>(kLargeFlag) << ((sizeof(size_type) - 1) * 8));
+    // Mask out the flag bit (bit 63 of capacity_, i.e. bit 7 of its top byte
+    // on little-endian).
+    return large_.capacity_ &
+           ~(static_cast<size_type>(kLargeFlag)
+             << ((sizeof(size_type) - 1) * 8));
   }
 
-  void set_size(size_type new_size) {
+  void set_size(size_type new_size) noexcept {
     if (is_large()) {
       large_.size_ = new_size;
     } else {
-      small_.size_and_flag_ = (unsigned char)(new_size & ~kLargeFlag);
+      flag_byte() = static_cast<unsigned char>(new_size & ~kLargeFlag);
     }
   }
 
-  void ensure_null_terminated() noexcept { get_data()[get_size()] = '\0'; }
+  void ensure_null_terminated() noexcept {
+    get_data()[get_size()] = character_type{};
+  }
 
-  void switch_to_large(size_type required_capacity) {
-    character_type buffer_backup[sizeof(LargeLayout) - 1];
-    const size_type old_size = get_size();
-    memcpy(buffer_backup, small_.data_, old_size * sizeof(character_type));
+  void init_empty() noexcept {
+    flag_byte() = 0;
+    small_.data_[0] = character_type{};
+  }
 
-    // Geometric growth strategy
-    size_type new_capacity = required_capacity + (required_capacity / 2);
+  // -- Capacity / allocation helpers --
+
+  static size_type grow_capacity(size_type required) noexcept {
+    // Geometric growth (1.5x) with an overflow guard.
+    const size_type kMax = base::MinMax<size_type>::max();
+    if (required > kMax - required / 2) return required;
+    return required + required / 2;
+  }
+
+  // Allocates target_capacity + 1 chars, copies our current contents,
+  // frees the old buffer (if any), and switches us into large mode.
+  // The old buffer is freed AFTER the copy, so callers can pass aliased
+  // sources separately (see assign/append).
+  void realloc_to(size_type target_capacity) {
+    BASE_BUGCHECK(target_capacity >= get_size(),
+                  "realloc_to would lose data");
     character_type* new_data = static_cast<character_type*>(
-        TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
+        TAllocator::Allocate((target_capacity + 1) * sizeof(character_type)));
+    const size_type cur_size = get_size();
+    if (cur_size > 0) {
+      memcpy(new_data, get_data(), cur_size * sizeof(character_type));
+    }
+    new_data[cur_size] = character_type{};
 
-    memcpy(new_data, buffer_backup, old_size * sizeof(character_type));
-
+    deallocate_large();
     large_.data_ = new_data;
-    large_.size_ = old_size;
-    large_.capacity_ = new_capacity;
-    // Must set flag AFTER writing capacity, since capacity clobbers the flag byte.
-    // Use = not |= to avoid reading stale bits from the capacity overlap.
-    small_.size_and_flag_ = kLargeFlag;
+    large_.size_ = cur_size;
+    large_.capacity_ = target_capacity;
+    // OR-set the flag so we don't clobber the high bits of capacity_.
+    flag_byte() |= kLargeFlag;
+  }
 
-    ensure_null_terminated();
+  // Geometric grow-to-fit; used by all auto-growing modifiers.
+  void grow_to_at_least(size_type min_capacity) {
+    if (min_capacity > get_capacity()) {
+      realloc_to(grow_capacity(min_capacity));
+    }
   }
 
   void deallocate_large() {
     if (is_large()) {
-      TAllocator::Free(large_.data_, (get_capacity() + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_,
+                       (get_capacity() + 1) * sizeof(character_type));
     }
   }
 
  public:
   // -- Constructors and Destructor --
 
-  BasicBaseString() noexcept {
-    small_.size_and_flag_ = 0;  // is_small, size = 0
-    ensure_null_terminated();
-  }
+  BasicBaseString() noexcept { init_empty(); }
 
   // Implicit from const char* for std::string-like ergonomics
   BasicBaseString(const character_type* str) {
-    small_.size_and_flag_ = 0;
-    ensure_null_terminated();
+    init_empty();
     if (str) assign(str);
   }
 
   BasicBaseString(const character_type* str, size_type len_in_characters) {
-    small_.size_and_flag_ = 0;
-    ensure_null_terminated();
+    init_empty();
     assign(str, len_in_characters);
   }
 
   BasicBaseString(const character_type* begin, const character_type* end) {
-    small_.size_and_flag_ = 0;
-    ensure_null_terminated();
-    assign(begin, end - begin);
+    init_empty();
+    assign(begin, static_cast<size_type>(end - begin));
   }
 
   // Fill constructor: creates a string of `count` copies of `c`.
   BasicBaseString(size_type count, character_type c) {
-    small_.size_and_flag_ = 0;
-    ensure_null_terminated();
+    init_empty();
     if (count > 0) {
-      reserve(count);
-      memset(get_data(), c, count * sizeof(character_type));
+      grow_to_at_least(count);
+      character_type* d = get_data();
+      // Scalar loop — memset would only write the low byte of c, which is
+      // wrong for wchar_t/char16_t/char32_t.
+      for (size_type i = 0; i < count; ++i) d[i] = c;
       set_size(count);
       ensure_null_terminated();
     }
@@ -186,19 +223,18 @@ class BasicBaseString {
 
   template <size_type N>
   BasicBaseString(const character_type (&arr)[N]) {
-    small_.size_and_flag_ = 0;
-    ensure_null_terminated();
+    init_empty();
     // Use actual string length, not array size. A char buf[64] = "hello"
     // has N=64 but the string is only 5 chars.
     assign(arr, base::CountStringLength(arr, N > 0 ? N - 1 : 0));
   }
 
   BasicBaseString(const BasicBaseString& other) {
-    small_.size_and_flag_ = 0;
-    ensure_null_terminated();
+    init_empty();
     if (other.is_large()) {
       assign(other.large_.data_, other.large_.size_);
     } else {
+      // Trivial bytewise copy is sound: union members are trivial.
       memcpy(this, &other, sizeof(other));
     }
   }
@@ -206,16 +242,13 @@ class BasicBaseString {
   template <class TOther>
     requires(base::HasStringTraits<TOther, value_type>)
   BasicBaseString(const TOther& other) {
-    small_.size_and_flag_ = 0;
-    ensure_null_terminated();
-    assign(other.c_str(), other.size());
+    init_empty();
+    assign(other.c_str(), static_cast<size_type>(other.size()));
   }
 
   BasicBaseString(BasicBaseString&& other) noexcept {
     memcpy(this, &other, sizeof(*this));
-    // Set the moved-from object to a valid empty state
-    other.small_.size_and_flag_ = 0;
-    other.ensure_null_terminated();
+    other.init_empty();
   }
 
   ~BasicBaseString() { deallocate_large(); }
@@ -238,8 +271,7 @@ class BasicBaseString {
     if (this != &other) {
       deallocate_large();
       memcpy(this, &other, sizeof(*this));
-      other.small_.size_and_flag_ = 0;
-      other.ensure_null_terminated();
+      other.init_empty();
     }
     return *this;
   }
@@ -250,19 +282,28 @@ class BasicBaseString {
       return;
     }
     if (len > get_capacity()) {
+      // Source-aliasing safe: allocate the new buffer first, copy from src
+      // (which may point inside our old buffer — still valid), and only then
+      // free the old buffer.
+      character_type* new_data = static_cast<character_type*>(
+          TAllocator::Allocate((len + 1) * sizeof(character_type)));
+      memcpy(new_data, str, len * sizeof(character_type));
+      new_data[len] = character_type{};
       deallocate_large();
-      size_type new_capacity = len;
-      large_.data_ = static_cast<character_type*>(
-          TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
-      large_.capacity_ = new_capacity;
-      small_.size_and_flag_ = kLargeFlag;
+      large_.data_ = new_data;
+      large_.size_ = len;
+      large_.capacity_ = len;
+      flag_byte() |= kLargeFlag;
+      return;
     }
-    memcpy(get_data(), str, len * sizeof(character_type));
+    // No reallocation; src may overlap our buffer (e.g. assign(c_str()+5, 10))
+    // so use memmove rather than memcpy.
+    memmove(get_data(), str, len * sizeof(character_type));
     set_size(len);
     ensure_null_terminated();
   }
   void assign(const character_type* start, const character_type* end) {
-    assign(start, end - start);
+    assign(start, static_cast<size_type>(end - start));
   }
 
   void assign(const character_type* str) { assign(str, base::CountStringLength(str)); }
@@ -314,31 +355,21 @@ class BasicBaseString {
   size_type byte_size() const noexcept { return get_size() * sizeof(character_type); }
   bool empty() const noexcept { return get_size() == 0; }
   size_type capacity() const noexcept { return get_capacity(); }
+  bool is_inline() const noexcept { return !is_large(); }
 
+  // Reserve exactly `new_capacity` (no geometric padding) — honors the
+  // user's intent. Auto-growing modifiers go through grow_to_at_least()
+  // instead, which uses 1.5x growth.
   void reserve(size_type new_capacity) {
-    if (new_capacity > get_capacity()) {
-      if (!is_large()) {
-        switch_to_large(new_capacity);
-      } else {
-        const size_type old_size = get_size();
-        character_type* new_data = static_cast<character_type*>(
-            TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
-        memcpy(new_data, large_.data_, old_size * sizeof(character_type));
-        deallocate_large();
-        large_.data_ = new_data;
-        large_.size_ = old_size;
-        large_.capacity_ = new_capacity;
-        small_.size_and_flag_ = kLargeFlag;  // ensure flag is set
-        ensure_null_terminated();
-      }
-    }
+    if (new_capacity > get_capacity()) realloc_to(new_capacity);
   }
 
   void resize(size_type new_size) {
     const size_type old_size = get_size();
     if (new_size > old_size) {
-      reserve(new_size);
-      memset(get_data() + old_size, 0, (new_size - old_size) * sizeof(character_type));
+      grow_to_at_least(new_size);
+      memset(get_data() + old_size, 0,
+             (new_size - old_size) * sizeof(character_type));
     }
     set_size(new_size);
     ensure_null_terminated();
@@ -346,35 +377,37 @@ class BasicBaseString {
 
   void clear() {
     deallocate_large();
-    small_.size_and_flag_ = 0;  // to empty small string
-    ensure_null_terminated();
+    init_empty();
   }
 
   void shrink_to_fit() {
-    if (!is_large() || get_size() == get_capacity()) {
-      return;
-    }
+    if (!is_large() || get_size() == get_capacity()) return;
+
     const size_type current_size = get_size();
     if (current_size <= kSmallCapacity) {
-      // Transition from large to small.
-      // Must save pointer and capacity BEFORE clobbering the union.
+      // Heap → inline. Snapshot before clobbering the union.
+      character_type buf[kSmallCapacity + 1];
       character_type* old_data = large_.data_;
       const size_type old_capacity = get_capacity();
-      memcpy(small_.data_, old_data, current_size * sizeof(character_type));
-      small_.size_and_flag_ = static_cast<unsigned char>(current_size);
+      if (current_size > 0) {
+        memcpy(buf, old_data, current_size * sizeof(character_type));
+      }
+      init_empty();
+      memcpy(small_.data_, buf, current_size * sizeof(character_type));
+      flag_byte() = static_cast<unsigned char>(current_size & ~kLargeFlag);
       ensure_null_terminated();
       TAllocator::Free(old_data, (old_capacity + 1) * sizeof(character_type));
     } else {
-      // Shrink the large buffer
+      // Shrink the heap buffer to exactly current_size.
       character_type* new_data = static_cast<character_type*>(
           TAllocator::Allocate((current_size + 1) * sizeof(character_type)));
       memcpy(new_data, large_.data_, current_size * sizeof(character_type));
+      new_data[current_size] = character_type{};
       deallocate_large();
       large_.data_ = new_data;
       large_.size_ = current_size;
       large_.capacity_ = current_size;
-      small_.size_and_flag_ = kLargeFlag;
-      ensure_null_terminated();
+      flag_byte() |= kLargeFlag;
     }
   }
 
@@ -394,11 +427,29 @@ class BasicBaseString {
   }
 
   void append(const character_type* str, size_type count) {
-    if (count == 0)
-      return;
+    if (count == 0) return;
     const size_type old_size = get_size();
     const size_type new_size = old_size + count;
-    reserve(new_size);
+    if (new_size > get_capacity()) {
+      // Source-aliasing safe + geometric growth: allocate new, copy old +
+      // src (both still valid), then free old.
+      const size_type new_capacity = grow_capacity(new_size);
+      character_type* new_data = static_cast<character_type*>(
+          TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
+      if (old_size > 0) {
+        memcpy(new_data, get_data(), old_size * sizeof(character_type));
+      }
+      memcpy(new_data + old_size, str, count * sizeof(character_type));
+      new_data[new_size] = character_type{};
+      deallocate_large();
+      large_.data_ = new_data;
+      large_.size_ = new_size;
+      large_.capacity_ = new_capacity;
+      flag_byte() |= kLargeFlag;
+      return;
+    }
+    // No realloc — dest range is past old_size so it can't overlap any
+    // in-buffer src range, plain memcpy is fine.
     memcpy(get_data() + old_size, str, count * sizeof(character_type));
     set_size(new_size);
     ensure_null_terminated();
@@ -407,9 +458,7 @@ class BasicBaseString {
 
   void push_back(character_type c) {
     const size_type old_size = get_size();
-    if (old_size == get_capacity()) {
-      reserve(old_size + 1);
-    }
+    if (old_size == get_capacity()) grow_to_at_least(old_size + 1);
     get_data()[old_size] = c;
     set_size(old_size + 1);
     ensure_null_terminated();
@@ -417,12 +466,14 @@ class BasicBaseString {
 
   void insert(size_type pos, size_type count, character_type c) {
     BASE_BUGCHECK(pos <= get_size(), "Invalid position");
+    if (count == 0) return;
     const size_type old_size = get_size();
     const size_type new_size = old_size + count;
-    reserve(new_size);
+    grow_to_at_least(new_size);
     character_type* d = get_data();
     memmove(d + pos + count, d + pos, (old_size - pos) * sizeof(character_type));
-    memset(d + pos, c, count * sizeof(character_type));
+    // Scalar loop — memset would only write the low byte of c.
+    for (size_type i = 0; i < count; ++i) d[pos + i] = c;
     set_size(new_size);
     ensure_null_terminated();
   }
@@ -431,8 +482,7 @@ class BasicBaseString {
     const size_type current_size = get_size();
     BASE_BUGCHECK(pos <= current_size, "Invalid position");
     count = base::Min(count, current_size - pos);
-    if (count == 0)
-      return;
+    if (count == 0) return;
 
     character_type* d = get_data();
     memmove(d + pos, d + pos + count,
@@ -441,15 +491,15 @@ class BasicBaseString {
     ensure_null_terminated();
   }
   void erase(const character_type* p) {
-    const size_type pos = p - get_data();
+    const size_type pos = static_cast<size_type>(p - get_data());
     BASE_BUGCHECK(pos < get_size(), "Pointer out of bounds");
     erase(pos, 1);
   }
   void erase(const character_type* start, const character_type* end) {
     BASE_BUGCHECK(start < end, "Invalid range");
-    const size_type pos = start - get_data();
+    const size_type pos = static_cast<size_type>(start - get_data());
     BASE_BUGCHECK(pos < get_size(), "Pointer out of bounds");
-    erase(pos, end - start);
+    erase(pos, static_cast<size_type>(end - start));
   }
 
   void remove_suffix(size_type n) {
@@ -557,14 +607,16 @@ class BasicBaseString {
     return result == end() ? npos : result - begin();
   }
 
-  // Substring search
+  // Substring search (overflow-safe).
   size_type find(const character_type* s, size_type pos = 0) const {
     if (!s) return npos;
+    const size_type cur = get_size();
     const size_type s_len = base::CountStringLength(s);
-    if (s_len == 0) return pos <= get_size() ? pos : npos;
-    if (pos + s_len > get_size()) return npos;
+    if (s_len == 0) return pos <= cur ? pos : npos;
+    if (s_len > cur) return npos;
+    if (pos > cur - s_len) return npos;
     const character_type* d = get_data();
-    for (size_type i = pos; i <= get_size() - s_len; ++i) {
+    for (size_type i = pos; i <= cur - s_len; ++i) {
       if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0)
         return i;
     }
@@ -606,6 +658,21 @@ class BasicBaseString {
     return npos;
   }
 };
+
+// -- Layout invariants --
+// Default-instantiated BasicBaseString is always a 3-pointer footprint —
+// 24 bytes on 64-bit, 12 bytes on 32-bit. If you trip one of these the
+// inline-buffer math regressed; check kSmallTailBytes / kSmallCapacity.
+static_assert(sizeof(BasicBaseString<char>) == 3 * sizeof(void*),
+              "BasicBaseString<char> SSO regressed");
+static_assert(sizeof(BasicBaseString<char8_t>) == 3 * sizeof(void*),
+              "BasicBaseString<char8_t> SSO regressed");
+static_assert(sizeof(BasicBaseString<char16_t>) == 3 * sizeof(void*),
+              "BasicBaseString<char16_t> SSO regressed");
+static_assert(sizeof(BasicBaseString<char32_t>) == 3 * sizeof(void*),
+              "BasicBaseString<char32_t> SSO regressed");
+static_assert(sizeof(BasicBaseString<wchar_t>) == 3 * sizeof(void*),
+              "BasicBaseString<wchar_t> SSO regressed");
 
 // -- Non-Member Comparison Operators --
 template <typename CharT, typename TSizeType, class TAllocator>

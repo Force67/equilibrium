@@ -15,7 +15,9 @@
 
 #define BASE_USE_EQ_ALLOCATOR 0
 
-#if (BASE_USE_EQ_ALLOCATOR)
+#if defined(BASE_USE_MIMALLOC)
+#include <base/allocator/mimalloc_router.h>
+#elif (BASE_USE_EQ_ALLOCATOR)
 #include <base/allocator/eq_alloc/eq_memory_router.h>
 #else
 #include <base/allocator/default_crt_alloc.h>
@@ -38,7 +40,9 @@ template <class TRouter>
 struct MCInstance {
   inline void* Allocate(size_t size) {
     void* block = router_.Allocate(size /*void* block*/);
+#if defined(X2E_MEMORY_TRACKING)
     memory_tracker().TrackOperation(block, pointer_diff(size));
+#endif
     BASE_PROFILE_ALLOCATION(block, size);
     return block;
   }
@@ -49,19 +53,21 @@ struct MCInstance {
     void* block = router_.AllocateAligned(
         size /*mem_size size*/, static_cast<mem_size>(alignment) /*mem_size alignment*/);
 
-    // TODO: evaluate the alignment properties. when tracking memory.
+#if defined(X2E_MEMORY_TRACKING)
     memory_tracker().TrackOperation(block, pointer_diff(size));
+#endif
     BASE_PROFILE_ALLOCATION(block, size);
     return {block, size};
   }
 
-  // TODO: tracking.
   inline void* ReAllocate(void* former, mem_size new_size) {
     pointer_diff diff_out = 0; /*already signed*/
     void* block =
         router_.ReAllocate(former /*void* former*/, new_size /*mem_size new_size*/,
                            diff_out /*pointer_diff& diff_out*/);
+#if defined(X2E_MEMORY_TRACKING)
     memory_tracker().TrackOperation(block, diff_out);
+#endif
 
     BASE_PROFILE_FREE(former);
     BASE_PROFILE_ALLOCATION(block, new_size);
@@ -77,8 +83,9 @@ struct MCInstance {
         new_size /*mem_size new_size*/,
         static_cast<mem_size>(alignment) /*mem_size alignment*/);
 
-    // TODO: verify actual new size.
+#if defined(X2E_MEMORY_TRACKING)
     memory_tracker().TrackOperation(block, pointer_diff(new_size - former.size));
+#endif
 
     BASE_PROFILE_FREE(former.pointer);
     BASE_PROFILE_ALLOCATION(block, new_size);
@@ -88,8 +95,12 @@ struct MCInstance {
   inline void Free(void* address) {
     BASE_PROFILE_FREE(address);
     const mem_size amount_freed = router_.Free(address /*void* block*/);
+#if defined(X2E_MEMORY_TRACKING)
     memory_tracker().TrackOperation(address,
                                     -pointer_diff(amount_freed) /*negate amount*/);
+#else
+    (void)amount_freed;
+#endif
   }
 
   inline bool Deallocate(allocator_primitives::v2::MemoryBlock block,
@@ -98,8 +109,10 @@ struct MCInstance {
     bool was_sucessfull =
         router_.Deallocate(block.pointer /*void* block*/, block.size /*mem_size size*/,
                            static_cast<mem_size>(alignment) /* mem_size alignment*/);
+#if defined(X2E_MEMORY_TRACKING)
     memory_tracker().TrackOperation(block.pointer,
                                     -pointer_diff(block.size) /*negate amount*/);
+#endif
     return was_sucessfull;
   }
 
@@ -109,7 +122,9 @@ struct MCInstance {
 
 // this configures the use of different allocators
 // add your own here:
-#if (BASE_USE_EQ_ALLOCATOR)
+#if defined(BASE_USE_MIMALLOC)
+using MemoryCoordinator = MCInstance<MimallocRouter>;
+#elif (BASE_USE_EQ_ALLOCATOR)
 using MemoryCoordinator = MCInstance<EQMemoryRouter>;
 #else
 using MemoryCoordinator = MCInstance<DefaultCRTRouter>;
