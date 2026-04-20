@@ -20,7 +20,6 @@ workspace("Equilibrium")
   family("equilibrium")
   grouped_include("./external", "Dependencies")
   grouped_include("./base", "Base")
-  grouped_include("./components", "Components")
   family("")
 
   include("./projects")

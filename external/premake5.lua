@@ -17,17 +17,6 @@ project("tracysdk")
     --"tracy/public/TracyClient.cpp",
   --})
 
-project("pugixml")
-  kind("StaticLib")
-  language("C++")
-  pubincludedirs("./pugixml/src")
-  files({
-    "pugixml/src/pugixml.cpp",
-    "pugixml/src/pugixml.hpp",
-    "pugixml/src/pugiconfig.hpp"
-  })
-  os.copyfile("_override/pugixml/pugiconfig.hpp", "pugixml/src/pugiconfig.hpp")
-
 project("mbedtls")
   kind("StaticLib")
   language("C")
@@ -45,47 +34,6 @@ project("mbedtls")
     "mbedtls/library/*.c",
     "mbedtls/library/*.h",
   })
-
-project("sqlite")
-  kind("StaticLib")
-  language("C")
-  pubincludedirs("./sqlite")
-  files({
-    "sqlite/*.h",
-    "sqlite/*.c"
-  })
-  pubdefines("SQLITE_ENABLE_SQLLOG")
-  filter("configurations:Debug")
-  pubdefines("SQLITE_DEBUG")
-
-project("fmtlib")
-  language("C++")
-  kind("StaticLib")
-  pubincludedirs({
-    "./fmt/include",
-  })
-  files({
-    "fmt/src/format.cc",
-    "fmt/src/os.cc",
-  })
-  pic("On")
-
-project("nanofmt")
-  language("C++")
-  kind("StaticLib")
-  pubincludedirs({
-    "./nanofmt/include"
-  })
-  includedirs({
-    "nanofmt/source"
-  })
-  files({
-    "nanofmt/source/charconv.cpp",
-    "nanofmt/source/format.cpp",
-    "nanofmt/source/numeric_utils.h",
-    "nanofmt/source/parse_utils.h"
-  })
-  pic("On")
 
 project("googlemock")
   language("C++")
@@ -135,39 +83,6 @@ project("gtest-memleak-detector")
     "gtest-memleak-detector/include/gtest_memleak_detector/gtest_memleak_detector.h",
     "gtest-memleak-detector/src/*.cpp",
   })
-
-project("imgui")
-  language("C++")
-  kind("StaticLib")
-  pubincludedirs({
-    "./imgui",
-    "glew/include",
-    "glfw/include",
-  })
-  pubdefines({
-    "GLEW_STATIC",
-    --"IMGUI_ENABLE_STB_TRUETYPE",
-
-    --"IMGUI_ENABLE_FREETYPE"
-  })
-  files({
-    "imgui/imgui.cpp",
-    "imgui/imgui.h",
-    "imgui/imgui_draw.cpp",
-    "imgui/imgui_demo.cpp",
-    "imgui/imgui_internal.h",
-    "imgui/imgui_tables.cpp",
-    "imgui/imgui_widgets.cpp",
-    "imgui/imstb_rectpack.h",
-    "imgui/imstb_textedit.h",
-    "imgui/imstb_truetype.h"
-  })
-  filter({"system:windows"})
-    files({
-      "imgui/backends/imgui_impl_win32.cpp",
-      "imgui/backends/imgui_impl_win32.h"
-    })
-  filter{}
 
 project("lz4")
   language("C")

@@ -1,24 +1,12 @@
-[submodule "external/flatbuffers"]
-	path = external/flatbuffers
-	url = https://github.com/google/flatbuffers
-[submodule "external/fmt"]
-	path = external/fmt
-	url = https://github.com/fmtlib/fmt
 [submodule "external/googletest"]
 	path = external/googletest
 	url = https://github.com/google/googletest
-[submodule "external/rapidjson"]
-	path = external/rapidjson
-	url = https://github.com/Tencent/rapidjson
 [submodule "external/lz4"]
 	path = external/lz4
 	url = https://github.com/lz4/lz4
 [submodule "external/mbedtls"]
 	path = external/mbedtls
 	url = https://github.com/ARMmbed/mbedtls
-[submodule "external/imgui"]
-	path = external/imgui
-	url = https://github.com/ocornut/imgui
 [submodule "external/gtest-memleak-detector"]
 	path = external/gtest-memleak-detector
 	url = https://github.com/ekcoh/gtest-memleak-detector
@@ -34,15 +22,9 @@
 [submodule "external/mimalloc"]
 	path = external/mimalloc
 	url = https://github.com/microsoft/mimalloc
-[submodule "external/pugixml"]
-	path = external/pugixml
-	url = https://github.com/zeux/pugixml.git
 [submodule "build/emscripten"]
 	path = build/emscripten
 	url = https://github.com/Force67/premake-emscripten
-[submodule "external/nanofmt"]
-	path = external/nanofmt
-	url = https://github.com/seanmiddleditch/nanofmt
 [submodule "external/wayland"]
 	path = external/wayland
 	url = https://github.com/hexops/wayland-headers

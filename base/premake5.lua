@@ -23,9 +23,8 @@ local function base_project()
   warnings("High")
 
   dependencies({
-    "googlemock",
-    "fmtlib"
-  })  
+    "googlemock"
+  })
   defines({
     "BASE_IMPLEMENTATION",
     "TRACY_HAS_CALLSTACK"})
@@ -73,8 +72,8 @@ project("base_unittests")
     "allocator/**_test.cc", 
     "allocator/memory_unittests_main.cc"})
 
--- base is a special case where we cannot rely on the unittest model
--- found in components, so we have to manually add the test project
+-- base is a special case where we cannot rely on the generic unittest
+-- model, so we have to manually add the test project
 project("base_memory_unittests")
   kind("ConsoleApp")
   staticruntime("on")
