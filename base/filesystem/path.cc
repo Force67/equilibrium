@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <base/filesystem/path.h>
-#include <base/text/code_convert.h>
 #include <base/text/code_point_validation.h>
 
 namespace base {
