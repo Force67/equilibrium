@@ -139,7 +139,7 @@ TEST(LockFreeOrderedHashMap, ConcurrentInsertReachability) {
   constexpr int kTotal = kThreads * kPerThread;
 
   IntMap m(256);
-  std::atomic<bool> go{false};
+  base::Atomic<bool> go{false};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
@@ -181,8 +181,8 @@ TEST(LockFreeOrderedHashMap, ConcurrentRemoveSafe) {
   IntMap m(64);
   for (int k = 0; k < kTotal; ++k) m.insert(k, int{k});
 
-  std::atomic<bool> go{false};
-  std::atomic<int> removed{0};
+  base::Atomic<bool> go{false};
+  base::Atomic<int> removed{0};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
@@ -211,7 +211,7 @@ TEST(LockFreeOrderedHashMap, ConcurrentMixedOperations) {
   constexpr int kKeySpace = 200;
 
   IntMap m(64);
-  std::atomic<bool> go{false};
+  base::Atomic<bool> go{false};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
@@ -267,9 +267,9 @@ TEST(LockFreeOrderedHashMap, ReadersDuringWritesNoUAF) {
   IntMap m(64);
   for (int i = 0; i < 200; ++i) m.insert(i, int{i});
 
-  std::atomic<bool> stop{false};
-  std::atomic<int> reader_iterations{0};
-  std::atomic<int> reader_uaf_proxy{0};
+  base::Atomic<bool> stop{false};
+  base::Atomic<int> reader_iterations{0};
+  base::Atomic<int> reader_uaf_proxy{0};
 
   std::vector<std::thread> ts;
   for (int w = 0; w < kWriters; ++w) {
@@ -294,10 +294,10 @@ TEST(LockFreeOrderedHashMap, ReadersDuringWritesNoUAF) {
           // Sanity: keys are always in [0, 200). If we read garbage memory
           // we'd see something out of range — cheap UAF proxy.
           if (k < 0 || k >= 200) {
-            reader_uaf_proxy.fetch_add(1, std::memory_order_relaxed);
+            reader_uaf_proxy.fetch_add(1, base::memory_order_relaxed);
           }
         }
-        reader_iterations.fetch_add(1, std::memory_order_relaxed);
+        reader_iterations.fetch_add(1, base::memory_order_relaxed);
       }
     });
   }

@@ -77,7 +77,7 @@ void MemoryTracker::WipeStats() {
   for (MemoryCategory i = 0; i < kTrackingLimit; i++) {
     token_bucket[i] = kInvalidCategory;
     name_bucket[i] = nullptr;
-    memory_sizes[i].store(0, std::memory_order_relaxed);
+    memory_sizes[i].store(0, base::memory_order_relaxed);
   }
   // reserve the general category slot
   token_bucket[kGeneralMemory] = kGeneralMemory;

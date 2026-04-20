@@ -5,6 +5,8 @@
 #include <base/compiler.h>
 #include <base/export.h>
 
+#include <cstdint>
+
 #if defined(__linux__) || defined(OS_LINUX)
 #include <errno.h>
 #include <pthread.h>
@@ -23,6 +25,12 @@ class BASE_EXPORT SpinningMutex {
   STRONG_INLINE bool Try();
   void AssertAcquired() const {}
   void Reinit();
+
+  // std::mutex-compatible aliases so the same type can back a
+  // base::LockGuard / base::UniqueLock without a wrapper.
+  STRONG_INLINE void lock() { Acquire(); }
+  STRONG_INLINE void unlock() { Release(); }
+  STRONG_INLINE bool try_lock() { return Try(); }
 
  private:
   NOINLINE void AcquireSpinThenBlock();
@@ -59,14 +67,14 @@ inline constexpr SpinningMutex::SpinningMutex() = default;
 
 STRONG_INLINE bool SpinningMutex::Try() {
   int expected = kUnlocked;
-  return (state_.load(std::memory_order_relaxed) == expected) &&
+  return (state_.load(base::memory_order_relaxed) == expected) &&
          state_.compare_exchange_weak(expected, kLockedUncontended,
-                                      std::memory_order_acquire,
-                                      std::memory_order_relaxed);
+                                      base::memory_order_acquire,
+                                      base::memory_order_relaxed);
 }
 
 STRONG_INLINE void SpinningMutex::Release() {
-  if ((state_.exchange(kUnlocked, std::memory_order_release) ==
+  if ((state_.exchange(kUnlocked, base::memory_order_release) ==
        kLockedContended)) {
     FutexWake();
   }

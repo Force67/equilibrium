@@ -2,7 +2,6 @@
 // c++ translation of
 // https://github.com/dbittman/waitfree-mpsc-queue/blob/master/mpsc.c
 
-#include <atomic>
 #include <new>
 #include <base/arch.h>
 #include <base/atomic.h>
@@ -58,7 +57,7 @@ class MPSCQueue {
     T* operator->() const { return &node_->value; }
 
     Iterator& operator++() {
-      node_ = node_->next.load(std::memory_order_acquire);
+      node_ = node_->next.load(base::memory_order_acquire);
       return *this;
     }
     Iterator operator++(int) {
@@ -75,21 +74,21 @@ class MPSCQueue {
   };
 
   Iterator begin() const {
-    Node* tail = tail_.load(std::memory_order_acquire);
-    return Iterator(tail->next.load(std::memory_order_acquire));
+    Node* tail = tail_.load(base::memory_order_acquire);
+    return Iterator(tail->next.load(base::memory_order_acquire));
   }
   Iterator end() const { return Iterator(nullptr); }
 
-  MPSCQueue() : head_(new Node), tail_(head_.load(std::memory_order_relaxed)) {}
+  MPSCQueue() : head_(new Node), tail_(head_.load(base::memory_order_relaxed)) {}
 
   ~MPSCQueue() {
     // Sentinel first (no value to destroy), then walk the rest of the chain
     // destroying any live payloads before freeing.
-    Node* node = tail_.load(std::memory_order_relaxed);
-    Node* next = node->next.load(std::memory_order_relaxed);
+    Node* node = tail_.load(base::memory_order_relaxed);
+    Node* next = node->next.load(base::memory_order_relaxed);
     delete node;  // sentinel — value never constructed
     while (next) {
-      Node* after = next->next.load(std::memory_order_relaxed);
+      Node* after = next->next.load(base::memory_order_relaxed);
       next->value.~T();
       delete next;
       next = after;
@@ -101,26 +100,26 @@ class MPSCQueue {
 
   void enqueue(T&& value) {
     Node* node = new Node(base::move(value));
-    Node* prev_head = head_.exchange(node, std::memory_order_acq_rel);
-    prev_head->next.store(node, std::memory_order_release);
+    Node* prev_head = head_.exchange(node, base::memory_order_acq_rel);
+    prev_head->next.store(node, base::memory_order_release);
   }
 
   void enqueue(const T& value) {
     Node* node = new Node(value);
-    Node* prev_head = head_.exchange(node, std::memory_order_acq_rel);
-    prev_head->next.store(node, std::memory_order_release);
+    Node* prev_head = head_.exchange(node, base::memory_order_acq_rel);
+    prev_head->next.store(node, base::memory_order_release);
   }
 
   template <typename... Args>
   void emplace(Args&&... args) {
     Node* node = new Node(base::forward<Args>(args)...);
-    Node* prev_head = head_.exchange(node, std::memory_order_acq_rel);
-    prev_head->next.store(node, std::memory_order_release);
+    Node* prev_head = head_.exchange(node, base::memory_order_acq_rel);
+    prev_head->next.store(node, base::memory_order_release);
   }
 
   bool dequeue(T& out) {
-    Node* tail = tail_.load(std::memory_order_relaxed);
-    Node* next = tail->next.load(std::memory_order_acquire);
+    Node* tail = tail_.load(base::memory_order_relaxed);
+    Node* next = tail->next.load(base::memory_order_acquire);
     if (next == nullptr) return false;
 
     // Move the value out, then destroy the source. After this point `next`
@@ -129,7 +128,7 @@ class MPSCQueue {
     out = base::move(next->value);
     next->value.~T();
 
-    tail_.store(next, std::memory_order_release);
+    tail_.store(next, base::memory_order_release);
     delete tail;  // old sentinel — no value to destroy
     return true;
   }
@@ -137,37 +136,37 @@ class MPSCQueue {
   // Caller borrows the front element. The pointer is valid until the next
   // dequeue / removeFront. Returns false if the queue is empty.
   bool peek(T*& value) const {
-    Node* tail = tail_.load(std::memory_order_relaxed);
-    Node* next = tail->next.load(std::memory_order_acquire);
+    Node* tail = tail_.load(base::memory_order_relaxed);
+    Node* next = tail->next.load(base::memory_order_acquire);
     if (next == nullptr) return false;
     value = &next->value;
     return true;
   }
 
   bool removeFront() {
-    Node* tail = tail_.load(std::memory_order_relaxed);
-    Node* next = tail->next.load(std::memory_order_acquire);
+    Node* tail = tail_.load(base::memory_order_relaxed);
+    Node* next = tail->next.load(base::memory_order_acquire);
     if (next == nullptr) return false;
 
     next->value.~T();
-    tail_.store(next, std::memory_order_release);
+    tail_.store(next, base::memory_order_release);
     delete tail;
     return true;
   }
 
   bool empty() const {
-    return tail_.load(std::memory_order_acquire)
-               ->next.load(std::memory_order_acquire) == nullptr;
+    return tail_.load(base::memory_order_acquire)
+               ->next.load(base::memory_order_acquire) == nullptr;
   }
 
   // Approximate queue size. O(n) walk -- use sparingly.
   mem_size size_approx() const {
     mem_size count = 0;
-    Node* current = tail_.load(std::memory_order_acquire)
-                        ->next.load(std::memory_order_acquire);
+    Node* current = tail_.load(base::memory_order_acquire)
+                        ->next.load(base::memory_order_acquire);
     while (current != nullptr) {
       ++count;
-      current = current->next.load(std::memory_order_acquire);
+      current = current->next.load(base::memory_order_acquire);
     }
     return count;
   }

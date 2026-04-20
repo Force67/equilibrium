@@ -66,22 +66,22 @@ TEST(MPSCQueue, MultipleProducersOneConsumer) {
   constexpr int kPerProducer = 1000;
 
   base::MPSCQueue<int> q;
-  std::atomic<bool> go{false};
+  base::Atomic<bool> go{false};
 
   std::vector<std::thread> producers;
   producers.reserve(kProducers);
   for (int p = 0; p < kProducers; ++p) {
     producers.emplace_back([&, p] {
-      while (!go.load(std::memory_order_acquire)) {}
+      while (!go.load(base::memory_order_acquire)) {}
       const int base = p * kPerProducer;
       for (int i = 0; i < kPerProducer; ++i) q.enqueue(int{base + i});
     });
   }
 
-  std::atomic<int> drained{0};
+  base::Atomic<int> drained{0};
   std::vector<int> seen(kProducers * kPerProducer, 0);
   std::thread consumer([&] {
-    while (!go.load(std::memory_order_acquire)) {}
+    while (!go.load(base::memory_order_acquire)) {}
     int total = kProducers * kPerProducer;
     while (drained.load() < total) {
       int v;
@@ -94,7 +94,7 @@ TEST(MPSCQueue, MultipleProducersOneConsumer) {
     }
   });
 
-  go.store(true, std::memory_order_release);
+  go.store(true, base::memory_order_release);
   for (auto& t : producers) t.join();
   consumer.join();
 

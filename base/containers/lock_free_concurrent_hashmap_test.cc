@@ -73,7 +73,7 @@ void concurrentRemove(Test_HashMap_Type* hashMap,
 void concurrentFind(Test_HashMap_Type* hashMap,
                     int threadId,
                     int numFinds,
-                    std::atomic<int>& foundCount) {
+                    base::Atomic<int>& foundCount) {
   for (int i = 0; i < numFinds; ++i) {
     int value;
     if (hashMap->find(threadId * 1000 + i, value)) {
@@ -133,7 +133,7 @@ TEST_F(LockFreeHashMapTest, MultiThreadedFind) {
   int numThreads = 10;
   int numFindsPerThread = 100;
   std::vector<std::thread> threads;
-  std::atomic<int> foundCount(0);
+  base::Atomic<int> foundCount(0);
 
   // First insert some values
   for (int i = 0; i < numThreads; ++i) {
@@ -223,7 +223,7 @@ TEST(LockFreeHashMapStress, InsertFindHammer) {
   constexpr int kOps = 5000;
   base::LockFreeHashMap<int, int> map(kBuckets);
 
-  std::atomic<bool> go{false};
+  base::Atomic<bool> go{false};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads / 2; ++t) {
     ts.emplace_back([&, t] {
@@ -233,13 +233,13 @@ TEST(LockFreeHashMapStress, InsertFindHammer) {
       }
     });
   }
-  std::atomic<int> total_found{0};
+  base::Atomic<int> total_found{0};
   for (int t = 0; t < kThreads / 2; ++t) {
     ts.emplace_back([&] {
       while (!go) {}
       for (int i = 0; i < kOps; ++i) {
         int v;
-        if (map.find(i, v)) total_found.fetch_add(1, std::memory_order_relaxed);
+        if (map.find(i, v)) total_found.fetch_add(1, base::memory_order_relaxed);
       }
     });
   }

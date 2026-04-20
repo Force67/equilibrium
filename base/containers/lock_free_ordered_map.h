@@ -27,8 +27,6 @@
 // container sits in the layer it logically belongs to.
 #pragma once
 
-#include <atomic>
-
 #include <base/arch.h>
 #include <base/atomic.h>
 #include <base/check.h>
@@ -73,10 +71,10 @@ struct EpochState {
       free_ids.pop_back();
       return id;
     }
-    int id = high_watermark.load(std::memory_order_relaxed);
+    int id = high_watermark.load(base::memory_order_relaxed);
     // Release: ensures try_advance() (which loads with acquire) sees this
     // slot as part of its scan range before the new thread announces.
-    high_watermark.store(id + 1, std::memory_order_release);
+    high_watermark.store(id + 1, base::memory_order_release);
     return id;
   }
 
@@ -86,35 +84,35 @@ struct EpochState {
   // entered one, so no reader holds a dangling pointer.  The new thread's
   // announce() retry loop guarantees it pins the current (or later) epoch.
   void release_id(int id) {
-    slots[id].epoch.store(-1, std::memory_order_release);
+    slots[id].epoch.store(-1, base::memory_order_release);
     base::LockGuard<base::Mutex> lk(pool_mutex);
     free_ids.push_back(id);
   }
 
   int announce(int id) {
     while (true) {
-      long e = current.load(std::memory_order_acquire);
-      slots[id].epoch.exchange(e, std::memory_order_seq_cst);
-      if (current.load(std::memory_order_acquire) == e) return id;
+      long e = current.load(base::memory_order_acquire);
+      slots[id].epoch.exchange(e, base::memory_order_seq_cst);
+      if (current.load(base::memory_order_acquire) == e) return id;
     }
   }
 
   void unannounce(int id) {
-    slots[id].epoch.store(-1, std::memory_order_release);
+    slots[id].epoch.store(-1, base::memory_order_release);
   }
 
   void try_advance() {
-    long e = current.load(std::memory_order_acquire);
-    int n = high_watermark.load(std::memory_order_acquire);
+    long e = current.load(base::memory_order_acquire);
+    int n = high_watermark.load(base::memory_order_acquire);
     for (int i = 0; i < n; i++) {
-      long a = slots[i].epoch.load(std::memory_order_acquire);
+      long a = slots[i].epoch.load(base::memory_order_acquire);
       if (a != -1 && a < e) return;
     }
-    current.compare_exchange_strong(e, e + 1, std::memory_order_release,
-                                    std::memory_order_relaxed);
+    current.compare_exchange_strong(e, e + 1, base::memory_order_release,
+                                    base::memory_order_relaxed);
   }
 
-  long get_current() const { return current.load(std::memory_order_acquire); }
+  long get_current() const { return current.load(base::memory_order_acquire); }
 };
 
 // Leaking singleton avoids destruction-order issues with thread_local.
@@ -231,10 +229,10 @@ class LockFreeOrderedHashMap {
 
   Node* find_in_bucket(const Key& key) const {
     mem_size index = hash_key(key);
-    Node* curr = buckets[index].load(std::memory_order_acquire);
+    Node* curr = buckets[index].load(base::memory_order_acquire);
     while (curr) {
       if (curr->keyValue.first == key) return curr;
-      curr = curr->bucketNext.load(std::memory_order_acquire);
+      curr = curr->bucketNext.load(base::memory_order_acquire);
     }
     return nullptr;
   }
@@ -250,28 +248,28 @@ class LockFreeOrderedHashMap {
   bool try_unlink_from_bucket(Node* node) {
     mem_size index = hash_key(node->keyValue.first);
     base::Atomic<Node*>* prev_ptr = &buckets[index];
-    Node* curr = prev_ptr->load(std::memory_order_acquire);
+    Node* curr = prev_ptr->load(base::memory_order_acquire);
     while (curr) {
       if (curr == node) {
         Node* expected = node;
-        Node* next = node->bucketNext.load(std::memory_order_relaxed);
+        Node* next = node->bucketNext.load(base::memory_order_relaxed);
         return prev_ptr->compare_exchange_strong(
-            expected, next, std::memory_order_release,
-            std::memory_order_relaxed);
+            expected, next, base::memory_order_release,
+            base::memory_order_relaxed);
       }
       prev_ptr = &curr->bucketNext;
-      curr = curr->bucketNext.load(std::memory_order_acquire);
+      curr = curr->bucketNext.load(base::memory_order_acquire);
     }
     return false;  // already unlinked
   }
 
   void stage_node(Node* node) {
-    Node* old_head = staging_head_.load(std::memory_order_relaxed);
+    Node* old_head = staging_head_.load(base::memory_order_relaxed);
     do {
       node->staging_next = old_head;
     } while (!staging_head_.compare_exchange_weak(
-        old_head, node, std::memory_order_release,
-        std::memory_order_relaxed));
+        old_head, node, base::memory_order_release,
+        base::memory_order_relaxed));
   }
 
  public:
@@ -290,7 +288,7 @@ class LockFreeOrderedHashMap {
 
     void skip_deleted() {
       while (currentNode &&
-             currentNode->is_deleted.load(std::memory_order_acquire)) {
+             currentNode->is_deleted.load(base::memory_order_acquire)) {
         static_cast<IteratorType*>(this)->advance_impl();
       }
     }
@@ -334,7 +332,7 @@ class LockFreeOrderedHashMap {
     void advance_impl() {
       if (this->currentNode)
         this->currentNode =
-            this->currentNode->orderNext.load(std::memory_order_acquire);
+            this->currentNode->orderNext.load(base::memory_order_acquire);
     }
 
    public:
@@ -355,11 +353,11 @@ class LockFreeOrderedHashMap {
     void advance_impl() {
       if (!this->currentNode) return;
       this->currentNode =
-          this->currentNode->bucketNext.load(std::memory_order_acquire);
+          this->currentNode->bucketNext.load(base::memory_order_acquire);
       while (!this->currentNode && bucketIndex < this->map->bucketCount - 1) {
         ++bucketIndex;
         this->currentNode =
-            this->map->buckets[bucketIndex].load(std::memory_order_acquire);
+            this->map->buckets[bucketIndex].load(base::memory_order_acquire);
       }
       if (!this->currentNode) bucketIndex = this->map->bucketCount;
     }
@@ -385,15 +383,15 @@ class LockFreeOrderedHashMap {
 
   OrderIterator order_begin() const {
     return OrderIterator(this,
-                         orderHead.load(std::memory_order_acquire));
+                         orderHead.load(base::memory_order_acquire));
   }
   OrderIterator order_end() const { return OrderIterator(this); }
 
   BucketIterator begin() const {
     for (mem_size i = 0; i < bucketCount; ++i) {
-      Node* node = buckets[i].load(std::memory_order_acquire);
-      while (node && node->is_deleted.load(std::memory_order_acquire))
-        node = node->bucketNext.load(std::memory_order_acquire);
+      Node* node = buckets[i].load(base::memory_order_acquire);
+      while (node && node->is_deleted.load(base::memory_order_acquire))
+        node = node->bucketNext.load(base::memory_order_acquire);
       if (node) return BucketIterator(this, i, node);
     }
     return end();
@@ -408,7 +406,7 @@ class LockFreeOrderedHashMap {
         orderTail(nullptr) {
     buckets = new base::Atomic<Node*>[bucketCount];
     for (mem_size i = 0; i < bucketCount; ++i)
-      buckets[i].store(nullptr, std::memory_order_relaxed);
+      buckets[i].store(nullptr, base::memory_order_relaxed);
   }
 
   // Destructor assumes no concurrent operations.  The staging stack and
@@ -417,7 +415,7 @@ class LockFreeOrderedHashMap {
   // are walked and freed unconditionally (EBR safety is irrelevant during
   // single-threaded teardown).
   ~LockFreeOrderedHashMap() {
-    Node* staged = staging_head_.load(std::memory_order_relaxed);
+    Node* staged = staging_head_.load(base::memory_order_relaxed);
     while (staged) {
       Node* next = staged->staging_next;
       delete staged;
@@ -456,7 +454,7 @@ class LockFreeOrderedHashMap {
       Node* existingNode = find_in_bucket(key);
 
       if (existingNode) {
-        if (!existingNode->is_deleted.load(std::memory_order_acquire)) {
+        if (!existingNode->is_deleted.load(base::memory_order_acquire)) {
           delete newNode;
           return false;
         }
@@ -468,12 +466,12 @@ class LockFreeOrderedHashMap {
       if (!newNode)
         newNode = new Node(base::forward<K>(key), base::forward<V>(value));
 
-      Node* oldHead = buckets[index].load(std::memory_order_acquire);
-      newNode->bucketNext.store(oldHead, std::memory_order_relaxed);
+      Node* oldHead = buckets[index].load(base::memory_order_acquire);
+      newNode->bucketNext.store(oldHead, base::memory_order_relaxed);
 
       if (buckets[index].compare_exchange_weak(
-              oldHead, newNode, std::memory_order_release,
-              std::memory_order_relaxed)) {
+              oldHead, newNode, base::memory_order_release,
+              base::memory_order_relaxed)) {
         // Post-CAS duplicate detection.
         //
         // Correctness relies on the prepend-chain ordering invariant:
@@ -488,18 +486,18 @@ class LockFreeOrderedHashMap {
         // and backs off.  No symmetric tiebreaker is needed because the
         // acyclic singly-linked chain provides natural asymmetry.
         Node* check =
-            newNode->bucketNext.load(std::memory_order_acquire);
+            newNode->bucketNext.load(base::memory_order_acquire);
         while (check) {
           if (check->keyValue.first == key &&
-              !check->is_deleted.load(std::memory_order_acquire)) {
+              !check->is_deleted.load(base::memory_order_acquire)) {
             // We are shallower; back off. The deeper node wins.
-            newNode->is_deleted.store(true, std::memory_order_release);
+            newNode->is_deleted.store(true, base::memory_order_release);
             newNode->order_swept = true;  // never entered order chain
             try_unlink_from_bucket(newNode);
             stage_node(newNode);
             return false;
           }
-          check = check->bucketNext.load(std::memory_order_acquire);
+          check = check->bucketNext.load(base::memory_order_acquire);
         }
         stage_node(newNode);
         break;
@@ -507,19 +505,19 @@ class LockFreeOrderedHashMap {
     }
 
     // Phase 2: append to insertion-order list (Michael & Scott).
-    newNode->orderNext.store(nullptr, std::memory_order_relaxed);
+    newNode->orderNext.store(nullptr, base::memory_order_relaxed);
     Node* expected_tail = nullptr;
 
     while (true) {
-      Node* current_tail = orderTail.load(std::memory_order_acquire);
+      Node* current_tail = orderTail.load(base::memory_order_acquire);
 
       if (current_tail == nullptr) {
         if (orderHead.compare_exchange_weak(
-                expected_tail, newNode, std::memory_order_release,
-                std::memory_order_relaxed)) {
+                expected_tail, newNode, base::memory_order_release,
+                base::memory_order_relaxed)) {
           orderTail.compare_exchange_strong(
-              expected_tail, newNode, std::memory_order_release,
-              std::memory_order_relaxed);
+              expected_tail, newNode, base::memory_order_release,
+              base::memory_order_relaxed);
           return true;
         }
         expected_tail = nullptr;
@@ -528,24 +526,24 @@ class LockFreeOrderedHashMap {
 
       expected_tail = current_tail;
       Node* tail_next =
-          current_tail->orderNext.load(std::memory_order_acquire);
+          current_tail->orderNext.load(base::memory_order_acquire);
 
-      if (orderTail.load(std::memory_order_acquire) != current_tail)
+      if (orderTail.load(base::memory_order_acquire) != current_tail)
         continue;
 
       if (tail_next != nullptr) {
         orderTail.compare_exchange_weak(
-            current_tail, tail_next, std::memory_order_release,
-            std::memory_order_relaxed);
+            current_tail, tail_next, base::memory_order_release,
+            base::memory_order_relaxed);
         continue;
       }
 
       if (current_tail->orderNext.compare_exchange_weak(
-              tail_next, newNode, std::memory_order_release,
-              std::memory_order_relaxed)) {
+              tail_next, newNode, base::memory_order_release,
+              base::memory_order_relaxed)) {
         orderTail.compare_exchange_strong(
-            current_tail, newNode, std::memory_order_release,
-            std::memory_order_relaxed);
+            current_tail, newNode, base::memory_order_release,
+            base::memory_order_relaxed);
         return true;
       }
     }
@@ -566,14 +564,14 @@ class LockFreeOrderedHashMap {
   bool find(const Key& key, Value& value) const {
     ebr::Guard guard;
     mem_size index = hash_key(key);
-    Node* curr = buckets[index].load(std::memory_order_acquire);
+    Node* curr = buckets[index].load(base::memory_order_acquire);
     while (curr) {
       if (curr->keyValue.first == key &&
-          !curr->is_deleted.load(std::memory_order_acquire)) {
+          !curr->is_deleted.load(base::memory_order_acquire)) {
         value = curr->keyValue.second;
         return true;
       }
-      curr = curr->bucketNext.load(std::memory_order_acquire);
+      curr = curr->bucketNext.load(base::memory_order_acquire);
     }
     return false;
   }
@@ -582,14 +580,14 @@ class LockFreeOrderedHashMap {
   bool with_value(const Key& key, Callback&& callback) const {
     ebr::Guard guard;
     mem_size index = hash_key(key);
-    Node* curr = buckets[index].load(std::memory_order_acquire);
+    Node* curr = buckets[index].load(base::memory_order_acquire);
     while (curr) {
       if (curr->keyValue.first == key &&
-          !curr->is_deleted.load(std::memory_order_acquire)) {
+          !curr->is_deleted.load(base::memory_order_acquire)) {
         callback(curr->keyValue.second);
         return true;
       }
-      curr = curr->bucketNext.load(std::memory_order_acquire);
+      curr = curr->bucketNext.load(base::memory_order_acquire);
     }
     return false;
   }
@@ -617,11 +615,11 @@ class LockFreeOrderedHashMap {
   base::Vector<Key> ordered_keys_snapshot() const {
     ebr::Guard guard;
     base::Vector<Key> keys;
-    Node* curr = orderHead.load(std::memory_order_acquire);
+    Node* curr = orderHead.load(base::memory_order_acquire);
     while (curr) {
-      if (!curr->is_deleted.load(std::memory_order_acquire))
+      if (!curr->is_deleted.load(base::memory_order_acquire))
         keys.push_back(curr->keyValue.first);
-      curr = curr->orderNext.load(std::memory_order_acquire);
+      curr = curr->orderNext.load(base::memory_order_acquire);
     }
     return keys;
   }
@@ -641,10 +639,10 @@ class LockFreeOrderedHashMap {
 
       bool expected = false;
       if (node->is_deleted.compare_exchange_weak(
-              expected, true, std::memory_order_release,
-              std::memory_order_relaxed)) {
+              expected, true, base::memory_order_release,
+              base::memory_order_relaxed)) {
         try_unlink_from_bucket(node);
-        delete_since_gc_.fetch_add(1, std::memory_order_relaxed);
+        delete_since_gc_.fetch_add(1, base::memory_order_relaxed);
         return true;
       }
       if (expected) return false;
@@ -654,7 +652,7 @@ class LockFreeOrderedHashMap {
   // Called after every insert/remove, outside the EBR guard scope, so the
   // epoch can advance freely and retired nodes can actually be freed.
   void post_mutate() {
-    mem_size n = op_count_.fetch_add(1, std::memory_order_relaxed);
+    mem_size n = op_count_.fetch_add(1, base::memory_order_relaxed);
     // Periodically advance the epoch so retired nodes become freeable.
     if ((n & 0xFF) == 0)
       ebr::state().try_advance();
@@ -662,7 +660,7 @@ class LockFreeOrderedHashMap {
     // delete count (not staging count) so insert-heavy workloads don't
     // pay for GC sweeps on live nodes.  try_to_lock avoids blocking the
     // hot path if GC is already running on another thread.
-    if (delete_since_gc_.load(std::memory_order_relaxed) >=
+    if (delete_since_gc_.load(base::memory_order_relaxed) >=
         kAutoGCThreshold) {
       base::UniqueLock<base::Mutex> lock(gc_mutex_, base::try_to_lock);
       if (lock.owns_lock())
@@ -673,31 +671,31 @@ class LockFreeOrderedHashMap {
   void collect_garbage_locked() {
     // 1. Drain lock-free staging stack into the tracked list.
     Node* staged =
-        staging_head_.exchange(nullptr, std::memory_order_acquire);
+        staging_head_.exchange(nullptr, base::memory_order_acquire);
     while (staged) {
       Node* next = staged->staging_next;
       all_nodes_.push_back(staged);
       staged = next;
     }
-    delete_since_gc_.store(0, std::memory_order_relaxed);
+    delete_since_gc_.store(0, base::memory_order_relaxed);
 
     // 2. Sweep bucket chains: CAS-unlink deleted nodes.
     for (mem_size i = 0; i < bucketCount; ++i) {
       base::Atomic<Node*>* prev_ptr = &buckets[i];
-      Node* curr = prev_ptr->load(std::memory_order_acquire);
+      Node* curr = prev_ptr->load(base::memory_order_acquire);
       while (curr) {
-        Node* next = curr->bucketNext.load(std::memory_order_acquire);
-        if (curr->is_deleted.load(std::memory_order_acquire)) {
+        Node* next = curr->bucketNext.load(base::memory_order_acquire);
+        if (curr->is_deleted.load(base::memory_order_acquire)) {
           Node* expected = curr;
           if (prev_ptr->compare_exchange_strong(
-                  expected, next, std::memory_order_release,
-                  std::memory_order_relaxed)) {
+                  expected, next, base::memory_order_release,
+                  base::memory_order_relaxed)) {
             curr->bucket_swept = true;
             curr = next;
             continue;
           }
           prev_ptr = &buckets[i];
-          curr = prev_ptr->load(std::memory_order_acquire);
+          curr = prev_ptr->load(base::memory_order_acquire);
           continue;
         }
         prev_ptr = &curr->bucketNext;
@@ -707,29 +705,29 @@ class LockFreeOrderedHashMap {
 
     // 3. CAS-unlink deleted non-tail nodes from the order chain.
     Node* prev = nullptr;
-    Node* curr = orderHead.load(std::memory_order_acquire);
+    Node* curr = orderHead.load(base::memory_order_acquire);
     while (curr) {
-      Node* next = curr->orderNext.load(std::memory_order_acquire);
-      if (curr->is_deleted.load(std::memory_order_acquire) &&
+      Node* next = curr->orderNext.load(base::memory_order_acquire);
+      if (curr->is_deleted.load(base::memory_order_acquire) &&
           next != nullptr) {
         Node* expected = curr;
         bool unlinked;
         if (prev) {
           unlinked = prev->orderNext.compare_exchange_strong(
-              expected, next, std::memory_order_release,
-              std::memory_order_relaxed);
+              expected, next, base::memory_order_release,
+              base::memory_order_relaxed);
         } else {
           unlinked = orderHead.compare_exchange_strong(
-              expected, next, std::memory_order_release,
-              std::memory_order_relaxed);
+              expected, next, base::memory_order_release,
+              base::memory_order_relaxed);
         }
         if (unlinked) {
           curr->order_swept = true;
         } else {
           if (prev)
-            curr = prev->orderNext.load(std::memory_order_acquire);
+            curr = prev->orderNext.load(base::memory_order_acquire);
           else
-            curr = orderHead.load(std::memory_order_acquire);
+            curr = orderHead.load(base::memory_order_acquire);
           continue;
         }
       } else {

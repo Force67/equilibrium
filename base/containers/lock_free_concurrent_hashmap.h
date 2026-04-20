@@ -67,11 +67,11 @@ class LockFreeHashMap {
 
     Iterator& operator++() {
       if (currentNode) {
-        currentNode = currentNode->next.load(std::memory_order_acquire);
+        currentNode = currentNode->next.load(base::memory_order_acquire);
       }
       while (!currentNode && bucketIndex < map->bucketCount - 1) {
         ++bucketIndex;
-        currentNode = map->buckets[bucketIndex].load(std::memory_order_acquire);
+        currentNode = map->buckets[bucketIndex].load(base::memory_order_acquire);
       }
       return *this;
     }
@@ -122,24 +122,24 @@ class LockFreeHashMap {
   void insert(Key key, Value value) {
     size_t index = hash(key);
     Node* newNode = new Node(key, base::move(value));
-    Node* oldHead = buckets[index].load(std::memory_order_acquire);
+    Node* oldHead = buckets[index].load(base::memory_order_acquire);
 
     do {
-      newNode->next.store(oldHead, std::memory_order_relaxed);
+      newNode->next.store(oldHead, base::memory_order_relaxed);
     } while (!buckets[index].compare_exchange_weak(
-        oldHead, newNode, std::memory_order_release, std::memory_order_acquire));
+        oldHead, newNode, base::memory_order_release, base::memory_order_acquire));
   }
 
   bool find(Key key, Value& value) const {
     size_t index = hash(key);
-    Node* head = buckets[index].load(std::memory_order_acquire);
+    Node* head = buckets[index].load(base::memory_order_acquire);
 
     while (head) {
       if (head->keyValue.first == key) {
         value = head->keyValue.second;
         return true;
       }
-      head = head->next.load(std::memory_order_acquire);
+      head = head->next.load(base::memory_order_acquire);
     }
 
     return false;
@@ -152,23 +152,23 @@ class LockFreeHashMap {
   // removes are serialized (e.g., single-writer pattern).
   bool remove(Key key) {
     size_t index = hash(key);
-    Node* head = buckets[index].load(std::memory_order_acquire);
+    Node* head = buckets[index].load(base::memory_order_acquire);
     Node* prev = nullptr;
 
     while (head) {
       if (head->keyValue.first == key) {
-        Node* next = head->next.load(std::memory_order_acquire);
+        Node* next = head->next.load(base::memory_order_acquire);
         if (prev) {
-          prev->next.store(next, std::memory_order_release);
+          prev->next.store(next, base::memory_order_release);
         } else if (!buckets[index].compare_exchange_strong(
-                       head, next, std::memory_order_acq_rel)) {
+                       head, next, base::memory_order_acq_rel)) {
           continue;
         }
         delete head;
         return true;
       }
       prev = head;
-      head = head->next.load(std::memory_order_acquire);
+      head = head->next.load(base::memory_order_acquire);
     }
 
     return false;
@@ -176,9 +176,9 @@ class LockFreeHashMap {
 
   ~LockFreeHashMap() {
     for (size_t i = 0; i < bucketCount; ++i) {
-      Node* head = buckets[i].load(std::memory_order_relaxed);
+      Node* head = buckets[i].load(base::memory_order_relaxed);
       while (head) {
-        Node* next = head->next.load(std::memory_order_relaxed);
+        Node* next = head->next.load(base::memory_order_relaxed);
         delete head;
         head = next;
       }

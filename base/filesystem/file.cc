@@ -76,12 +76,12 @@ void File::Initialize(const Path& path, uint32_t flags) {
 
 bool File::ReadAndCheck(int64_t offset, base::Span<uint8_t> data) {
   int size = static_cast<int>(data.size());
-  return Read(offset, reinterpret_cast<char*>(data.data()), size) == size;
+  return Read(offset, reinterpret_cast<char*>(data.begin()), size) == size;
 }
 
 bool File::ReadAtCurrentPosAndCheck(base::Span<uint8_t> data) {
   int size = static_cast<int>(data.size());
-  return ReadAtCurrentPos(reinterpret_cast<char*>(data.data()), size) == size;
+  return ReadAtCurrentPos(reinterpret_cast<char*>(data.begin()), size) == size;
 }
 
 bool File::WriteAndCheck(int64_t offset, base::Span<const uint8_t> data) {

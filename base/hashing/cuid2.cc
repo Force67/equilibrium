@@ -55,7 +55,7 @@ namespace base {
 void GenerateCuid2(char* out) {
   // 1. Gather entropy sources.
   u64 ms = static_cast<u64>(base::GetUnixTimeMilliseconds());
-  u64 count = s_counter.fetch_add(1, std::memory_order_relaxed);
+  u64 count = s_counter.fetch_add(1, base::memory_order_relaxed);
 
   // Kernel CSPRNG is strictly stronger than std::random_device here (the
   // underlying libstdc++ impl is also /dev/urandom on Linux).

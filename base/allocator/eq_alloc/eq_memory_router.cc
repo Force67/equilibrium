@@ -7,7 +7,9 @@
 
 #include <base/allocator/eq_alloc/eq_memory_router.h>
 
-#include <new>  // for placement new
+#include <climits>  // UINT_MAX
+#include <cstdint>  // UINT32_MAX
+#include <new>      // for placement new
 
 namespace base {
 

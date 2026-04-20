@@ -145,7 +145,7 @@ TEST(ConcurrentOrderedMap, ConcurrentInsertReachability) {
   constexpr int kTotal = kThreads * kPerThread;
 
   base::ConcurrentOrderedMap<int, int> m(256);
-  std::atomic<bool> go{false};
+  base::Atomic<bool> go{false};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
@@ -190,8 +190,8 @@ TEST(ConcurrentOrderedMap, ConcurrentFindAfterInsert) {
   base::ConcurrentOrderedMap<int, int> m(512);
   for (int i = 0; i < kKeys; ++i) m.insert(i, i + 1);
 
-  std::atomic<int> hits{0};
-  std::atomic<bool> go{false};
+  base::Atomic<int> hits{0};
+  base::Atomic<bool> go{false};
   std::vector<std::thread> ts;
   for (int t = 0; t < kReaders; ++t) {
     ts.emplace_back([&] {
@@ -199,7 +199,7 @@ TEST(ConcurrentOrderedMap, ConcurrentFindAfterInsert) {
       for (int i = 0; i < kFindsPerReader; ++i) {
         int v;
         if (m.find(i % kKeys, v)) {
-          if (v == (i % kKeys) + 1) hits.fetch_add(1, std::memory_order_relaxed);
+          if (v == (i % kKeys) + 1) hits.fetch_add(1, base::memory_order_relaxed);
         }
       }
     });
@@ -223,8 +223,8 @@ TEST(ConcurrentOrderedMap, ConcurrentRemoveSafe) {
   for (int k = 0; k < kTotal; ++k) m.insert(k, k);
   EXPECT_EQ(m.size(), static_cast<arch_types::mem_size>(kTotal));
 
-  std::atomic<bool> go{false};
-  std::atomic<int> removed{0};
+  base::Atomic<bool> go{false};
+  base::Atomic<int> removed{0};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
@@ -252,7 +252,7 @@ TEST(ConcurrentOrderedMap, ConcurrentMixedOperations) {
   constexpr int kKeySpace = 200;
 
   base::ConcurrentOrderedMap<int, int> m(64);
-  std::atomic<bool> go{false};
+  base::Atomic<bool> go{false};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
@@ -299,8 +299,8 @@ TEST(ConcurrentOrderedMap, ConcurrentReadersDuringWrites) {
   base::ConcurrentOrderedMap<int, int> m(64);
   for (int i = 0; i < 200; ++i) m.insert(i, i);
 
-  std::atomic<bool> stop{false};
-  std::atomic<int> iteration_errors{0};
+  base::Atomic<bool> stop{false};
+  base::Atomic<int> iteration_errors{0};
 
   // Pre-populate with insert_or_assign so duplicates can't sneak in.
   m.clear();
@@ -328,7 +328,7 @@ TEST(ConcurrentOrderedMap, ConcurrentReadersDuringWrites) {
         std::unordered_set<int> seen;
         m.for_each_in_order([&](const int& k, const int&) {
           if (!seen.insert(k).second) {
-            iteration_errors.fetch_add(1, std::memory_order_relaxed);
+            iteration_errors.fetch_add(1, base::memory_order_relaxed);
           }
         });
       }

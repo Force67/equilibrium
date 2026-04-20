@@ -2803,7 +2803,7 @@ TEST(MPSCQueueBugBash, MultiProducerSingleConsumer) {
   base::MPSCQueue<i32> q;
   constexpr int kNumProducers = 4;
   constexpr int kItemsPerProducer = 1000;
-  std::atomic<int> items_produced{0};
+  base::Atomic<int> items_produced{0};
 
   // Launch producer threads
   std::thread producers[kNumProducers];
@@ -2811,7 +2811,7 @@ TEST(MPSCQueueBugBash, MultiProducerSingleConsumer) {
     producers[p] = std::thread([&q, &items_produced, p]() {
       for (int i = 0; i < kItemsPerProducer; ++i) {
         q.enqueue(p * kItemsPerProducer + i);
-        items_produced.fetch_add(1, std::memory_order_relaxed);
+        items_produced.fetch_add(1, base::memory_order_relaxed);
       }
     });
   }
@@ -2834,20 +2834,20 @@ TEST(MPSCQueueBugBash, MultiProducerSingleConsumer) {
 TEST(MPSCQueueBugBash, ProducerConsumerConcurrent) {
   base::MPSCQueue<i32> q;
   constexpr int kTotal = 10000;
-  std::atomic<int> consumed{0};
-  std::atomic<bool> done{false};
+  base::Atomic<int> consumed{0};
+  base::Atomic<bool> done{false};
 
   // Consumer thread
   std::thread consumer([&]() {
     i32 val;
-    while (!done.load(std::memory_order_acquire) || !q.empty()) {
+    while (!done.load(base::memory_order_acquire) || !q.empty()) {
       if (q.dequeue(val)) {
-        consumed.fetch_add(1, std::memory_order_relaxed);
+        consumed.fetch_add(1, base::memory_order_relaxed);
       }
     }
     // Drain remaining
     while (q.dequeue(val)) {
-      consumed.fetch_add(1, std::memory_order_relaxed);
+      consumed.fetch_add(1, base::memory_order_relaxed);
     }
   });
 
@@ -2862,7 +2862,7 @@ TEST(MPSCQueueBugBash, ProducerConsumerConcurrent) {
   }
 
   for (auto& t : producers) t.join();
-  done.store(true, std::memory_order_release);
+  done.store(true, base::memory_order_release);
   consumer.join();
 
   EXPECT_EQ(consumed.load(), kTotal);
@@ -2925,20 +2925,20 @@ TEST(LockFreeHashMapBugBash, ConcurrentInsert) {
 TEST(LockFreeHashMapBugBash, ConcurrentInsertAndFind) {
   base::LockFreeHashMap<i32, i32> m(64);
   constexpr int kInserts = 5000;
-  std::atomic<bool> done{false};
+  base::Atomic<bool> done{false};
 
   // Writer thread
   std::thread writer([&]() {
     for (int i = 0; i < kInserts; ++i) {
       m.insert(i, i * 10);
     }
-    done.store(true, std::memory_order_release);
+    done.store(true, base::memory_order_release);
   });
 
   // Reader thread
   std::thread reader([&]() {
     i32 val;
-    while (!done.load(std::memory_order_acquire)) {
+    while (!done.load(base::memory_order_acquire)) {
       // Just verify no crash during concurrent access
       for (int i = 0; i < 100; ++i) {
         m.find(i, val);

@@ -26,7 +26,7 @@ struct BASE_EXPORT MemoryTracker {
   // must be inline so the compiler can fold it into the caller.
   inline void TrackOperation(void* pointer, pointer_diff size) {
     (void)pointer;
-    memory_sizes[CurrentCategory()].fetch_add(size, std::memory_order_relaxed);
+    memory_sizes[CurrentCategory()].fetch_add(size, base::memory_order_relaxed);
   }
 
   // thread-local category accessor (defined in .cc, declared here for inline use)
