@@ -6,12 +6,10 @@
 #define BASE_SCOPED_GENERIC_H_
 
 #include <stdlib.h>
-#include <ostream>
-
-#include <algorithm>
-#include <utility>
 
 #include "base/check.h"
+#include "base/memory/move.h"
+#include "base/meta/traits.h"
 
 namespace base {
 
@@ -148,12 +146,8 @@ class ScopedGeneric {
     TrackRelease(data_.generic);
     other.TrackRelease(other.data_.generic);
 
-    // Standard swap idiom: 'using std::swap' ensures that std::swap is
-    // present in the overload set, but we call swap unqualified so that
-    // any more-specific overloads can be used, if available.
-    using std::swap;
-    swap(static_cast<Traits&>(data_), static_cast<Traits&>(other.data_));
-    swap(data_.generic, other.data_.generic);
+    base::swap(static_cast<Traits&>(data_), static_cast<Traits&>(other.data_));
+    base::swap(data_.generic, other.data_.generic);
 
     TrackAcquire(data_.generic);
     other.TrackAcquire(other.data_.generic);
@@ -266,32 +260,28 @@ class ScopedGeneric {
   }
 
   template <typename Void = void>
-  typename std::
-      enable_if_t<std::is_base_of<ScopedGenericOwnershipTracking, Traits>::value, Void>
-      TrackAcquire(const T& value) {
+  base::enable_if_t<base::is_base_of_v<ScopedGenericOwnershipTracking, Traits>, Void>
+  TrackAcquire(const T& value) {
     if (value != traits_type::InvalidValue()) {
       data_.Acquire(static_cast<const ScopedGeneric&>(*this), value);
     }
   }
 
   template <typename Void = void>
-  typename std::
-      enable_if_t<!std::is_base_of<ScopedGenericOwnershipTracking, Traits>::value, Void>
-      TrackAcquire(const T& value) {}
+  base::enable_if_t<!base::is_base_of_v<ScopedGenericOwnershipTracking, Traits>, Void>
+  TrackAcquire(const T& value) {}
 
   template <typename Void = void>
-  typename std::
-      enable_if_t<std::is_base_of<ScopedGenericOwnershipTracking, Traits>::value, Void>
-      TrackRelease(const T& value) {
+  base::enable_if_t<base::is_base_of_v<ScopedGenericOwnershipTracking, Traits>, Void>
+  TrackRelease(const T& value) {
     if (value != traits_type::InvalidValue()) {
       data_.Release(static_cast<const ScopedGeneric&>(*this), value);
     }
   }
 
   template <typename Void = void>
-  typename std::
-      enable_if_t<!std::is_base_of<ScopedGenericOwnershipTracking, Traits>::value, Void>
-      TrackRelease(const T& value) {}
+  base::enable_if_t<!base::is_base_of_v<ScopedGenericOwnershipTracking, Traits>, Void>
+  TrackRelease(const T& value) {}
 
   // Forbid comparison. If U != T, it totally doesn't make sense, and if U ==
   // T, it still doesn't make sense because you should never have the same

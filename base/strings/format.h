@@ -33,10 +33,9 @@
 
 #include <base/arch.h>
 #include <base/export.h>
+#include <base/meta/traits.h>
 #include <base/strings/string_ref.h>
 #include <base/strings/xstring.h>
-
-#include <type_traits>
 
 namespace base {
 namespace fmt_detail {
@@ -107,13 +106,13 @@ inline Arg MakeArg(char8_t v) noexcept {
   Arg a; a.tag = Arg::Tag::kChar; a.c = static_cast<char>(v); return a;
 }
 template <typename T>
-  requires(std::is_integral_v<T> && !std::is_same_v<T, bool> &&
-           !std::is_same_v<T, char> && !std::is_same_v<T, char8_t> &&
-           !std::is_same_v<T, char16_t> && !std::is_same_v<T, char32_t> &&
-           !std::is_same_v<T, wchar_t>)
+  requires(base::is_integral_v<T> && !base::is_same_v<T, bool> &&
+           !base::is_same_v<T, char> && !base::is_same_v<T, char8_t> &&
+           !base::is_same_v<T, char16_t> && !base::is_same_v<T, char32_t> &&
+           !base::is_same_v<T, wchar_t>)
 inline Arg MakeArg(T v) noexcept {
   Arg a;
-  if constexpr (std::is_signed_v<T>) {
+  if constexpr (base::is_signed_v<T>) {
     a.tag = Arg::Tag::kI64;
     a.i = static_cast<i64>(v);
   } else {
@@ -227,11 +226,11 @@ inline Arg MakeArg(base::StringRefU8 s) noexcept {
 }
 
 template <typename T>
-  requires(!std::is_same_v<T, char> && !std::is_same_v<T, const char> &&
-           !std::is_same_v<T, char8_t> && !std::is_same_v<T, const char8_t> &&
-           !std::is_same_v<T, char16_t> && !std::is_same_v<T, const char16_t> &&
-           !std::is_same_v<T, char32_t> && !std::is_same_v<T, const char32_t> &&
-           !std::is_same_v<T, wchar_t> && !std::is_same_v<T, const wchar_t>)
+  requires(!base::is_same_v<T, char> && !base::is_same_v<T, const char> &&
+           !base::is_same_v<T, char8_t> && !base::is_same_v<T, const char8_t> &&
+           !base::is_same_v<T, char16_t> && !base::is_same_v<T, const char16_t> &&
+           !base::is_same_v<T, char32_t> && !base::is_same_v<T, const char32_t> &&
+           !base::is_same_v<T, wchar_t> && !base::is_same_v<T, const wchar_t>)
 inline Arg MakeArg(T* v) noexcept {
   Arg a; a.tag = Arg::Tag::kPtr; a.ptr = static_cast<const void*>(v); return a;
 }

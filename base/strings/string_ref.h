@@ -38,8 +38,7 @@ class BasicStringRef {
 
   // construct from base::String<T>
   template <class TOther>
-    requires(  //! std::same_as<TOther, BaseString> &&
-                base::HasStringTraits<TOther, value_type>)
+    requires(base::HasStringTraits<TOther, value_type>)
   BasicStringRef(const TOther& str)
       : data_(str.c_str()),
         length_(static_cast<u32>(str.length())),
@@ -301,16 +300,3 @@ base::XBasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
   return strong;
 }
 }  // namespace base
-
-#if 0
-namespace std {
-template <typename TChar>
-struct hash<base::BasicStringRef<TChar>> {
-  std::size_t operator()(const base::BasicStringRef<TChar>& str) const {
-    // Use a hash function to compute the hash value for the string.
-    // Here is an example implementation using the std::hash function:
-    return base::FNV1a32(str.data());
-  }
-};
-}  // namespace std
-#endif

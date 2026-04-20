@@ -2,19 +2,21 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <span>
-
+#include "base/containers/span.h"
 #include "base/export.h"
 #include "base/filesystem/path.h"
 #include "base/filesystem/scoped_file.h"
 #include "base/filesystem/platform_file.h"
+#include "base/strings/base_string.h"
 
 #include "base/memory/unique_pointer.h"
 
 #include "build/build_config.h"
 
 #if defined(OS_BSD) || defined(OS_APPLE) || defined(OS_NACL) || defined(OS_FUCHSIA) || \
-    (defined(OS_ANDROID) && __ANDROID_API__ < 21)
+    (defined(OS_ANDROID) && __ANDROID_API__ < 21) || defined(BASE_MUSL_STATIC)
+// musl only ships the 64-bit `struct stat` under the plain name; the
+// `stat64` aliases are glibc-only.
 struct stat;
 namespace base {
 typedef struct stat stat_wrapper_t;
@@ -193,10 +195,10 @@ class BASE_EXPORT File {
   // Simplified versions of Read() and friends (see below) that check the int
   // return value and just return a boolean. They return true if and only if
   // the function read in / wrote out exactly |size| bytes of data.
-  bool ReadAndCheck(int64_t offset, std::span<uint8_t> data);
-  bool ReadAtCurrentPosAndCheck(std::span<uint8_t> data);
-  bool WriteAndCheck(int64_t offset, std::span<const uint8_t> data);
-  bool WriteAtCurrentPosAndCheck(std::span<const uint8_t> data);
+  bool ReadAndCheck(int64_t offset, base::Span<uint8_t> data);
+  bool ReadAtCurrentPosAndCheck(base::Span<uint8_t> data);
+  bool WriteAndCheck(int64_t offset, base::Span<const uint8_t> data);
+  bool WriteAtCurrentPosAndCheck(base::Span<const uint8_t> data);
 
   // Reads the given number of bytes (or until EOF is reached) starting with the
   // given offset. Returns the number of bytes read, or -1 on error. Note that
@@ -347,7 +349,7 @@ class BASE_EXPORT File {
   static Error GetLastFileError();
 
   // Converts an error value to a human-readable form. Used for logging.
-  static std::string ErrorToString(Error error);
+  static base::String ErrorToString(Error error);
 
 #if defined(OS_POSIX) || defined(OS_FUCHSIA)
   // Wrapper for stat() or stat64().

@@ -280,7 +280,7 @@ void FormatFloat(Sink& sink, f64 v, const Spec& spec) noexcept {
   else if (spec.sign == ' ') fmt[fp++] = ' ';
   if (spec.alt) fmt[fp++] = '#';
   if (spec.precision >= 0) {
-    int n = std::snprintf(fmt + fp, sizeof(fmt) - fp, ".%d", spec.precision);
+    int n = ::snprintf(fmt + fp, sizeof(fmt) - fp, ".%d", spec.precision);
     if (n > 0) fp += n;
   }
   char type = spec.type;
@@ -289,7 +289,7 @@ void FormatFloat(Sink& sink, f64 v, const Spec& spec) noexcept {
   fmt[fp] = '\0';
 
   char out[64];
-  int n = std::snprintf(out, sizeof(out), fmt, v);
+  int n = ::snprintf(out, sizeof(out), fmt, v);
   if (n < 0) return;
   if (n > (int)sizeof(out) - 1) n = (int)sizeof(out) - 1;
 
@@ -354,7 +354,7 @@ void FormatArgValue(Sink& sink, const Arg& arg, const Spec& spec) noexcept {
       return;
     case Arg::Tag::kCStr: {
       const char* s = arg.cstr ? arg.cstr : "(null)";
-      FormatString(sink, s, std::strlen(s), spec);
+      FormatString(sink, s, ::strlen(s), spec);
       return;
     }
     case Arg::Tag::kStrSpan:

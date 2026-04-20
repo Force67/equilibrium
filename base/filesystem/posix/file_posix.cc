@@ -8,12 +8,14 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <string.h>
 
 #include <base/check.h>
 #include <base/filesystem/file.h>
 #include <base/filesystem/posix/eintr_wrapper.h>
+#include <base/memory/move.h>
 
 #include <base/text/code_convert.h>
 #include <base/text/code_point_validation.h>
@@ -34,11 +36,15 @@ bool IsOpenAppend(PlatformFile file) {
 }
 
 int CallFtruncate(PlatformFile file, int64_t length) {
+#if defined(BASE_MUSL_STATIC)
+  return HANDLE_EINTR(ftruncate(file, length));
+#else
   return HANDLE_EINTR(ftruncate64(file, length));
+#endif
 }
 
 int CallFutimes(PlatformFile file, const struct timeval times[2]) {
-#ifdef __USE_XOPEN2K8
+#if defined(__USE_XOPEN2K8) || defined(BASE_MUSL_STATIC)
   // futimens should be available, but futimes might not be
   // http://pubs.opengroup.org/onlinepubs/9699919799/
 
@@ -276,7 +282,7 @@ File File::Duplicate() const {
   if (!other_fd.is_valid())
     return File(File::GetLastFileError());
 
-  return File(std::move(other_fd), async());
+  return File(base::move(other_fd), async());
 }
 
 // Static.
@@ -424,14 +430,26 @@ File::Error File::GetLastFileError() {
 
 int File::Stat(const char* path, stat_wrapper_t* sb) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
+#if defined(BASE_MUSL_STATIC)
+  return stat(path, sb);
+#else
   return stat64(path, sb);
+#endif
 }
 int File::Fstat(int fd, stat_wrapper_t* sb) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
+#if defined(BASE_MUSL_STATIC)
+  return fstat(fd, sb);
+#else
   return fstat64(fd, sb);
+#endif
 }
 int File::Lstat(const char* path, stat_wrapper_t* sb) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
+#if defined(BASE_MUSL_STATIC)
+  return lstat(path, sb);
+#else
   return lstat64(path, sb);
+#endif
 }
 }  // namespace base

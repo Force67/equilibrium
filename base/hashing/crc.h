@@ -69,7 +69,7 @@ u32 CRC32C(const byte* data, mem_size length, u32 previousCrc32 = 0xFFFFFFFF) {
   // often referred to as CRC-32C.
   // this differs from the "known" way.
   // The table is for the Ethernet/ZIP/etc. CRC, often referred to as CRC-32.
-  for (std::size_t i = 0; i < length; ++i) {
+  for (mem_size i = 0; i < length; ++i) {
     crc = _mm_crc32_u8(crc, data[i]);
   }
 

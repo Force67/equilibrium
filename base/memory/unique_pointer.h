@@ -5,11 +5,11 @@
 // for more info
 #pragma once
 
-#include <cstddef>
 #include <base/check.h>
 #include <base/memory/move.h>
 #include <base/memory/deleter.h>
 #include <base/memory/cxx_lifetime.h>
+#include <base/meta/traits.h>
 
 namespace base {
 // unique_ptr replacement class, but you are:
@@ -136,8 +136,8 @@ class UniquePointer {
   bool empty() const noexcept { return pointer_ == nullptr; }
   operator bool() const noexcept { return pointer_ != nullptr; }
 
-  bool operator==(std::nullptr_t) const noexcept { return pointer_ == nullptr; }
-  bool operator!=(std::nullptr_t) const noexcept { return pointer_ != nullptr; }
+  bool operator==(base::nullptr_t) const noexcept { return pointer_ == nullptr; }
+  bool operator!=(base::nullptr_t) const noexcept { return pointer_ != nullptr; }
 
   TType* Get_UseOnlyIfYouKnowWhatYouareDoing() const { return pointer_; }
   void ResetUnchecked_UseOnlyIfYouKnowWhatYouareDoing() { pointer_ = nullptr; }

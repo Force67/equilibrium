@@ -36,7 +36,7 @@ bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
 }
 
 void Path::Normalize(BufferType& buffer) {
-  for (std::size_t i = 0; i < buffer.size(); ++i) {
+  for (mem_size i = 0; i < buffer.size(); ++i) {
     auto& c = buffer[i];
     bool matches = (c == u8'/');
 

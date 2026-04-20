@@ -17,6 +17,9 @@ struct remove_reference<T&&> {
 };
 
 template <typename T>
+using remove_reference_t = typename remove_reference<T>::type;
+
+template <typename T>
 struct remove_pointer {
   using type = T;
 };
@@ -30,6 +33,9 @@ template <typename T>
 struct remove_pointer<T* const> {
   using type = T;
 };
+
+template <typename T>
+using remove_pointer_t = typename remove_pointer<T>::type;
 
 template <typename T>
 struct is_pointer {
@@ -64,6 +70,13 @@ constexpr typename remove_reference<T>::type&& move(T&& x) noexcept {
 template <class T>
 [[nodiscard]] constexpr T* AddressOf(T& v) noexcept {
   return __builtin_addressof(v);
+}
+
+template <typename T>
+constexpr void swap(T& a, T& b) noexcept {
+  T tmp = static_cast<T&&>(a);
+  a = static_cast<T&&>(b);
+  b = static_cast<T&&>(tmp);
 }
 
 #define BASE_NOCOPYMOVE(class_name)                  \

@@ -4,11 +4,12 @@
 #include "cuid2.h"
 #include "sha256.h"
 
-#include <atomic>
-#include <chrono>
 #include <cstdio>
 #include <cstring>
-#include <random>
+
+#include <base/atomic.h>
+#include <base/random/random.h>
+#include <base/time/time.h>
 
 #ifdef __linux__
 #include <unistd.h>
@@ -18,7 +19,7 @@ namespace {
 
 static const char kBase36[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
-static std::atomic<u64> s_counter{0};
+static base::Atomic<u64> s_counter{0};
 
 // Encode raw bytes as base36 characters into |out|.
 // Writes exactly |out_len| characters (no null terminator).
@@ -53,15 +54,13 @@ namespace base {
 
 void GenerateCuid2(char* out) {
   // 1. Gather entropy sources.
-  auto now = std::chrono::system_clock::now();
-  u64 ms = u64(std::chrono::duration_cast<std::chrono::milliseconds>(
-                    now.time_since_epoch())
-                    .count());
+  u64 ms = static_cast<u64>(base::GetUnixTimeMilliseconds());
   u64 count = s_counter.fetch_add(1, std::memory_order_relaxed);
 
-  std::random_device rd;
-  u64 rand_a = u64(rd()) | (u64(rd()) << 32);
-  u64 rand_b = u64(rd()) | (u64(rd()) << 32);
+  // Kernel CSPRNG is strictly stronger than std::random_device here (the
+  // underlying libstdc++ impl is also /dev/urandom on Linux).
+  u64 rand_a = base::SourceTrueRandomSeed();
+  u64 rand_b = base::SourceTrueRandomSeed();
 
   // Process fingerprint: PID (+ padding).
   u64 pid = 0;
@@ -72,10 +71,10 @@ void GenerateCuid2(char* out) {
   // 2. Build entropy string.
   char entropy[256];
   int len =
-      std::snprintf(entropy, sizeof(entropy), "%llu_%llu_%llu_%llu_%llu",
-                    (unsigned long long)ms, (unsigned long long)count,
-                    (unsigned long long)rand_a, (unsigned long long)rand_b,
-                    (unsigned long long)pid);
+      ::snprintf(entropy, sizeof(entropy), "%llu_%llu_%llu_%llu_%llu",
+                 (unsigned long long)ms, (unsigned long long)count,
+                 (unsigned long long)rand_a, (unsigned long long)rand_b,
+                 (unsigned long long)pid);
 
   // 3. Hash with SHA-256.
   Sha256Hash hash = Sha256(entropy, mem_size(len));

@@ -25,6 +25,3 @@
 [submodule "build/emscripten"]
 	path = build/emscripten
 	url = https://github.com/Force67/premake-emscripten
-[submodule "external/wayland"]
-	path = external/wayland
-	url = https://github.com/hexops/wayland-headers

@@ -120,7 +120,7 @@ struct BASE_EXPORT EQMemoryRouter {
       return nullptr;
 
     mem_size copy_size = former_size < new_size ? former_size : new_size;
-    std::memcpy(new_block, former_block, copy_size);
+    ::memcpy(new_block, former_block, copy_size);
 
     // recover the raw (pre-alignment) pointer and free it
     mem_size adjustment = reinterpret_cast<mem_size*>(former_block)[-1];

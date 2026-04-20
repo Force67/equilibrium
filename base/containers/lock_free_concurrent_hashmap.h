@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <map>
 #include <base/atomic.h>
+#include <base/containers/pair.h>
 #include <base/memory/move.h>
 
 namespace base {
@@ -60,7 +60,7 @@ class LockFreeHashMap {
     Node* currentNode;
 
    public:
-    using KeyValuePair = std::pair<Key, Value>;
+    using KeyValuePair = base::Pair<Key, Value>;
 
     Iterator(const LockFreeHashMap<Key, Value>* map, size_t bucketIndex, Node* node)
         : map(map), bucketIndex(bucketIndex), currentNode(node) {}
@@ -99,10 +99,10 @@ class LockFreeHashMap {
   Iterator end() { return Iterator(this, bucketCount, nullptr); }
 
   struct Node {
-    std::pair<Key, Value> keyValue;
+    base::Pair<Key, Value> keyValue;
     base::Atomic<Node*> next;
 
-    Node(Key k, Value&& v) : keyValue(std::make_pair(k, base::move(v))), next(nullptr) {}
+    Node(Key k, Value&& v) : keyValue{k, base::move(v)}, next(nullptr) {}
   };
 
  private:
@@ -113,7 +113,7 @@ class LockFreeHashMap {
 
  public:
   LockFreeHashMap(size_t count) : bucketCount(count) {
-    buckets = new std::atomic<Node*>[count];
+    buckets = new base::Atomic<Node*>[count];
     for (size_t i = 0; i < count; ++i) {
       buckets[i].store(nullptr);
     }

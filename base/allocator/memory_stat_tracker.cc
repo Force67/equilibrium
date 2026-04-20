@@ -8,12 +8,14 @@
 #include <base/allocator/memory_stat_tracker.h>
 
 #include <cstring>
-#include <mutex>
+
+#include <base/threading/lock_guard.h>
+#include <base/threading/mutex.h>
 
 namespace base {
 namespace {
 thread_local constinit MemoryCategory current_token{kGeneralMemory};
-static std::mutex s_tracker_mutex;
+static base::Mutex s_tracker_mutex;
 
 MemoryCategory FindFreeTokenIndex(MemoryTracker& tracker) {
   // scan slots 0..253 (254 = kGeneralMemory is reserved)
@@ -31,7 +33,7 @@ MemoryCategory FindFreeTokenIndex(MemoryTracker& tracker) {
 static bool s_categories_inited = false;
 
 MemoryCategory AddMemoryCategory(const char* name) {
-  std::lock_guard<std::mutex> lock(s_tracker_mutex);
+  base::LockGuard<base::Mutex> lock(s_tracker_mutex);
 
   auto& tracker_instance = memory_tracker();
   if (!s_categories_inited) {
@@ -49,7 +51,7 @@ MemoryCategory AddMemoryCategory(const char* name) {
 }
 
 void RemoveMemoryCategory(MemoryCategory id) {
-  std::lock_guard<std::mutex> lock(s_tracker_mutex);
+  base::LockGuard<base::Mutex> lock(s_tracker_mutex);
 
   auto& tracker_instance = memory_tracker();
   for (auto i = 0; i < kTrackingLimit; i++) {

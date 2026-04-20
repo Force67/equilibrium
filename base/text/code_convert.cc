@@ -5,10 +5,10 @@
 
 #include <cstdint>
 #include <limits.h>
-#include <type_traits>
 
 #include <base/check.h>
 #include <base/external/icu/icu_utf.h>
+#include <base/meta/traits.h>
 #include <base/strings/string_ref.h>
 #include <base/text/code_point_validation.h>
 #include <build/build_config.h>
@@ -53,19 +53,19 @@ struct SizeCoefficient<wchar_t, char16_t> {
 
 template <typename SrcChar, typename DestChar>
 constexpr mem_size size_coefficient_v =
-    SizeCoefficient<std::decay_t<SrcChar>, std::decay_t<DestChar>>::value;
+    SizeCoefficient<base::decay_t<SrcChar>, base::decay_t<DestChar>>::value;
 
 // Appends a single codepoint to `out`, advancing `*size`. Caller must
 // ensure enough space via the size coefficient above.
-template <typename Char, std::enable_if_t<CHAR_BIT * sizeof(Char) == 8, int> = 0>
+template <typename Char, base::enable_if_t<CHAR_BIT * sizeof(Char) == 8, int> = 0>
 void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
   CBU8_APPEND_UNSAFE(out, *size, code_point);
 }
-template <typename Char, std::enable_if_t<CHAR_BIT * sizeof(Char) == 16, int> = 0>
+template <typename Char, base::enable_if_t<CHAR_BIT * sizeof(Char) == 16, int> = 0>
 void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
   CBU16_APPEND_UNSAFE(out, *size, code_point);
 }
-template <typename Char, std::enable_if_t<CHAR_BIT * sizeof(Char) == 32, int> = 0>
+template <typename Char, base::enable_if_t<CHAR_BIT * sizeof(Char) == 32, int> = 0>
 void UnicodeAppendUnsafe(Char* out, int32_t* size, uint32_t code_point) {
   out[(*size)++] = code_point;
 }

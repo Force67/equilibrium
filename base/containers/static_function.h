@@ -10,7 +10,10 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
+#include <base/memory/move.h>
+#include <base/meta/traits.h>
 
 namespace base {
 
@@ -22,7 +25,7 @@ class StaticFunction<R(Args...), MaxSize> {
  public:
   StaticFunction() noexcept {}
 
-  StaticFunction(std::nullptr_t) noexcept {}
+  StaticFunction(base::nullptr_t) noexcept {}
 
   StaticFunction(const StaticFunction& other) {
     if (other) {
@@ -36,10 +39,10 @@ class StaticFunction<R(Args...), MaxSize> {
 
   template <class F>
   StaticFunction(F&& f) {
-    using f_type = typename std::decay<F>::type;
-    static_assert(alignof(f_type) <= alignof(Storage), "invalid alignment");
-    static_assert(sizeof(f_type) <= sizeof(Storage), "storage too small");
-    new (&data_) f_type(std::forward<F>(f));
+    using f_type = base::decay_t<F>;
+    static_assert(alignof(f_type) <= kStorageAlign, "invalid alignment");
+    static_assert(sizeof(f_type) <= kStorageSize, "storage too small");
+    new (&data_) f_type(base::forward<F>(f));
     invoker_ = &invoke<f_type>;
     manager_ = &manage<f_type>;
   }
@@ -56,11 +59,11 @@ class StaticFunction<R(Args...), MaxSize> {
   }
 
   StaticFunction& operator=(StaticFunction&& other) {
-    StaticFunction(std::move(other)).swap(*this);
+    StaticFunction(base::move(other)).swap(*this);
     return *this;
   }
 
-  StaticFunction& operator=(std::nullptr_t) {
+  StaticFunction& operator=(base::nullptr_t) {
     if (manager_) {
       manager_(&data_, nullptr, Operation::Destroy);
       manager_ = nullptr;
@@ -71,28 +74,26 @@ class StaticFunction<R(Args...), MaxSize> {
 
   template <typename F>
   StaticFunction& operator=(F&& f) {
-    StaticFunction(std::forward<F>(f)).swap(*this);
-    return *this;
-  }
-
-  template <typename F>
-  StaticFunction& operator=(std::reference_wrapper<F> f) {
-    StaticFunction(f).swap(*this);
+    StaticFunction(base::forward<F>(f)).swap(*this);
     return *this;
   }
 
   void swap(StaticFunction& other) {
-    std::swap(data_, other.data_);
-    std::swap(manager_, other.manager_);
-    std::swap(invoker_, other.invoker_);
+    // Byte-wise swap of the storage is safe: both sides either hold a
+    // properly-constructed callable or are empty, and we also swap the
+    // invoker/manager pointers that know how to operate on each.
+    alignas(kStorageAlign) unsigned char tmp[kStorageSize];
+    __builtin_memcpy(tmp, &data_, kStorageSize);
+    __builtin_memcpy(&data_, &other.data_, kStorageSize);
+    __builtin_memcpy(&other.data_, tmp, kStorageSize);
+    base::swap(manager_, other.manager_);
+    base::swap(invoker_, other.invoker_);
   }
 
   explicit operator bool() const noexcept { return !!manager_; }
 
   R operator()(Args... args) {
-    if (!invoker_) {
-      throw std::bad_function_call();
-    }
+    BASE_CHECK(invoker_ != nullptr, "StaticFunction invoked while empty");
     return invoker_(&data_, base::forward<Args>(args)...);
   }
 
@@ -101,8 +102,11 @@ class StaticFunction<R(Args...), MaxSize> {
 
   using Invoker = R (*)(void*, Args&&...);
   using Manager = void (*)(void*, void*, Operation);
-  using Storage =
-      typename std::aligned_storage<MaxSize - sizeof(Invoker) - sizeof(Manager), 8>::type;
+
+  // Leave room for the two function pointers; the rest is callable storage.
+  static constexpr mem_size kStorageSize =
+      MaxSize - sizeof(Invoker) - sizeof(Manager);
+  static constexpr mem_size kStorageAlign = 8;
 
   template <typename F>
   static R invoke(void* data_, Args&&... args) {
@@ -122,7 +126,7 @@ class StaticFunction<R(Args...), MaxSize> {
     }
   }
 
-  Storage data_;
+  alignas(kStorageAlign) unsigned char data_[kStorageSize];
   Invoker invoker_ = nullptr;
   Manager manager_ = nullptr;
 };

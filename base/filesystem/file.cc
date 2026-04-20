@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <utility>
-
 #include <base/compiler.h>
+#include <base/memory/move.h>
 #include <build/build_config.h>
 #include <base/filesystem/file.h>
 
@@ -26,12 +25,12 @@ File::File(const Path& path, uint32_t flags) : error_details_(FILE_OK) {
 }
 #endif
 
-File::File(ScopedPlatformFile platform_file) : File(std::move(platform_file), false) {}
+File::File(ScopedPlatformFile platform_file) : File(base::move(platform_file), false) {}
 
 File::File(PlatformFile platform_file) : File(platform_file, false) {}
 
 File::File(ScopedPlatformFile platform_file, bool async)
-    : file_(std::move(platform_file)), error_details_(FILE_OK), async_(async) {
+    : file_(base::move(platform_file)), error_details_(FILE_OK), async_(async) {
 #if defined(OS_POSIX) || defined(OS_FUCHSIA)
   BASE_DCHECK(file_.get() >= -1);
 #endif
@@ -75,28 +74,28 @@ void File::Initialize(const Path& path, uint32_t flags) {
 }
 #endif
 
-bool File::ReadAndCheck(int64_t offset, std::span<uint8_t> data) {
+bool File::ReadAndCheck(int64_t offset, base::Span<uint8_t> data) {
   int size = static_cast<int>(data.size());
   return Read(offset, reinterpret_cast<char*>(data.data()), size) == size;
 }
 
-bool File::ReadAtCurrentPosAndCheck(std::span<uint8_t> data) {
+bool File::ReadAtCurrentPosAndCheck(base::Span<uint8_t> data) {
   int size = static_cast<int>(data.size());
   return ReadAtCurrentPos(reinterpret_cast<char*>(data.data()), size) == size;
 }
 
-bool File::WriteAndCheck(int64_t offset, std::span<const uint8_t> data) {
+bool File::WriteAndCheck(int64_t offset, base::Span<const uint8_t> data) {
   int size = static_cast<int>(data.size());
   return Write(offset, reinterpret_cast<const char*>(data.data()), size) == size;
 }
 
-bool File::WriteAtCurrentPosAndCheck(std::span<const uint8_t> data) {
+bool File::WriteAtCurrentPosAndCheck(base::Span<const uint8_t> data) {
   int size = static_cast<int>(data.size());
   return WriteAtCurrentPos(reinterpret_cast<const char*>(data.data()), size) == size;
 }
 
 // static
-std::string File::ErrorToString(Error error) {
+base::String File::ErrorToString(Error error) {
   switch (error) {
     case FILE_OK:
       return "FILE_OK";

@@ -6,24 +6,30 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+// musl does not ship <execinfo.h>/backtrace(); when building in the
+// fully-static musl mode (see build/musl_static.lua) we stub the
+// callstack capture instead of pulling in a backtrace library.
+#if !defined(BASE_MUSL_STATIC)
 #include <execinfo.h>
+#endif
 
 #include <cxxabi.h>
 
 namespace base {
 
 bool IsDebuggerAttached() {
-  FILE* f = std::fopen("/proc/self/status", "r");
+  FILE* f = ::fopen("/proc/self/status", "r");
   if (!f) return false;
 
   char line[256];
-  while (std::fgets(line, sizeof(line), f)) {
-    if (std::strncmp(line, "TracerPid:\t", 11) == 0) {
-      std::fclose(f);
-      return std::atoi(line + 11) != 0;
+  while (::fgets(line, sizeof(line), f)) {
+    if (::strncmp(line, "TracerPid:\t", 11) == 0) {
+      ::fclose(f);
+      return ::atoi(line + 11) != 0;
     }
   }
-  std::fclose(f);
+  ::fclose(f);
   return false;
 }
 
@@ -31,8 +37,8 @@ bool IsDebuggerAttached() {
 // Input looks like: "./build/voxel_beta(_ZN7physics...+0x1a) [0x55...]"
 // We extract the mangled name between '(' and '+' and demangle it.
 static base::String DemangleFrame(const char* raw) {
-  const char* lparen = std::strchr(raw, '(');
-  const char* plus = lparen ? std::strchr(lparen, '+') : nullptr;
+  const char* lparen = ::strchr(raw, '(');
+  const char* plus = lparen ? ::strchr(lparen, '+') : nullptr;
 
   if (!lparen || !plus || plus <= lparen + 1) {
     return base::String(raw);
@@ -44,7 +50,7 @@ static base::String DemangleFrame(const char* raw) {
   if (len >= static_cast<i32>(sizeof(mangled))) {
     return base::String(raw);
   }
-  std::memcpy(mangled, lparen + 1, len);
+  __builtin_memcpy(mangled, lparen + 1, len);
   mangled[len] = '\0';
 
   // Demangle.
@@ -56,8 +62,8 @@ static base::String DemangleFrame(const char* raw) {
 
   // Build a clean string: "demangled+offset"
   base::String result(demangled);
-  result += base::String(plus, static_cast<i32>(std::strlen(plus)));
-  std::free(demangled);
+  result += base::String(plus, static_cast<i32>(::strlen(plus)));
+  ::free(demangled);
 
   return result;
 }
@@ -65,6 +71,11 @@ static base::String DemangleFrame(const char* raw) {
 base::Vector<base::String> CaptureCallstack(i32 skipFrames, i32 maxFrames) {
   base::Vector<base::String> result;
 
+#if defined(BASE_MUSL_STATIC)
+  (void)skipFrames;
+  (void)maxFrames;
+  return result;
+#else
   void* buffer[64];
   i32 total = maxFrames;
   if (total > 64) total = 64;
@@ -76,8 +87,9 @@ base::Vector<base::String> CaptureCallstack(i32 skipFrames, i32 maxFrames) {
   for (i32 i = skipFrames; i < count; ++i) {
     result.push_back(DemangleFrame(symbols[i]));
   }
-  std::free(symbols);
+  ::free(symbols);
   return result;
+#endif
 }
 
 }  // namespace base

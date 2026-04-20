@@ -13,18 +13,18 @@
 
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/meta/traits.h>
 #include <base/numeric_limits.h>
 #include <base/strings/char_algorithms.h>
 
 #include <cstring>
-#include <type_traits>
 
 namespace base {
 
 template <mem_size N, typename TChar = char>
 class BasicFixedString {
   static_assert(N > 0, "BasicFixedString requires N > 0");
-  static_assert(std::is_trivial_v<TChar>, "TChar must be trivial");
+  static_assert(base::is_trivial_v<TChar>, "TChar must be trivial");
 
  public:
   using character_type = TChar;

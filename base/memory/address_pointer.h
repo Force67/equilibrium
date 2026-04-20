@@ -12,7 +12,7 @@ class pointer {
 
  public:
   constexpr pointer() = default;
-  constexpr pointer(std::uintptr_t address);
+  constexpr pointer(mem_size address);
 
   template <typename T>
   pointer(T* address);
@@ -56,11 +56,11 @@ static_assert((sizeof(pointer) == sizeof(void*)) && (alignof(pointer) == alignof
 
 template <typename T>
 STRONG_INLINE pointer::pointer(T* address) noexcept
-    : value_(reinterpret_cast<std::uintptr_t>(address)) {}
+    : value_(reinterpret_cast<mem_size>(address)) {}
 
 template <typename T, typename C>
 STRONG_INLINE pointer::pointer(T C::*address) noexcept
-    : value_(bit_cast<std::uintptr_t>(address)) {}
+    : value_(bit_cast<mem_size>(address)) {}
 
 STRONG_INLINE constexpr pointer pointer::operator+(mem_size count) const {
   return value_ + count;

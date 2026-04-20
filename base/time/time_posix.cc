@@ -15,4 +15,18 @@ i64 GetUnixTimeStamp() {
   ::gettimeofday(&tv, nullptr);
   return tv.tv_sec;  // Return the number of seconds since January 1, 1970
 }
+
+i64 GetUnixTimeMilliseconds() {
+  struct timespec ts;
+  ::clock_gettime(CLOCK_REALTIME, &ts);
+  return static_cast<i64>(ts.tv_sec) * 1000 +
+         static_cast<i64>(ts.tv_nsec) / 1000000;
+}
+
+i64 TickClock::NowNs() {
+  struct timespec ts;
+  ::clock_gettime(CLOCK_MONOTONIC, &ts);
+  return static_cast<i64>(ts.tv_sec) * 1'000'000'000LL +
+         static_cast<i64>(ts.tv_nsec);
+}
 }  // namespace base

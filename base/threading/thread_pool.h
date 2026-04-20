@@ -2,10 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <queue>
 #include <base/atomic.h>
 #include <base/export.h>
 #include <base/threading/thread.h>
+#include <base/containers/deque.h>
 #include <base/containers/vector.h>
 
 namespace base {
@@ -23,7 +23,7 @@ class BASE_EXPORT ThreadPool {
   void scaleUp(size_t target);
 
   // Custom task queue and synchronization primitives
-  std::queue<base::Function<void()>> taskQueue;
+  base::SimpleDeque<base::Function<void()>> taskQueue;
 
   base::Vector<base::Thread*> workers;
   size_t minThreads, maxThreads;

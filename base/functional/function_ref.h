@@ -1,5 +1,6 @@
 #pragma once
-#include <utility>  // For std::forward
+
+#include <base/memory/move.h>
 
 namespace base {
 
@@ -15,9 +16,9 @@ class FunctionRef<TReturn(Args...)> final {
   // Existing constructor for functors and free functions
   template <typename Functor>
   FunctionRef(Functor&& functor)
-      : object_(nullptr), functor_((void*)std::addressof(functor)) {
+      : object_(nullptr), functor_((void*)base::AddressOf(functor)) {
     erased_function_ = [](void* obj, void* ptr, Args... args) -> decltype(auto) {
-      return (*static_cast<Functor*>(ptr))(std::forward<Args>(args)...);
+      return (*static_cast<Functor*>(ptr))(base::forward<Args>(args)...);
     };
   }
 
@@ -31,7 +32,7 @@ class FunctionRef<TReturn(Args...)> final {
       // Cast the object and function pointer back to their original types
       auto real_obj = static_cast<T*>(obj);
       auto real_func = reinterpret_cast<MemberFunction>(ptr);
-      return (real_obj->*real_func)(std::forward<Args>(args)...);
+      return (real_obj->*real_func)(base::forward<Args>(args)...);
     };
   }
 
@@ -40,10 +41,10 @@ class FunctionRef<TReturn(Args...)> final {
     if (object_) {
       // Member function call
       return erased_function_(object_, member_function_,
-                              std::forward<Args>(args)...);
+                              base::forward<Args>(args)...);
     } else {
       // Regular function call
-      return erased_function_(nullptr, functor_, std::forward<Args>(args)...);
+      return erased_function_(nullptr, functor_, base::forward<Args>(args)...);
     }
 #endif
     return {};

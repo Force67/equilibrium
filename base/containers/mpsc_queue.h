@@ -4,9 +4,8 @@
 
 #include <atomic>
 #include <new>
-#include <type_traits>
-#include <utility>
 #include <base/arch.h>
+#include <base/atomic.h>
 #include <base/memory/move.h>
 
 namespace base {
@@ -29,7 +28,7 @@ class MPSCQueue {
     union {
       T value;
     };
-    std::atomic<Node*> next;
+    base::Atomic<Node*> next;
 
     // Sentinel constructor — leaves `value` uninitialized.
     Node() : next(nullptr) {}
@@ -37,7 +36,7 @@ class MPSCQueue {
     // Data-node constructor — emplaces value in-place.
     template <typename... Args>
     explicit Node(Args&&... args) : next(nullptr) {
-      ::new (static_cast<void*>(&value)) T(std::forward<Args>(args)...);
+      ::new (static_cast<void*>(&value)) T(base::forward<Args>(args)...);
     }
 
     // Destructor is a no-op; the queue destroys `value` explicitly before
@@ -114,7 +113,7 @@ class MPSCQueue {
 
   template <typename... Args>
   void emplace(Args&&... args) {
-    Node* node = new Node(std::forward<Args>(args)...);
+    Node* node = new Node(base::forward<Args>(args)...);
     Node* prev_head = head_.exchange(node, std::memory_order_acq_rel);
     prev_head->next.store(node, std::memory_order_release);
   }
@@ -174,8 +173,8 @@ class MPSCQueue {
   }
 
  private:
-  std::atomic<Node*> head_;
-  std::atomic<Node*> tail_;
+  base::Atomic<Node*> head_;
+  base::Atomic<Node*> tail_;
 };
 
 }  // namespace base

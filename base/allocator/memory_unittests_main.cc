@@ -106,7 +106,7 @@ void PageTable_RequestSinglePage() {
   EXPECT(page != nullptr);
   EXPECT(size_out == 0x10000);
   // write to the page to prove it's committed
-  std::memset(page, 0xBB, 0x10000);
+  ::memset(page, 0xBB, 0x10000);
   EXPECT(table.ReleasePage(page) == 0x10000);
   TEST_PASS();
 }
@@ -151,7 +151,7 @@ void PageTable_RequestMultipleContiguous() {
   EXPECT(span != nullptr);
   EXPECT(size_out == 0x10000 * 4);
   // write across the entire span to prove contiguity
-  std::memset(span, 0xAA, 0x10000 * 4);
+  ::memset(span, 0xAA, 0x10000 * 4);
   EXPECT(table.ReleasePages(span, 4) == 0x10000 * 4);
   TEST_PASS();
 }
@@ -231,7 +231,7 @@ void PageAllocator_AllocateAndFree() {
   PageAllocator alloc(pt);
   void* block = alloc.Allocate(1024);
   EXPECT(block != nullptr);
-  std::memset(block, 0xCC, 1024);
+  ::memset(block, 0xCC, 1024);
   EXPECT(alloc.QueryAllocationSize(block) == eq_allocation_constants::kPageSize);
   EXPECT(alloc.Free(block) == 0x10000);
   TEST_PASS();
@@ -273,7 +273,7 @@ void Bucket_BasicAllocFree() {
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(64, 8);
   EXPECT(block != nullptr);
-  std::memset(block, 0xDE, 64);
+  ::memset(block, 0xDE, 64);
   EXPECT(alloc.QueryAllocationSize(block) >= 64);
   EXPECT(alloc.Free(block) >= 64);
   TEST_PASS();
@@ -288,7 +288,7 @@ void Bucket_VariousSizes() {
   for (int i = 0; i < 11; i++) {
     blocks[i] = alloc.Allocate(sizes[i], 8);
     EXPECT(blocks[i] != nullptr);
-    std::memset(blocks[i], static_cast<byte>(i), sizes[i]);
+    ::memset(blocks[i], static_cast<byte>(i), sizes[i]);
     EXPECT(alloc.QueryAllocationSize(blocks[i]) >= sizes[i]);
   }
   for (int i = 0; i < 11; i++) {
@@ -362,7 +362,7 @@ void Bucket_ReAllocateShrink() {
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(128, 8);
   EXPECT(block != nullptr);
-  std::memset(block, 0xEE, 128);
+  ::memset(block, 0xEE, 128);
   // shrink should return same pointer
   void* shrunk = alloc.ReAllocate(block, 32, 8);
   EXPECT(shrunk == block);
@@ -379,7 +379,7 @@ void Bucket_ReAllocateGrow() {
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(16, 8);
   EXPECT(block != nullptr);
-  std::memset(block, 0xAA, 16);
+  ::memset(block, 0xAA, 16);
   void* grown = alloc.ReAllocate(block, 64, 8);
   EXPECT(grown != nullptr);
   EXPECT(alloc.QueryAllocationSize(grown) >= 64);
@@ -399,7 +399,7 @@ void Bucket_DataIntegrity() {
   for (int i = 0; i < kCount; i++) {
     blocks[i] = alloc.Allocate(64, 8);
     EXPECT(blocks[i] != nullptr);
-    std::memset(blocks[i], static_cast<byte>(i + 1), 64);
+    ::memset(blocks[i], static_cast<byte>(i + 1), 64);
   }
   // verify patterns are intact (no block stomped another)
   for (int i = 0; i < kCount; i++) {
@@ -424,7 +424,7 @@ void Heap_BasicAllocFree() {
   void* block = alloc.Allocate(70000);
   EXPECT(block != nullptr);
   EXPECT(alloc.QueryAllocationSize(block) == 70000);
-  std::memset(block, 0xAB, 70000);
+  ::memset(block, 0xAB, 70000);
   EXPECT(alloc.Free(block) == 70000);
   TEST_PASS();
 }
@@ -463,7 +463,7 @@ void Heap_MultipleAllocations() {
     blocks[i] = alloc.Allocate(sizes[i]);
     EXPECT(blocks[i] != nullptr);
     EXPECT(alloc.QueryAllocationSize(blocks[i]) == sizes[i]);
-    std::memset(blocks[i], static_cast<byte>(i + 1), sizes[i]);
+    ::memset(blocks[i], static_cast<byte>(i + 1), sizes[i]);
   }
   // verify data integrity
   for (int i = 0; i < 5; i++) {
@@ -552,7 +552,7 @@ void Heap_ReAllocateShrink() {
   HeapAllocator alloc(pt);
   void* block = alloc.Allocate(200000);
   EXPECT(block != nullptr);
-  std::memset(block, 0xBB, 200000);
+  ::memset(block, 0xBB, 200000);
   void* shrunk = alloc.ReAllocate(block, 70000);
   // shrink within same page span should return same pointer
   EXPECT(shrunk == block);
@@ -568,7 +568,7 @@ void Heap_ReAllocateGrow() {
   HeapAllocator alloc(pt);
   void* block = alloc.Allocate(70000);
   EXPECT(block != nullptr);
-  std::memset(block, 0xCD, 70000);
+  ::memset(block, 0xCD, 70000);
 
   void* grown = alloc.ReAllocate(block, 300000);
   EXPECT(grown != nullptr);
@@ -612,7 +612,7 @@ void Heap_DataIntegrity_UnderStress() {
   for (int i = 0; i < kCount; i++) {
     blocks[i] = alloc.Allocate(kSize);
     EXPECT(blocks[i] != nullptr);
-    std::memset(blocks[i], static_cast<byte>(0x10 + i), kSize);
+    ::memset(blocks[i], static_cast<byte>(0x10 + i), kSize);
   }
   // free even indices
   for (int i = 0; i < kCount; i += 2)
@@ -621,7 +621,7 @@ void Heap_DataIntegrity_UnderStress() {
   for (int i = 0; i < kCount; i += 2) {
     blocks[i] = alloc.Allocate(kSize);
     EXPECT(blocks[i] != nullptr);
-    std::memset(blocks[i], static_cast<byte>(0xA0 + i), kSize);
+    ::memset(blocks[i], static_cast<byte>(0xA0 + i), kSize);
   }
   // verify ALL blocks have correct data
   for (int i = 0; i < kCount; i++) {
@@ -646,13 +646,13 @@ void Heap_ExactPageBoundary() {
   void* block = alloc.Allocate(kExact);
   EXPECT(block != nullptr);
   EXPECT(alloc.QueryAllocationSize(block) == kExact);
-  std::memset(block, 0xFF, kExact);
+  ::memset(block, 0xFF, kExact);
   alloc.Free(block);
 
   // one byte more should push to 2 pages
   void* block2 = alloc.Allocate(kExact + 1);
   EXPECT(block2 != nullptr);
-  std::memset(block2, 0xEE, kExact + 1);
+  ::memset(block2, 0xEE, kExact + 1);
   alloc.Free(block2);
   TEST_PASS();
 }

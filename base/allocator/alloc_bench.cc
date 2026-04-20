@@ -4,6 +4,8 @@
 // Plus mixed workloads and contention patterns.
 
 #include <base/check.h>
+#include <base/containers/vector.h>
+#include <base/time/time.h>
 
 #define BASE_MAY_USE_MEMORY_COORDINATOR
 #include <allocator/eq_alloc/page_table.h>
@@ -18,12 +20,9 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
-#include <chrono>
 #include <thread>
-#include <vector>
 
 using namespace base;
-using Clock = std::chrono::high_resolution_clock;
 
 struct BenchResult {
   const char* name;
@@ -31,8 +30,8 @@ struct BenchResult {
   double mi_ns;
 };
 
-static double NsPerOp(Clock::duration d, int ops) {
-  return std::chrono::duration<double, std::nano>(d).count() / ops;
+static double NsPerOp(i64 dur_ns, int ops) {
+  return static_cast<double>(dur_ns) / ops;
 }
 
 static void PrintResult(const BenchResult& r) {
@@ -52,22 +51,22 @@ BenchResult BenchSmallAlloc(int n) {
   PageTable pt(0x10000ULL * 512, 0x10000, 512);
   BucketAllocator bucket(pt);
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = bucket.Allocate(64, 8);
     DONT_OPTIMIZE(p);
     bucket.Free(p);
   }
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
   // -- mimalloc --
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = mi_malloc(64);
     DONT_OPTIMIZE(p);
     mi_free(p);
   }
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Small (64 B) alloc+free", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }
@@ -77,21 +76,21 @@ BenchResult BenchMediumAlloc(int n) {
   PageTable pt(0x10000ULL * 2048, 0x10000, 2048);
   PageAllocator page(pt);
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = page.Allocate(4096);
     DONT_OPTIMIZE(p);
     page.Free(p);
   }
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = mi_malloc(4096);
     DONT_OPTIMIZE(p);
     mi_free(p);
   }
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Medium (4 KiB) alloc+free", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }
@@ -101,21 +100,21 @@ BenchResult BenchLargeAlloc(int n) {
   PageTable pt(0x10000ULL * 4096, 0x10000, 4096);
   HeapAllocator heap(pt);
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = heap.Allocate(128 * 1024);
     DONT_OPTIMIZE(p);
     heap.Free(p);
   }
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = mi_malloc(128 * 1024);
     DONT_OPTIMIZE(p);
     mi_free(p);
   }
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Large (128 KiB) alloc+free", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }
@@ -125,25 +124,25 @@ BenchResult BenchLargeAlloc(int n) {
 BenchResult BenchBulkSmall(int n) {
   PageTable pt(0x10000ULL * 4096, 0x10000, 4096);
   BucketAllocator bucket(pt);
-  std::vector<void*> ptrs(n);
+  base::Vector<void*> ptrs(n);
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     ptrs[i] = bucket.Allocate(48, 8);
     DONT_OPTIMIZE(ptrs[i]);
   }
   for (int i = 0; i < n; i++)
     bucket.Free(ptrs[i]);
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     ptrs[i] = mi_malloc(48);
     DONT_OPTIMIZE(ptrs[i]);
   }
   for (int i = 0; i < n; i++)
     mi_free(ptrs[i]);
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Bulk small (48 B) x N", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }
@@ -152,25 +151,25 @@ BenchResult BenchBulkSmall(int n) {
 BenchResult BenchBulkLarge(int n) {
   PageTable pt(0x10000ULL * 8192, 0x10000, 8192);
   HeapAllocator heap(pt);
-  std::vector<void*> ptrs(n);
+  base::Vector<void*> ptrs(n);
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     ptrs[i] = heap.Allocate(256 * 1024);
     DONT_OPTIMIZE(ptrs[i]);
   }
   for (int i = 0; i < n; i++)
     heap.Free(ptrs[i]);
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     ptrs[i] = mi_malloc(256 * 1024);
     DONT_OPTIMIZE(ptrs[i]);
   }
   for (int i = 0; i < n; i++)
     mi_free(ptrs[i]);
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Bulk large (256 KiB) x N", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }
@@ -182,25 +181,25 @@ BenchResult BenchMixedSizes(int n) {
 
   PageTable pt(0x10000ULL * 4096, 0x10000, 4096);
   BucketAllocator bucket(pt);
-  std::vector<void*> ptrs(n);
+  base::Vector<void*> ptrs(n);
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     ptrs[i] = bucket.Allocate(kSizes[i % kNumSizes], 8);
     DONT_OPTIMIZE(ptrs[i]);
   }
   for (int i = n - 1; i >= 0; i--)
     bucket.Free(ptrs[i]);
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     ptrs[i] = mi_malloc(kSizes[i % kNumSizes]);
     DONT_OPTIMIZE(ptrs[i]);
   }
   for (int i = n - 1; i >= 0; i--)
     mi_free(ptrs[i]);
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Mixed sizes (16-1024 B)", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }
@@ -213,7 +212,7 @@ BenchResult BenchChurn(int n) {
   constexpr int kWindow = 32;
   void* window[kWindow]{};
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     int slot = i % kWindow;
     if (window[slot])
@@ -223,10 +222,10 @@ BenchResult BenchChurn(int n) {
   }
   for (auto& p : window)
     if (p) bucket.Free(p);
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
   void* mi_window[kWindow]{};
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     int slot = i % kWindow;
     if (mi_window[slot])
@@ -236,7 +235,7 @@ BenchResult BenchChurn(int n) {
   }
   for (auto& p : mi_window)
     if (p) mi_free(p);
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Churn (96 B, 32-slot window)", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }
@@ -246,23 +245,23 @@ BenchResult BenchRealloc(int n) {
   PageTable pt(0x10000ULL * 4096, 0x10000, 4096);
   HeapAllocator heap(pt);
 
-  auto t0 = Clock::now();
+  auto t0 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = heap.Allocate(70000);
     p = heap.ReAllocate(p, 140000);
     DONT_OPTIMIZE(p);
     heap.Free(p);
   }
-  auto eq_dur = Clock::now() - t0;
+  auto eq_dur = base::TickClock::NowNs() - t0;
 
-  auto t1 = Clock::now();
+  auto t1 = base::TickClock::NowNs();
   for (int i = 0; i < n; i++) {
     void* p = mi_malloc(70000);
     p = mi_realloc(p, 140000);
     DONT_OPTIMIZE(p);
     mi_free(p);
   }
-  auto mi_dur = Clock::now() - t1;
+  auto mi_dur = base::TickClock::NowNs() - t1;
 
   return {"Realloc (70K -> 140K)", NsPerOp(eq_dur, n), NsPerOp(mi_dur, n)};
 }

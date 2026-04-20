@@ -28,15 +28,15 @@
 #pragma once
 
 #include <atomic>
-#include <functional>
-#include <mutex>
-#include <stdexcept>
-#include <utility>
-#include <vector>
 
 #include <base/arch.h>
 #include <base/atomic.h>
+#include <base/check.h>
+#include <base/containers/pair.h>
 #include <base/containers/vector.h>
+#include <base/hashing/hash.h>
+#include <base/memory/move.h>
+#include <base/threading/lock_guard.h>
 #include <base/threading/mutex.h>
 
 namespace base {
@@ -54,20 +54,20 @@ namespace ebr {
 constexpr int kMaxSlots = 4096;
 
 struct alignas(64) AnnounceSlot {
-  std::atomic<long> epoch{-1};
+  base::Atomic<long> epoch{-1};
 };
 
 struct EpochState {
-  alignas(64) std::atomic<long> current{0};
+  alignas(64) base::Atomic<long> current{0};
   AnnounceSlot slots[kMaxSlots];
 
   // Thread ID pool — mutex only taken on thread birth/death (not hot path).
-  std::mutex pool_mutex;
-  std::vector<int> free_ids;
-  std::atomic<int> high_watermark{0};
+  base::Mutex pool_mutex;
+  base::Vector<int> free_ids;
+  base::Atomic<int> high_watermark{0};
 
   int acquire_id() {
-    std::lock_guard<std::mutex> lk(pool_mutex);
+    base::LockGuard<base::Mutex> lk(pool_mutex);
     if (!free_ids.empty()) {
       int id = free_ids.back();
       free_ids.pop_back();
@@ -87,7 +87,7 @@ struct EpochState {
   // announce() retry loop guarantees it pins the current (or later) epoch.
   void release_id(int id) {
     slots[id].epoch.store(-1, std::memory_order_release);
-    std::lock_guard<std::mutex> lk(pool_mutex);
+    base::LockGuard<base::Mutex> lk(pool_mutex);
     free_ids.push_back(id);
   }
 
@@ -183,7 +183,7 @@ template <typename Key, typename Value>
 class LockFreeOrderedHashMap {
  private:
   struct Node {
-    std::pair<Key, Value> keyValue;
+    base::Pair<Key, Value> keyValue;
     base::Atomic<Node*> bucketNext;  // next in hash bucket chain
     base::Atomic<Node*> orderNext;   // next in insertion-order chain
     base::Atomic<bool> is_deleted;
@@ -193,7 +193,7 @@ class LockFreeOrderedHashMap {
     long retired_epoch;              // epoch when fully unlinked (-1 = live)
 
     Node(const Key& k, Value&& v)
-        : keyValue(std::make_pair(k, std::move(v))),
+        : keyValue{k, base::move(v)},
           bucketNext(nullptr),
           orderNext(nullptr),
           is_deleted(false),
@@ -203,7 +203,7 @@ class LockFreeOrderedHashMap {
           retired_epoch(-1) {}
 
     Node(Key&& k, Value&& v)
-        : keyValue(std::make_pair(std::move(k), std::move(v))),
+        : keyValue{base::move(k), base::move(v)},
           bucketNext(nullptr),
           orderNext(nullptr),
           is_deleted(false),
@@ -215,7 +215,7 @@ class LockFreeOrderedHashMap {
 
   base::Atomic<Node*>* buckets;
   mem_size bucketCount;
-  std::hash<Key> keyHasher;
+  base::Hash<Key> keyHasher;
 
   base::Atomic<Node*> orderHead;
   base::Atomic<Node*> orderTail;
@@ -240,8 +240,7 @@ class LockFreeOrderedHashMap {
   }
 
   mem_size hash_key(const Key& key) const {
-    if (bucketCount == 0)
-      throw std::logic_error("Bucket count is zero");
+    BASE_CHECK(bucketCount != 0, "LockFreeOrderedHashMap: bucket count is zero");
     return keyHasher(key) % bucketCount;
   }
 
@@ -297,7 +296,7 @@ class LockFreeOrderedHashMap {
     }
 
    public:
-    using KeyValuePair = std::pair<Key, Value>;
+    using KeyValuePair = base::Pair<Key, Value>;
 
     // Active iterator: pins the epoch so traversed nodes stay alive.
     IteratorBase(const LockFreeOrderedHashMap<Key, Value>* m, Node* start_node)
@@ -439,10 +438,10 @@ class LockFreeOrderedHashMap {
   // Callers should size the bucket count for expected peak occupancy.
 
   bool insert(const Key& key, Value&& value) {
-    return insert_internal(key, std::move(value));
+    return insert_internal(key, base::move(value));
   }
   bool insert(Key&& key, Value&& value) {
-    return insert_internal(std::move(key), std::move(value));
+    return insert_internal(base::move(key), base::move(value));
   }
 
  private:
@@ -467,7 +466,7 @@ class LockFreeOrderedHashMap {
       }
 
       if (!newNode)
-        newNode = new Node(std::forward<K>(key), std::forward<V>(value));
+        newNode = new Node(base::forward<K>(key), base::forward<V>(value));
 
       Node* oldHead = buckets[index].load(std::memory_order_acquire);
       newNode->bucketNext.store(oldHead, std::memory_order_relaxed);
@@ -604,7 +603,7 @@ class LockFreeOrderedHashMap {
   // 6. Free nodes whose retirement epoch is 2+ epochs in the past
   //    (guaranteed unreachable by any concurrent reader).
   void collect_garbage() {
-    std::lock_guard<base::Mutex> lock(gc_mutex_);
+    base::LockGuard<base::Mutex> lock(gc_mutex_);
     collect_garbage_locked();
   }
 
@@ -665,7 +664,7 @@ class LockFreeOrderedHashMap {
     // hot path if GC is already running on another thread.
     if (delete_since_gc_.load(std::memory_order_relaxed) >=
         kAutoGCThreshold) {
-      std::unique_lock<base::Mutex> lock(gc_mutex_, std::try_to_lock);
+      base::UniqueLock<base::Mutex> lock(gc_mutex_, base::try_to_lock);
       if (lock.owns_lock())
         collect_garbage_locked();
     }

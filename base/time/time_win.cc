@@ -77,23 +77,48 @@ Time TimeNowFromSystemTimeIgnoringOverride() {
 }
 #endif
 
-i64 GetUnixTimeStamp() {
+namespace {
+// 100-ns ticks since Unix epoch, read from FILETIME.
+i64 FileTimeTicksSinceUnix() {
   const i64 kUnixTimeBase =
-      0x019DB1DED53E8000;  // January 1, 1970 (start of Unix epoch) in "ticks"
-  const i64 kTicksPerSecond = 10000000;  // a tick is 100ns
+      0x019DB1DED53E8000;  // January 1, 1970 in 100-ns FILETIME ticks
 
   wintypes::FILETIME ft;
-  GetSystemTimeAsFileTime(&ft);
+  wintypes::GetSystemTimeAsFileTime(&ft);
 
-  // Copy the low and high parts of FILETIME into a LARGE_INTEGER
-  // This is so we can access the full 64-bits as an i64 without causing an
-  // alignment fault
   wintypes::LARGE_INTEGER li;
   li.u.LowPart = ft.dwLowDateTime;
   li.u.HighPart = ft.dwHighDateTime;
 
-  // Convert ticks since 1/1/1970 into seconds
-  return (li.QuadPart - kUnixTimeBase) / kTicksPerSecond;
+  return li.QuadPart - kUnixTimeBase;
+}
+}  // namespace
+
+i64 GetUnixTimeStamp() {
+  return FileTimeTicksSinceUnix() / 10'000'000LL;  // 100ns ticks -> seconds
+}
+
+i64 GetUnixTimeMilliseconds() {
+  return FileTimeTicksSinceUnix() / 10'000LL;     // 100ns ticks -> ms
+}
+
+extern "C" __declspec(dllimport) int __stdcall QueryPerformanceCounter(
+    wintypes::LARGE_INTEGER*);
+extern "C" __declspec(dllimport) int __stdcall QueryPerformanceFrequency(
+    wintypes::LARGE_INTEGER*);
+
+i64 TickClock::NowNs() {
+  static i64 freq = [] {
+    wintypes::LARGE_INTEGER f;
+    QueryPerformanceFrequency(&f);
+    return f.QuadPart;
+  }();
+  wintypes::LARGE_INTEGER now;
+  QueryPerformanceCounter(&now);
+  // ns = ticks * 1e9 / freq, staggered to avoid overflow on large counters.
+  i64 seconds = now.QuadPart / freq;
+  i64 remainder = now.QuadPart % freq;
+  return seconds * 1'000'000'000LL + (remainder * 1'000'000'000LL) / freq;
 }
 
 Time Time::Now() {

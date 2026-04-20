@@ -111,11 +111,11 @@ struct Sha256Ctx {
     if (index) {
       mem_size part = 64 - index;
       if (len >= part) {
-        std::memcpy(buffer + index, data, part);
+        ::memcpy(buffer + index, data, part);
         Transform(buffer);
         i = part;
       } else {
-        std::memcpy(buffer + index, data, len);
+        ::memcpy(buffer + index, data, len);
         return;
       }
     }
@@ -125,7 +125,7 @@ struct Sha256Ctx {
     }
 
     if (i < len) {
-      std::memcpy(buffer, data + i, len - i);
+      ::memcpy(buffer, data + i, len - i);
     }
   }
 
@@ -164,7 +164,7 @@ Sha256Hash Sha256(const void* data, mem_size size) {
 }
 
 Sha256Hash Sha256(const char* str) {
-  return Sha256(str, std::strlen(str));
+  return Sha256(str, ::strlen(str));
 }
 
 }  // namespace base

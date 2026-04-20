@@ -8,18 +8,13 @@ namespace base {
 
 template <typename Ta, typename Tb>
 struct Pair {
-  Ta a;
-  Tb b;
-
-  // STL-compat aliases
-  Ta& first() { return a; }
-  const Ta& first() const { return a; }
-  Tb& second() { return b; }
-  const Tb& second() const { return b; }
+  Ta first;
+  Tb second;
 };
 
 template <typename Ta, typename Tb>
-Pair<Ta, Tb> MakePair(Ta a, Tb b) {
-  return Pair<Ta, Tb>{base::move(a), base::move(b)};
+constexpr Pair<base::remove_reference_t<Ta>, base::remove_reference_t<Tb>>
+MakePair(Ta&& a, Tb&& b) {
+  return {base::forward<Ta>(a), base::forward<Tb>(b)};
 }
 }  // namespace base
