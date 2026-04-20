@@ -4,7 +4,7 @@
 
 #include <base/export.h>
 #include <base/compiler.h>
-#include <cstdio>
+#include <base/strings/format.h>
 
 namespace base {
 
@@ -32,15 +32,24 @@ inline void PrintLogMessage(const char* channel_name,
   detail::WriteLogMessage(channel_name, level, message);
 }
 
-// Printf-style formatted logging.
+// {}-style formatted logging via base::FormatTo. The common case fits in
+// the stack buffer; oversized messages spill into a heap String.
 template <typename... Args>
 void PrintLogMessage(const char* channel_name,
                      LogLevel level,
                      const char* format,
                      const Args&... args) {
-  char buf[1024];
-  std::snprintf(buf, sizeof(buf), format, args...);
-  detail::WriteLogMessage(channel_name, level, buf);
+  if (!ShouldLog(channel_name, level)) return;
+  char stack_buf[1024];
+  mem_size needed = base::FormatTo(stack_buf, sizeof(stack_buf), format, args...);
+  if (needed < sizeof(stack_buf)) {
+    detail::WriteLogMessage(channel_name, level, stack_buf);
+    return;
+  }
+  base::String big;
+  big.reserve(static_cast<base::String::size_type>(needed + 1));
+  base::FormatTo(big, format, args...);
+  detail::WriteLogMessage(channel_name, level, big.c_str());
 }
 
 }  // namespace base
