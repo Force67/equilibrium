@@ -3,12 +3,13 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/export.h>
 #include <base/strings/string_ref.h>
 #include <base/functional/function.h>
 
 namespace base {
 
-class Thread {
+class BASE_EXPORT Thread {
  public:
   virtual ~Thread() = default;
 
@@ -50,15 +51,15 @@ class Thread {
 };
 
 // core threading primitives
-u32 GetCurrentThreadIndex();
-Thread::Handle GetCurrentThreadHandle();
+BASE_EXPORT u32 GetCurrentThreadIndex();
+BASE_EXPORT Thread::Handle GetCurrentThreadHandle();
 
-bool SetThreadName(Thread::Handle, const char* name);
+BASE_EXPORT bool SetThreadName(Thread::Handle, const char* name);
 inline bool SetCurrentThreadName(const char* name) {
   return SetThreadName(GetCurrentThreadHandle(), name);
 }
 
-void SetThreadPriority(Thread::Handle, Thread::Priority new_priority);
-const Thread::Priority GetThreadPriority(Thread::Handle);
-const i32 GetNativeThreadPriority(Thread::Handle);
+BASE_EXPORT void SetThreadPriority(Thread::Handle, Thread::Priority new_priority);
+BASE_EXPORT const Thread::Priority GetThreadPriority(Thread::Handle);
+BASE_EXPORT const i32 GetNativeThreadPriority(Thread::Handle);
 }  // namespace base

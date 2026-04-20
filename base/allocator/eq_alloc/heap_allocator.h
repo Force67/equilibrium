@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/export.h>
 #include <base/allocator/eq_alloc/allocator.h>
 #include <base/threading/spinning_mutex.h>
 
@@ -12,7 +13,7 @@ namespace base {
 //   - Pre-committed arena for fast bump allocation (no mmap per alloc)
 //   - Freed blocks kept in a size-sorted free list for best-fit reuse
 //   - Thread safety via SpinningMutex
-class HeapAllocator final : public Allocator {
+class BASE_EXPORT HeapAllocator final : public Allocator {
  public:
   explicit HeapAllocator(PageTable& page_table);
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/allocator/eq_alloc/allocator.h>
+#include <base/export.h>
 #include <base/threading/spinning_mutex.h>
 
 namespace base {
@@ -10,7 +11,7 @@ namespace base {
 // Allocates whole 64 KiB pages for medium-sized requests (1-64 KiB).
 // Freed pages are cached in a lock-free stack to avoid mmap/munmap syscalls
 // on the hot path.
-class PageAllocator final : public Allocator {
+class BASE_EXPORT PageAllocator final : public Allocator {
  public:
   inline PageAllocator(PageTable& t) : page_table_(t) {}
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/export.h>
 #include <base/memory/unique_pointer.h>
 #include <base/strings/string_ref.h>
 #include <base/memory/move.h>
@@ -13,7 +14,7 @@
 namespace base {
 // be careful, this class is designed to live throughout the entire runtime of
 // the application
-class CommandLine {
+class BASE_EXPORT CommandLine {
  public:
   // tries to fetch cmdl itself.
   CommandLine();

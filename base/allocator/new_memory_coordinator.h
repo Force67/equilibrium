@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/compiler.h>            //< for STRONG_INLINE
+#include <base/export.h>
 #include <base/profiling/profiler.h>  //< for BASE_PROFILE_ALLOCATION
 
 #include <base/allocator/allocator_primitives.h>
@@ -10,7 +11,7 @@
 
 namespace base {
 
-class NewMemoryCoordinator {
+class BASE_EXPORT NewMemoryCoordinator {
  public:
   // static initialization methods for initializing/killing the memory subsystem
   // these are special methods, in which the following may not be done:
@@ -32,7 +33,7 @@ class NewMemoryCoordinator {
 
 // implementation detail, do not touch.
 namespace detail {
-extern byte new_mc_data[];
+BASE_EXPORT extern byte new_mc_data[];
 }
 
 STRONG_INLINE NewMemoryCoordinator& new_memory_coordinator() noexcept {

@@ -5,6 +5,7 @@
 #include <base/arch.h>
 #include <base/atomic.h>
 #include <base/check.h>
+#include <base/export.h>
 #include <base/containers/linked_list.h>
 #include <base/memory/memory_literals.h>
 
@@ -18,7 +19,7 @@ namespace base {
 using namespace memory_literals;
 
 // page table only manages pages, not blocks within these pages.
-class PageTable {
+class BASE_EXPORT PageTable {
  public:
   explicit PageTable(const mem_size space_size,
                      const mem_size page_size,

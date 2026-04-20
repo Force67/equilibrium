@@ -4,6 +4,7 @@
 
 #include <base/atomic.h>
 #include <base/compiler.h>
+#include <base/export.h>
 #include <base/numeric_limits.h>
 
 namespace base {
@@ -18,10 +19,10 @@ constexpr MemoryCategory kGeneralMemory{base::MinMax<MemoryCategory>::max() - 1}
 constexpr MemoryCategory kInvalidCategory{kTrackingLimit};
 
 // this is not a proper class since we want to allow constinit for the MC
-struct MemoryTracker {
+struct BASE_EXPORT MemoryTracker {
   MemoryTracker() {};
 
-  // hot path — called on every alloc/free through the memory coordinator.
+  // hot path: called on every alloc/free through the memory coordinator.
   // must be inline so the compiler can fold it into the caller.
   inline void TrackOperation(void* pointer, pointer_diff size) {
     (void)pointer;
@@ -45,16 +46,16 @@ struct MemoryTracker {
   base::Atomic<mem_size> memory_sizes[kTrackingLimit]{};
 };
 
-MemoryCategory current_memory_category();
+BASE_EXPORT MemoryCategory current_memory_category();
 
 STRONG_INLINE void SetMemoryTrackerInstance(MemoryTracker*);
 
 // this returns a token that is used for labeling that specific memory
 // make sure to retain ownership of your name param
-MemoryCategory AddMemoryCategory(const char* name);
-void RemoveMemoryCategory(MemoryCategory token);
+BASE_EXPORT MemoryCategory AddMemoryCategory(const char* name);
+BASE_EXPORT void RemoveMemoryCategory(MemoryCategory token);
 
-class MemoryCategoryScope {
+class BASE_EXPORT MemoryCategoryScope {
  public:
   explicit MemoryCategoryScope(MemoryCategory token);
   ~MemoryCategoryScope();

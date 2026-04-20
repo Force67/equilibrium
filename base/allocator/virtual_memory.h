@@ -4,6 +4,7 @@
 
 #include <base/arch.h>
 #include <base/enum_traits.h>
+#include <base/export.h>
 
 namespace base {
 enum class PageProtectionFlags : u32 {
@@ -32,28 +33,31 @@ using NativePageProtectionType = u32;
 using NativePageProtectionType = int;  // whatever they define as int.
 #endif
 
-NativePageProtectionType TranslateToNativePageProtection(const PageProtectionFlags);
-PageProtectionFlags TranslateFromNativePageProtection(const NativePageProtectionType);
+BASE_EXPORT NativePageProtectionType TranslateToNativePageProtection(
+    const PageProtectionFlags);
+BASE_EXPORT PageProtectionFlags TranslateFromNativePageProtection(
+    const NativePageProtectionType);
 
-u32 FetchCurrentPageSize();
+BASE_EXPORT u32 FetchCurrentPageSize();
 
 // Reserves a range of the process's virtual address space without allocating
 // any actual physical storage in memory or in the paging file on disk.
 // use this for blocking out a range of memory that you want to allocate later.
-byte* VirtualMemoryReserve(void* address, mem_size size);
+BASE_EXPORT byte* VirtualMemoryReserve(void* address, mem_size size);
 
 // Allocates memory charges (from the overall size of memory and the paging
 // files on disk) for the specified reserved memory pages.
 // If you already reserved memory with VirtualMemoryReserve, this will work fine
 // too.
 // On Windows the returned pages are also zeroed.
-byte* VirtualMemoryAllocate(void* address,
-                            mem_size size,
-                            PageProtectionFlags protection,
-                            const bool reserve = true);
+BASE_EXPORT byte* VirtualMemoryAllocate(void* address,
+                                        mem_size size,
+                                        PageProtectionFlags protection,
+                                        const bool reserve = true);
 
 // Releases memory that was previously reserved with VirtualMemoryReserve
-bool VirtualMemoryFree(void* address, mem_size size);
+BASE_EXPORT bool VirtualMemoryFree(void* address, mem_size size);
 
-bool VirtualMemoryProtect(void* address, mem_size size, PageProtectionFlags protection);
+BASE_EXPORT bool VirtualMemoryProtect(void* address, mem_size size,
+                                      PageProtectionFlags protection);
 }  // namespace base

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <base/compiler.h>
+#include <base/export.h>
 #include <base/numeric_limits.h>
 
 #include <cstring>
@@ -14,7 +15,7 @@
 #include <base/allocator/eq_alloc/eq_allocation_constants.h>
 
 namespace base {
-struct EQMemoryRouter {
+struct BASE_EXPORT EQMemoryRouter {
   // this represents the amount of memory we can address with this allocator.
   static auto constexpr kVirtualAddressRange = 1_tib;
   static auto constexpr kMibShift = 20;  // Shifting by this gives 1 MiB blocks

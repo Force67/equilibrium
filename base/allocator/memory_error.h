@@ -3,16 +3,19 @@
 #pragma once
 
 #include <base/compiler.h>
+#include <base/export.h>
 #include <base/meta/source_location.h>
 
 namespace base {
 namespace detail {
-void InvokeOutOfMemoryHandler(const base::SourceLocation&, const char* reason = nullptr);
+BASE_EXPORT void InvokeOutOfMemoryHandler(const base::SourceLocation&,
+                                          const char* reason = nullptr);
 }
 
 using OutOfMemoryHandler = void(void*, const char*);
-void SetOutOfMemoryHandler(OutOfMemoryHandler*, void* user_context = nullptr);
-void SetOutOfMemoryContext(void* user_context);
+BASE_EXPORT void SetOutOfMemoryHandler(OutOfMemoryHandler*,
+                                       void* user_context = nullptr);
+BASE_EXPORT void SetOutOfMemoryContext(void* user_context);
 
 // this function is used to report memory allocation errors
 #define BASE_INVOKE_OOM(...)                                           \

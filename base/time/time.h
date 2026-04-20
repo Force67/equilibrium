@@ -4,12 +4,13 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/export.h>
 
 namespace base {
 
 using time_type = i64;
 
-class Time {
+class BASE_EXPORT Time {
  public:
   // explicit Time(i64 us);
 
@@ -38,5 +39,5 @@ class Time {
 };
 
 // Get the number of seconds since January 1, 1970 12:00am UTC
-i64 GetUnixTimeStamp();
+BASE_EXPORT i64 GetUnixTimeStamp();
 }  // namespace base

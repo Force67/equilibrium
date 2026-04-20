@@ -4,6 +4,7 @@
 
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/export.h>
 
 namespace base {
 
@@ -15,7 +16,7 @@ using allocator_id = u8;
 // void f() { Memoryscope _(12); auto x = new char[512], } <-- Memory is
 // provided and owned by allocator 12. As soon as they run out of scope they
 // return to the formerly set allocator
-class MemoryScope {
+class BASE_EXPORT MemoryScope {
  public:
   // we use the custom type here, as we want to store -1 for the default beh,
   // but also need to fit the whole range of 'allocator_id'
@@ -36,7 +37,7 @@ class MemoryScope {
   inline ~MemoryScope() { Enter(previous_allocator_); }
 
   // memory substem is responsible for polling this state.
-  static allocator_handle current_allocator();
+  BASE_EXPORT static allocator_handle current_allocator();
 
  private:
   void Enter(allocator_handle id);

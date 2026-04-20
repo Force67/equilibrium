@@ -4,6 +4,7 @@
 
 #include <base/arch.h>
 #include <base/compiler.h>
+#include <base/export.h>
 #include <base/allocator/eq_alloc/allocator.h>
 #include <base/threading/spinning_mutex.h>
 
@@ -17,7 +18,7 @@ namespace base {
 //     slab's intrusive free list (no intermediary cache, no locking)
 //   - Bump allocation for fresh slots, free list for recycled slots
 //   - Mask-based O(1) slab lookup (ptr & ~0xFFFF → SlabHeader)
-class BucketAllocator final : public Allocator {
+class BASE_EXPORT BucketAllocator final : public Allocator {
   friend struct EQMemoryRouter;
 
  public:

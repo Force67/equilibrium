@@ -4,6 +4,7 @@
 #pragma once
 
 #include <base/compiler.h>
+#include <base/export.h>
 #include <base/meta/source_location.h>
 
 #define TK_UNUSED(expr) (void)expr
@@ -22,8 +23,8 @@ namespace base {
 namespace detail {
 // Second parameter defaults to null, so the __VA_OPT__ macro can insert the
 // param if needed.
-void DCheck(const SourceLocation&, const char* message = nullptr);
-void BugCheck(const SourceLocation&, const char* message = nullptr);
+BASE_EXPORT void DCheck(const SourceLocation&, const char* message = nullptr);
+BASE_EXPORT void BugCheck(const SourceLocation&, const char* message = nullptr);
 }  // namespace detail
 
 // Asserts are user facing exceptional cases, after which the program state is
@@ -32,7 +33,7 @@ void BugCheck(const SourceLocation&, const char* message = nullptr);
 using CheckHandler = void(const char*, const char*, const char*, const char*);
 
 // Those are check handlers.
-void SetCheckHandler(CheckHandler*);
+BASE_EXPORT void SetCheckHandler(CheckHandler*);
 }  // namespace base
 
 // NOTE(Vince): do not apply the [[likely]] or [[unlikely]] attributes here, as

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <base/arch.h>
+#include <base/export.h>
 
 namespace base {
 
@@ -12,9 +13,9 @@ struct Sha256Hash {
 };
 
 // Hash a memory buffer using SHA-256.
-Sha256Hash Sha256(const void* data, mem_size size);
+BASE_EXPORT Sha256Hash Sha256(const void* data, mem_size size);
 
 // Hash a null-terminated string using SHA-256.
-Sha256Hash Sha256(const char* str);
+BASE_EXPORT Sha256Hash Sha256(const char* str);
 
 }  // namespace base

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <base/compiler.h>
+#include <base/export.h>
 
 #if defined(__linux__) || defined(OS_LINUX)
 #include <errno.h>
@@ -14,7 +15,7 @@
 
 namespace base {
 
-class SpinningMutex {
+class BASE_EXPORT SpinningMutex {
  public:
   inline constexpr SpinningMutex();
   STRONG_INLINE void Acquire();

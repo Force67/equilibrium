@@ -3,17 +3,18 @@
 // Memory primitives.
 #pragma once
 
+#include <base/export.h>
 #include <base/meta/source_location.h>
 
 namespace base::allocator_primitives {
 // like c malloc
-void* Allocate(mem_size size);
+BASE_EXPORT void* Allocate(mem_size size);
 
 // like c realloc
-void* ReAllocate(void* former, mem_size new_size);
+BASE_EXPORT void* ReAllocate(void* former, mem_size new_size);
 
 // like c free
-void Free(void* block);
+BASE_EXPORT void Free(void* block);
 
 // the v2 api replaces the default allocation scheme with a more granular model,
 // proposed here: https://www.foonathan.net/2022/08/malloc-interface/#content
@@ -27,11 +28,12 @@ struct MemoryBlock {
   mem_size size;
 };
 
-MemoryBlock Allocate(mem_size size, AlignmentValue alignment);
-bool Deallocate(MemoryBlock block, AlignmentValue alignment);
+BASE_EXPORT MemoryBlock Allocate(mem_size size, AlignmentValue alignment);
+BASE_EXPORT bool Deallocate(MemoryBlock block, AlignmentValue alignment);
 
 // replacement for ReAllocate.
-MemoryBlock TryExpand(MemoryBlock block, mem_size new_size, AlignmentValue alignment);
+BASE_EXPORT MemoryBlock TryExpand(MemoryBlock block, mem_size new_size,
+                                  AlignmentValue alignment);
 
 }  // namespace v2
 
@@ -92,17 +94,17 @@ struct MemoryBlockV3 {
   };
 };
 
-MemoryBlockV3 Allocate(mem_size size,
-                       AlignAndSkew align_and_skew,
-                       AllocationFlags flags = AllocationFlags::None,
-                       AllocationHints hints = AllocationHints::None);
-bool Deallocate(MemoryBlockV3 info, AlignAndSkew align_and_skew);
+BASE_EXPORT MemoryBlockV3 Allocate(mem_size size,
+                                   AlignAndSkew align_and_skew,
+                                   AllocationFlags flags = AllocationFlags::None,
+                                   AllocationHints hints = AllocationHints::None);
+BASE_EXPORT bool Deallocate(MemoryBlockV3 info, AlignAndSkew align_and_skew);
 
 }  // namespace v3
 
 // use MAKE_SOURCE_LOC and you can track the origin
-void* AllocateTracked(mem_size size, const base::SourceLocation&);
-void FreeTracked(void* block, const base::SourceLocation&);
+BASE_EXPORT void* AllocateTracked(mem_size size, const base::SourceLocation&);
+BASE_EXPORT void FreeTracked(void* block, const base::SourceLocation&);
 }  // namespace base::allocator_primitives
 
 // use these instead of raw new/delete

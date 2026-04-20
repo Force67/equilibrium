@@ -4,12 +4,13 @@
 
 #include <queue>
 #include <base/atomic.h>
+#include <base/export.h>
 #include <base/threading/thread.h>
 #include <base/containers/vector.h>
 
 namespace base {
 
-class ThreadPool {
+class BASE_EXPORT ThreadPool {
  public:
   ThreadPool(size_t minThreads, size_t maxThreads);
   ~ThreadPool();
