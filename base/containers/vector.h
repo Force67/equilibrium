@@ -56,12 +56,15 @@ class Vector {
       data_ = Vector::Allocate(reserve_count);
       capacity_ = &data_[reserve_count];
       if (policy == VectorReservePolicy::kForData) {
-        // Default-construct all elements
-        T* current = data_;
-        for (mem_size i = 0; i < reserve_count; ++i, ++current) {
-          ::new (static_cast<void*>(current)) T();
+        if constexpr (__is_constructible(T)) {
+          T* current = data_;
+          for (mem_size i = 0; i < reserve_count; ++i, ++current) {
+            ::new (static_cast<void*>(current)) T();
+          }
+          end_ = capacity_;
+        } else {
+          BASE_BUGCHECK(false, "kForData requires default-constructible T");
         }
-        end_ = capacity_;
       } else {
         end_ = data_;
       }

@@ -2,6 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <cstddef>
+
 #include <base/atomic.h>
 #include <base/containers/pair.h>
 #include <base/memory/move.h>

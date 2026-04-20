@@ -272,6 +272,10 @@ WINBASEAPI
 _Acquires_exclusive_lock_(*SRWLock) VOID WINAPI
     AcquireSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
 
+WINBASEAPI VOID WINAPI AcquireSRWLockShared(_Inout_ PSRWLOCK SRWLock);
+WINBASEAPI VOID WINAPI ReleaseSRWLockShared(_Inout_ PSRWLOCK SRWLock);
+WINBASEAPI BOOLEAN WINAPI TryAcquireSRWLockShared(_Inout_ PSRWLOCK SRWLock);
+
 // Needed to support protobuf's GetMessage macro magic.
 WINUSERAPI BOOL WINAPI GetMessageW(LPMSG lpMsg,
                                    HWND hWnd,

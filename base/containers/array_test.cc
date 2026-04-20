@@ -37,8 +37,8 @@ TEST(ArrayTest, DataAccessors) {
   arr[2] = 30;
   EXPECT_EQ(*arr.data(), 10);
   EXPECT_EQ(*arr.begin(), 10);
-  EXPECT_EQ(*arr.front(), 10);
-  EXPECT_EQ(*arr.back(), 30);
+  EXPECT_EQ(arr.front(), 10);
+  EXPECT_EQ(arr.back(), 30);
 }
 
 }  // namespace base

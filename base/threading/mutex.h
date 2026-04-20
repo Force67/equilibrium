@@ -1,23 +1,11 @@
 // Copyright (C) 2022-2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// base::Mutex / base::SharedMutex — STL-free mutex primitives.
+// base::Mutex aliases base::SpinningMutex (futex / SRWLOCK).
+// base::SharedMutex wraps pthread_rwlock_t on POSIX and SRWLOCK on Windows.
+// Acquire via base::LockGuard / UniqueLock / SharedLockGuard.
 //
-// Mutex is backed by base::SpinningMutex (futex on Linux, SRWLOCK on
-// Windows). The short spin before the blocking wait matches what std::mutex
-// does on Linux anyway, at a fraction of the include cost.
-//
-// SharedMutex uses pthread_rwlock_t on POSIX and SRWLOCK on Windows — both
-// already solve the reader/writer coordination correctly; there's no reason
-// to roll our own.
-//
-// Fallback: define BASE_USE_STD_MUTEX to alias both to the <mutex> and
-// <shared_mutex> versions instead. Auto-selected on MSVC (where we'd
-// otherwise need a separate native path).
-//
-// Always acquire via base::LockGuard / base::UniqueLock / base::SharedLockGuard
-// (base/threading/lock_guard.h). The underlying type is an implementation
-// detail — callers must only rely on the lock()/unlock()/try_lock() shape.
+// BASE_USE_STD_MUTEX switches both to <mutex>/<shared_mutex>. Auto on MSVC.
 
 #pragma once
 
@@ -75,26 +63,6 @@ class SharedMutex {
 
 #elif defined(_WIN32) || defined(OS_WIN)
 
-// Windows SRWLOCK serves both readers and writers; different API entry
-// points pick the mode. SRWLOCK_INIT is a zero-initialised struct so the
-// default constructor doesn't need to run any code.
-struct PA_CHROME_SRWLOCK_BARE {
-  void* Ptr;
-};
-
-extern "C" __declspec(dllimport) void __stdcall AcquireSRWLockExclusive(
-    PA_CHROME_SRWLOCK_BARE*);
-extern "C" __declspec(dllimport) void __stdcall ReleaseSRWLockExclusive(
-    PA_CHROME_SRWLOCK_BARE*);
-extern "C" __declspec(dllimport) int __stdcall TryAcquireSRWLockExclusive(
-    PA_CHROME_SRWLOCK_BARE*);
-extern "C" __declspec(dllimport) void __stdcall AcquireSRWLockShared(
-    PA_CHROME_SRWLOCK_BARE*);
-extern "C" __declspec(dllimport) void __stdcall ReleaseSRWLockShared(
-    PA_CHROME_SRWLOCK_BARE*);
-extern "C" __declspec(dllimport) int __stdcall TryAcquireSRWLockShared(
-    PA_CHROME_SRWLOCK_BARE*);
-
 class SharedMutex {
  public:
   constexpr SharedMutex() noexcept = default;
@@ -102,16 +70,21 @@ class SharedMutex {
   SharedMutex(const SharedMutex&) = delete;
   SharedMutex& operator=(const SharedMutex&) = delete;
 
-  void lock() { AcquireSRWLockExclusive(&lock_); }
-  void unlock() { ReleaseSRWLockExclusive(&lock_); }
-  bool try_lock() { return TryAcquireSRWLockExclusive(&lock_) != 0; }
+  void lock() { ::AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_)); }
+  void unlock() { ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_)); }
+  bool try_lock() {
+    return !!::TryAcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
+  }
 
-  void lock_shared() { AcquireSRWLockShared(&lock_); }
-  void unlock_shared() { ReleaseSRWLockShared(&lock_); }
-  bool try_lock_shared() { return TryAcquireSRWLockShared(&lock_) != 0; }
+  void lock_shared() { ::AcquireSRWLockShared(reinterpret_cast<PSRWLOCK>(&lock_)); }
+  void unlock_shared() { ::ReleaseSRWLockShared(reinterpret_cast<PSRWLOCK>(&lock_)); }
+  bool try_lock_shared() {
+    return !!::TryAcquireSRWLockShared(reinterpret_cast<PSRWLOCK>(&lock_));
+  }
 
  private:
-  PA_CHROME_SRWLOCK_BARE lock_{nullptr};  // SRWLOCK_INIT
+  // Matches the SRWLOCK ABI (single void*). SRWLOCK_INIT is {nullptr}.
+  void* lock_ = nullptr;
 };
 
 #else

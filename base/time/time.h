@@ -38,20 +38,16 @@ class BASE_EXPORT Time {
   i64 us_;
 };
 
-// Get the number of seconds since January 1, 1970 12:00am UTC
+// Seconds since the Unix epoch. Moves with wall-clock adjustments.
 BASE_EXPORT i64 GetUnixTimeStamp();
 
-// Wall-clock time in milliseconds since the Unix epoch. Subject to system
-// clock adjustments — use TickClock for measuring elapsed durations.
+// Milliseconds since the Unix epoch. Same caveat as GetUnixTimeStamp.
 BASE_EXPORT i64 GetUnixTimeMilliseconds();
 
-// Monotonic, high-resolution tick source for measuring elapsed time.
-// Not affected by wall-clock adjustments. The reference point is
-// implementation-defined — only differences between two samples are
-// meaningful.
+// Monotonic tick source. The reference point is implementation-defined,
+// only differences between samples are meaningful.
 class BASE_EXPORT TickClock {
  public:
-  // Current tick value in nanoseconds since the reference point.
   static i64 NowNs();
 };
 }  // namespace base

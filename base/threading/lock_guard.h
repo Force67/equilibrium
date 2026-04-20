@@ -4,7 +4,7 @@
 
 namespace base {
 
-// --- Acquire/Release-style guards (for base::SpinningMutex) ---------------
+// Acquire/Release guards, used with the raw SpinningMutex API.
 
 template <class T>
 class ScopedLockGuard {
@@ -26,8 +26,8 @@ class NonOwningScopedLockGuard {
   T& lock_;
 };
 
-// --- lock/unlock-style guards (for base::Mutex / base::SharedMutex) -------
-// API-compatible with std::lock_guard / std::unique_lock / std::shared_lock.
+// lock/unlock/try_lock guards matching std::lock_guard / unique_lock /
+// shared_lock. Back base::Mutex and base::SharedMutex.
 
 struct try_to_lock_t {};
 inline constexpr try_to_lock_t try_to_lock{};

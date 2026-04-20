@@ -5,6 +5,7 @@
 #include <base/memory/move.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/check.h>
+#include <base/containers/container_traits.h>
 #include <new>
 #include <cstring>
 #include <cstddef>  // max_align_t

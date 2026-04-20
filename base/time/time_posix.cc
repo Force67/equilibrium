@@ -10,10 +10,9 @@
 namespace base {
 
 i64 GetUnixTimeStamp() {
-  // best solution since this also the underlying syscall...
   struct timeval tv;
   ::gettimeofday(&tv, nullptr);
-  return tv.tv_sec;  // Return the number of seconds since January 1, 1970
+  return tv.tv_sec;
 }
 
 i64 GetUnixTimeMilliseconds() {

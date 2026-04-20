@@ -1,18 +1,8 @@
 // Copyright (C) 2022-2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// base::Atomic<T> — STL-free std::atomic replacement.
-//
-// Implemented on top of the GCC/Clang __atomic_* builtins. These lower
-// directly to the cpu instructions we want on AMD64 (lock-prefixed insns,
-// cmpxchg, xadd) and on AArch64 / ARM NEON (LDXR/STXR pairs, CAS on
-// ARMv8.1+). No library call, no <atomic> include, no STL.
-//
-// API matches std::atomic closely enough that the call sites used inside
-// base only need to swap std::memory_order_* for base::memory_order_*.
-//
-// Fallback: define BASE_USE_STD_ATOMIC to drop back to std::atomic, which
-// is also what we auto-select on MSVC (no __atomic_* there).
+// base::Atomic<T> built on GCC/Clang __atomic_* builtins. MSVC auto-falls
+// back to std::atomic; define BASE_USE_STD_ATOMIC to force that elsewhere.
 
 #pragma once
 
@@ -49,8 +39,7 @@ using Atomic = std::atomic<T>;
 
 namespace base {
 
-// Values picked to match __ATOMIC_* so we can pass them straight into the
-// compiler builtins without translation.
+// Values match __ATOMIC_* so they pass through to the builtins untranslated.
 enum memory_order : int {
   memory_order_relaxed = __ATOMIC_RELAXED,
   memory_order_consume = __ATOMIC_CONSUME,
@@ -62,8 +51,8 @@ enum memory_order : int {
 
 namespace atomic_detail {
 
-// The C++ memory model forbids the failure order of a CAS being stronger
-// than the success order, and also forbids release/acq_rel on failure.
+// Failure order of a CAS can't be stronger than the success order, and
+// release/acq_rel aren't valid failure orders.
 constexpr int cas_failure_order(memory_order success) noexcept {
   switch (success) {
     case memory_order_acq_rel:
@@ -81,10 +70,9 @@ inline constexpr bool is_atomic_arithmetic_v =
 
 }  // namespace atomic_detail
 
-// Primary template: trivially copyable T up to the platform's largest
-// lock-free width (16 B on AMD64 + LSE-AArch64). For larger types the
-// builtins emit a lib call, which we don't want — callers should wrap
-// large payloads behind a pointer.
+// Primary template. Supports T up to the platform's lock-free width (16 B
+// on AMD64 + LSE AArch64). Wider T falls off the lock-free path and calls
+// into libatomic.
 template <class T>
 class Atomic {
  public:
@@ -159,8 +147,6 @@ class Atomic {
                                      atomic_detail::cas_failure_order(mo));
   }
 
-  // --- integer arithmetic ops (conditionally available) -------------------
-
   T fetch_add(T v, memory_order mo = memory_order_seq_cst) noexcept
     requires(atomic_detail::is_atomic_arithmetic_v<T>)
   {
@@ -234,20 +220,15 @@ class Atomic {
   }
 
  private:
-  // __atomic_* builtins need the address, so the storage must be real.
-  // `alignas(T)` gives matching alignment for the unlikely case the
-  // compiler lowers sizeof(T) > alignof(T).
   alignas(T) T value_;
 };
 
-// Pointer specialization — __atomic_fetch_add on T* already scales by
-// sizeof(T) so we can share most of the body. A dedicated class keeps
-// arithmetic arguments as ptrdiff (matches std::atomic<T*>).
+// Pointer specialization. __atomic_fetch_add on T* scales by sizeof(T).
 template <class T>
 class Atomic<T*> {
  public:
   using value_type = T*;
-  using difference_type = long long;  // ptrdiff-ish without pulling <cstddef>
+  using difference_type = long long;
 
   constexpr Atomic() noexcept : value_(nullptr) {}
   constexpr Atomic(T* desired) noexcept : value_(desired) {}
@@ -333,7 +314,6 @@ class Atomic<T*> {
 
 namespace base {
 
-// Thread fence. Standalone barrier orthogonal to any particular variable.
 inline void atomic_thread_fence(memory_order mo) noexcept {
 #if defined(BASE_USE_STD_ATOMIC) && BASE_USE_STD_ATOMIC
   std::atomic_thread_fence(mo);

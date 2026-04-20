@@ -19,7 +19,7 @@
 //   - A periodic GC pass walks the bucket + order chains, physically
 //     unlinks tagged nodes, stamps each with the current epoch, then frees
 //     any node whose retirement epoch is at least 2 ahead of the minimum
-//     active epoch — guaranteed unreachable by any concurrent reader.
+//     active epoch, guaranteed unreachable by any concurrent reader.
 //
 // History: this implementation grew up inside zetanet (znet/fancy_queue.h)
 // to support the network packet ACK queue. It's been lifted here so the
@@ -59,7 +59,7 @@ struct EpochState {
   alignas(64) base::Atomic<long> current{0};
   AnnounceSlot slots[kMaxSlots];
 
-  // Thread ID pool — mutex only taken on thread birth/death (not hot path).
+  // Thread ID pool, mutex only taken on thread birth/death (not hot path).
   base::Mutex pool_mutex;
   base::Vector<int> free_ids;
   base::Atomic<int> high_watermark{0};
@@ -79,7 +79,7 @@ struct EpochState {
   }
 
   // Slot reuse safety: between the -1 store and a new thread's announce(),
-  // try_advance() may see -1 and skip this slot.  This is correct — the old
+  // try_advance() may see -1 and skip this slot.  This is correct, the old
   // thread has exited its critical section, and the new thread has not yet
   // entered one, so no reader holds a dangling pointer.  The new thread's
   // announce() retry loop guarantees it pins the current (or later) epoch.
@@ -238,7 +238,7 @@ class LockFreeOrderedHashMap {
   }
 
   mem_size hash_key(const Key& key) const {
-    BASE_CHECK(bucketCount != 0, "LockFreeOrderedHashMap: bucket count is zero");
+    BASE_BUGCHECK(bucketCount != 0, "LockFreeOrderedHashMap: bucket count is zero");
     return keyHasher(key) % bucketCount;
   }
 
@@ -432,7 +432,7 @@ class LockFreeOrderedHashMap {
   LockFreeOrderedHashMap& operator=(LockFreeOrderedHashMap&&) = delete;
 
   // ---- Core operations ----
-  // NOTE: No rehashing path — performance degrades at high load factors.
+  // NOTE: No rehashing path, performance degrades at high load factors.
   // Callers should size the bucket count for expected peak occupancy.
 
   bool insert(const Key& key, Value&& value) {
@@ -478,10 +478,10 @@ class LockFreeOrderedHashMap {
         // the scan follows newNode→bucketNext (toward *older* nodes),
         // so it only sees nodes that CAS'd *before* us (they are deeper
         // in the chain).  A node that CAS'd *after* us sits between the
-        // bucket head and us — unreachable from bucketNext.
+        // bucket head and us, unreachable from bucketNext.
         //
         // Among any set of concurrent duplicates for the same key, exactly
-        // one — the deepest (first to CAS) — finds no duplicate behind
+        // one, the deepest (first to CAS), finds no duplicate behind
         // itself and proceeds.  Every shallower node finds the deeper one
         // and backs off.  No symmetric tiebreaker is needed because the
         // acyclic singly-linked chain provides natural asymmetry.
@@ -553,7 +553,7 @@ class LockFreeOrderedHashMap {
   // Walks the bucket chain looking for the first *live* matching node.
   //
   // It would be tempting to reuse find_in_bucket() here, but that helper
-  // returns the first match by key regardless of is_deleted — which is
+  // returns the first match by key regardless of is_deleted, which is
   // what insert/remove want (so they can help-unlink tagged-but-still-
   // linked nodes). For the public find() we need to skip past tagged
   // nodes: a concurrent remove may have marked an old node as deleted

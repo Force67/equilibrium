@@ -7,20 +7,20 @@
 namespace {
 TEST(Optional, AssingnValid) {
   base::Optional<bool> a(true);
-  EXPECT_FALSE(a.failed());
+  EXPECT_TRUE(a.has_value());
   EXPECT_TRUE(a.value());
 }
 
 TEST(Optional, AssingnEmpty) {
   base::Optional<bool> a;
-  EXPECT_TRUE(a.failed());
+  EXPECT_FALSE(a.has_value());
 }
 
 TEST(Optional, Copy) {
   base::Optional<bool> a;
-  EXPECT_TRUE(a.failed());
+  EXPECT_FALSE(a.has_value());
 
   base::Optional<bool> b = a;
-  EXPECT_TRUE(b.failed());
+  EXPECT_FALSE(b.has_value());
 }
 }  // namespace

@@ -1,11 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// Heap allocation free version of C++11 std::function.
-// base::StaticFunction stores the closure in an internal buffer instead of heap
-// allocated memory. This is useful for low latency agent and thread pool
-// systems. Please note that the captured values can perfom allocations, for
-// example base::String.
+// std::function substitute that stores the closure inline (no heap alloc).
+// The captured values can still allocate on their own (e.g. base::String).
 
 #pragma once
 
@@ -79,9 +76,8 @@ class StaticFunction<R(Args...), MaxSize> {
   }
 
   void swap(StaticFunction& other) {
-    // Byte-wise swap of the storage is safe: both sides either hold a
-    // properly-constructed callable or are empty, and we also swap the
-    // invoker/manager pointers that know how to operate on each.
+    // Storage holds trivially copyable state; invoker_/manager_ know how to
+    // operate on the bytes on either side.
     alignas(kStorageAlign) unsigned char tmp[kStorageSize];
     __builtin_memcpy(tmp, &data_, kStorageSize);
     __builtin_memcpy(&data_, &other.data_, kStorageSize);
@@ -93,7 +89,7 @@ class StaticFunction<R(Args...), MaxSize> {
   explicit operator bool() const noexcept { return !!manager_; }
 
   R operator()(Args... args) {
-    BASE_CHECK(invoker_ != nullptr, "StaticFunction invoked while empty");
+    BASE_BUGCHECK(invoker_ != nullptr, "StaticFunction invoked while empty");
     return invoker_(&data_, base::forward<Args>(args)...);
   }
 
@@ -103,7 +99,6 @@ class StaticFunction<R(Args...), MaxSize> {
   using Invoker = R (*)(void*, Args&&...);
   using Manager = void (*)(void*, void*, Operation);
 
-  // Leave room for the two function pointers; the rest is callable storage.
   static constexpr mem_size kStorageSize =
       MaxSize - sizeof(Invoker) - sizeof(Manager);
   static constexpr mem_size kStorageAlign = 8;

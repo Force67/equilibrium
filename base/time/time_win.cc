@@ -24,7 +24,7 @@ struct FILETIME {
   DWORD dwHighDateTime;
 };
 
-extern "C" __declspec(dllimport) void GetSystemTimeAsFileTime(wintypes::FILETIME*);
+extern "C" __declspec(dllimport) void __stdcall GetSystemTimeAsFileTime(wintypes::FILETIME*);
 }  // namespace wintypes
 
 namespace base {

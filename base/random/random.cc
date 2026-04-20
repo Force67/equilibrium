@@ -1,15 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// All generators are backed by xoshiro256**, see https://prng.di.unimi.it/.
-//
-// Quality vs. mt19937 (the canonical Mersenne Twister):
-//   - xoshiro256** passes BigCrush (TestU01). mt19937 fails linearity tests.
-//   - Period 2^256-1 vs 2^19937-1: both are astronomically large; 2^256-1
-//     suffices for any conceivable workload.
-//   - State size 32 B vs 2.5 KiB; speed ~2-3x faster than MT.
-//   - Seed source is the kernel CSPRNG (/dev/urandom / CryptGenRandom) via
-//     SourceTrueRandomSeed(), which is strictly stronger than the typical
-//     std::random_device{}() seed commonly used to seed MT.
+// xoshiro256** (https://prng.di.unimi.it/) seeded from the kernel CSPRNG
+// via SourceTrueRandomSeed. Passes BigCrush; mt19937 does not.
 
 #include "random.h"
 #include "base/external/xoshiro256ss/xoshiro256ss.h"
@@ -18,17 +10,15 @@ namespace base {
 
 namespace {
 
-// Unbiased bounded integer draw. Classic rejection-sampling pattern: ignore
-// any value that falls in the "uneven remainder" tail so [lo, hi] stays
-// perfectly uniform.
+// Unbiased bounded draw: reject values landing in the [limit, U_MAX] tail
+// so every value in [lo, hi] is equally likely.
 template <typename T>
 T BoundedDraw(xoshiro256ss& rng, T lo, T hi) {
   using U = unsigned long long;
   const U range = static_cast<U>(hi) - static_cast<U>(lo) + 1u;
   if (range == 0)
-    return static_cast<T>(rng());  // caller passed full range
+    return static_cast<T>(rng());
 
-  // Largest multiple of `range` that fits in a u64.
   const U limit = U(-1) - (U(-1) % range);
   U x;
   do {

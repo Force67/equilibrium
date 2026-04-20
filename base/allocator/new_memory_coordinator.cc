@@ -3,6 +3,8 @@
 
 #include "new_memory_coordinator.h"
 
+#include <new>
+
 namespace base {
 
 namespace detail {

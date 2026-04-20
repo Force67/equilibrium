@@ -5,15 +5,15 @@
 //
 // A hash map that preserves insertion order, safe for concurrent use from
 // multiple threads. Backed by a single base::SharedMutex:
-//   - find() / iteration take a shared lock — concurrent reads scale.
-//   - insert() / remove() / clear() take an exclusive lock — writes
+//   - find() / iteration take a shared lock, concurrent reads scale.
+//   - insert() / remove() / clear() take an exclusive lock, writes
 //     serialize against each other and against active readers.
 //
 // Why not pure lock-free?  An earlier version of this container was
 // nominally lock-free but inherently unsafe under concurrent remove (the
 // bucket linked list freed nodes that other threads might still be reading,
 // classic use-after-free).  Doing it properly requires hazard pointers or
-// epoch-based reclamation — non-trivial infrastructure for an uncommon
+// epoch-based reclamation, non-trivial infrastructure for an uncommon
 // use case.  This version trades that complexity for a small predictable
 // cost on the read path: a single atomic increment to take the shared lock.
 //
@@ -23,7 +23,7 @@
 //   - Each Node lives in exactly one bucket and exactly one position in
 //     the order list. They're spliced in/out together under the lock.
 //
-// Iteration: use for_each_in_order() or for_each_in_order_mut() — those
+// Iteration: use for_each_in_order() or for_each_in_order_mut(), those
 // hold the appropriate lock for the duration of the callback. Don't store
 // raw Node* outside the callback; the lock is released on return.
 #pragma once
@@ -67,7 +67,7 @@ class ConcurrentOrderedMap {
   }
 
   ~ConcurrentOrderedMap() {
-    // Walk the order list — guaranteed to visit every live node exactly
+    // Walk the order list, guaranteed to visit every live node exactly
     // once regardless of how the buckets are arranged.
     Node* n = orderHead_;
     while (n) {
@@ -186,7 +186,7 @@ class ConcurrentOrderedMap {
   }
 
   // Snapshot iteration in insertion order. The functor runs while the
-  // shared lock is held — don't perform any operation on the map from
+  // shared lock is held, don't perform any operation on the map from
   // within it (you'd self-deadlock when a writer is waiting).
   template <typename Func>
   void for_each_in_order(Func f) const {
@@ -196,7 +196,7 @@ class ConcurrentOrderedMap {
     }
   }
 
-  // Mutating iteration. Holds the exclusive lock — same self-call caveat.
+  // Mutating iteration. Holds the exclusive lock, same self-call caveat.
   template <typename Func>
   void for_each_in_order_mut(Func f) {
     base::LockGuard<base::SharedMutex> lk(mutex_);

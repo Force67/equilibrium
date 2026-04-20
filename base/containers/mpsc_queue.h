@@ -29,10 +29,10 @@ class MPSCQueue {
     };
     base::Atomic<Node*> next;
 
-    // Sentinel constructor — leaves `value` uninitialized.
+    // Sentinel constructor, leaves `value` uninitialized.
     Node() : next(nullptr) {}
 
-    // Data-node constructor — emplaces value in-place.
+    // Data-node constructor, emplaces value in-place.
     template <typename... Args>
     explicit Node(Args&&... args) : next(nullptr) {
       ::new (static_cast<void*>(&value)) T(base::forward<Args>(args)...);
@@ -86,7 +86,7 @@ class MPSCQueue {
     // destroying any live payloads before freeing.
     Node* node = tail_.load(base::memory_order_relaxed);
     Node* next = node->next.load(base::memory_order_relaxed);
-    delete node;  // sentinel — value never constructed
+    delete node;  // sentinel, value never constructed
     while (next) {
       Node* after = next->next.load(base::memory_order_relaxed);
       next->value.~T();
@@ -129,7 +129,7 @@ class MPSCQueue {
     next->value.~T();
 
     tail_.store(next, base::memory_order_release);
-    delete tail;  // old sentinel — no value to destroy
+    delete tail;  // old sentinel, no value to destroy
     return true;
   }
 
