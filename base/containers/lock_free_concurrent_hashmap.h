@@ -65,16 +65,15 @@ class LockFreeHashMap {
     using KeyValuePair = base::Pair<Key, Value>;
 
     Iterator(const LockFreeHashMap<Key, Value>* map, size_t bucketIndex, Node* node)
-        : map(map), bucketIndex(bucketIndex), currentNode(node) {}
+        : map(map), bucketIndex(bucketIndex), currentNode(node) {
+      AdvanceToLive();
+    }
 
     Iterator& operator++() {
       if (currentNode) {
         currentNode = currentNode->next.load(base::memory_order_acquire);
       }
-      while (!currentNode && bucketIndex < map->bucketCount - 1) {
-        ++bucketIndex;
-        currentNode = map->buckets[bucketIndex].load(base::memory_order_acquire);
-      }
+      AdvanceToLive();
       return *this;
     }
 
@@ -86,6 +85,20 @@ class LockFreeHashMap {
       return currentNode == other.currentNode;
     }
     bool operator!=(const Iterator& other) const { return !(*this == other); }
+
+   private:
+    // Walks forward past tombstones and empty buckets.
+    void AdvanceToLive() {
+      for (;;) {
+        while (currentNode &&
+               currentNode->dead.load(base::memory_order_acquire)) {
+          currentNode = currentNode->next.load(base::memory_order_acquire);
+        }
+        if (currentNode || bucketIndex >= map->bucketCount - 1) return;
+        ++bucketIndex;
+        currentNode = map->buckets[bucketIndex].load(base::memory_order_acquire);
+      }
+    }
   };
 
   Iterator begin() {
@@ -103,8 +116,13 @@ class LockFreeHashMap {
   struct Node {
     base::Pair<Key, Value> keyValue;
     base::Atomic<Node*> next;
+    // Removal is logical: a dead node stays linked so concurrent readers
+    // can keep traversing it, and is only freed once the caller guarantees
+    // quiescence (collect_garbage or the destructor).
+    base::Atomic<bool> dead;
 
-    Node(Key k, Value&& v) : keyValue{k, base::move(v)}, next(nullptr) {}
+    Node(Key k, Value&& v)
+        : keyValue{k, base::move(v)}, next(nullptr), dead(false) {}
   };
 
  private:
@@ -137,7 +155,8 @@ class LockFreeHashMap {
     Node* head = buckets[index].load(base::memory_order_acquire);
 
     while (head) {
-      if (head->keyValue.first == key) {
+      if (head->keyValue.first == key &&
+          !head->dead.load(base::memory_order_acquire)) {
         value = head->keyValue.second;
         return true;
       }
@@ -147,33 +166,53 @@ class LockFreeHashMap {
     return false;
   }
 
-  // WARNING: remove() is NOT safe to call concurrently with find() or
-  // iteration on the same bucket. The deleted node may still be traversed
-  // by a concurrent reader (use-after-free). For safe concurrent removal,
-  // use hazard pointers or RCU. This implementation is only safe when
-  // removes are serialized (e.g., single-writer pattern).
+  // Tombstones the first live node matching `key`. The node stays linked so
+  // concurrent finds, removes and iteration never touch freed memory; the
+  // bytes come back in collect_garbage() or the destructor.
   bool remove(Key key) {
     size_t index = hash(key);
     Node* head = buckets[index].load(base::memory_order_acquire);
-    Node* prev = nullptr;
 
     while (head) {
-      if (head->keyValue.first == key) {
-        Node* next = head->next.load(base::memory_order_acquire);
-        if (prev) {
-          prev->next.store(next, base::memory_order_release);
-        } else if (!buckets[index].compare_exchange_strong(
-                       head, next, base::memory_order_acq_rel)) {
-          continue;
+      if (head->keyValue.first == key &&
+          !head->dead.load(base::memory_order_acquire)) {
+        bool expected = false;
+        if (head->dead.compare_exchange_strong(expected, true,
+                                               base::memory_order_acq_rel)) {
+          return true;
         }
-        delete head;
-        return true;
+        // Another thread tombstoned this node first; the key is gone.
+        return false;
       }
-      prev = head;
       head = head->next.load(base::memory_order_acquire);
     }
 
     return false;
+  }
+
+  // Unlinks and frees tombstoned nodes. The caller must guarantee no
+  // concurrent access of any kind for the duration (maintenance windows,
+  // frame boundaries); this is the only place besides the destructor that
+  // frees nodes.
+  void collect_garbage() {
+    for (size_t i = 0; i < bucketCount; ++i) {
+      Node* node = buckets[i].load(base::memory_order_relaxed);
+      Node* prev = nullptr;
+      while (node) {
+        Node* next = node->next.load(base::memory_order_relaxed);
+        if (node->dead.load(base::memory_order_relaxed)) {
+          if (prev) {
+            prev->next.store(next, base::memory_order_relaxed);
+          } else {
+            buckets[i].store(next, base::memory_order_relaxed);
+          }
+          delete node;
+        } else {
+          prev = node;
+        }
+        node = next;
+      }
+    }
   }
 
   ~LockFreeHashMap() {
