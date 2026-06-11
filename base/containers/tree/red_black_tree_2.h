@@ -6,6 +6,8 @@
 // that the tree remains balanced during insertions and deletions.
 #pragma once
 
+#include <base/memory/move.h>
+
 namespace base {
 
 // Default comparator using '<' and '==' operators.
@@ -27,10 +29,15 @@ class RedBlackTree2 {
     NodeColor color;
     Node *left, *right, *parent;
 
-    // This constructor is for regular, data-holding nodes.
-    // It correctly initializes the 'value' member via copy-construction.
-    Node(const T& val)
-        : value(val), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+    // This constructor is for regular, data-holding nodes. Forwarding keeps
+    // move-only T usable.
+    template <typename U>
+    explicit Node(U&& val)
+        : value(base::forward<U>(val)),
+          color(RED),
+          left(nullptr),
+          right(nullptr),
+          parent(nullptr) {}
   };
 
  private:
@@ -263,14 +270,15 @@ class RedBlackTree2 {
   }
 
   // Returns the node holding `value`, inserting it first when absent.
-  Node* FindOrInsert(const T& value, bool* inserted) {
+  template <typename U>
+  Node* FindOrInsert(U&& value, bool* inserted) {
     Node* existing = SearchTree(root_, value);
     if (existing != nil_) {
       *inserted = false;
       return existing;
     }
 
-    Node* node = new Node(value);
+    Node* node = new Node(base::forward<U>(value));
     node->left = nil_;
     node->right = nil_;
 
