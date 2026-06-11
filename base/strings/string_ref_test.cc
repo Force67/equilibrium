@@ -63,10 +63,11 @@ TEST(BasicStringRefTest, ComparisonOperators) {
   EXPECT_TRUE(str_ref1 <= str_ref2);
   EXPECT_TRUE(str_ref1 >= str_ref2);
 
-  EXPECT_TRUE(str_ref1 < str_ref3);
-  EXPECT_TRUE(str_ref1 <= str_ref3);
-  EXPECT_TRUE(str_ref3 > str_ref1);
-  EXPECT_TRUE(str_ref3 >= str_ref1);
+  // Lexicographic: 'G' sorts before 'H'.
+  EXPECT_TRUE(str_ref3 < str_ref1);
+  EXPECT_TRUE(str_ref3 <= str_ref1);
+  EXPECT_TRUE(str_ref1 > str_ref3);
+  EXPECT_TRUE(str_ref1 >= str_ref3);
 }
 
 TEST(BasicStringRefTest, Find) {

@@ -91,8 +91,9 @@ TEST(VectorTest, EraseItem) {
   for (i32 i = 0; i < 5; i++) {
     EXPECT_EQ(*vec.at(i), i);
   }
-  for (i32 i = 6; i < 9; i++) {
-    EXPECT_EQ(*vec.at(i), i);
+  // Everything after the erased index shifts left by one.
+  for (i32 i = 5; i < 9; i++) {
+    EXPECT_EQ(*vec.at(i), i + 1);
   }
 }
 
