@@ -36,9 +36,13 @@ TEST(FixedStringTest, ExactCapacityFits) {
   EXPECT_STREQ(s.c_str(), "12345678");
 }
 
+// BASE_BUGCHECK only traps with CONFIG_DEBUG (see CHECK_BREAK); the death
+// tests are meaningless in configurations where it compiles out.
+#if defined(CONFIG_DEBUG)
 TEST(FixedStringTest, OverflowAsserts) {
   EXPECT_DEATH({ FS8 s("123456789"); }, "");
 }
+#endif
 
 TEST(FixedStringTest, AppendFits) {
   FS16 s("hello");
@@ -47,15 +51,19 @@ TEST(FixedStringTest, AppendFits) {
   EXPECT_EQ(s.size(), 11u);
 }
 
+#if defined(CONFIG_DEBUG)
 TEST(FixedStringTest, AppendOverflowAsserts) {
   FS8 s("1234");
   EXPECT_DEATH({ s.append("567890"); }, "");
 }
+#endif
 
+#if defined(CONFIG_DEBUG)
 TEST(FixedStringTest, PushBackOverflowAsserts) {
   FS8 s("12345678");
   EXPECT_DEATH({ s.push_back('x'); }, "");
 }
+#endif
 
 TEST(FixedStringTest, AssignTruncatingTruncates) {
   FS8 s;

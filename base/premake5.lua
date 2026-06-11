@@ -36,6 +36,7 @@ local function base_library()
   files({"**.cc", "**.h", "**.in", "**.inl"})
   removefiles({
     "**_test.cc",
+    "**_bench.cc",
     "allocator/memory_unittests_main.cc"})
 end
 
@@ -69,7 +70,8 @@ project("base_unittests")
   add_generic_test_main()
   files({"**.cc", "**.h", "**.in", "**.inl"})
   removefiles({
-    "allocator/**_test.cc", 
+    "allocator/**_test.cc",
+    "**_bench.cc",
     "allocator/memory_unittests_main.cc"})
 
 -- base is a special case where we cannot rely on the generic unittest

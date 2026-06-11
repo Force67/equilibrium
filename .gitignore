@@ -82,3 +82,6 @@ rsbase/**/*.rs.bk
 /.ropeproject
 /.zed
 akibase/libakibase.so
+
+# cmake build trees
+build-cmake*/
