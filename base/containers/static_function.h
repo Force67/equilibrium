@@ -97,7 +97,9 @@ class StaticFunction<R(Args...), MaxSize> {
   enum class Operation { Clone, Destroy };
 
   using Invoker = R (*)(void*, Args&&...);
-  using Manager = void (*)(void*, void*, Operation);
+  // Clone reads src, Destroy ignores it; const keeps copy construction from
+  // a const source legal.
+  using Manager = void (*)(void*, const void*, Operation);
 
   static constexpr mem_size kStorageSize =
       MaxSize - sizeof(Invoker) - sizeof(Manager);
@@ -110,10 +112,10 @@ class StaticFunction<R(Args...), MaxSize> {
   }
 
   template <typename F>
-  static void manage(void* dest, void* src, Operation op) {
+  static void manage(void* dest, const void* src, Operation op) {
     switch (op) {
       case Operation::Clone:
-        new (dest) F(*static_cast<F*>(src));
+        new (dest) F(*static_cast<const F*>(src));
         break;
       case Operation::Destroy:
         static_cast<F*>(dest)->~F();
