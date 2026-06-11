@@ -8,8 +8,8 @@
 #include <nmmintrin.h>  // For _mm_crc32_u8 (SSE4.2)
 #elif defined(_M_X64) && defined(_MSC_VER)
 #include <intrin.h>  // For __cpuid, __crc32b (MSVC)
-#elif defined(__ARM_NEON)
-#include <arm_neon.h>
+#elif defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+#include <arm_acle.h>  // For __crc32cb/__crc32cd (ARMv8 CRC extension)
 #endif
 
 #include <base/arch.h>
@@ -60,7 +60,7 @@ inline u32 CRC32C_SW(
   return ~crc;
 };
 
-u32 CRC32C(const byte* data, mem_size length, u32 previousCrc32 = 0xFFFFFFFF) {
+inline u32 CRC32C(const byte* data, mem_size length, u32 previousCrc32 = 0xFFFFFFFF) {
   // virtually all 64 bit chips have it
 #ifdef ARCH_X86_64
   uint32_t crc = ~previousCrc32;
@@ -74,10 +74,19 @@ u32 CRC32C(const byte* data, mem_size length, u32 previousCrc32 = 0xFFFFFFFF) {
   }
 
   return ~crc;
-#elif defined(__ARM_NEON)
-// Fallback to a NEON-optimized software version or use a library like
-// "crc32_arm" Note that ARM NEON doesn't have a built-in CRC32 instruction.
-#error Add neon support.
+#elif defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+  // Same Castagnoli polynomial as the Intel instruction.
+  u32 crc = ~previousCrc32;
+  mem_size i = 0;
+  for (; i + 8 <= length; i += 8) {
+    u64 chunk;
+    __builtin_memcpy(&chunk, data + i, sizeof(chunk));
+    crc = __crc32cd(crc, chunk);
+  }
+  for (; i < length; ++i) {
+    crc = __crc32cb(crc, data[i]);
+  }
+  return ~crc;
 #else
   return CRC32C_SW(data, length, previousCrc32);
 #endif
