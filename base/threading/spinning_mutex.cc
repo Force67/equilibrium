@@ -62,7 +62,7 @@ void SpinningMutex::FutexWake() {
 }
 
 void SpinningMutex::LockSlow() {
-  while (state_.exchange(kLockedContended, std::memory_order_acquire) != kUnlocked) {
+  while (state_.exchange(kLockedContended, base::memory_order_acquire) != kUnlocked) {
     FutexWait();
   }
 }
