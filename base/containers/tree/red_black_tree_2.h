@@ -186,13 +186,6 @@ class RedBlackTree2 {
     v->parent = u->parent;
   }
 
-  Node* Minimum(Node* node) const {
-    while (node->left != nil_) {
-      node = node->left;
-    }
-    return node;
-  }
-
   Node* SearchTree(Node* node, const T& value) const {
     if (node == nil_ || Comparator::equals(value, node->value)) {
       return node;
@@ -234,6 +227,28 @@ class RedBlackTree2 {
   Node* root() const { return root_; }
   Node* nil() const { return nil_; }
 
+  Node* Minimum(Node* node) const {
+    while (node->left != nil_) {
+      node = node->left;
+    }
+    return node;
+  }
+
+  // In-order successor; returns nil() past the maximum. Node pointers are
+  // stable across Erase (deletion transplants nodes instead of moving
+  // values), which is what makes iteration over this tree possible.
+  Node* Successor(Node* node) const {
+    if (node->right != nil_) {
+      return Minimum(node->right);
+    }
+    Node* parent = node->parent;
+    while (parent != nil_ && node == parent->right) {
+      node = parent;
+      parent = parent->parent;
+    }
+    return parent;
+  }
+
   bool empty() const { return root_ == nil_; }
 
   void Clear() {
@@ -242,9 +257,17 @@ class RedBlackTree2 {
   }
 
   bool Insert(const T& value) {
+    bool inserted = false;
+    FindOrInsert(value, &inserted);
+    return inserted;
+  }
+
+  // Returns the node holding `value`, inserting it first when absent.
+  Node* FindOrInsert(const T& value, bool* inserted) {
     Node* existing = SearchTree(root_, value);
     if (existing != nil_) {
-      return false;
+      *inserted = false;
+      return existing;
     }
 
     Node* node = new Node(value);
@@ -273,7 +296,8 @@ class RedBlackTree2 {
     }
 
     FixInsert(node);
-    return true;
+    *inserted = true;
+    return node;
   }
 
   bool Erase(const T& value) {
