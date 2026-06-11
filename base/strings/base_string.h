@@ -560,10 +560,14 @@ class BasicBaseString {
   }
 
   // for backwards compat
+  // Compares the `count` characters at `offset` with the first `count`
+  // characters of `str`. Characters past the window don't participate, so a
+  // match inside a longer string reports equal.
   int compare(size_type offset,
               size_type count,
               const character_type* str) const noexcept {
-    BASE_BUGCHECK(offset < get_size(), "Offset out of bounds");
+    // offset == size() is a valid empty window, like std::string::compare.
+    BASE_BUGCHECK(offset <= get_size(), "Offset out of bounds");
     const size_type left_size = get_size() - offset;
     const size_type min_size = base::Min(left_size, count);
     int result = memcmp(get_data() + offset, str, min_size * sizeof(character_type));
@@ -571,8 +575,6 @@ class BasicBaseString {
       return result;
     if (left_size < count)
       return -1;
-    if (left_size > count)
-      return 1;
     return 0;
   }
 
