@@ -13,68 +13,16 @@
 #include <base/containers/container_traits.h>
 #include <base/containers/pair.h>
 #include <base/hashing/fnv1a.h>
+#include <base/hashing/hash.h>
 
 #include <new>
 #include <cstring>
 
 namespace base {
 
-// Default hash functor using FNV-1a for integer types and raw bytes.
-template <typename K>
-struct Hash {
-  mem_size operator()(const K& key) const {
-    return static_cast<mem_size>(
-        base::fnv1a(reinterpret_cast<const u8*>(&key), sizeof(K)));
-  }
-};
-
-// Specialization for common types
-template <>
-struct Hash<u32> {
-  mem_size operator()(u32 key) const {
-    // murmurhash3 finalizer
-    key ^= key >> 16;
-    key *= 0x85ebca6bU;
-    key ^= key >> 13;
-    key *= 0xc2b2ae35U;
-    key ^= key >> 16;
-    return static_cast<mem_size>(key);
-  }
-};
-
-template <>
-struct Hash<u64> {
-  mem_size operator()(u64 key) const {
-    key ^= key >> 33;
-    key *= 0xff51afd7ed558ccdULL;
-    key ^= key >> 33;
-    key *= 0xc4ceb9fe1a85ec53ULL;
-    key ^= key >> 33;
-    return static_cast<mem_size>(key);
-  }
-};
-
-template <>
-struct Hash<i32> {
-  mem_size operator()(i32 key) const {
-    return Hash<u32>{}(static_cast<u32>(key));
-  }
-};
-
-template <>
-struct Hash<i64> {
-  mem_size operator()(i64 key) const {
-    return Hash<u64>{}(static_cast<u64>(key));
-  }
-};
-
-template <typename T>
-struct Hash<T*> {
-  mem_size operator()(T* key) const {
-    return Hash<u64>{}(reinterpret_cast<u64>(key));
-  }
-};
-
+// The canonical hash functor lives in base/hashing/hash.h (integers, enums
+// and pointers). This header only adds the container-side extras: the
+// default equality functor and a specialization for string-like keys.
 template <typename K>
 struct Equal {
   bool operator()(const K& a, const K& b) const { return a == b; }
