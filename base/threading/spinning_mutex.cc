@@ -17,6 +17,7 @@
 #endif
 
 #if defined(__linux__) || defined(OS_LINUX)
+#include <cerrno>
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <linux/futex.h>

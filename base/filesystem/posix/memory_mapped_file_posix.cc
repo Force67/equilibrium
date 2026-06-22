@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <base/filesystem/memory_mapped_file.h>
 #include <base/logging.h>
+#include <cerrno>
 #include <cstring>
 #include "logging.h"
 
