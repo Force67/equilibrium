@@ -7,7 +7,11 @@
 #include <base/arch.h>
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__) || defined(OS_POSIX)
+// macOS has no <malloc.h>; the allocation entry points used here all come from
+// <cstdlib> (included above), so only pull it in where the header exists.
+#if !defined(__APPLE__)
 #include <malloc.h>
+#endif
 #define BASE_POSIX_ALLOC 1
 #elif defined(_WIN32) || defined(OS_WIN)
 #include <malloc.h>

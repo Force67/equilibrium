@@ -65,11 +65,24 @@ const Thread::Priority GetThreadPriority(Thread::Handle handle) {
 
 // Sets the debugger-visible name of the current thread.
 bool SetThreadName(Thread::Handle handle, const char* name) {
+#if defined(__APPLE__)
+  // macOS can only name the calling thread; ApplyName runs on the thread
+  // itself, so the handle is unused here.
+  (void)handle;
+  return ::pthread_setname_np(name) == 0;
+#else
   return ::pthread_setname_np(handle.pthread_, name) == 0;
+#endif
 }
 
 u32 GetCurrentThreadIndex() {
+#if defined(__APPLE__)
+  uint64_t tid = 0;
+  ::pthread_threadid_np(nullptr, &tid);
+  return static_cast<u32>(tid);
+#else
   return ::syscall(__NR_gettid);
+#endif
 }
 
 Thread::Handle GetCurrentThreadHandle() {

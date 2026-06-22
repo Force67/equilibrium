@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#if defined(__linux__) || defined(OS_LINUX)
+#if defined(__linux__) || defined(OS_LINUX) || defined(__APPLE__) || defined(OS_MAC)
 #include <errno.h>
 #include <pthread.h>
 #include <base/atomic.h>
@@ -38,7 +38,9 @@ class BASE_EXPORT SpinningMutex {
 
   static constexpr int kSpinCount = 64;
 
-#if defined(__linux__) || defined(OS_LINUX)
+  // The contended-block path is a futex state machine on Linux and the same
+  // shape on macOS (the .cc backs FutexWait/Wake with __ulock there).
+#if defined(__linux__) || defined(OS_LINUX) || defined(__APPLE__) || defined(OS_MAC)
   void FutexWait();
   void FutexWake();
 
@@ -63,7 +65,7 @@ STRONG_INLINE void SpinningMutex::Acquire() {
 
 inline constexpr SpinningMutex::SpinningMutex() = default;
 
-#if defined(__linux__) || defined(OS_LINUX)
+#if defined(__linux__) || defined(OS_LINUX) || defined(__APPLE__) || defined(OS_MAC)
 
 STRONG_INLINE bool SpinningMutex::Try() {
   int expected = kUnlocked;

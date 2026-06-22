@@ -7,6 +7,12 @@
 #include <unistd.h>  // for sysconf
 #include "virtual_memory.h"
 
+// Under a strict -std=c++ dialect macOS does not expose MAP_ANONYMOUS, only the
+// older MAP_ANON spelling; alias it so the shared posix path keeps compiling.
+#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
 namespace base {
 
 // Translate base::PageProtectionFlags to Linux-specific protection flags.
