@@ -23,6 +23,12 @@
 #include <base/threading/scoped_blocking_call.h>
 #include <build/build_config.h>
 
+// macOS and the BSDs (like musl) expose only the 64-bit-clean POSIX names;
+// glibc's *64 function aliases (stat64, ftruncate64, ...) do not exist there.
+#if defined(BASE_MUSL_STATIC) || defined(OS_APPLE) || defined(OS_BSD)
+#define BASE_POSIX_NO_LFS64 1
+#endif
+
 namespace base {
 // Make sure our Whence mappings match the system headers.
 static_assert(File::FROM_BEGIN == SEEK_SET && File::FROM_CURRENT == SEEK_CUR &&
@@ -36,7 +42,7 @@ bool IsOpenAppend(PlatformFile file) {
 }
 
 int CallFtruncate(PlatformFile file, int64_t length) {
-#if defined(BASE_MUSL_STATIC)
+#if defined(BASE_POSIX_NO_LFS64)
   return HANDLE_EINTR(ftruncate(file, length));
 #else
   return HANDLE_EINTR(ftruncate64(file, length));
@@ -415,7 +421,12 @@ bool File::Flush() {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   BASE_DCHECK(IsValid());
 
+#if defined(OS_APPLE) || defined(OS_BSD)
+  // macOS/BSD have no fdatasync; fsync is the closest portable equivalent.
+  return !HANDLE_EINTR(fsync(file_.get()));
+#else
   return !HANDLE_EINTR(fdatasync(file_.get()));
+#endif
 }
 
 void File::SetPlatformFile(PlatformFile file) {
@@ -430,7 +441,7 @@ File::Error File::GetLastFileError() {
 
 int File::Stat(const char* path, stat_wrapper_t* sb) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-#if defined(BASE_MUSL_STATIC)
+#if defined(BASE_POSIX_NO_LFS64)
   return stat(path, sb);
 #else
   return stat64(path, sb);
@@ -438,7 +449,7 @@ int File::Stat(const char* path, stat_wrapper_t* sb) {
 }
 int File::Fstat(int fd, stat_wrapper_t* sb) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-#if defined(BASE_MUSL_STATIC)
+#if defined(BASE_POSIX_NO_LFS64)
   return fstat(fd, sb);
 #else
   return fstat64(fd, sb);
@@ -446,7 +457,7 @@ int File::Fstat(int fd, stat_wrapper_t* sb) {
 }
 int File::Lstat(const char* path, stat_wrapper_t* sb) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
-#if defined(BASE_MUSL_STATIC)
+#if defined(BASE_POSIX_NO_LFS64)
   return lstat(path, sb);
 #else
   return lstat64(path, sb);
