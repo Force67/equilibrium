@@ -1,7 +1,11 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <link.h>   // for linkmap
+// macOS is Mach-O and ships no <link.h>/dl_iterate_phdr; the already-loaded
+// lookup goes through dlopen(RTLD_NOLOAD) below instead.
+#if !defined(__APPLE__)
+#include <link.h>  // for dl_iterate_phdr / dl_phdr_info
+#endif
 #include <dlfcn.h>  // for dlopen
 
 #include "check.h"
@@ -29,6 +33,22 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
   handle_ = ::dlopen(reinterpret_cast<const char*>(path.c_str()), RTLD_NOW);
   return handle_;
 }
+
+#if defined(__APPLE__)
+
+bool DynamicLibrary::LoadExisting(const base::Path& path) {
+  BASE_DCHECK(!handle_, "Attempted to load an already existing library");
+  BASE_DCHECK(!path.empty(), "Empty library path");
+
+  should_free_ = false;
+  // RTLD_NOLOAD returns a usable handle only when the library is already mapped
+  // into the process, which is what dl_iterate_phdr emulates on Linux.
+  handle_ = ::dlopen(reinterpret_cast<const char*>(path.c_str()),
+                     RTLD_NOW | RTLD_NOLOAD);
+  return loaded();
+}
+
+#else
 
 bool DynamicLibrary::LoadExisting(const base::Path& path) {
   BASE_DCHECK(!handle_, "Attempted to load an already existing library");
@@ -75,6 +95,8 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
 
   return loaded();
 }
+
+#endif  // __APPLE__
 
 bool DynamicLibrary::Free() {
   return !handle_ ? false : ::dlclose(handle_) == 0;
