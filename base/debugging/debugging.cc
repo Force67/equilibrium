@@ -7,10 +7,15 @@
 #include <cstdlib>
 #include <cstring>
 
-// musl does not ship <execinfo.h>/backtrace(); when building in the
-// fully-static musl mode (see build/musl_static.lua) we stub the
-// callstack capture instead of pulling in a backtrace library.
-#if !defined(BASE_MUSL_STATIC)
+// Neither musl nor Android's bionic ship <execinfo.h>/backtrace(); when
+// building in the fully-static musl mode (see build/musl_static.lua) or for
+// Android we stub the callstack capture instead of pulling in a backtrace
+// library.
+#if defined(BASE_MUSL_STATIC) || defined(__ANDROID__)
+#define BASE_NO_BACKTRACE
+#endif
+
+#if !defined(BASE_NO_BACKTRACE)
 #include <execinfo.h>
 #endif
 
@@ -71,7 +76,7 @@ static base::String DemangleFrame(const char* raw) {
 base::Vector<base::String> CaptureCallstack(i32 skipFrames, i32 maxFrames) {
   base::Vector<base::String> result;
 
-#if defined(BASE_MUSL_STATIC)
+#if defined(BASE_NO_BACKTRACE)
   (void)skipFrames;
   (void)maxFrames;
   return result;
