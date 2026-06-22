@@ -10,20 +10,27 @@
 // Neither musl nor Android's bionic ship <execinfo.h>/backtrace(); when
 // building in the fully-static musl mode (see build/musl_static.lua) or for
 // Android we stub the callstack capture instead of pulling in a backtrace
-// library.
-#if defined(BASE_MUSL_STATIC) || defined(__ANDROID__)
+// library. Windows has neither <execinfo.h> nor <cxxabi.h>, so it takes the
+// same stubbed path (a DbgHelp-based capture can replace this later).
+#if defined(BASE_MUSL_STATIC) || defined(__ANDROID__) || defined(_WIN32)
 #define BASE_NO_BACKTRACE
 #endif
 
 #if !defined(BASE_NO_BACKTRACE)
 #include <execinfo.h>
+#include <cxxabi.h>
 #endif
 
-#include <cxxabi.h>
+#if defined(_WIN32)
+extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent(void);
+#endif
 
 namespace base {
 
 bool IsDebuggerAttached() {
+#if defined(_WIN32)
+  return ::IsDebuggerPresent() != 0;
+#else
   FILE* f = ::fopen("/proc/self/status", "r");
   if (!f) return false;
 
@@ -36,8 +43,10 @@ bool IsDebuggerAttached() {
   }
   ::fclose(f);
   return false;
+#endif
 }
 
+#if !defined(BASE_NO_BACKTRACE)
 // Try to demangle a single backtrace_symbols frame string.
 // Input looks like: "./build/voxel_beta(_ZN7physics...+0x1a) [0x55...]"
 // We extract the mangled name between '(' and '+' and demangle it.
@@ -72,6 +81,7 @@ static base::String DemangleFrame(const char* raw) {
 
   return result;
 }
+#endif  // !BASE_NO_BACKTRACE
 
 base::Vector<base::String> CaptureCallstack(i32 skipFrames, i32 maxFrames) {
   base::Vector<base::String> result;

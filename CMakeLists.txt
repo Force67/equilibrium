@@ -69,7 +69,11 @@ if(EQ_USE_STD_ATOMIC)
 endif()
 
 if(WIN32)
-  target_compile_definitions(eq_base PUBLIC OS_WIN NOMINMAX)
+  # UNICODE: select the wide (W) Win32 entry points so they accept the wchar_t
+  # Path buffers, and make <windows.h>'s LOGFONT/MENUITEMINFO/WIN32_FIND_DATA
+  # resolve to the same *W types minwin.h forward-declares (otherwise the two
+  # disagree and MSVC reports "redefinition; different basic types").
+  target_compile_definitions(eq_base PUBLIC OS_WIN NOMINMAX UNICODE _UNICODE)
   if(MSVC)
     target_compile_options(eq_base PUBLIC "/utf-8")
   endif()

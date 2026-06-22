@@ -7,6 +7,8 @@
 #include "base/random/random.h"
 #include "base/logging.h"
 
+#include <fmt/format.h>
+
 #include <windows.h>
 #include <base/threading/scoped_blocking_call.h>
 
