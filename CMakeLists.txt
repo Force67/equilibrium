@@ -90,6 +90,10 @@ if(EQ_FMTLIB_DIR)
     "${EQ_FMTLIB_DIR}/src/os.cc")
   target_include_directories(eq_fmtlib PUBLIC "${EQ_FMTLIB_DIR}/include")
   set_target_properties(eq_fmtlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  if(MSVC)
+    # fmt 11+ static_asserts that its own sources compile with /utf-8.
+    target_compile_options(eq_fmtlib PRIVATE "/utf-8")
+  endif()
   target_link_libraries(eq_base PUBLIC eq_fmtlib)
 endif()
 
