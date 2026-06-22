@@ -30,7 +30,7 @@ Thread::Handle Thread::Spawn() {
   pthread_t handle{};
   auto ec = ::pthread_create(&handle, &attributes, ThreadFunc, this);
   if (ec == 0) {
-    return {.pthread_ = handle};
+    return {.pthread_ = static_cast<pointer_size>(handle)};
   }
 
   // handle may be garbrage when the thread creation fails, so we ensure that
@@ -73,6 +73,6 @@ u32 GetCurrentThreadIndex() {
 }
 
 Thread::Handle GetCurrentThreadHandle() {
-  return {.pthread_ = ::pthread_self()};
+  return {.pthread_ = static_cast<pointer_size>(::pthread_self())};
 }
 }  // namespace base
