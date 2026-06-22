@@ -21,6 +21,25 @@ void* ThreadFunc(void* user_param) {
 
   return nullptr;
 }
+
+// glibc's pthread_t is an integer, but Apple's is an opaque pointer, so the two
+// directions need different casts to round-trip through Thread::Handle's
+// integral pthread_ slot.
+inline pointer_size PthreadToHandle(pthread_t thread) {
+#if defined(__APPLE__)
+  return reinterpret_cast<pointer_size>(thread);
+#else
+  return static_cast<pointer_size>(thread);
+#endif
+}
+
+inline pthread_t HandleToPthread(pointer_size handle) {
+#if defined(__APPLE__)
+  return reinterpret_cast<pthread_t>(handle);
+#else
+  return static_cast<pthread_t>(handle);
+#endif
+}
 }  // namespace
 
 Thread::Handle Thread::Spawn() {
@@ -30,7 +49,7 @@ Thread::Handle Thread::Spawn() {
   pthread_t handle{};
   auto ec = ::pthread_create(&handle, &attributes, ThreadFunc, this);
   if (ec == 0) {
-    return {.pthread_ = static_cast<pointer_size>(handle)};
+    return {.pthread_ = PthreadToHandle(handle)};
   }
 
   // handle may be garbrage when the thread creation fails, so we ensure that
@@ -42,7 +61,7 @@ Thread::Handle Thread::Spawn() {
 void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
   BASE_DCHECK(false);
   sched_param param{.sched_priority = static_cast<int>(new_priority)};
-  pthread_setschedparam(handle.pthread_, SCHED_OTHER, &param);
+  pthread_setschedparam(HandleToPthread(handle.pthread_), SCHED_OTHER, &param);
 }
 
 const i32 GetNativeThreadPriority(Thread::Handle handle) {
@@ -51,7 +70,7 @@ const i32 GetNativeThreadPriority(Thread::Handle handle) {
   i32 policy;
 
   /* scheduling parameters of target thread */
-  if (::pthread_getschedparam(handle.pthread_, &policy, &param) != 0)
+  if (::pthread_getschedparam(HandleToPthread(handle.pthread_), &policy, &param) != 0)
     return UINT_MAX;  // invalid cast to i32
 
   return param.sched_priority;
@@ -86,6 +105,6 @@ u32 GetCurrentThreadIndex() {
 }
 
 Thread::Handle GetCurrentThreadHandle() {
-  return {.pthread_ = static_cast<pointer_size>(::pthread_self())};
+  return {.pthread_ = PthreadToHandle(::pthread_self())};
 }
 }  // namespace base
