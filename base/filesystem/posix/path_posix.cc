@@ -26,6 +26,17 @@ Path::Path(const base::StringRefW wide_text) {
   Normalize(path_buf_);
 }
 
+// Many POSIX apis take a plain ascii char as parameter. This is a horrible
+// hack, defeating the point of storing stuff in utf8 internally, but for now
+// it's the only way. Shared by every POSIX target (Linux and macOS).
+base::String Path::ToAsciiString() const {
+  BASE_DCHECK(base::DoIsStringASCII(path_buf_.c_str(),
+                               base::CountStringLength(path_buf_.c_str())),
+         "Path must be ASCII only");
+
+  return base::String(reinterpret_cast<const char*>(path_buf_.c_str()));
+}
+
 bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
   BASE_DCHECK(base::DoIsStringASCII(ascii_only, base::CountStringLength(ascii_only)),
          "Extension must be ASCII only");
