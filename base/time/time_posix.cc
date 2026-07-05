@@ -1,8 +1,7 @@
 // Copyright (C) 2023 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// Time implementation for windows.
+// Time implementation for posix.
 
-#include <base/check.h>
 #include <base/time/time.h>
 #include <ctime>
 #include <sys/time.h>
@@ -27,5 +26,21 @@ i64 TickClock::NowNs() {
   ::clock_gettime(CLOCK_MONOTONIC, &ts);
   return static_cast<i64>(ts.tv_sec) * 1'000'000'000LL +
          static_cast<i64>(ts.tv_nsec);
+}
+
+Time Time::Now() {
+  struct timeval tv;
+  ::gettimeofday(&tv, nullptr);
+  return Time(static_cast<i64>(tv.tv_sec) * 1000000 + tv.tv_usec);
+}
+
+Time Time::NowFromSystemTime() {
+  return Now();
+}
+
+TimeTicks TimeTicks::Now() {
+  struct timespec ts;
+  ::clock_gettime(CLOCK_MONOTONIC, &ts);
+  return TimeTicks(static_cast<i64>(ts.tv_sec) * 1000000 + ts.tv_nsec / 1000);
 }
 }  // namespace base

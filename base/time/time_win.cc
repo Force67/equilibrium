@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 // Time implementation for windows.
 
-#include <base/check.h>
 #include <base/time/time.h>
 #include <base/win/minwin.h>
 
@@ -25,58 +24,11 @@ struct FILETIME {
 };
 
 extern "C" __declspec(dllimport) void __stdcall GetSystemTimeAsFileTime(wintypes::FILETIME*);
+extern "C" __declspec(dllimport) int __stdcall QueryPerformanceCounter(wintypes::LARGE_INTEGER*);
+extern "C" __declspec(dllimport) int __stdcall QueryPerformanceFrequency(wintypes::LARGE_INTEGER*);
 }  // namespace wintypes
 
 namespace base {
-#if 0
-namespace {
-i64 initial_time = 0;
-constexpr TimeDelta kMaxTimeToAvoidDrift = Seconds(60);
-
-void InitializeClock() {
-  g_initial_ticks = subtle::TimeTicksNowIgnoringOverride();
-  initial_time = CurrentWallclockMicroseconds();
-}
-
-}  // namespace
-
-Time TimeNowIgnoringOverride() {
-  if (initial_time == 0)
-    InitializeClock();
-
-  // We implement time using the high-resolution timers so that we can get
-  // timeouts which are smaller than 10-15ms.  If we just used
-  // CurrentWallclockMicroseconds(), we'd have the less-granular timer.
-  //
-  // To make this work, we initialize the clock (g_initial_time) and the
-  // counter (initial_ctr).  To compute the initial time, we can check
-  // the number of ticks that have elapsed, and compute the delta.
-  //
-  // To avoid any drift, we periodically resync the counters to the system
-  // clock.
-  while (true) {
-    TimeTicks ticks = TimeTicksNowIgnoringOverride();
-
-    // Calculate the time elapsed since we started our timer
-    TimeDelta elapsed = ticks - g_initial_ticks;
-
-    // Check if enough time has elapsed that we need to resync the clock.
-    if (elapsed > kMaxTimeToAvoidDrift) {
-      InitializeClock();
-      continue;
-    }
-
-    return Time() + elapsed + Microseconds(g_initial_time);
-  }
-}
-
-Time TimeNowFromSystemTimeIgnoringOverride() {
-  // Force resync.
-  InitializeClock();
-  return Time() + Microseconds(g_initial_time);
-}
-#endif
-
 namespace {
 // 100-ns ticks since Unix epoch, read from FILETIME.
 i64 FileTimeTicksSinceUnix() {
@@ -86,11 +38,23 @@ i64 FileTimeTicksSinceUnix() {
   wintypes::FILETIME ft;
   wintypes::GetSystemTimeAsFileTime(&ft);
 
+  // Copy the low and high parts of FILETIME into a LARGE_INTEGER
+  // This is so we can access the full 64-bits as an i64 without causing an
+  // alignment fault
   wintypes::LARGE_INTEGER li;
   li.u.LowPart = ft.dwLowDateTime;
-  li.u.HighPart = ft.dwHighDateTime;
+  li.u.HighPart = static_cast<LONG>(ft.dwHighDateTime);
 
   return li.QuadPart - kUnixTimeBase;
+}
+
+i64 QpcTicksPerSecond() {
+  static i64 freq = [] {
+    wintypes::LARGE_INTEGER f;
+    wintypes::QueryPerformanceFrequency(&f);
+    return f.QuadPart;
+  }();
+  return freq;
 }
 }  // namespace
 
@@ -99,22 +63,13 @@ i64 GetUnixTimeStamp() {
 }
 
 i64 GetUnixTimeMilliseconds() {
-  return FileTimeTicksSinceUnix() / 10'000LL;     // 100ns ticks -> ms
+  return FileTimeTicksSinceUnix() / 10'000LL;  // 100ns ticks -> ms
 }
 
-extern "C" __declspec(dllimport) int __stdcall QueryPerformanceCounter(
-    wintypes::LARGE_INTEGER*);
-extern "C" __declspec(dllimport) int __stdcall QueryPerformanceFrequency(
-    wintypes::LARGE_INTEGER*);
-
 i64 TickClock::NowNs() {
-  static i64 freq = [] {
-    wintypes::LARGE_INTEGER f;
-    QueryPerformanceFrequency(&f);
-    return f.QuadPart;
-  }();
+  const i64 freq = QpcTicksPerSecond();
   wintypes::LARGE_INTEGER now;
-  QueryPerformanceCounter(&now);
+  wintypes::QueryPerformanceCounter(&now);
   // ns = ticks * 1e9 / freq, staggered to avoid overflow on large counters.
   i64 seconds = now.QuadPart / freq;
   i64 remainder = now.QuadPart % freq;
@@ -122,13 +77,20 @@ i64 TickClock::NowNs() {
 }
 
 Time Time::Now() {
-  BASE_IMPOSSIBLE;
-  return {};
+  return Time(FileTimeTicksSinceUnix() / 10);  // 100ns ticks -> microseconds
 }
 
 Time Time::NowFromSystemTime() {
-  BASE_IMPOSSIBLE;
-  return {};
+  return Now();
 }
 
+TimeTicks TimeTicks::Now() {
+  const i64 freq = QpcTicksPerSecond();
+  wintypes::LARGE_INTEGER now;
+  wintypes::QueryPerformanceCounter(&now);
+  // us = ticks * 1e6 / freq, staggered to avoid overflow on large counters.
+  i64 seconds = now.QuadPart / freq;
+  i64 remainder = now.QuadPart % freq;
+  return TimeTicks(seconds * 1'000'000LL + (remainder * 1'000'000LL) / freq);
+}
 }  // namespace base
