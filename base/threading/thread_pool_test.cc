@@ -46,6 +46,42 @@ TEST(ThreadPool, ScalesUpUnderLoad) {
   EXPECT_EQ(counter.load(), 32);
 }
 
+TEST(ThreadPool, TasksRunConcurrently) {
+  // 6 tasks of 200 ms on 6 workers must overlap; a serial pool would need
+  // 1.2 s. Generous threshold to stay CI-safe.
+  base::Atomic<int> done{0};
+  base::ThreadPool pool(6, 6);
+  const auto nap200 = []() {
+    timespec ts{0, 200000000};
+    ::nanosleep(&ts, nullptr);
+  };
+  const auto start = ::time(nullptr);
+  for (int i = 0; i < 6; i++)
+    pool.enqueue([&done, nap200]() {
+      nap200();
+      done.fetch_add(1);
+    });
+  SpinWait(done, 6, 5000);
+  const auto elapsed = ::time(nullptr) - start;
+  EXPECT_EQ(done.load(), 6);
+  EXPECT_LE(elapsed, 1);  // seconds; serial execution would take >= 1.2 s
+}
+
+TEST(ThreadPool, SurvivesThousandsOfInterleavedTasks) {
+  // Regression: task storage must not lose callables when the queue grows
+  // and wraps while workers drain it concurrently.
+  base::Atomic<int> counter{0};
+  {
+    base::ThreadPool pool(2, 8);
+    for (int batch = 0; batch < 50; batch++) {
+      for (int i = 0; i < 100; i++)
+        pool.enqueue([&counter]() { counter.fetch_add(1); });
+      SpinWait(counter, (batch + 1) * 100, 10000);
+    }
+  }
+  EXPECT_EQ(counter.load(), 5000);
+}
+
 TEST(ThreadPool, DestructionWithIdleWorkers) {
   base::ThreadPool pool(3, 3);
   // Destructor must not hang or leak with never-used workers.

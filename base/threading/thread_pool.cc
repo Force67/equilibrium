@@ -71,8 +71,8 @@ void ThreadPool::workerThreadFunction() {
     {
       base::NonOwningScopedLockGuard<base::SpinningMutex> lock(queueMutex);
       if (!taskQueue.empty()) {
-        task = base::move(taskQueue.front());
-        taskQueue.pop_front();
+        task = base::move(taskQueue.back());
+        taskQueue.pop_back();
         has_task = true;
       }
     }

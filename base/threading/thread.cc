@@ -37,7 +37,10 @@ void Thread::SetName(const base::StringRef name) {
 }
 
 void Thread::ApplyName() {
-  base::SetThreadName(handle_data_, thread_name_.c_str());
+  // Runs on the freshly spawned thread, racing the parent's assignment of
+  // handle_data_ (garbage until Spawn() returns there). Name the calling
+  // thread through its own handle instead.
+  base::SetThreadName(base::GetCurrentThreadHandle(), thread_name_.c_str());
 }
 
 void Thread::SetPrio(const Thread::Priority prio) {

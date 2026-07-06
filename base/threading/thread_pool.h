@@ -6,7 +6,6 @@
 #include <base/export.h>
 #include <base/threading/thread.h>
 #include <base/threading/spinning_mutex.h>
-#include <base/containers/deque.h>
 #include <base/containers/vector.h>
 
 namespace base {
@@ -30,8 +29,10 @@ class BASE_EXPORT ThreadPool {
   void workerThreadFunction();
   void scaleUp(size_t target);
 
+  // LIFO stack rather than a deque: tasks carry no ordering contract, and
+  // Vector moves the type-erased callables instead of copy-assigning them.
   base::SpinningMutex queueMutex;
-  base::SimpleDeque<base::Function<void()>> taskQueue;
+  base::Vector<base::Function<void()>> taskQueue;
 
   base::Vector<base::Thread*> workers;
   size_t minThreads, maxThreads;
