@@ -59,9 +59,23 @@ Thread::Handle Thread::Spawn() {
 }
 
 void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
-  BASE_DCHECK(false);
-  sched_param param{.sched_priority = static_cast<int>(new_priority)};
-  pthread_setschedparam(HandleToPthread(handle.pthread_), SCHED_OTHER, &param);
+  // SCHED_OTHER only accepts priority 0 on Linux, so normal/low map to the
+  // default scheduler and are a successful no-op. High priorities attempt a
+  // real-time class, which needs CAP_SYS_NICE; failure is deliberately
+  // ignored (a game running unprivileged still works, just unboosted).
+  if (new_priority == Thread::Priority::kLow ||
+      new_priority == Thread::Priority::kNormal) {
+    sched_param param{.sched_priority = 0};
+    ::pthread_setschedparam(HandleToPthread(handle.pthread_), SCHED_OTHER,
+                            &param);
+    return;
+  }
+  const int min_rr = ::sched_get_priority_min(SCHED_RR);
+  sched_param param{.sched_priority =
+                        new_priority == Thread::Priority::kVeryHigh
+                            ? min_rr + 1
+                            : min_rr};
+  ::pthread_setschedparam(HandleToPthread(handle.pthread_), SCHED_RR, &param);
 }
 
 const i32 GetNativeThreadPriority(Thread::Handle handle) {
@@ -77,9 +91,16 @@ const i32 GetNativeThreadPriority(Thread::Handle handle) {
 }
 
 const Thread::Priority GetThreadPriority(Thread::Handle handle) {
-  BASE_DCHECK(false);
-
-  return Thread::Priority::kLow;
+  sched_param param{};
+  i32 policy = SCHED_OTHER;
+  if (::pthread_getschedparam(HandleToPthread(handle.pthread_), &policy,
+                              &param) != 0)
+    return Thread::Priority::kNormal;
+  if (policy != SCHED_RR)
+    return Thread::Priority::kNormal;
+  return param.sched_priority > ::sched_get_priority_min(SCHED_RR)
+             ? Thread::Priority::kVeryHigh
+             : Thread::Priority::kHigh;
 }
 
 // Sets the debugger-visible name of the current thread.
