@@ -3,6 +3,14 @@
 // This header helps us to get rid of all instances of <Windows.h>
 #pragma once
 
+// mingw-gcc ships lean win32 headers and rejects several MSVC-isms below
+// (__int64, SAL macros); the real <windows.h> is cheap there, so defer to it
+// and skip the hand-rolled forward declarations entirely.
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#include <windows.h>
+#else  // MSVC: forward-declare instead of paying for <Windows.h>
+
+
 // Needed for function prototypes.
 #include <concurrencysal.h>
 #include <sal.h>
@@ -325,3 +333,5 @@ inline MSG* ChromeToWindowsType(CHROME_MSG* p) {
 }
 
 #endif
+
+#endif  // !__MINGW32__

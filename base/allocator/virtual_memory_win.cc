@@ -90,10 +90,12 @@ byte* VirtualMemoryReserve(void* address, mem_size size) {
       address, size, MEM_RESERVE, native_protection));  // MEM_RELEASE for free
 }
 
-byte* base::VirtualMemoryAllocate(void* address,
-                                  mem_size size,
-                                  PageProtectionFlags protection,
-                                  const bool reserve) {
+// Unqualified: this definition already sits inside namespace base, and gcc
+// rejects the redundant qualification MSVC accepts.
+byte* VirtualMemoryAllocate(void* address,
+                            mem_size size,
+                            PageProtectionFlags protection,
+                            const bool reserve) {
   const DWORD native_protection = TranslateToNativePageProtection(protection);
   DWORD allocation_type = MEM_COMMIT;
   if (reserve) {
