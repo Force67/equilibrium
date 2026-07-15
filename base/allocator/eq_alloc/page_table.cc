@@ -178,8 +178,8 @@ mem_size PageTable::ReleasePages(void* address, mem_size count) {
 
 mem_size PageTable::ReleasePage(void* page_pointer) {
   base::NonOwningScopedLockGuard _(lock_);
-  // Deallocate the page memory
-  if (!page_pointer || !base::VirtualMemoryFree(page_pointer, page_size_))
+  // Drop the physical storage without releasing the page table's reservation.
+  if (!page_pointer || !base::VirtualMemoryDecommit(page_pointer, page_size_))
     return 0u;
   // Mark the page as free
   PageEntry* entry = FindBackingPage(page_pointer);

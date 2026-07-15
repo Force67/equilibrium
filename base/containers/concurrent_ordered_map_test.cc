@@ -14,6 +14,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <base/atomic.h>
+
 #include "concurrent_ordered_map.h"
 
 namespace {

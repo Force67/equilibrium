@@ -122,6 +122,12 @@ byte* VirtualMemoryAllocate(void* address,
   return reinterpret_cast<byte*>(result);
 }
 
+bool VirtualMemoryDecommit(void* address, mem_size size) {
+  void* result = ::mmap(address, size, PROT_NONE,
+                        MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+  return result != MAP_FAILED;
+}
+
 bool VirtualMemoryFree(void* address, mem_size size) {
   return ::munmap(address, size) == 0;
 }

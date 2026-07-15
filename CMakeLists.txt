@@ -17,10 +17,6 @@ endif()
 
 option(EQ_BUILD_TESTS "Build the base unit tests" ${eq_is_top_level})
 option(EQ_USE_STD_ATOMIC "Build base::Atomic on top of std::atomic" OFF)
-# file_util_win.cc formats with fmtlib, which equilibrium does not vendor.
-# Windows embedders point this at an fmt checkout (e.g. zetanet's
-# vendor/fmtlib); other platforms don't need it.
-set(EQ_FMTLIB_DIR "" CACHE PATH "Path to an fmtlib checkout (Windows only)")
 
 # The base headers use C++23 (deducing this, constexpr extensions).
 if(NOT DEFINED CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 23)
@@ -57,9 +53,10 @@ target_compile_definitions(eq_base PRIVATE
   BASE_IMPLEMENTATION
   TRACY_HAS_CALLSTACK
   "PROJECT_NAME=\"base\"")
-# The premake Debug configuration defines this; checks only trap when it is
-# set (CHECK_BREAK in compiler.h).
-target_compile_definitions(eq_base PUBLIC "$<$<CONFIG:Debug>:CONFIG_DEBUG>")
+# Match the configuration defines used by the premake build.
+target_compile_definitions(eq_base PUBLIC
+  "$<$<CONFIG:Debug>:CONFIG_DEBUG>"
+  "$<$<CONFIG:Release>:CONFIG_RELEASE>")
 set_target_properties(eq_base PROPERTIES
   CXX_STANDARD 23
   POSITION_INDEPENDENT_CODE ON)
@@ -78,36 +75,25 @@ if(WIN32)
   if(MSVC)
     target_compile_options(eq_base PUBLIC "/utf-8")
   endif()
-  if(NOT EQ_FMTLIB_DIR)
-    message(FATAL_ERROR "Windows base needs fmtlib, set EQ_FMTLIB_DIR")
-  endif()
 elseif(APPLE)
   target_compile_definitions(eq_base PUBLIC OS_MAC OS_POSIX)
+  find_package(Threads REQUIRED)
+  target_link_libraries(eq_base PUBLIC Threads::Threads)
 else()
   target_compile_definitions(eq_base PUBLIC OS_LINUX OS_POSIX)
   find_package(Threads REQUIRED)
   target_link_libraries(eq_base PUBLIC Threads::Threads)
 endif()
 
-if(EQ_FMTLIB_DIR)
-  add_library(eq_fmtlib STATIC
-    "${EQ_FMTLIB_DIR}/src/format.cc"
-    "${EQ_FMTLIB_DIR}/src/os.cc")
-  target_include_directories(eq_fmtlib PUBLIC "${EQ_FMTLIB_DIR}/include")
-  set_target_properties(eq_fmtlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
-  if(MSVC)
-    # fmt 11+ static_asserts that its own sources compile with /utf-8.
-    target_compile_options(eq_fmtlib PRIVATE "/utf-8")
-  endif()
-  target_link_libraries(eq_base PUBLIC eq_fmtlib)
-endif()
-
 # Per-arch baselines, matching what the premake build enables on x86. The
 # x86 set carries the inline assembly requirements (spinlock pause, TSX);
 # aarch64 turns on the CRC extension so CRC32C uses the hardware path.
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64" AND NOT MSVC)
-  set(eq_arch_options -mavx2 -mwaitpkg -mrtm)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64" AND NOT MSVC)
+  set(eq_arch_options -mavx2)
+  if(NOT APPLE)
+    list(APPEND eq_arch_options -mwaitpkg -mrtm)
+  endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64" AND NOT MSVC AND NOT APPLE)
   set(eq_arch_options -march=armv8-a+crc)
 else()
   set(eq_arch_options "")
@@ -120,6 +106,10 @@ if(EQ_BUILD_TESTS)
 
   set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
   set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  if(MSVC)
+    # Keep gtest on CMake's default DLL CRT, matching the consuming targets.
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  endif()
   add_subdirectory("${EQ_ROOT}/external/googletest" EXCLUDE_FROM_ALL)
 
   file(GLOB_RECURSE EQ_BASE_TEST_SOURCES "${EQ_ROOT}/base/*_test.cc")
@@ -158,12 +148,21 @@ if(EQ_BUILD_TESTS)
     BASE_STRIP_BUGCHECK
     BASE_MEM_CORE_DEBUG
     X2E_MEMORY_TRACKING
+    "$<$<CONFIG:Debug>:CONFIG_DEBUG>"
+    "$<$<CONFIG:Release>:CONFIG_RELEASE>"
     "PROJECT_NAME=\"base\"")
-  if(NOT WIN32 AND NOT APPLE)
+  if(WIN32)
+    target_compile_definitions(base_memory_unittests PRIVATE
+      OS_WIN NOMINMAX UNICODE _UNICODE)
+    if(MSVC)
+      target_compile_options(base_memory_unittests PRIVATE "/utf-8")
+    endif()
+  elseif(APPLE)
+    target_compile_definitions(base_memory_unittests PRIVATE OS_MAC OS_POSIX)
+    target_link_libraries(base_memory_unittests PRIVATE Threads::Threads)
+  else()
     target_compile_definitions(base_memory_unittests PRIVATE OS_LINUX OS_POSIX)
     target_link_libraries(base_memory_unittests PRIVATE Threads::Threads)
-  elseif(WIN32)
-    target_compile_definitions(base_memory_unittests PRIVATE OS_WIN NOMINMAX)
   endif()
   add_test(NAME base_memory_unittests COMMAND base_memory_unittests)
 endif()

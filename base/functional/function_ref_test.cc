@@ -6,13 +6,15 @@
 
 namespace {
 TEST(FunctionRef, CanInitializeWithLambda) {
-  base::FunctionRef<int(int, int)> func = [](int x, int y) { return x + y; };
+  auto add = [](int x, int y) { return x + y; };
+  base::FunctionRef<int(int, int)> func = add;
   EXPECT_EQ(func(2, 3), 5);
 }
 
 TEST(FunctionRef, CanInitializeWithCapturingLambda) {
   int offset = 10;
-  base::FunctionRef<int(int)> func = [&offset](int x) { return x + offset; };
+  auto add_offset = [&offset](int x) { return x + offset; };
+  base::FunctionRef<int(int)> func = add_offset;
   EXPECT_EQ(func(5), 15);
   offset = 20;
   EXPECT_EQ(func(5), 25);
@@ -39,7 +41,8 @@ TEST(FunctionRef, CanInitializeWithFunctionObject) {
 
 TEST(FunctionRef, VoidReturn) {
   int calls = 0;
-  base::FunctionRef<void()> func = [&calls] { calls++; };
+  auto increment_calls = [&calls] { calls++; };
+  base::FunctionRef<void()> func = increment_calls;
   func();
   func();
   EXPECT_EQ(calls, 2);

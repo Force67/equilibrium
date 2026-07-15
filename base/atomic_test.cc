@@ -273,10 +273,10 @@ TEST(Atomic, ConcurrentCasLinkedListPush) {
 }
 
 TEST(AtomicThreadFence, Compiles) {
-  atomic_thread_fence(memory_order_seq_cst);
-  atomic_thread_fence(memory_order_acq_rel);
-  atomic_thread_fence(memory_order_release);
-  atomic_thread_fence(memory_order_acquire);
+  base::atomic_thread_fence(memory_order_seq_cst);
+  base::atomic_thread_fence(memory_order_acq_rel);
+  base::atomic_thread_fence(memory_order_release);
+  base::atomic_thread_fence(memory_order_acquire);
 }
 
 }  // namespace base

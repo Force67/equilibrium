@@ -5,31 +5,20 @@
 
 #include <base/threading/lock_guard.h>
 
-#if defined(OS_WIN)
-#include <base/win/minwin.h>
-#else
-#include <ctime>
-#endif
+#include <chrono>
+#include <thread>
 
 namespace base {
 namespace {
 // Idle nap between queue polls; long enough to keep idle workers near 0%
 // CPU, short enough to not matter for task latency.
 void NapBriefly() {
-#if defined(OS_WIN)
-  ::Sleep(1);
-#else
-  timespec ts{0, 500000};  // 0.5 ms
-  ::nanosleep(&ts, nullptr);
-#endif
+  std::this_thread::sleep_for(std::chrono::microseconds(500));
 }
 }  // namespace
 
 ThreadPool::ThreadPool(size_t min_threads, size_t max_threads)
-    : minThreads(min_threads),
-      maxThreads(max_threads),
-      stop(false),
-      activeWorkers(0) {
+    : minThreads(min_threads), maxThreads(max_threads), stop(false), activeWorkers(0) {
   BASE_DCHECK(minThreads <= maxThreads, "ThreadPool: min > max");
   scaleUp(minThreads);
 }

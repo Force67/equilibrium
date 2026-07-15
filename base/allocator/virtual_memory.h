@@ -55,6 +55,9 @@ BASE_EXPORT byte* VirtualMemoryAllocate(void* address,
                                         PageProtectionFlags protection,
                                         const bool reserve = true);
 
+// Releases physical storage while preserving the reserved address range.
+BASE_EXPORT bool VirtualMemoryDecommit(void* address, mem_size size);
+
 // Releases memory that was previously reserved with VirtualMemoryReserve
 BASE_EXPORT bool VirtualMemoryFree(void* address, mem_size size);
 
