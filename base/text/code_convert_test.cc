@@ -125,7 +125,7 @@ TEST(WideRoundtrip, BMP) {
 TEST(WideRoundtrip, Supplementary) {
   // U+1F600 GRINNING FACE.
   base::StringW wide = base::UTF8ToWide(
-      base::StringRefU8(u8"\xF0\x9F\x98\x80"));
+      base::StringRefU8(u8"\U0001F600"));
   base::StringU8 back = base::WideToUTF8(base::StringRefW(wide.c_str()));
   EXPECT_EQ(back, U8("\xF0\x9F\x98\x80"));
 }
@@ -161,7 +161,7 @@ TEST(WideUtf16Roundtrip, Supplementary) {
   // On UTF-32 wchar_t the wide string holds a single char, but the UTF-16
   // intermediate is a surrogate pair.
   base::StringW wide =
-      base::UTF8ToWide(base::StringRefU8(u8"\xF0\x9F\x98\x80"));
+      base::UTF8ToWide(base::StringRefU8(u8"\U0001F600"));
   base::StringU16 utf16 = base::WideToUTF16(base::StringRefW(wide.c_str()));
   ASSERT_EQ(utf16.size(), 2u);
   EXPECT_EQ(utf16[0], 0xD83D);
