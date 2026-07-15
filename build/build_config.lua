@@ -14,7 +14,10 @@ defines({
     "OS_LINUX",
     "OS_POSIX" })               -- we also define the POSIX alias here)
 buildoptions("-mwaitpkg -mrtm") -- Enable Intel(R) Transactional Synchronization Extensions (-mrtm) and WAITPKG instructions support (-mwaitpkg) on relevant processors
-defines("OS_MACOS")
+filter("system:macosx")
+defines({
+    "OS_MAC",
+    "OS_POSIX" })
 
 filter {}
 -- -std=c++2b

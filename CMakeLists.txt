@@ -74,6 +74,7 @@ if(WIN32)
   # resolve to the same *W types minwin.h forward-declares (otherwise the two
   # disagree and MSVC reports "redefinition; different basic types").
   target_compile_definitions(eq_base PUBLIC OS_WIN NOMINMAX UNICODE _UNICODE)
+  target_link_libraries(eq_base PRIVATE psapi)
   if(MSVC)
     target_compile_options(eq_base PUBLIC "/utf-8")
   endif()
