@@ -20,7 +20,7 @@ local function base_project()
   filter("configurations:Profile")
     dependencies("tracysdk")
   filter("system:windows")
-    links("Psapi")
+    links("psapi")
   filter{}
   warnings("High")
 

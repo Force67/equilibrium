@@ -3,8 +3,8 @@
 
 #include "base/process/process_metrics.h"
 
-#include <Windows.h>
-#include <Psapi.h>
+#include <windows.h>
+#include <psapi.h>
 
 namespace base {
 
