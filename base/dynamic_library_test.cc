@@ -18,6 +18,8 @@ TEST(DynamicLibrary, Load) {
       "libstdc++.so"
 #elif defined(OS_WIN)
       "iphlpapi.dll"
+#elif defined(OS_MAC)
+      "/usr/lib/libSystem.B.dylib"
 #endif
   );
   ASSERT_TRUE(lib.loaded());
@@ -29,6 +31,8 @@ TEST(DynamicLibrary, LoadExisting) {
       "libc.so"
 #elif defined(OS_WIN)
       "kernel32.dll"
+#elif defined(OS_MAC)
+      "/usr/lib/libSystem.B.dylib"
 #endif
   );
   const base::DynamicLibrary lib(kPath);

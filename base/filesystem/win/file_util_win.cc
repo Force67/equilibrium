@@ -6,8 +6,7 @@
 
 #include "base/random/random.h"
 #include "base/logging.h"
-
-#include <fmt/format.h>
+#include "base/strings/format.h"
 
 #include <windows.h>
 #include <base/threading/scoped_blocking_call.h>
@@ -23,7 +22,7 @@ bool CreateTemporaryDirInDir(const Path& base_dir,
   Path path_to_create;
   for (int count = 0; count < 50; ++count) {
     // TODO(Vince): numeric conv functions
-    auto name = fmt::format("scoped_dir_{}_{}", ::GetCurrentProcessId(), RandomUint());
+    auto name = base::Format("scoped_dir_{}_{}", ::GetCurrentProcessId(), RandomUint());
 
     path_to_create = base_dir / name.c_str();
     if (::CreateDirectoryW(path_to_create.c_str(), nullptr)) {

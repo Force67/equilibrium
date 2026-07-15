@@ -5,21 +5,14 @@
 #include <base/atomic.h>
 #include <base/threading/thread_pool.h>
 
-#if !defined(OS_WIN)
-#include <ctime>
-#endif
+#include <chrono>
+#include <thread>
 
 namespace {
 
 void SpinWait(base::Atomic<int>& counter, int expected, int timeout_ms) {
-  for (int waited = 0; counter.load() != expected && waited < timeout_ms;
-       waited++) {
-#if defined(OS_WIN)
-    ::Sleep(1);
-#else
-    timespec ts{0, 1000000};
-    ::nanosleep(&ts, nullptr);
-#endif
+  for (int waited = 0; counter.load() != expected && waited < timeout_ms; waited++) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 
@@ -52,19 +45,20 @@ TEST(ThreadPool, TasksRunConcurrently) {
   base::Atomic<int> done{0};
   base::ThreadPool pool(6, 6);
   const auto nap200 = []() {
-    timespec ts{0, 200000000};
-    ::nanosleep(&ts, nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   };
-  const auto start = ::time(nullptr);
+  const auto start = std::chrono::steady_clock::now();
   for (int i = 0; i < 6; i++)
     pool.enqueue([&done, nap200]() {
       nap200();
       done.fetch_add(1);
     });
   SpinWait(done, 6, 5000);
-  const auto elapsed = ::time(nullptr) - start;
+  const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                              std::chrono::steady_clock::now() - start)
+                              .count();
   EXPECT_EQ(done.load(), 6);
-  EXPECT_LE(elapsed, 1);  // seconds; serial execution would take >= 1.2 s
+  EXPECT_LT(elapsed_ms, 1000);  // Serial execution would take at least 1200 ms.
 }
 
 TEST(ThreadPool, SurvivesThousandsOfInterleavedTasks) {
@@ -91,8 +85,7 @@ TEST(ThreadPool, StartWithPriorityDoesNotTrap) {
   // Regression: posix SetThreadPriority used to DCHECK(false), making every
   // Thread::Start crash in debug builds.
   base::Atomic<int> ran{0};
-  base::Thread thread("prio_test",
-                      base::Function<void()>([&ran]() { ran.fetch_add(1); }),
+  base::Thread thread("prio_test", base::Function<void()>([&ran]() { ran.fetch_add(1); }),
                       /*start_now=*/true, base::Thread::Priority::kHigh);
   SpinWait(ran, 1, 5000);
   EXPECT_EQ(ran.load(), 1);
