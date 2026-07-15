@@ -105,6 +105,10 @@ byte* VirtualMemoryAllocate(void* address,
       ::VirtualAlloc(address, size, allocation_type, native_protection));
 }
 
+bool VirtualMemoryDecommit(void* address, mem_size size) {
+  return ::VirtualFree(address, size, MEM_DECOMMIT) != 0;
+}
+
 bool VirtualMemoryFree(void* address, mem_size size) {
   return ::VirtualFree(address, 0, MEM_RELEASE) != 0;
 }
