@@ -8,19 +8,25 @@
 
 namespace base {
 
-bool QueryCurrentProcessMemoryUsage(ProcessMemoryUsage* usage) {
-  if (!usage)
+ProcessHandle GetCurrentProcessHandle() {
+  static_assert(sizeof(ProcessHandle) == sizeof(HANDLE));
+  return GetCurrentProcess();
+}
+
+bool QueryProcessMemoryUsage(ProcessHandle process, ProcessMemoryUsage& usage) {
+  usage = {};
+  // GetCurrentProcess() is the valid pseudo-handle (HANDLE)-1, the same bit
+  // pattern as INVALID_HANDLE_VALUE, and GetProcessMemoryInfo accepts it.
+  if (!process)
     return false;
-  *usage = {};
 
   PROCESS_MEMORY_COUNTERS counters{};
   counters.cb = static_cast<DWORD>(sizeof(counters));
-  if (!GetProcessMemoryInfo(GetCurrentProcess(), &counters,
-                            static_cast<DWORD>(sizeof(counters)))) {
+  if (!GetProcessMemoryInfo(process, &counters, static_cast<DWORD>(sizeof(counters)))) {
     return false;
   }
-  usage->resident_set_bytes = static_cast<std::size_t>(counters.WorkingSetSize);
-  usage->peak_resident_set_bytes = static_cast<std::size_t>(counters.PeakWorkingSetSize);
+  usage.resident_set_bytes = static_cast<mem_size>(counters.WorkingSetSize);
+  usage.peak_resident_set_bytes = static_cast<mem_size>(counters.PeakWorkingSetSize);
   return true;
 }
 
