@@ -19,6 +19,8 @@ end
 local function base_project()
   filter("configurations:Profile")
     dependencies("tracysdk")
+  filter("system:windows")
+    links("Psapi")
   filter{}
   warnings("High")
 
