@@ -57,7 +57,8 @@ bool Matches(const OptionBase* option, const StringRef name) {
 }
 
 // One entry, already trimmed and known non-empty.
-void ApplyEntry(const StringRef entry, OptionFileResult& result) {
+void ApplyEntry(const StringRef entry, OptionApply apply,
+                OptionFileResult& result) {
   StringRef body = entry;
   bool reset = false;
   if (body.data()[0] == '+') {
@@ -88,11 +89,15 @@ void ApplyEntry(const StringRef entry, OptionFileResult& result) {
   // A name may be declared in more than one place, once per module that reads
   // it; an entry means all of them, not whichever registered first.
   const char* stable = reset ? nullptr : InternValue(value);
-  mem_size matched = 0, failed = 0;
+  mem_size matched = 0, failed = 0, held = 0;
   OptionBase::VisitAll([&](const OptionBase* registered) {
     auto* option = const_cast<OptionBase*>(registered);
     if (!Matches(option, name)) return;
     ++matched;
+    if (apply == OptionApply::kFillUnset && option->overridden()) {
+      ++held;
+      return;
+    }
     if (reset)
       option->Reset();
     else if (!option->SetFromString(stable))
@@ -103,6 +108,8 @@ void ApplyEntry(const StringRef entry, OptionFileResult& result) {
     ++result.unknown;
   else if (failed)
     ++result.invalid;
+  else if (held == matched)
+    ++result.skipped;
   else
     ++result.applied;
 }
@@ -130,7 +137,8 @@ bool SetOptionValue(const StringRef name, const StringRef value) {
   return set;
 }
 
-OptionFileResult ApplyOptionText(const StringRef text) {
+OptionFileResult ApplyOptionText(const StringRef text,
+                                 const OptionApply apply) {
   OptionFileResult result;
   result.read = true;
 
@@ -140,7 +148,7 @@ OptionFileResult ApplyOptionText(const StringRef text) {
     while (end < text.length() && text.data()[end] != '\n') ++end;
 
     const StringRef line = Trim(text.subslice(begin, end - begin));
-    if (!line.empty() && !IsComment(line)) ApplyEntry(line, result);
+    if (!line.empty() && !IsComment(line)) ApplyEntry(line, apply, result);
 
     if (end >= text.length()) break;
     begin = end + 1;
@@ -148,7 +156,7 @@ OptionFileResult ApplyOptionText(const StringRef text) {
   return result;
 }
 
-OptionFileResult ApplyOptionFile(const Path& path) {
+OptionFileResult ApplyOptionFile(const Path& path, const OptionApply apply) {
   i64 size = 0;
   auto content = ReadFile(path, &size);
   if (!content) return OptionFileResult{};
@@ -158,7 +166,8 @@ OptionFileResult ApplyOptionFile(const Path& path) {
     return empty;
   }
   return ApplyOptionText(StringRef(reinterpret_cast<const char*>(&content[0]),
-                                   static_cast<mem_size>(size)));
+                                   static_cast<mem_size>(size)),
+                         apply);
 }
 
 void AppendOptionText(String& out, const bool overridden_only) {

@@ -30,10 +30,19 @@ namespace base {
 
 class OptionBase;
 
+// Whether entries win over what an option already holds. kFillUnset is for a
+// layer that only supplies defaults (a per-title profile, say): it leaves every
+// option something else already set alone.
+enum class OptionApply {
+  kOverride,
+  kFillUnset,
+};
+
 // What applying a set of entries did. Report `unknown` and `invalid` back to
 // whoever wrote the file: a mistyped name is otherwise silently ignored.
 struct OptionFileResult {
   mem_size applied = 0;  // entries that set an option
+  mem_size skipped = 0;  // entries kFillUnset left to an already-set option
   mem_size unknown = 0;  // entries naming no registered option
   mem_size invalid = 0;  // malformed lines, or values the option rejected
   bool read = false;     // the file existed and could be read
@@ -48,8 +57,10 @@ BASE_EXPORT OptionBase* FindOption(const StringRef name);
 BASE_EXPORT bool SetOptionValue(const StringRef name, const StringRef value);
 
 // Applies every entry in the text / in the file at `path`.
-BASE_EXPORT OptionFileResult ApplyOptionText(const StringRef text);
-BASE_EXPORT OptionFileResult ApplyOptionFile(const Path& path);
+BASE_EXPORT OptionFileResult ApplyOptionText(
+    const StringRef text, OptionApply apply = OptionApply::kOverride);
+BASE_EXPORT OptionFileResult ApplyOptionFile(
+    const Path& path, OptionApply apply = OptionApply::kOverride);
 
 // Appends every registered option as an entry this parser reads back, each
 // preceded by its description. With `overridden_only` the dump holds just the

@@ -103,6 +103,20 @@ TEST_F(OptionFileTest, SetsEveryOptionGoingByTheName) {
   EXPECT_EQ(kCountElsewhere.get(), 14);
 }
 
+TEST_F(OptionFileTest, FillUnsetLeavesAlreadySetOptionsAlone) {
+  base::ApplyOptionText("+test.count=5");
+
+  const auto result = base::ApplyOptionText(
+      "+test.count=9\n"
+      "+test.name=from-defaults\n",
+      base::OptionApply::kFillUnset);
+
+  EXPECT_EQ(result.skipped, 1u);
+  EXPECT_EQ(result.applied, 1u);
+  EXPECT_EQ(kCount.get(), 5);
+  EXPECT_STREQ(kName.get(), "from-defaults");
+}
+
 TEST_F(OptionFileTest, CountsUnknownNames) {
   const auto result = base::ApplyOptionText("+test.nosuchoption=1");
   EXPECT_EQ(result.unknown, 1u);
