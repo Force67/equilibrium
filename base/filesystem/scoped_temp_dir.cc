@@ -18,8 +18,16 @@ constexpr Path::CharType kScopedDirPrefix[] = BASE_PATH_LITERAL("scoped_dir");
 ScopedTempDir::ScopedTempDir() = default;
 
 ScopedTempDir::~ScopedTempDir() {
-  BASE_BUGCHECK(!path_.empty(), "Attempted to delete an unset scoped_temp_dir");
-  BASE_BUGCHECK(Delete(), "Failed to delete scoped_temp_dir");
+  // An unset path is not an error: the directory may never have been created
+  // (CreateUniqueTempDir can fail), or it may already have been released by an
+  // explicit Delete() or Take().
+  if (path_.empty())
+    return;
+
+  // Leaving a temp directory behind is worth reporting, but it is not worth
+  // aborting the process over.
+  if (!Delete())
+    BASE_LOG_WARNING("Failed to delete scoped_temp_dir");
 }
 
 bool ScopedTempDir::CreateUniqueTempDir() {
@@ -66,16 +74,13 @@ bool ScopedTempDir::Delete() {
   if (path_.empty())
     return false;
 
-  BASE_DCHECK(false);
-#if 0
-  bool ret = DeletePathRecursively(path_);
-  if (ret) {
-    // We only clear the path if deleted the directory.
-    path_.clear();
+  const bool deleted = DeletePathRecursively(path_);
+  if (deleted) {
+    // We only forget the path if the directory actually went.
+    path_ = Path();
   }
-#endif
 
-  return false;
+  return deleted;
 }
 
 bool ScopedTempDir::IsValid() const {

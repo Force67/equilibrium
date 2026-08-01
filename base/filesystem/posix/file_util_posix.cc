@@ -95,6 +95,52 @@ bool DirectoryExists(const Path& path) {
   return S_ISDIR(file_info.st_mode);
 }
 
+namespace {
+
+// A path that is already gone counts as deleted, so a racing second caller
+// still reports success.
+bool DoDeleteFile(const Path& path, bool recursive) {
+  const base::String ascii_path = path.ToAsciiString();
+
+  stat_wrapper_t file_info;
+  if (File::Lstat(ascii_path.c_str(), &file_info) != 0)
+    return errno == ENOENT;
+
+  // Anything that is not a directory (including a symlink to one) is unlinked
+  // directly, so the link goes and its target stays.
+  if (!S_ISDIR(file_info.st_mode))
+    return ::unlink(ascii_path.c_str()) == 0 || errno == ENOENT;
+
+  if (!recursive)
+    return ::rmdir(ascii_path.c_str()) == 0 || errno == ENOENT;
+
+  DIR* dir = ::opendir(ascii_path.c_str());
+  if (!dir)
+    return errno == ENOENT;
+
+  bool success = true;
+  while (const dirent* entry = ::readdir(dir)) {
+    const char* name = entry->d_name;
+    if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0')))
+      continue;
+    // Keep going after a failure so one undeletable entry does not strand the
+    // rest of the tree; the overall result still reports it.
+    success &= DoDeleteFile(path / name, /*recursive=*/true);
+  }
+  ::closedir(dir);
+
+  if (!success)
+    return false;
+  return ::rmdir(ascii_path.c_str()) == 0 || errno == ENOENT;
+}
+
+}  // namespace
+
+bool DeletePathRecursively(const Path& path) {
+  ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
+  return DoDeleteFile(path, /*recursive=*/true);
+}
+
 bool ReadFromFD(int fd, char* buffer, size_t bytes) {
   size_t total_read = 0;
   while (total_read < bytes) {
