@@ -281,7 +281,7 @@ class BasicBaseString {
   // passed straight to an API taking std::string_view.
   template <class TView>
     requires(base::ConstructibleView<TView, character_type> &&
-             !__is_same(TView, BasicBaseString))
+             !base::is_same_v<TView, BasicBaseString>)
   constexpr operator TView() const {
     return TView(get_data(), get_size());
   }
@@ -352,13 +352,13 @@ class BasicBaseString {
 
   // Any other string-like (StringRef, SmallString, a foreign string type).
   template <typename TOther>
-    requires(base::HasStringTraits<TOther, value_type> && !__is_same(TOther, BasicBaseString))
+    requires(base::HasStringTraits<TOther, value_type> && !base::is_same_v<TOther, BasicBaseString>)
   void assign(const TOther& other) {
     assign(other.data(), static_cast<size_type>(other.size()));
   }
 
   template <typename TOther>
-    requires(base::HasStringTraits<TOther, value_type> && !__is_same(TOther, BasicBaseString))
+    requires(base::HasStringTraits<TOther, value_type> && !base::is_same_v<TOther, BasicBaseString>)
   BasicBaseString& operator=(const TOther& other) {
     assign(other.data(), static_cast<size_type>(other.size()));
     return *this;
@@ -527,7 +527,7 @@ class BasicBaseString {
 
   template <typename TView>
     requires(base::StringViewLike<TView, character_type> &&
-             !__is_same(TView, BasicBaseString))
+             !base::is_same_v<TView, BasicBaseString>)
   void append(const TView& view) {
     append(view.data(), static_cast<size_type>(view.size()));
   }

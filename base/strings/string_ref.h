@@ -51,7 +51,7 @@ class BasicStringRef {
   template <class TView>
     requires(base::StringViewLike<TView, value_type> &&
              !base::HasStringTraits<TView, value_type> &&
-             !__is_same(TView, BasicStringRef))
+             !base::is_same_v<TView, BasicStringRef>)
   BasicStringRef(const TView& view)
       : data_(view.data()),
         length_(static_cast<u32>(view.size())),
@@ -63,7 +63,7 @@ class BasicStringRef {
   // so a StringRef reaches an API spelled in std::string_view.
   template <class TView>
     requires(base::ConstructibleView<TView, value_type> &&
-             !__is_same(TView, BasicStringRef))
+             !base::is_same_v<TView, BasicStringRef>)
   constexpr operator TView() const {
     return TView(data_, length_);
   }
