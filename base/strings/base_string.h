@@ -12,6 +12,7 @@
 #include <base/check.h>
 #include <base/numeric_limits.h>
 #include <base/containers/container_traits.h>
+#include <base/meta/traits.h>
 #include <base/strings/char_algorithms.h>
 
 #include <cstring>
@@ -26,6 +27,24 @@ concept HasStringTraits = requires(T& t) {
   t.c_str();
   t.size();
 };
+
+// A non-owning character range: pointer + length, no allocator, no c_str()
+// guarantee. std::string_view and base::StringRef both satisfy it; owning
+// strings and base::Vector do not (they carry an allocator_type).
+template <typename T, typename TEncoding>
+concept StringViewLike = requires(const T& t) {
+  { t.data() } -> base::SameAs<const TEncoding*>;
+  t.size();
+} && !requires { typename T::allocator_type; };
+
+// The mirror of StringViewLike, for the implicit conversion out of a string:
+// any view that can be built from (pointer, length) and owns nothing. Trivial
+// copyability is what keeps owning strings out (they all have a user-provided
+// copy constructor), so a base::String never silently converts into an
+// allocating type.
+template <typename T, typename TEncoding>
+concept ConstructibleView =
+    __is_constructible(T, const TEncoding*, mem_size) && __is_trivially_copyable(T);
 
 template <typename TInputIterator, typename T>
 inline TInputIterator find(TInputIterator first, TInputIterator last, const T& value) {
@@ -246,6 +265,27 @@ class BasicBaseString {
     assign(other.c_str(), static_cast<size_type>(other.size()));
   }
 
+  // From any non-owning character range (std::string_view, base::StringRef).
+  // Views carry no null terminator, so this copies by (data, size).
+  template <class TView>
+    requires(base::StringViewLike<TView, character_type> &&
+             !base::HasStringTraits<TView, character_type>)
+  BasicBaseString(const TView& view) {
+    init_empty();
+    assign(view.data(), static_cast<size_type>(view.size()));
+  }
+
+  // Implicit conversion to any view over our characters, without naming (or
+  // including) the view type: it only has to be constructible from
+  // (pointer, length) and own nothing. This is what lets a base::String be
+  // passed straight to an API taking std::string_view.
+  template <class TView>
+    requires(base::ConstructibleView<TView, character_type> &&
+             !__is_same(TView, BasicBaseString))
+  constexpr operator TView() const {
+    return TView(get_data(), get_size());
+  }
+
   BasicBaseString(BasicBaseString&& other) noexcept {
     memcpy(this, &other, sizeof(*this));
     other.init_empty();
@@ -307,6 +347,22 @@ class BasicBaseString {
   }
 
   void assign(const character_type* str) { assign(str, base::CountStringLength(str)); }
+
+  void assign(const BasicBaseString& other) { assign(other.get_data(), other.get_size()); }
+
+  // Any other string-like (StringRef, SmallString, a foreign string type).
+  template <typename TOther>
+    requires(base::HasStringTraits<TOther, value_type> && !__is_same(TOther, BasicBaseString))
+  void assign(const TOther& other) {
+    assign(other.data(), static_cast<size_type>(other.size()));
+  }
+
+  template <typename TOther>
+    requires(base::HasStringTraits<TOther, value_type> && !__is_same(TOther, BasicBaseString))
+  BasicBaseString& operator=(const TOther& other) {
+    assign(other.data(), static_cast<size_type>(other.size()));
+    return *this;
+  }
 
   // -- Element Access and Iterators --
 
@@ -455,6 +511,32 @@ class BasicBaseString {
     ensure_null_terminated();
   }
   void append(const character_type* str) { append(str, base::CountStringLength(str)); }
+
+  void append(const BasicBaseString& other) { append(other.get_data(), other.get_size()); }
+
+  // `count` copies of `c`, for padding and fill.
+  void append(size_type count, character_type c) {
+    if (count == 0) return;
+    const size_type old_size = get_size();
+    grow_to_at_least(old_size + count);
+    character_type* d = get_data();
+    for (size_type i = 0; i < count; ++i) d[old_size + i] = c;
+    set_size(old_size + count);
+    ensure_null_terminated();
+  }
+
+  template <typename TView>
+    requires(base::StringViewLike<TView, character_type> &&
+             !__is_same(TView, BasicBaseString))
+  void append(const TView& view) {
+    append(view.data(), static_cast<size_type>(view.size()));
+  }
+
+  void pop_back() {
+    BASE_DCHECK(!empty(), "Cannot pop_back an empty string");
+    set_size(get_size() - 1);
+    ensure_null_terminated();
+  }
 
   void push_back(character_type c) {
     const size_type old_size = get_size();
@@ -627,6 +709,106 @@ class BasicBaseString {
 
   size_type find(const BasicBaseString& s, size_type pos = 0) const {
     return find(s.c_str(), pos);
+  }
+
+  // First position at or after `pos` holding a character in / not in `set`.
+  size_type find_first_of(const character_type* set, size_type pos = 0) const {
+    if (!set) return npos;
+    const size_type set_len = base::CountStringLength(set);
+    for (size_type i = pos; i < get_size(); ++i) {
+      if (base::find(set, set + set_len, get_data()[i]) != set + set_len) return i;
+    }
+    return npos;
+  }
+
+  size_type find_first_not_of(const character_type* set, size_type pos = 0) const {
+    if (!set) return npos;
+    const size_type set_len = base::CountStringLength(set);
+    for (size_type i = pos; i < get_size(); ++i) {
+      if (base::find(set, set + set_len, get_data()[i]) == set + set_len) return i;
+    }
+    return npos;
+  }
+
+  size_type find_first_not_of(character_type c, size_type pos = 0) const {
+    for (size_type i = pos; i < get_size(); ++i) {
+      if (get_data()[i] != c) return i;
+    }
+    return npos;
+  }
+
+  size_type find_last_not_of(const character_type* set, size_type pos = npos) const {
+    if (!set || get_size() == 0) return npos;
+    const size_type set_len = base::CountStringLength(set);
+    size_type i = (pos == npos || pos >= get_size()) ? get_size() - 1 : pos;
+    for (;; --i) {
+      if (base::find(set, set + set_len, get_data()[i]) == set + set_len) return i;
+      if (i == 0) return npos;
+    }
+  }
+
+  size_type find_last_not_of(character_type c, size_type pos = npos) const {
+    if (get_size() == 0) return npos;
+    size_type i = (pos == npos || pos >= get_size()) ? get_size() - 1 : pos;
+    for (;; --i) {
+      if (get_data()[i] != c) return i;
+      if (i == 0) return npos;
+    }
+  }
+
+  bool contains(character_type c) const { return find(c) != npos; }
+  bool contains(const character_type* s) const { return find(s) != npos; }
+  bool contains(const BasicBaseString& s) const { return find(s) != npos; }
+
+  bool starts_with(character_type c) const { return !empty() && get_data()[0] == c; }
+
+  bool starts_with(const character_type* s) const {
+    if (!s) return false;
+    const size_type s_len = base::CountStringLength(s);
+    if (s_len > get_size()) return false;
+    return memcmp(get_data(), s, s_len * sizeof(character_type)) == 0;
+  }
+
+  bool starts_with(const BasicBaseString& s) const {
+    if (s.size() > get_size()) return false;
+    return memcmp(get_data(), s.data(), s.byte_size()) == 0;
+  }
+
+  bool ends_with(character_type c) const { return !empty() && back() == c; }
+
+  bool ends_with(const character_type* s) const {
+    if (!s) return false;
+    const size_type s_len = base::CountStringLength(s);
+    if (s_len > get_size()) return false;
+    return memcmp(get_data() + (get_size() - s_len), s, s_len * sizeof(character_type)) == 0;
+  }
+
+  bool ends_with(const BasicBaseString& s) const {
+    if (s.size() > get_size()) return false;
+    return memcmp(get_data() + (get_size() - s.size()), s.data(), s.byte_size()) == 0;
+  }
+
+  // Last occurrence at or before `pos`, mirroring find()'s substring search.
+  size_type rfind(character_type c, size_type pos = npos) const {
+    return find_last_of(c, pos);
+  }
+
+  size_type rfind(const character_type* s, size_type pos = npos) const {
+    if (!s) return npos;
+    const size_type cur = get_size();
+    const size_type s_len = base::CountStringLength(s);
+    if (s_len == 0) return pos < cur ? pos : cur;
+    if (s_len > cur) return npos;
+    size_type i = (pos == npos || pos > cur - s_len) ? cur - s_len : pos;
+    const character_type* d = get_data();
+    for (;; --i) {
+      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0) return i;
+      if (i == 0) return npos;
+    }
+  }
+
+  size_type rfind(const BasicBaseString& s, size_type pos = npos) const {
+    return rfind(s.c_str(), pos);
   }
 
   size_type find_last_of(character_type c, size_type pos = npos) const {

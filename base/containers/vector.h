@@ -32,6 +32,12 @@ class Vector {
   using const_value_reference = const T&;
   using iterator = T*;
   using const_iterator = const T*;
+  // Names the standard container adaptors (priority_queue, stack, queue) look
+  // up on their backing container.
+  using size_type = mem_size;
+  using difference_type = pointer_diff;
+  using reference = T&;
+  using const_reference = const T&;
 
   constexpr static mem_size kDefaultMult = 2;
 
@@ -365,6 +371,10 @@ class Vector {
   }
 
   // Inserts a range of elements
+  void insert(T* pos, std::initializer_list<T> values) {
+    insert(pos, values.begin(), values.end());
+  }
+
   template <class InputIt>
   void insert(T* pos, InputIt first, InputIt last) {
     mem_size count = 0;
@@ -462,7 +472,13 @@ class Vector {
     resize(count, value);
   }
 
+  // Constrained on dereferenceability, so `assign(count, value)` with an
+  // integral count is not swallowed by the range overload.
   template <typename InputIt>
+    requires requires(InputIt it) {
+      *it;
+      ++it;
+    }
   void assign(InputIt first, InputIt last) {
     clear();
     for (; first != last; ++first)
@@ -475,6 +491,19 @@ class Vector {
     data_ = nullptr;
     end_ = nullptr;
     capacity_ = nullptr;
+  }
+
+  // Constant-time ownership exchange; no element is moved.
+  void swap(Vector& other) noexcept {
+    T* const data = data_;
+    T* const end = end_;
+    T* const capacity = capacity_;
+    data_ = other.data_;
+    end_ = other.end_;
+    capacity_ = other.capacity_;
+    other.data_ = data;
+    other.end_ = end;
+    other.capacity_ = capacity;
   }
 
   T& front() {
@@ -499,6 +528,31 @@ class Vector {
 
   [[nodiscard]] T* begin() const { return data_; }
   [[nodiscard]] T* end() const { return end_; }
+
+  // Reverse traversal. ReverseIterator walks backwards over the same storage,
+  // so `for (auto it = v.rbegin(); it != v.rend(); ++it)` reads last-to-first.
+  class ReverseIterator {
+   public:
+    explicit ReverseIterator(T* at) : at_(at) {}
+
+    bool operator==(const ReverseIterator& other) const { return at_ == other.at_; }
+    bool operator!=(const ReverseIterator& other) const { return at_ != other.at_; }
+
+    ReverseIterator& operator++() {
+      --at_;
+      return *this;
+    }
+
+    T& operator*() const { return *(at_ - 1); }
+    T* operator->() const { return at_ - 1; }
+
+   private:
+    T* at_;
+  };
+
+  [[nodiscard]] ReverseIterator rbegin() const { return ReverseIterator(end_); }
+  [[nodiscard]] ReverseIterator rend() const { return ReverseIterator(data_); }
+
   [[nodiscard]] T* data() { return data_; }
   [[nodiscard]] const T* data() const { return data_; }
 

@@ -5,7 +5,9 @@
 
 #include <base/allocator/allocator_primitives.h>
 
+#include <queue>
 #include <vector>
+
 #include <base/containers/vector.h>
 
 namespace {
@@ -333,6 +335,88 @@ TEST(VectorTest, ConstructFromEmptyRange) {
   base::Vector<i32> vec(null, null);
 
   EXPECT_TRUE(vec.empty());
+}
+
+TEST(VectorTest, AssignFillIsNotMistakenForARange) {
+  base::Vector<i32> vec;
+  const u32 count = 3;
+
+  vec.assign(count, 5);
+
+  EXPECT_EQ(vec.size(), 3u);
+  EXPECT_EQ(vec[2], 5);
+}
+
+TEST(VectorTest, AssignFromARange) {
+  const i32 source[] = {1, 2};
+  base::Vector<i32> vec = {9, 9, 9};
+
+  vec.assign(source, source + 2);
+
+  EXPECT_EQ(vec.size(), 2u);
+  EXPECT_EQ(vec[0], 1);
+}
+
+TEST(VectorTest, InsertAnInitializerList) {
+  base::Vector<i32> vec = {1, 4};
+
+  vec.insert(vec.begin() + 1, {2, 3});
+
+  ASSERT_EQ(vec.size(), 4u);
+  EXPECT_EQ(vec[0], 1);
+  EXPECT_EQ(vec[1], 2);
+  EXPECT_EQ(vec[2], 3);
+  EXPECT_EQ(vec[3], 4);
+}
+
+TEST(VectorTest, InsertAnInitializerListAtTheEnd) {
+  base::Vector<i32> vec = {1};
+
+  vec.insert(vec.end(), {2, 3});
+
+  ASSERT_EQ(vec.size(), 3u);
+  EXPECT_EQ(vec[2], 3);
+}
+
+TEST(VectorTest, SwapExchangesContents) {
+  base::Vector<i32> a = {1, 2, 3};
+  base::Vector<i32> b = {9};
+
+  a.swap(b);
+
+  EXPECT_EQ(a.size(), 1);
+  EXPECT_EQ(a[0], 9);
+  EXPECT_EQ(b.size(), 3);
+  EXPECT_EQ(b[0], 1);
+}
+
+TEST(VectorTest, ReverseIterationWalksBackwards) {
+  base::Vector<i32> vec = {1, 2, 3};
+
+  base::Vector<i32> seen;
+  for (auto it = vec.rbegin(); it != vec.rend(); ++it) seen.push_back(*it);
+
+  ASSERT_EQ(seen.size(), 3);
+  EXPECT_EQ(seen[0], 3);
+  EXPECT_EQ(seen[1], 2);
+  EXPECT_EQ(seen[2], 1);
+}
+
+TEST(VectorTest, ReverseIterationOverAnEmptyVectorDoesNothing) {
+  base::Vector<i32> vec;
+  EXPECT_TRUE(vec.rbegin() == vec.rend());
+}
+
+TEST(VectorTest, BacksAStandardContainerAdaptor) {
+  // The adaptors look up size_type/reference/const_reference on the container.
+  std::priority_queue<i32, base::Vector<i32>, std::greater<i32>> queue;
+  queue.push(5);
+  queue.push(1);
+  queue.push(3);
+
+  EXPECT_EQ(queue.top(), 1);
+  queue.pop();
+  EXPECT_EQ(queue.top(), 3);
 }
 
 TEST(VectorFindTest, FindInUnsortedArray) {

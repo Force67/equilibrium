@@ -277,6 +277,19 @@ inline T* Unique(T* first, T* last) {
   return ++result;
 }
 
+// ── EraseIf (container-level erase-remove) ──────────────────────────
+// Drops every element matching `pred` and returns how many went. Takes the
+// container, not a range, so the caller does not hand-write erase(remove_if()).
+template <typename TContainer, typename Pred>
+inline mem_size EraseIf(TContainer& container, Pred pred) {
+  auto* first = container.begin();
+  auto* last = container.end();
+  auto* kept = base::RemoveIf(first, last, pred);
+  const mem_size removed = static_cast<mem_size>(last - kept);
+  if (removed > 0) container.erase(kept, last);
+  return removed;
+}
+
 // ── LowerBound (binary search) ──────────────────────────────────────
 template <typename T>
 inline T* LowerBound(T* first, T* last, const T& value) {

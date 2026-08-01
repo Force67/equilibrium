@@ -215,6 +215,30 @@ class RedBlackTree2 {
     }
   }
 
+  // Re-inserts every value of `other`'s subtree into this tree. The shape is
+  // rebuilt by the usual insert path rather than mirrored.
+  void CopySubtree(const RedBlackTree2& other, Node* node) {
+    if (node == other.nil_) return;
+    bool inserted = false;
+    FindOrInsert(node->value, &inserted);
+    CopySubtree(other, node->left);
+    CopySubtree(other, node->right);
+  }
+
+  void CopyFrom(const RedBlackTree2& other) { CopySubtree(other, other.root_); }
+
+  void Swap(RedBlackTree2& other) noexcept {
+    Node* const root = root_;
+    Node* const nil = nil_;
+    char* const nil_memory = nil_memory_;
+    root_ = other.root_;
+    nil_ = other.nil_;
+    nil_memory_ = other.nil_memory_;
+    other.root_ = root;
+    other.nil_ = nil;
+    other.nil_memory_ = nil_memory;
+  }
+
  public:
   RedBlackTree2() {
     nil_memory_ = new char[sizeof(Node)];
@@ -229,6 +253,33 @@ class RedBlackTree2 {
   ~RedBlackTree2() {
     DeleteTree(root_);
     delete[] nil_memory_;
+  }
+
+  // Copying re-inserts every value: each tree owns its own nodes and its own
+  // nil sentinel, so the implicit member-wise copy (which would share both, and
+  // then double-free them) must not be used.
+  RedBlackTree2(const RedBlackTree2& other) : RedBlackTree2() { CopyFrom(other); }
+
+  RedBlackTree2& operator=(const RedBlackTree2& other) {
+    if (this != &other) {
+      Clear();
+      CopyFrom(other);
+    }
+    return *this;
+  }
+
+  // Moving steals the nodes; the source keeps its own (empty) sentinel so it
+  // stays usable and destructible.
+  RedBlackTree2(RedBlackTree2&& other) noexcept : RedBlackTree2() {
+    Swap(other);
+  }
+
+  RedBlackTree2& operator=(RedBlackTree2&& other) noexcept {
+    if (this != &other) {
+      Clear();
+      Swap(other);
+    }
+    return *this;
   }
 
   Node* root() const { return root_; }

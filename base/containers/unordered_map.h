@@ -15,6 +15,7 @@
 #include <base/hashing/fnv1a.h>
 #include <base/hashing/hash.h>
 
+#include <initializer_list>
 #include <new>
 #include <cstring>
 
@@ -161,6 +162,13 @@ class UnorderedMap {
  public:
   UnorderedMap() = default;
 
+  // Brace initialization for static tables: {{key, value}, ...}. A repeated key
+  // keeps the first entry, matching insert()'s semantics.
+  UnorderedMap(std::initializer_list<Pair<K, V>> entries) {
+    reserve(entries.size());
+    for (const Pair<K, V>& entry : entries) insert(entry.first, entry.second);
+  }
+
   UnorderedMap(const UnorderedMap& other) {
     if (other.size_ > 0) {
       bucket_count_ = other.bucket_count_;
@@ -277,6 +285,23 @@ class UnorderedMap {
     return SlotVal(slots_[idx]);
   }
 
+  // 0 or 1, for callers written against the std::unordered_map spelling.
+  [[nodiscard]] mem_size count(const K& key) const { return contains(key) ? 1 : 0; }
+
+  // Checked lookup of a key the caller knows is present. std::unordered_map
+  // throws here; this library does not, so a miss is a bug check.
+  V& at(const K& key) {
+    V* value = find(key);
+    BASE_BUGCHECK(value != nullptr, "UnorderedMap::at: key not present");
+    return *value;
+  }
+
+  const V& at(const K& key) const {
+    const V* value = find(key);
+    BASE_BUGCHECK(value != nullptr, "UnorderedMap::at: key not present");
+    return *value;
+  }
+
   bool contains(const K& key) const {
     return FindSlot(key) != ~mem_size(0);
   }
@@ -337,6 +362,13 @@ class UnorderedMap {
       }
       idx = (idx + 1) & (bucket_count_ - 1);
     }
+  }
+
+  // emplace under the std spelling; identical semantics (an existing key is
+  // left alone and the arguments are not consumed).
+  template <typename... TArgs>
+  Pair<V*, bool> try_emplace(const K& key, TArgs&&... args) {
+    return emplace(key, base::forward<TArgs>(args)...);
   }
 
   template <typename... TArgs>
