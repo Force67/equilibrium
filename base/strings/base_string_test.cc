@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <format>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -607,6 +608,28 @@ TEST(BaseStringAssign, AssignsFromAnotherStringLike) {
   base::String t;
   t = ref;
   EXPECT_EQ(t, "hello");
+}
+
+// Without the formatter specialization C++23 range formatting takes over and
+// prints ['a', 'b'], and a standard library without it fails to compile at all.
+TEST(BaseStringFormat, FormatsAsTextNotAsARange) {
+  const base::String s = "hello";
+
+  EXPECT_EQ(std::format("{}", s), "hello");
+  EXPECT_EQ(std::format("[{}]", base::String()), "[]");
+}
+
+TEST(BaseStringFormat, HonoursTheFormatSpec) {
+  const base::String s = "ab";
+
+  EXPECT_EQ(std::format("{:>5}", s), "   ab");
+  EXPECT_EQ(std::format("{:.1}", s), "a");
+}
+
+TEST(BaseStringFormat, FormatsAStringRef) {
+  const base::StringRef ref("world");
+
+  EXPECT_EQ(std::format("{}", ref), "world");
 }
 
 TEST(BaseStringViewInterop, ConvertsToAStdStringView) {

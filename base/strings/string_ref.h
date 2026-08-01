@@ -451,3 +451,19 @@ base::XBasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
   return strong;
 }
 }  // namespace base
+
+// std::format interop, for the same reason as base::String: see the note at the
+// bottom of xstring.h.
+#if !defined(BASE_NO_STD_FORMAT) && __has_include(<format>)
+#include <format>
+
+template <typename TChar>
+struct std::formatter<base::BasicStringRef<TChar>, TChar>
+    : std::formatter<std::basic_string_view<TChar>, TChar> {
+  template <typename TContext>
+  auto format(const base::BasicStringRef<TChar>& value, TContext& context) const {
+    return std::formatter<std::basic_string_view<TChar>, TChar>::format(
+        std::basic_string_view<TChar>(value.data(), value.size()), context);
+  }
+};
+#endif
