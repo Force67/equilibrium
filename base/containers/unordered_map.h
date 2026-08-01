@@ -8,6 +8,7 @@
 
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/compiler.h>
 #include <base/memory/move.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/container_traits.h>
@@ -64,11 +65,16 @@ class UnorderedMap {
   static constexpr u8 kOccupied = 1;
   static constexpr u8 kDeleted = 2;
 
+  // Aligning the storage is the whole point, so the trailing padding MSVC
+  // reports (C4324) is intended, not a mistake to fix.
+  FOLLY_PUSH_WARNING
+  FOLLY_MSVC_DISABLE_WARNING(4324)
   struct Slot {
     alignas(K) byte key_storage[sizeof(K)];
     alignas(V) byte val_storage[sizeof(V)];
     u8 state;
   };
+  FOLLY_POP_WARNING
 
   K* SlotKey(Slot& s) { return reinterpret_cast<K*>(&s.key_storage[0]); }
   const K* SlotKey(const Slot& s) const {

@@ -30,6 +30,7 @@
 #include <base/arch.h>
 #include <base/atomic.h>
 #include <base/check.h>
+#include <base/compiler.h>
 #include <base/containers/pair.h>
 #include <base/containers/vector.h>
 #include <base/hashing/hash.h>
@@ -51,6 +52,10 @@ namespace ebr {
 // Only live threads consume slots; IDs are recycled when threads exit.
 constexpr int kMaxSlots = 4096;
 
+// Both structures are padded to whole cache lines on purpose, to keep the
+// epoch counters off each other's lines; MSVC reports that padding as C4324.
+FOLLY_PUSH_WARNING
+FOLLY_MSVC_DISABLE_WARNING(4324)
 struct alignas(64) AnnounceSlot {
   base::Atomic<long> epoch{-1};
 };
@@ -114,6 +119,7 @@ struct EpochState {
 
   long get_current() const { return current.load(base::memory_order_acquire); }
 };
+FOLLY_POP_WARNING
 
 // Leaking singleton avoids destruction-order issues with thread_local.
 inline EpochState& state() {
