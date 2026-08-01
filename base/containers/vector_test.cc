@@ -293,6 +293,48 @@ TEST(VectorFindTest, EmptyVectorFind) {
   EXPECT_EQ(notFound, nullptr);
 }
 
+TEST(VectorTest, ConstructFilled) {
+  base::Vector<i32> vec(4, 7);
+
+  EXPECT_EQ(vec.size(), 4);
+  for (mem_size i = 0; i < vec.size(); ++i) EXPECT_EQ(vec[i], 7);
+}
+
+TEST(VectorTest, ConstructFilledIsNotMistakenForARange) {
+  // Both arguments are ints: the fill constructor must win over the range one.
+  base::Vector<u8> vec(3, 0xab);
+
+  EXPECT_EQ(vec.size(), 3);
+  EXPECT_EQ(vec[2], 0xab);
+}
+
+TEST(VectorTest, ConstructFromPointerRange) {
+  const i32 source[] = {2, 4, 6};
+  base::Vector<i32> vec(source, source + 3);
+
+  EXPECT_EQ(vec.size(), 3);
+  EXPECT_EQ(vec[0], 2);
+  EXPECT_EQ(vec[1], 4);
+  EXPECT_EQ(vec[2], 6);
+}
+
+TEST(VectorTest, ConstructFromInputIteratorRange) {
+  // Single-pass iterator: the length is not known before the range is walked.
+  std::vector<i32> source = {1, 2, 3};
+  base::Vector<i32> vec(source.begin(), source.end());
+
+  EXPECT_EQ(vec.size(), 3);
+  EXPECT_EQ(vec[0], 1);
+  EXPECT_EQ(vec[2], 3);
+}
+
+TEST(VectorTest, ConstructFromEmptyRange) {
+  const i32* null = nullptr;
+  base::Vector<i32> vec(null, null);
+
+  EXPECT_TRUE(vec.empty());
+}
+
 TEST(VectorFindTest, FindInUnsortedArray) {
   base::Vector<i32> vec;
   vec.push_back(5);

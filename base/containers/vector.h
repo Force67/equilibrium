@@ -50,6 +50,34 @@ class Vector {
     }
   }
 
+  // Fill constructor: `count` copies of `value`.
+  Vector(mem_size count, const T& value) : data_(nullptr), end_(nullptr), capacity_(nullptr) {
+    if (count > 0) {
+      data_ = Vector::Allocate(count);
+      capacity_ = &data_[count];
+      T* current = data_;
+      for (mem_size i = 0; i < count; ++i, ++current) {
+        ::new (static_cast<void*>(current)) T(value);
+      }
+      end_ = capacity_;
+    }
+  }
+
+  // Range constructor: copies [first, last). Single-pass safe, so it also takes
+  // input iterators whose range length is not known up front.
+  // Constrained on dereferenceability so `Vector<int> v(5, 3)` still picks the
+  // fill constructor rather than treating the two ints as a range.
+  template <typename InputIt>
+    requires requires(InputIt it) {
+      *it;
+      ++it;
+    }
+  Vector(InputIt first, InputIt last) : data_(nullptr), end_(nullptr), capacity_(nullptr) {
+    for (; first != last; ++first) {
+      push_back(*first);
+    }
+  }
+
   Vector(mem_size reserve_count, const VectorReservePolicy policy)
       : data_(nullptr), end_(nullptr), capacity_(nullptr) {
     if (reserve_count > 0) {
