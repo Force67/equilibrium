@@ -47,8 +47,12 @@ TEST(FileUtilDeleteTest, RemovesAnEmptyDirectory) {
 TEST(FileUtilDeleteTest, RecursiveDeleteClearsANestedTree) {
   base::ScopedTempDir dir;
   ASSERT_TRUE(dir.CreateUniqueTempDir());
+  // Created a level at a time: CreateDirectory creates parents on posix but
+  // not on windows.
   const base::Path root = dir.path() / "tree";
   const base::Path nested = root / "a" / "b";
+  ASSERT_TRUE(base::CreateDirectory(root));
+  ASSERT_TRUE(base::CreateDirectory(root / "a"));
   ASSERT_TRUE(base::CreateDirectory(nested));
   ASSERT_TRUE(Touch(root / "top.txt"));
   ASSERT_TRUE(Touch(nested / "leaf.txt"));

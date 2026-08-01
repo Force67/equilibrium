@@ -53,48 +53,58 @@ DWORD ReturnLastErrorOrSuccessOnNotFound() {
              : error_code;
 }
 
-// Deletes all files and directories in a path.
-// Returns ERROR_SUCCESS on success or the Windows error code corresponding to
-// the first error encountered. ERROR_FILE_NOT_FOUND and ERROR_PATH_NOT_FOUND
-// are considered success conditions, and are therefore never returned.
+// Deletes the contents of `path` matching `pattern`, descending into
+// subdirectories when `recursive`. Returns ERROR_SUCCESS, or the error code of
+// the first failure; ERROR_FILE_NOT_FOUND and ERROR_PATH_NOT_FOUND count as
+// success. Walks with FindFirstFile directly rather than FileEnumerator, which
+// is not implemented.
 DWORD DeleteFileRecursive(const Path& path,
                           const Path::BufferType& pattern,
                           bool recursive) {
-#if 0
-  FileEnumerator traversal(
-      path, false, FileEnumerator::FILES | FileEnumerator::DIRECTORIES, pattern);
+  const Path search = path / Path(pattern);
+  WIN32_FIND_DATAW find_data = {};
+  HANDLE find = ::FindFirstFileW(search.c_str(), &find_data);
+  if (find == INVALID_HANDLE_VALUE) {
+    const DWORD error_code = ::GetLastError();
+    // An empty or missing directory leaves nothing to delete.
+    if (error_code == ERROR_FILE_NOT_FOUND || error_code == ERROR_PATH_NOT_FOUND)
+      return ERROR_SUCCESS;
+    return error_code;
+  }
+
   DWORD result = ERROR_SUCCESS;
-  for (FilePath current = traversal.Next(); !current.empty();
-       current = traversal.Next()) {
+  do {
+    const wchar_t* name = find_data.cFileName;
+    if (name[0] == L'.' && (name[1] == L'\0' || (name[1] == L'.' && name[2] == L'\0')))
+      continue;
+
+    const Path current = path / Path(Path::BufferType(name));
+    const bool is_directory = (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
     // Try to clear the read-only bit if we find it.
-    FileEnumerator::FileInfo info = traversal.GetInfo();
-    if ((info.find_data().dwFileAttributes & FILE_ATTRIBUTE_READONLY) &&
-        (recursive || !info.IsDirectory())) {
-      ::SetFileAttributes(
-          current.value().c_str(),
-          info.find_data().dwFileAttributes & ~DWORD{FILE_ATTRIBUTE_READONLY});
+    if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_READONLY) && (recursive || !is_directory)) {
+      ::SetFileAttributesW(current.c_str(),
+                           find_data.dwFileAttributes & ~DWORD{FILE_ATTRIBUTE_READONLY});
     }
 
     DWORD this_result = ERROR_SUCCESS;
-    if (info.IsDirectory()) {
+    if (is_directory) {
       if (recursive) {
         this_result = DeleteFileRecursive(current, pattern, true);
-        BASE_DCHECK_NE(static_cast<LONG>(this_result), ERROR_FILE_NOT_FOUND);
-        BASE_DCHECK_NE(static_cast<LONG>(this_result), ERROR_PATH_NOT_FOUND);
-        if (this_result == ERROR_SUCCESS &&
-            !::RemoveDirectory(current.value().c_str())) {
+        if (this_result == ERROR_SUCCESS && !::RemoveDirectoryW(current.c_str()))
           this_result = ReturnLastErrorOrSuccessOnNotFound();
-        }
       }
-    } else if (!::DeleteFile(current.value().c_str())) {
+    } else if (!::DeleteFileW(current.c_str())) {
       this_result = ReturnLastErrorOrSuccessOnNotFound();
     }
+
+    // Keep walking after a failure, but report the first one.
     if (result == ERROR_SUCCESS)
       result = this_result;
-  }
+  } while (::FindNextFileW(find, &find_data));
+
+  ::FindClose(find);
   return result;
-#endif
-  return 0;
 }
 
 DWORD DoDeleteFile(const Path& path, bool recursive) {
