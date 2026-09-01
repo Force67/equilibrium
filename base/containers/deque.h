@@ -4,6 +4,7 @@
 #include <base/check.h>
 #include <base/memory/move.h>
 #include <base/containers/container_traits.h>
+#include <base/memory/cxx_lifetime.h>
 
 #include <new>
 
@@ -111,6 +112,38 @@ class SimpleDeque {
     ++size_;
   }
 
+  // Move overloads, so a move-only element type (a Function, a UniquePointer)
+  // can be queued at all.
+  void push_front(T&& value) {
+    if (size_ == capacity_) {
+      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+    }
+    front_index_ = (front_index_ == 0) ? capacity_ - 1 : front_index_ - 1;
+    data_[front_index_] = base::move(value);
+    ++size_;
+  }
+
+  void push_back(T&& value) {
+    if (size_ == capacity_) {
+      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+    }
+    data_[back_index_] = base::move(value);
+    back_index_ = (back_index_ + 1) % capacity_;
+    ++size_;
+  }
+
+  template <typename... TArgs>
+  T& emplace_back(TArgs&&... args) {
+    if (size_ == capacity_) {
+      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+    }
+    T& slot = data_[back_index_];
+    slot = T(base::forward<TArgs>(args)...);
+    back_index_ = (back_index_ + 1) % capacity_;
+    ++size_;
+    return slot;
+  }
+
   void pop_front() {
     BASE_DCHECK(size_ > 0, "SimpleDeque::pop_front: empty");
     front_index_ = (front_index_ + 1) % capacity_;
@@ -158,6 +191,39 @@ class SimpleDeque {
   bool empty() const { return size_ == 0; }
   mem_size size() const { return size_; }
   mem_size deque_size() const { return size_; }
+
+  // Front-to-back traversal. The storage is a ring, so this walks by index
+  // rather than by pointer.
+  template <bool kConst>
+  class IteratorImpl {
+   public:
+    using Owner = base::conditional_t<kConst, const SimpleDeque, SimpleDeque>;
+    using Reference = base::conditional_t<kConst, const T&, T&>;
+
+    IteratorImpl(Owner* owner, mem_size index) : owner_(owner), index_(index) {}
+
+    bool operator==(const IteratorImpl& other) const { return index_ == other.index_; }
+    bool operator!=(const IteratorImpl& other) const { return index_ != other.index_; }
+
+    IteratorImpl& operator++() {
+      ++index_;
+      return *this;
+    }
+
+    Reference operator*() const { return (*owner_)[index_]; }
+
+   private:
+    Owner* owner_;
+    mem_size index_;
+  };
+
+  using Iterator = IteratorImpl<false>;
+  using ConstIterator = IteratorImpl<true>;
+
+  Iterator begin() { return Iterator(this, 0); }
+  Iterator end() { return Iterator(this, size_); }
+  ConstIterator begin() const { return ConstIterator(this, 0); }
+  ConstIterator end() const { return ConstIterator(this, size_); }
 
   void clear() {
     size_ = 0;

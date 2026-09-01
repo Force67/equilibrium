@@ -2,7 +2,10 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <initializer_list>
+
 #include <base/arch.h>
+#include <base/memory/move.h>
 #include <base/containers/tree/red_black_tree_2.h>
 
 namespace base {
@@ -16,6 +19,35 @@ class Set {
   using Iterator = IteratorImpl;
 
   Set() : size_(0) {}
+
+  Set(const Set& other) : tree_(other.tree_), size_(other.size_) {}
+
+  Set& operator=(const Set& other) {
+    if (this != &other) {
+      tree_ = other.tree_;
+      size_ = other.size_;
+    }
+    return *this;
+  }
+
+  // The moved-from set is left empty, not just stripped of its nodes.
+  Set(Set&& other) noexcept : tree_(base::move(other.tree_)), size_(other.size_) {
+    other.size_ = 0;
+  }
+
+  Set& operator=(Set&& other) noexcept {
+    if (this != &other) {
+      tree_ = base::move(other.tree_);
+      size_ = other.size_;
+      other.size_ = 0;
+    }
+    return *this;
+  }
+
+  // Brace initialization for static tables: {value, value, ...}.
+  Set(std::initializer_list<T> values) : size_(0) {
+    for (const T& value : values) Insert(value);
+  }
 
   Iterator begin() const { return Iterator(tree_.root(), tree_.nil()); }
   Iterator end() const { return Iterator(tree_.nil(), tree_.nil()); }
@@ -38,6 +70,18 @@ class Set {
   }
 
   bool Contains(const T& value) const { return tree_.Contains(value); }
+
+  void Clear() {
+    tree_.Clear();
+    size_ = 0;
+  }
+
+  // Lowercase spellings, matching base::Map and the std::set vocabulary.
+  void insert(const T& value) { Insert(value); }
+  bool erase(const T& value) { return Remove(value); }
+  bool contains(const T& value) const { return Contains(value); }
+  [[nodiscard]] mem_size count(const T& value) const { return Contains(value) ? 1 : 0; }
+  void clear() { Clear(); }
 
  private:
   base::RedBlackTree2<T> tree_;

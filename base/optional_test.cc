@@ -16,6 +16,30 @@ TEST(Optional, AssingnEmpty) {
   EXPECT_FALSE(a.has_value());
 }
 
+TEST(Optional, NullOptConstructsDisengaged) {
+  base::Optional<f32> a = base::nullopt;
+
+  EXPECT_FALSE(a.has_value());
+  EXPECT_TRUE(a == base::nullopt);
+}
+
+TEST(Optional, NullOptResetsAnEngagedOptional) {
+  base::Optional<f32> a = 1.5f;
+  ASSERT_TRUE(a.has_value());
+
+  a = base::nullopt;
+
+  EXPECT_FALSE(a.has_value());
+  EXPECT_FALSE(a != base::nullopt);
+}
+
+TEST(Optional, NullOptIsPickedByTheConditionalOperator) {
+  const bool disengage = true;
+  base::Optional<i32> a = disengage ? base::nullopt : base::Optional<i32>(3);
+
+  EXPECT_FALSE(a.has_value());
+}
+
 TEST(Optional, Copy) {
   base::Optional<bool> a;
   EXPECT_FALSE(a.has_value());

@@ -10,11 +10,14 @@
 #include "base/compiler.h"
 
 // TODO(rvargas): remove this with the rest of the verifier.
-#if defined(_WIN32)
+// The gcc builtin comes first: a windows build with gcc or clang (the mingw
+// cross toolchain) has no _ReturnAddress intrinsic to link against, even though
+// <intrin.h> declares one.
+#if defined(__GNUC__)
+#define BASE_WIN_GET_CALLER __builtin_extract_return_addr(__builtin_return_address(0))
+#elif defined(_WIN32)
 #include <intrin.h>
 #define BASE_WIN_GET_CALLER _ReturnAddress()
-#elif defined(COMPILER_GCC)
-#define BASE_WIN_GET_CALLER __builtin_extract_return_addr(__builtin_return_address(0))
 #endif
 
 namespace base {

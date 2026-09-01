@@ -4,6 +4,8 @@
 // Safe wrapper around a standard C array.
 #pragma once
 
+#include <initializer_list>
+
 #include <base/arch.h>
 #include <base/check.h>
 
@@ -16,6 +18,17 @@ class Array {
   using Storage = T[N];
 
   Array() = default;
+
+  // Brace initialization, like a raw array: `Array<f32, 3> v{1, 2, 3}`. Fewer
+  // elements than N leaves the tail value-initialized; more is a bug.
+  constexpr Array(std::initializer_list<T> values) {
+    BASE_DCHECK(values.size() <= N, "Array initializer list longer than the array");
+    mem_size i = 0;
+    for (const T& value : values) {
+      if (i >= N) break;
+      storage_[i++] = value;
+    }
+  }
 
   inline BASE_CONSTEXPR_ND T& operator[](mem_size index) noexcept {
     BASE_DCHECK(index < N, "Array access out of bounds");
@@ -57,6 +70,15 @@ class Array {
 
   inline constexpr mem_size size() const { return N; }
   inline constexpr bool empty() const { return false; }
+
+  constexpr bool operator==(const Array& other) const {
+    for (mem_size i = 0; i < N; ++i) {
+      if (!(storage_[i] == other.storage_[i])) return false;
+    }
+    return true;
+  }
+
+  constexpr bool operator!=(const Array& other) const { return !(*this == other); }
 
  private:
   Storage storage_{};

@@ -46,6 +46,28 @@ class BasicStringRef {
     BASE_DCHECK(str.size() <= max_size_characters());
   }
 
+  // construct from any other non-owning character range (std::string_view).
+  // A foreign view makes no null-termination promise, so neither do we.
+  template <class TView>
+    requires(base::StringViewLike<TView, value_type> &&
+             !base::HasStringTraits<TView, value_type> &&
+             !base::is_same_v<TView, BasicStringRef>)
+  BasicStringRef(const TView& view)
+      : data_(view.data()),
+        length_(static_cast<u32>(view.size())),
+        tags_(StringRefFlags::kNone) {
+    BASE_DCHECK(view.size() <= max_size_characters());
+  }
+
+  // Implicit conversion out to any view constructible from (pointer, length),
+  // so a StringRef reaches an API spelled in std::string_view.
+  template <class TView>
+    requires(base::ConstructibleView<TView, value_type> &&
+             !base::is_same_v<TView, BasicStringRef>)
+  constexpr operator TView() const {
+    return TView(data_, length_);
+  }
+
   // construct from other
   constexpr BasicStringRef(const BasicStringRef<TChar>& other)
       : data_(other.data_), length_(other.length_), tags_(other.tags_) {}
@@ -204,6 +226,135 @@ class BasicStringRef {
     return base::StringSearch(data_, length(), &s, 0, 1);
   }
 
+  constexpr mem_size find(const TChar* s) const {
+    return base::StringSearch(data_, length(), s, 0, base::CountStringLength(s));
+  }
+
+  mem_size find(const BasicStringRef& s, mem_size pos = 0) const {
+    return base::StringSearch(data_, length(), s.data(), pos, s.size());
+  }
+
+  bool contains(TChar c) const { return find(c) != npos; }
+  bool contains(const TChar* s) const { return find(s) != npos; }
+
+  const TChar& back() const {
+    BASE_BUGCHECK(length_ > 0, "Cannot access .back() of an empty StringRef");
+    return data_[length_ - 1];
+  }
+
+  const TChar& front() const {
+    BASE_BUGCHECK(length_ > 0, "Cannot access .front() of an empty StringRef");
+    return data_[0];
+  }
+
+  // Shrinks the view from the right. The result is no longer known to be null
+  // terminated, so the flag is dropped.
+  void remove_suffix(mem_size n) {
+    BASE_BUGCHECK(n <= length_, "remove_suffix past the start of the StringRef");
+    length_ -= static_cast<u32>(n);
+    tags_ = StringRefFlags::kNone;
+  }
+
+  // Shrinks the view from the left. Still points into the same buffer, so a
+  // null-terminated ref stays null terminated.
+  void remove_prefix(mem_size n) {
+    BASE_BUGCHECK(n <= length_, "remove_prefix past the end of the StringRef");
+    data_ += n;
+    length_ -= static_cast<u32>(n);
+  }
+
+  // Last occurrence at or before `pos`.
+  mem_size rfind(TChar c, mem_size pos = npos) const {
+    if (length_ == 0) return npos;
+    mem_size i = (pos == npos || pos >= length_) ? length_ - 1 : pos;
+    for (;; --i) {
+      if (data_[i] == c) return i;
+      if (i == 0) return npos;
+    }
+  }
+
+  mem_size rfind(const TChar* s, mem_size pos = npos) const {
+    if (!s) return npos;
+    const mem_size s_len = base::CountStringLength(s);
+    if (s_len == 0) return pos < length_ ? pos : length_;
+    if (s_len > length_) return npos;
+    mem_size i = (pos == npos || pos > length_ - s_len) ? length_ - s_len : pos;
+    for (;; --i) {
+      if (memcmp(data_ + i, s, s_len * sizeof(TChar)) == 0) return i;
+      if (i == 0) return npos;
+    }
+  }
+
+  // Last position at or before `pos` holding a character in `set`.
+  mem_size find_last_of(TChar c, mem_size pos = npos) const { return rfind(c, pos); }
+
+  mem_size find_last_of(const TChar* set, mem_size pos = npos) const {
+    if (!set || length_ == 0) return npos;
+    const mem_size set_len = base::CountStringLength(set);
+    mem_size i = (pos == npos || pos >= length_) ? length_ - 1 : pos;
+    for (;; --i) {
+      for (mem_size k = 0; k < set_len; ++k) {
+        if (data_[i] == set[k]) return i;
+      }
+      if (i == 0) return npos;
+    }
+  }
+
+  mem_size find_first_of(const TChar* set, mem_size pos = 0) const {
+    if (!set) return npos;
+    const mem_size set_len = base::CountStringLength(set);
+    for (mem_size i = pos; i < length_; ++i) {
+      for (mem_size k = 0; k < set_len; ++k) {
+        if (data_[i] == set[k]) return i;
+      }
+    }
+    return npos;
+  }
+
+  // Three-way comparison of the [pos, pos + count) slice against another ref,
+  // matching std::string_view::compare's positional overload.
+  int compare(mem_size pos, mem_size count, const BasicStringRef& other) const {
+    return subslice(pos, count).compare_to(other);
+  }
+
+  int compare_to(const BasicStringRef& other) const {
+    const mem_size shortest = length_ < other.length_ ? length_ : other.length_;
+    if (shortest > 0) {
+      const int diff = memcmp(data_, other.data_, shortest * sizeof(TChar));
+      if (diff != 0) return diff;
+    }
+    if (length_ == other.length_) return 0;
+    return length_ < other.length_ ? -1 : 1;
+  }
+
+  bool starts_with(TChar c) const { return length_ > 0 && data_[0] == c; }
+
+  bool starts_with(const TChar* s) const {
+    if (!s) return false;
+    const mem_size s_len = base::CountStringLength(s);
+    if (s_len > length_) return false;
+    return memcmp(data_, s, s_len * sizeof(TChar)) == 0;
+  }
+
+  bool starts_with(const BasicStringRef& s) const {
+    if (s.size() > length_) return false;
+    return memcmp(data_, s.data(), s.size() * sizeof(TChar)) == 0;
+  }
+
+  bool ends_with(TChar c) const { return length_ > 0 && data_[length_ - 1] == c; }
+
+  bool ends_with(const TChar* s) const {
+    if (!s) return false;
+    const mem_size s_len = base::CountStringLength(s);
+    if (s_len > length_) return false;
+    return memcmp(data_ + (length_ - s_len), s, s_len * sizeof(TChar)) == 0;
+  }
+
+  bool ends_with(const BasicStringRef& s) const {
+    if (s.size() > length_) return false;
+    return memcmp(data_ + (length_ - s.size()), s.data(), s.size() * sizeof(TChar)) == 0;
+  }
+
   constexpr mem_size find_first_not_of(const TChar* s,
                                        mem_size pos,
                                        mem_size count) const {
@@ -228,12 +379,12 @@ class BasicStringRef {
     return data_[offset];
   }
 
-  base::XBasicString<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
-    BASE_BUGCHECK(pos < length_, "Position is out of bounds");
-    if (count > length_ - pos) {
-      count = length_ - pos;
-    }
-    return base::XBasicString<TChar>(&data_[pos], count);
+  // A view of the same buffer, like std::string_view::substr. It must not
+  // allocate: a StringRef bound to an owning temporary would dangle, which is
+  // exactly the trap this used to set. Use to_string() for an owning copy.
+  BasicStringRef<TChar> substr(mem_size pos = 0, mem_size count = npos) const {
+    BASE_BUGCHECK(pos <= length_, "Position is out of bounds");
+    return subslice(pos, count);
   }
 
   BasicStringRef<TChar> subslice(mem_size pos = 0, mem_size count = npos) const {
@@ -300,3 +451,19 @@ base::XBasicString<T> MakeStringCopy(const base::BasicStringRef<T> slice,
   return strong;
 }
 }  // namespace base
+
+// std::format interop, for the same reason as base::String: see the note at the
+// bottom of xstring.h.
+#if !defined(BASE_NO_STD_FORMAT) && __has_include(<format>)
+#include <format>
+
+template <typename TChar>
+struct std::formatter<base::BasicStringRef<TChar>, TChar>
+    : std::formatter<std::basic_string_view<TChar>, TChar> {
+  template <typename TContext>
+  auto format(const base::BasicStringRef<TChar>& value, TContext& context) const {
+    return std::formatter<std::basic_string_view<TChar>, TChar>::format(
+        std::basic_string_view<TChar>(value.data(), value.size()), context);
+  }
+};
+#endif

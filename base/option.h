@@ -13,6 +13,7 @@
 #include <base/arch.h>
 #include <base/containers/init_chain.h>
 #include <base/export.h>
+#include <base/strings/format.h>
 
 namespace base {
 namespace detail {
@@ -31,6 +32,14 @@ inline bool ParseOption(const char* text, T& out) {
     if (!*text || !std::strcmp(text, "0") || !std::strcmp(text, "false") ||
         !std::strcmp(text, "off") || !std::strcmp(text, "no")) {
       out = false;
+      return true;
+    }
+    // Any other number counts: a knob set to 2 means on, as it would in a shell
+    // test, not "unparsable".
+    char* end = nullptr;
+    const long long v = std::strtoll(text, &end, 0);
+    if (end != text && !*end) {
+      out = v != 0;
       return true;
     }
     return false;
@@ -78,6 +87,16 @@ class BASE_EXPORT OptionBase : public InitChain<OptionBase> {
     return true;
   }
 
+  // Put the option back on its compiled-in default.
+  void Reset() {
+    RestoreDefault();
+    overridden_ = false;
+  }
+
+  // Write the current value as text a later SetFromString can parse back.
+  // Returns the number of characters written, null terminator excluded.
+  virtual mem_size FormatValue(char* buffer, mem_size buffer_size) const = 0;
+
   const char* name() const { return name_; }
   const char* env() const { return env_; }
   const char* desc() const { return desc_; }
@@ -85,6 +104,7 @@ class BASE_EXPORT OptionBase : public InitChain<OptionBase> {
 
  protected:
   virtual bool ParseFromString(const char* text) = 0;
+  virtual void RestoreDefault() = 0;
 
  private:
   const char* name_;
@@ -108,19 +128,34 @@ class Option : public OptionBase {
  public:
   Option(const char* opt_name, T default_value, const char* env_var = nullptr,
          const char* description = "")
-      : OptionBase(opt_name, env_var, description), value_(default_value) {}
+      : OptionBase(opt_name, env_var, description),
+        value_(default_value),
+        default_(default_value) {}
 
   operator const T&() const { return value_; }
   const T& get() const { return value_; }
   void set(T v) { value_ = v; }
+
+  mem_size FormatValue(char* buffer, mem_size buffer_size) const override {
+    if constexpr (std::is_same_v<T, const char*>) {
+      if (!value_) {
+        if (buffer_size) *buffer = '\0';
+        return 0;
+      }
+    }
+    return FormatTo(buffer, buffer_size, "{}", value_);
+  }
 
  protected:
   bool ParseFromString(const char* text) override {
     return detail::ParseOption(text, value_);
   }
 
+  void RestoreDefault() override { value_ = default_; }
+
  private:
   T value_;
+  const T default_;
 };
 
 // Populate every registered option that names an environment variable from the

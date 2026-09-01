@@ -47,6 +47,15 @@ BASE_EXPORT bool DirectoryExists(const Path& path);
 
 [[nodiscard]] BASE_EXPORT bool PathExists(const Path& path);
 
+// Deletes `path` and, when it is a directory, everything inside it. Returns
+// true when the path is gone afterwards, so deleting something that never
+// existed succeeds. Stops descending at symbolic links: the link is unlinked,
+// its target is left alone.
+//
+// There is deliberately no DeleteFile() counterpart: <windows.h> defines that
+// name as a macro for DeleteFileW.
+BASE_EXPORT bool DeletePathRecursively(const Path& path);
+
 BASE_EXPORT bool CreateNewTempDirectory(const Path::BufferType& prefix,
                                         Path* new_temp_path);
 }  // namespace base

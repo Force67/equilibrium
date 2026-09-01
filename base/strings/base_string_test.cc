@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
+#include <format>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "base_string.h"
+#include "string_ref.h"
 #include "xstring.h"  // base::String, base::StringW, etc.
 
 namespace {
@@ -534,6 +538,226 @@ TEST(BaseStringRegressions, AppendFromSelfWhileLarge) {
   for (size_t i = 0; i < orig_size; ++i) {
     EXPECT_EQ(s[i], s[i + orig_size]);
   }
+}
+
+TEST(BaseStringSearch, StartsWith) {
+  base::String s = "shaders/gi/pathtrace.cs";
+
+  EXPECT_TRUE(s.starts_with('s'));
+  EXPECT_TRUE(s.starts_with("shaders/"));
+  EXPECT_TRUE(s.starts_with(base::String("shaders")));
+  EXPECT_FALSE(s.starts_with("gi/"));
+  EXPECT_FALSE(s.starts_with('x'));
+}
+
+TEST(BaseStringSearch, EndsWith) {
+  base::String s = "textures/rock_n.dds";
+
+  EXPECT_TRUE(s.ends_with('s'));
+  EXPECT_TRUE(s.ends_with(".dds"));
+  EXPECT_TRUE(s.ends_with(base::String("_n.dds")));
+  EXPECT_FALSE(s.ends_with(".nif"));
+}
+
+TEST(BaseStringSearch, PrefixLongerThanTheStringIsNotAMatch) {
+  base::String s = "ab";
+
+  EXPECT_FALSE(s.starts_with("abcd"));
+  EXPECT_FALSE(s.ends_with("abcd"));
+}
+
+TEST(BaseStringSearch, EmptyStringMatchesNothingButTheEmptyPrefix) {
+  base::String s;
+
+  EXPECT_TRUE(s.starts_with(""));
+  EXPECT_TRUE(s.ends_with(""));
+  EXPECT_FALSE(s.starts_with('a'));
+  EXPECT_FALSE(s.ends_with('a'));
+}
+
+TEST(BaseStringSearch, Contains) {
+  base::String s = "meshes/architecture/whiterun";
+
+  EXPECT_TRUE(s.contains('/'));
+  EXPECT_TRUE(s.contains("architecture"));
+  EXPECT_FALSE(s.contains("solitude"));
+}
+
+TEST(BaseStringSearch, ReverseFind) {
+  base::String s = "a/b/c";
+
+  EXPECT_EQ(s.rfind('/'), 3u);
+  EXPECT_EQ(s.rfind("b/"), 2u);
+  EXPECT_EQ(s.rfind("a"), 0u);
+  EXPECT_EQ(s.rfind("zz"), base::String::npos);
+}
+
+TEST(BaseStringSearch, ReverseFindHonoursThePosition) {
+  base::String s = "x.y.z";
+
+  EXPECT_EQ(s.rfind('.'), 3u);
+  EXPECT_EQ(s.rfind('.', 2), 1u);
+}
+
+TEST(BaseStringAssign, AssignsFromAnotherStringLike) {
+  base::StringRef ref("hello");
+  base::String s;
+  s.assign(ref);
+  EXPECT_EQ(s, "hello");
+
+  base::String t;
+  t = ref;
+  EXPECT_EQ(t, "hello");
+}
+
+// Without the formatter specialization C++23 range formatting takes over and
+// prints ['a', 'b'], and a standard library without it fails to compile at all.
+TEST(BaseStringFormat, FormatsAsTextNotAsARange) {
+  const base::String s = "hello";
+
+  EXPECT_EQ(std::format("{}", s), "hello");
+  EXPECT_EQ(std::format("[{}]", base::String()), "[]");
+}
+
+TEST(BaseStringFormat, HonoursTheFormatSpec) {
+  const base::String s = "ab";
+
+  EXPECT_EQ(std::format("{:>5}", s), "   ab");
+  EXPECT_EQ(std::format("{:.1}", s), "a");
+}
+
+TEST(BaseStringFormat, FormatsAStringRef) {
+  const base::StringRef ref("world");
+
+  EXPECT_EQ(std::format("{}", ref), "world");
+}
+
+TEST(BaseStringViewInterop, ConvertsToAStdStringView) {
+  base::String s = "meshes/rock.nif";
+
+  std::string_view view = s;
+
+  EXPECT_EQ(view.size(), s.size());
+  EXPECT_EQ(view, "meshes/rock.nif");
+}
+
+TEST(BaseStringViewInterop, PassesStraightIntoAStringViewParameter) {
+  auto takes_view = [](std::string_view v) { return v.size(); };
+  base::String s = "abcd";
+
+  EXPECT_EQ(takes_view(s), 4u);
+}
+
+TEST(BaseStringViewInterop, ConversionKeepsEmbeddedNulls) {
+  base::String s("a\0b", 3);
+
+  std::string_view view = s;
+
+  EXPECT_EQ(view.size(), 3u);
+  EXPECT_EQ(view[1], '\0');
+}
+
+TEST(BaseStringViewInterop, DoesNotSilentlyConvertIntoAnOwningString) {
+  // std::string is not trivially destructible, so it stays out of the
+  // conversion set: copies into an allocating type must be explicit.
+  EXPECT_FALSE((std::is_convertible_v<base::String, std::string>));
+  EXPECT_TRUE((std::is_convertible_v<base::String, std::string_view>));
+}
+
+TEST(BaseStringViewInterop, ConstructsFromAStdStringView) {
+  std::string_view view = "hello world";
+
+  base::String s = view;
+
+  EXPECT_EQ(s.size(), view.size());
+  EXPECT_EQ(s, "hello world");
+}
+
+TEST(BaseStringViewInterop, StringRefRoundTripsThroughStdStringView) {
+  std::string_view view = "path/to/file";
+
+  base::StringRef ref = view;
+  std::string_view back = ref;
+
+  EXPECT_EQ(ref.size(), view.size());
+  EXPECT_EQ(back, view);
+}
+
+TEST(BaseStringSearch, FindFirstOfAndNotOf) {
+  base::String s = "   trim me";
+
+  EXPECT_EQ(s.find_first_not_of(' '), 3u);
+  EXPECT_EQ(s.find_first_not_of(" \t"), 3u);
+  EXPECT_EQ(s.find_first_of("me"), 6u);  // the "m" of "trim"
+  EXPECT_EQ(s.find_first_of("zq"), base::String::npos);
+}
+
+TEST(BaseStringSearch, FindLastNotOf) {
+  base::String s = "trim me   ";
+
+  EXPECT_EQ(s.find_last_not_of(' '), 6u);
+  EXPECT_EQ(s.find_last_not_of(" \t"), 6u);
+}
+
+TEST(BaseStringSearch, AllOfTheSetIsNotFound) {
+  base::String s = "     ";
+
+  EXPECT_EQ(s.find_first_not_of(' '), base::String::npos);
+  EXPECT_EQ(s.find_last_not_of(' '), base::String::npos);
+}
+
+TEST(BaseStringModify, AppendAnotherString) {
+  base::String s = "ab";
+  const base::String tail = "cd";
+
+  s.append(tail);
+
+  EXPECT_EQ(s, "abcd");
+}
+
+TEST(BaseStringModify, AppendRepeatedCharacter) {
+  base::String s = "x";
+
+  s.append(3, '.');
+
+  EXPECT_EQ(s, "x...");
+  EXPECT_EQ(s.size(), 4u);
+}
+
+TEST(BaseStringModify, AppendZeroCharactersIsANoOp) {
+  base::String s = "x";
+
+  s.append(0, '.');
+
+  EXPECT_EQ(s, "x");
+}
+
+TEST(BaseStringModify, AppendAView) {
+  base::String s = "a";
+  std::string_view view = "bc";
+
+  s.append(view);
+
+  EXPECT_EQ(s, "abc");
+}
+
+TEST(BaseStringModify, PopBack) {
+  base::String s = "abc";
+
+  s.pop_back();
+
+  EXPECT_EQ(s.size(), 2u);
+  EXPECT_EQ(s, "ab");
+  EXPECT_EQ(s.c_str()[2], '\0');
+}
+
+TEST(BaseStringModify, PopBackDownToEmpty) {
+  base::String s = "a";
+
+  s.pop_back();
+
+  EXPECT_TRUE(s.empty());
+  EXPECT_EQ(s, "");
 }
 
 // O(n²) sanity: 50k push_back calls must not be quadratic. With the old

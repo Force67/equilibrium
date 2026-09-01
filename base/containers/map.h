@@ -87,6 +87,30 @@ class Map {
 
   Map() : size_(0) {}
 
+  Map(const Map& other) : tree_(other.tree_), size_(other.size_) {}
+
+  Map& operator=(const Map& other) {
+    if (this != &other) {
+      tree_ = other.tree_;
+      size_ = other.size_;
+    }
+    return *this;
+  }
+
+  // The moved-from map is left empty, not just stripped of its nodes.
+  Map(Map&& other) noexcept : tree_(base::move(other.tree_)), size_(other.size_) {
+    other.size_ = 0;
+  }
+
+  Map& operator=(Map&& other) noexcept {
+    if (this != &other) {
+      tree_ = base::move(other.tree_);
+      size_ = other.size_;
+      other.size_ = 0;
+    }
+    return *this;
+  }
+
   mem_size size() const { return size_; }
   bool empty() const { return size_ == 0; }
 
@@ -106,6 +130,9 @@ class Map {
   const_iterator find(const Key& key) const {
     return const_iterator(tree_.Find(Probe(key)), &tree_);
   }
+
+  // 0 or 1, for callers written against the std::map spelling.
+  [[nodiscard]] mem_size count(const Key& key) const { return contains(key) ? 1 : 0; }
 
   bool contains(const Key& key) const {
     return tree_.Contains(Probe(key));

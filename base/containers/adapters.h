@@ -14,8 +14,10 @@ class ReversedAdapter {
   ReversedAdapter(const ReversedAdapter& ra) : t_(ra.t_) {}
   ReversedAdapter& operator=(const ReversedAdapter&) = delete;
 
-  auto begin() const { return t_.begin(); }
-  auto end() const { return t_.end(); }
+  // The whole point of the adapter: walk the container back to front. Handing
+  // out begin()/end() here silently iterates forwards instead.
+  auto begin() const { return t_.rbegin(); }
+  auto end() const { return t_.rend(); }
 
  private:
   T& t_;

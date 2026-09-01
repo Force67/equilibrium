@@ -11,10 +11,19 @@
 
 namespace base {
 
+// Disengaged marker, so an empty Optional can be spelled without naming T:
+//   `return nullopt;`   `cond ? nullopt : Optional<f32>(x)`
+struct NullOptType {
+  explicit constexpr NullOptType(int) {}
+};
+inline constexpr NullOptType nullopt{0};
+
 template <typename T>
 class Optional {
  public:
   Optional() noexcept : is_empty_(true) {}
+
+  Optional(NullOptType) noexcept : is_empty_(true) {}
 
   Optional(const T& value) : is_empty_(false) {
     ::new (&storage_[0]) T(value);
@@ -61,6 +70,11 @@ class Optional {
         other.reset();
       }
     }
+    return *this;
+  }
+
+  Optional& operator=(NullOptType) noexcept {
+    reset();
     return *this;
   }
 
@@ -129,4 +143,14 @@ class Optional {
   alignas(T) byte storage_[sizeof(T)]{};
   bool is_empty_;
 };
+
+template <typename T>
+bool operator==(const Optional<T>& opt, NullOptType) noexcept {
+  return !opt.has_value();
+}
+
+template <typename T>
+bool operator!=(const Optional<T>& opt, NullOptType) noexcept {
+  return opt.has_value();
+}
 }  // namespace base
