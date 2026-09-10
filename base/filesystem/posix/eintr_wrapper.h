@@ -2,17 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// This provides a wrapper around system calls which may be interrupted by a
-// signal and return EINTR. See man 7 signal.
-// To prevent long-lasting loops (which would likely be a bug, such as a signal
-// that should be masked) to go unnoticed, there is a limit after which the
-// caller will nonetheless see an EINTR in Debug builds.
+// Wrapper around system calls that may be interrupted by a signal and return
+// EINTR (see man 7 signal). In Debug builds a retry limit makes persistent
+// EINTR loops (a likely bug) surface instead of spinning forever.
 //
-// On Windows and Fuchsia, this wrapper macro does nothing because there are no
-// signals.
+// A no-op on Windows and Fuchsia (no signals).
 //
-// Don't wrap close calls in HANDLE_EINTR. Use IGNORE_EINTR if the return
-// value of close is significant. See http://crbug.com/269623.
+// Do not wrap close() in HANDLE_EINTR; use IGNORE_EINTR if the return value
+// matters.
 
 #pragma once
 

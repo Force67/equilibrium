@@ -119,7 +119,7 @@ class BetterBitSet {
     return *this;
   }
 
-  // requires guard!!!!!!
+  // Copy the full storage; no guard is required.
   BetterBitSet& operator=(const BetterBitSet& rhs) noexcept {
     memcpy(&array_[0], &rhs.array_[0], sizeof(Storage));
     return *this;

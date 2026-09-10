@@ -324,7 +324,7 @@ File::Error File::OSErrorToFileError(int saved_errno) {
   }
 }
 
-// TODO(erikkay): does it make sense to support FLAG_EXCLUSIVE_* here?
+// TODO: consider supporting FLAG_EXCLUSIVE_* here.
 void File::DoInitialize(const Path& path, uint32_t flags) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   BASE_DCHECK(!IsValid());
@@ -380,7 +380,7 @@ void File::DoInitialize(const Path& path, uint32_t flags) {
 
   const auto utf8_index = base::IsStringUTF8AndReportIdx(path.c_str(), path.length());
   BASE_BUGCHECK(utf8_index == 0,
-           "File::DoInitialize(): BASE requires paths to be utf8 encoded!");
+                "File::DoInitialize(): BASE requires paths to be utf8 encoded!");
 
   // decay to a regular char type cause the api requires it, by no means that
   // means that the api doesn't accept utf8 tho, they merely treat the paths as

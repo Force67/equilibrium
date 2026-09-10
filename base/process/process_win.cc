@@ -5,7 +5,7 @@
 #include <base/filesystem/path.h>
 #include <base/text/code_convert.h>
 
-// https://source.chromium.org/chromium/chromium/src/+/main:base/process/launch_win.cc?q=CreateProcess&ss=chromium&start=31
+// Ported from Chromium's base::Process::LaunchWin.
 namespace base {
 
 bool SpawnProcess(const Path& path_to_executable, const base::StringRefU8 command_line) {

@@ -15,10 +15,10 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
     return true;
   }
 
-  // user preference
+  // User preference.
   should_free_ = should_free;
   handle_ = ::LoadLibraryW(path.c_str());
-  // TODO(Vince): verify checksum
+  // TODO(Vince): verify checksum.
   return handle_;
 }
 
@@ -35,7 +35,7 @@ bool DynamicLibrary::Free() {
 }
 
 void* DynamicLibrary::FindSymbolPointer(const char* name) const {
-  // TODO: buyer moore search directly on nt image header???
+  // TODO: consider a Boyer-Moore search directly on the NT image header.
   return reinterpret_cast<void*>(::GetProcAddress(static_cast<HMODULE>(handle_), name));
 }
 }  // namespace base

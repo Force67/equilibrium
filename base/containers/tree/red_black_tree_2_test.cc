@@ -93,28 +93,15 @@ TEST_F(RedBlackTreeTest, ClearFunction) {
 // Replace the old test with this new, correct version.
 TEST_F(RedBlackTreeTest, InsertionTriggeringCase1Fix) {
   /*
-   * This test creates a scenario that specifically triggers Case 1 of the
-   * insertion fix-up algorithm (when the new node's uncle is RED).
+   * Triggers Case 1 of the insertion fix-up (new node's uncle is RED):
    *
-   * Sequence:
-   * 1. Insert 20 -> Becomes root 20(B)
-   * 2. Insert 10 -> Becomes left child 10(R)
-   * 3. Insert 30 -> Becomes right child 30(R)
-   *    Tree is now: 20(B) / \ 10(R) 30(R)
+   * 1. Insert 20 -> root 20(B)
+   * 2. Insert 10 -> left child 10(R)
+   * 3. Insert 30 -> right child 30(R)
+   * 4. Insert 5 -> left child of 10(R): parent RED, uncle 30(R) -> Case 1.
    *
-   * 4. Insert 5 -> Inserted as left child of 10(R). Now we have a problem:
-   *    - New node k=5 is RED.
-   *    - Parent of k (10) is RED. -> Fixup loop begins.
-   *    - Grandparent is 20(B).
-   *    - Uncle (grandparent's other child) is 30(R). -> UNCLE IS RED. This is Case 1.
-   *
-   * The fix-up should:
-   * - Recolor parent (10) to BLACK.
-   * - Recolor uncle (30) to BLACK.
-   * - Recolor grandparent (20) to RED.
-   * - Move k up to the grandparent (20).
-   * - The loop terminates as 20's parent is nil (BLACK).
-   * - The final step of FixInsert colors the root (20) back to BLACK.
+   * Fix-up recolors 10 and 30 to BLACK, 20 to RED, then terminates at the
+   * root; FixInsert colors 20 back to BLACK.
    */
   tree.Insert(20);
   tree.Insert(10);

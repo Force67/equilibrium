@@ -62,10 +62,9 @@ class BASE_EXPORT PageTable {
   bool ReserveAddressSpace(const mem_size address_space_size, const mem_size page_size);
 
  private:
-  // do we even need a size parameter if every page is 64k?
-  // do we even need an address if they are a continuous array? (e.g aligned to
-  // a 1mib boundary?)
-  // metadata page layout:
+  // TODO: is a size parameter needed when every page is 64k? An address when
+  // pages form a continuous array (aligned to a 1 MiB boundary)?
+  // Metadata page layout:
   // +-------------------------------------------------------------------+
   // | growing forwards: PageEntry 1 | PageEntry 2 | PageEntry 3 | ...   |
   // +-------------------------------------------------------------------+
@@ -100,7 +99,7 @@ class BASE_EXPORT PageTable {
 
   PageEntry* FindFreePage() const;
 
-  // TODO: set class for these schenanigans?
+  // TODO: use a size class for this?
   PageEntry* FindBackingPage(void* address);
 
   Options options_{};

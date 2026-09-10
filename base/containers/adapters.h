@@ -25,15 +25,10 @@ class ReversedAdapter {
 
 }  // namespace detail
 
-// Reversed returns a container adapter usable in a range-based "for" statement
-// for iterating a reversible container in reverse order.
+// Reversed returns an adapter for iterating a reversible container in reverse
+// order in a range-based for:
 //
-// Example:
-//
-//   vector<int> v = ...;
-//   for (int i : base::Reversed(v)) {
-//     // iterates through v from back to front
-//   }
+//   for (int i : base::Reversed(v)) { ... }
 template <typename T>
 detail::ReversedAdapter<T> Reversed(T& t) {
   return detail::ReversedAdapter<T>(t);

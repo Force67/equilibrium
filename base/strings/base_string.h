@@ -1,10 +1,8 @@
 // Copyright (C) 2024 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// NOTE(Vince): yet another string class, this time with a custom allocator
-// and mostly for me to be able to super optimize it for my performance specific
-// needs as well as to have a stable interface for everything that needs a
-// string, be it on a dll boundary or not
+// String class with a custom allocator and a stable interface, usable across
+// DLL boundaries. Optimized for the performance needs of this project.
 #pragma once
 
 // we try to avoid expensive headers.
@@ -112,34 +110,27 @@ class BasicBaseString {
 
   // -- Layout helpers --
 
-  unsigned char& flag_byte() noexcept {
-    return small_.tail_[kSmallTailBytes - 1];
-  }
-  unsigned char flag_byte() const noexcept {
-    return small_.tail_[kSmallTailBytes - 1];
-  }
+  unsigned char& flag_byte() noexcept { return small_.tail_[kSmallTailBytes - 1]; }
+  unsigned char flag_byte() const noexcept { return small_.tail_[kSmallTailBytes - 1]; }
 
   bool is_large() const noexcept { return (flag_byte() & kLargeFlag) != 0; }
 
   size_type get_size() const noexcept {
-    return is_large() ? large_.size_
-                      : static_cast<size_type>(flag_byte() & ~kLargeFlag);
+    return is_large() ? large_.size_ : static_cast<size_type>(flag_byte() & ~kLargeFlag);
   }
 
-  character_type* get_data() noexcept {
-    return is_large() ? large_.data_ : small_.data_;
-  }
+  character_type* get_data() noexcept { return is_large() ? large_.data_ : small_.data_; }
   const character_type* get_data() const noexcept {
     return is_large() ? large_.data_ : small_.data_;
   }
 
   size_type get_capacity() const noexcept {
-    if (!is_large()) return kSmallCapacity;
+    if (!is_large())
+      return kSmallCapacity;
     // Mask out the flag bit (bit 63 of capacity_, i.e. bit 7 of its top byte
     // on little-endian).
     return large_.capacity_ &
-           ~(static_cast<size_type>(kLargeFlag)
-             << ((sizeof(size_type) - 1) * 8));
+           ~(static_cast<size_type>(kLargeFlag) << ((sizeof(size_type) - 1) * 8));
   }
 
   void set_size(size_type new_size) noexcept {
@@ -150,9 +141,7 @@ class BasicBaseString {
     }
   }
 
-  void ensure_null_terminated() noexcept {
-    get_data()[get_size()] = character_type{};
-  }
+  void ensure_null_terminated() noexcept { get_data()[get_size()] = character_type{}; }
 
   void init_empty() noexcept {
     flag_byte() = 0;
@@ -164,7 +153,8 @@ class BasicBaseString {
   static size_type grow_capacity(size_type required) noexcept {
     // Geometric growth (1.5x) with an overflow guard.
     const size_type kMax = base::MinMax<size_type>::max();
-    if (required > kMax - required / 2) return required;
+    if (required > kMax - required / 2)
+      return required;
     return required + required / 2;
   }
 
@@ -173,8 +163,7 @@ class BasicBaseString {
   // The old buffer is freed AFTER the copy, so callers can pass aliased
   // sources separately (see assign/append).
   void realloc_to(size_type target_capacity) {
-    BASE_BUGCHECK(target_capacity >= get_size(),
-                  "realloc_to would lose data");
+    BASE_BUGCHECK(target_capacity >= get_size(), "realloc_to would lose data");
     character_type* new_data = static_cast<character_type*>(
         TAllocator::Allocate((target_capacity + 1) * sizeof(character_type)));
     const size_type cur_size = get_size();
@@ -200,8 +189,7 @@ class BasicBaseString {
 
   void deallocate_large() {
     if (is_large()) {
-      TAllocator::Free(large_.data_,
-                       (get_capacity() + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_, (get_capacity() + 1) * sizeof(character_type));
     }
   }
 
@@ -213,7 +201,8 @@ class BasicBaseString {
   // Implicit from const char* for std::string-like ergonomics
   BasicBaseString(const character_type* str) {
     init_empty();
-    if (str) assign(str);
+    if (str)
+      assign(str);
   }
 
   BasicBaseString(const character_type* str, size_type len_in_characters) {
@@ -234,7 +223,8 @@ class BasicBaseString {
       character_type* d = get_data();
       // Scalar loop — memset would only write the low byte of c, which is
       // wrong for wchar_t/char16_t/char32_t.
-      for (size_type i = 0; i < count; ++i) d[i] = c;
+      for (size_type i = 0; i < count; ++i)
+        d[i] = c;
       set_size(count);
       ensure_null_terminated();
     }
@@ -348,17 +338,21 @@ class BasicBaseString {
 
   void assign(const character_type* str) { assign(str, base::CountStringLength(str)); }
 
-  void assign(const BasicBaseString& other) { assign(other.get_data(), other.get_size()); }
+  void assign(const BasicBaseString& other) {
+    assign(other.get_data(), other.get_size());
+  }
 
   // Any other string-like (StringRef, SmallString, a foreign string type).
   template <typename TOther>
-    requires(base::HasStringTraits<TOther, value_type> && !base::is_same_v<TOther, BasicBaseString>)
+    requires(base::HasStringTraits<TOther, value_type> &&
+             !base::is_same_v<TOther, BasicBaseString>)
   void assign(const TOther& other) {
     assign(other.data(), static_cast<size_type>(other.size()));
   }
 
   template <typename TOther>
-    requires(base::HasStringTraits<TOther, value_type> && !base::is_same_v<TOther, BasicBaseString>)
+    requires(base::HasStringTraits<TOther, value_type> &&
+             !base::is_same_v<TOther, BasicBaseString>)
   BasicBaseString& operator=(const TOther& other) {
     assign(other.data(), static_cast<size_type>(other.size()));
     return *this;
@@ -417,15 +411,15 @@ class BasicBaseString {
   // user's intent. Auto-growing modifiers go through grow_to_at_least()
   // instead, which uses 1.5x growth.
   void reserve(size_type new_capacity) {
-    if (new_capacity > get_capacity()) realloc_to(new_capacity);
+    if (new_capacity > get_capacity())
+      realloc_to(new_capacity);
   }
 
   void resize(size_type new_size) {
     const size_type old_size = get_size();
     if (new_size > old_size) {
       grow_to_at_least(new_size);
-      memset(get_data() + old_size, 0,
-             (new_size - old_size) * sizeof(character_type));
+      memset(get_data() + old_size, 0, (new_size - old_size) * sizeof(character_type));
     }
     set_size(new_size);
     ensure_null_terminated();
@@ -437,7 +431,8 @@ class BasicBaseString {
   }
 
   void shrink_to_fit() {
-    if (!is_large() || get_size() == get_capacity()) return;
+    if (!is_large() || get_size() == get_capacity())
+      return;
 
     const size_type current_size = get_size();
     if (current_size <= kSmallCapacity) {
@@ -483,7 +478,8 @@ class BasicBaseString {
   }
 
   void append(const character_type* str, size_type count) {
-    if (count == 0) return;
+    if (count == 0)
+      return;
     const size_type old_size = get_size();
     const size_type new_size = old_size + count;
     if (new_size > get_capacity()) {
@@ -512,15 +508,19 @@ class BasicBaseString {
   }
   void append(const character_type* str) { append(str, base::CountStringLength(str)); }
 
-  void append(const BasicBaseString& other) { append(other.get_data(), other.get_size()); }
+  void append(const BasicBaseString& other) {
+    append(other.get_data(), other.get_size());
+  }
 
   // `count` copies of `c`, for padding and fill.
   void append(size_type count, character_type c) {
-    if (count == 0) return;
+    if (count == 0)
+      return;
     const size_type old_size = get_size();
     grow_to_at_least(old_size + count);
     character_type* d = get_data();
-    for (size_type i = 0; i < count; ++i) d[old_size + i] = c;
+    for (size_type i = 0; i < count; ++i)
+      d[old_size + i] = c;
     set_size(old_size + count);
     ensure_null_terminated();
   }
@@ -540,7 +540,8 @@ class BasicBaseString {
 
   void push_back(character_type c) {
     const size_type old_size = get_size();
-    if (old_size == get_capacity()) grow_to_at_least(old_size + 1);
+    if (old_size == get_capacity())
+      grow_to_at_least(old_size + 1);
     get_data()[old_size] = c;
     set_size(old_size + 1);
     ensure_null_terminated();
@@ -548,14 +549,16 @@ class BasicBaseString {
 
   void insert(size_type pos, size_type count, character_type c) {
     BASE_BUGCHECK(pos <= get_size(), "Invalid position");
-    if (count == 0) return;
+    if (count == 0)
+      return;
     const size_type old_size = get_size();
     const size_type new_size = old_size + count;
     grow_to_at_least(new_size);
     character_type* d = get_data();
     memmove(d + pos + count, d + pos, (old_size - pos) * sizeof(character_type));
     // Scalar loop — memset would only write the low byte of c.
-    for (size_type i = 0; i < count; ++i) d[pos + i] = c;
+    for (size_type i = 0; i < count; ++i)
+      d[pos + i] = c;
     set_size(new_size);
     ensure_null_terminated();
   }
@@ -564,7 +567,8 @@ class BasicBaseString {
     const size_type current_size = get_size();
     BASE_BUGCHECK(pos <= current_size, "Invalid position");
     count = base::Min(count, current_size - pos);
-    if (count == 0) return;
+    if (count == 0)
+      return;
 
     character_type* d = get_data();
     memmove(d + pos, d + pos + count,
@@ -693,12 +697,16 @@ class BasicBaseString {
 
   // Substring search (overflow-safe).
   size_type find(const character_type* s, size_type pos = 0) const {
-    if (!s) return npos;
+    if (!s)
+      return npos;
     const size_type cur = get_size();
     const size_type s_len = base::CountStringLength(s);
-    if (s_len == 0) return pos <= cur ? pos : npos;
-    if (s_len > cur) return npos;
-    if (pos > cur - s_len) return npos;
+    if (s_len == 0)
+      return pos <= cur ? pos : npos;
+    if (s_len > cur)
+      return npos;
+    if (pos > cur - s_len)
+      return npos;
     const character_type* d = get_data();
     for (size_type i = pos; i <= cur - s_len; ++i) {
       if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0)
@@ -713,46 +721,57 @@ class BasicBaseString {
 
   // First position at or after `pos` holding a character in / not in `set`.
   size_type find_first_of(const character_type* set, size_type pos = 0) const {
-    if (!set) return npos;
+    if (!set)
+      return npos;
     const size_type set_len = base::CountStringLength(set);
     for (size_type i = pos; i < get_size(); ++i) {
-      if (base::find(set, set + set_len, get_data()[i]) != set + set_len) return i;
+      if (base::find(set, set + set_len, get_data()[i]) != set + set_len)
+        return i;
     }
     return npos;
   }
 
   size_type find_first_not_of(const character_type* set, size_type pos = 0) const {
-    if (!set) return npos;
+    if (!set)
+      return npos;
     const size_type set_len = base::CountStringLength(set);
     for (size_type i = pos; i < get_size(); ++i) {
-      if (base::find(set, set + set_len, get_data()[i]) == set + set_len) return i;
+      if (base::find(set, set + set_len, get_data()[i]) == set + set_len)
+        return i;
     }
     return npos;
   }
 
   size_type find_first_not_of(character_type c, size_type pos = 0) const {
     for (size_type i = pos; i < get_size(); ++i) {
-      if (get_data()[i] != c) return i;
+      if (get_data()[i] != c)
+        return i;
     }
     return npos;
   }
 
   size_type find_last_not_of(const character_type* set, size_type pos = npos) const {
-    if (!set || get_size() == 0) return npos;
+    if (!set || get_size() == 0)
+      return npos;
     const size_type set_len = base::CountStringLength(set);
     size_type i = (pos == npos || pos >= get_size()) ? get_size() - 1 : pos;
     for (;; --i) {
-      if (base::find(set, set + set_len, get_data()[i]) == set + set_len) return i;
-      if (i == 0) return npos;
+      if (base::find(set, set + set_len, get_data()[i]) == set + set_len)
+        return i;
+      if (i == 0)
+        return npos;
     }
   }
 
   size_type find_last_not_of(character_type c, size_type pos = npos) const {
-    if (get_size() == 0) return npos;
+    if (get_size() == 0)
+      return npos;
     size_type i = (pos == npos || pos >= get_size()) ? get_size() - 1 : pos;
     for (;; --i) {
-      if (get_data()[i] != c) return i;
-      if (i == 0) return npos;
+      if (get_data()[i] != c)
+        return i;
+      if (i == 0)
+        return npos;
     }
   }
 
@@ -763,28 +782,35 @@ class BasicBaseString {
   bool starts_with(character_type c) const { return !empty() && get_data()[0] == c; }
 
   bool starts_with(const character_type* s) const {
-    if (!s) return false;
+    if (!s)
+      return false;
     const size_type s_len = base::CountStringLength(s);
-    if (s_len > get_size()) return false;
+    if (s_len > get_size())
+      return false;
     return memcmp(get_data(), s, s_len * sizeof(character_type)) == 0;
   }
 
   bool starts_with(const BasicBaseString& s) const {
-    if (s.size() > get_size()) return false;
+    if (s.size() > get_size())
+      return false;
     return memcmp(get_data(), s.data(), s.byte_size()) == 0;
   }
 
   bool ends_with(character_type c) const { return !empty() && back() == c; }
 
   bool ends_with(const character_type* s) const {
-    if (!s) return false;
+    if (!s)
+      return false;
     const size_type s_len = base::CountStringLength(s);
-    if (s_len > get_size()) return false;
-    return memcmp(get_data() + (get_size() - s_len), s, s_len * sizeof(character_type)) == 0;
+    if (s_len > get_size())
+      return false;
+    return memcmp(get_data() + (get_size() - s_len), s, s_len * sizeof(character_type)) ==
+           0;
   }
 
   bool ends_with(const BasicBaseString& s) const {
-    if (s.size() > get_size()) return false;
+    if (s.size() > get_size())
+      return false;
     return memcmp(get_data() + (get_size() - s.size()), s.data(), s.byte_size()) == 0;
   }
 
@@ -794,16 +820,21 @@ class BasicBaseString {
   }
 
   size_type rfind(const character_type* s, size_type pos = npos) const {
-    if (!s) return npos;
+    if (!s)
+      return npos;
     const size_type cur = get_size();
     const size_type s_len = base::CountStringLength(s);
-    if (s_len == 0) return pos < cur ? pos : cur;
-    if (s_len > cur) return npos;
+    if (s_len == 0)
+      return pos < cur ? pos : cur;
+    if (s_len > cur)
+      return npos;
     size_type i = (pos == npos || pos > cur - s_len) ? cur - s_len : pos;
     const character_type* d = get_data();
     for (;; --i) {
-      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0) return i;
-      if (i == 0) return npos;
+      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0)
+        return i;
+      if (i == 0)
+        return npos;
     }
   }
 

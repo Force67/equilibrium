@@ -13,80 +13,26 @@
 
 namespace base {
 
-// This class acts like unique_ptr with a custom deleter (although is slightly
-// less fancy in some of the more escoteric respects) except that it keeps a
-// copy of the object rather than a pointer, and we require that the contained
-// object has some kind of "invalid" value.
+// Like unique_ptr with a custom deleter, but holds a value instead of a
+// pointer and treats a trait-defined "invalid" value as empty. Intended for
+// non-pointer resources such as file descriptors and OS handles.
 //
-// Defining a scoper based on this class allows you to get a scoper for
-// non-pointer types without having to write custom code for set, reset, and
-// move, etc. and get almost identical semantics that people are used to from
-// unique_ptr.
-//
-// It is intended that you will typedef this class with an appropriate deleter
-// to implement clean up tasks for objects that act like pointers from a
-// resource management standpoint but aren't, such as file descriptors and
-// various types of operating system handles. Using unique_ptr for these
-// things requires that you keep a pointer to the handle valid for the lifetime
-// of the scoper (which is easy to mess up).
-//
-// For an object to be able to be put into a ScopedGeneric, it must support
-// standard copyable semantics and have a specific "invalid" value. The traits
-// must define a free function and also the invalid value to assign for
-// default-constructed and released objects.
+// Traits must provide InvalidValue() and Free(). Traits may also extend
+// ScopedGenericOwnershipTracking and implement Acquire/Release to observe
+// ownership transfers.
 //
 //   struct FooScopedTraits {
-//     // It's assumed that this is a fast inline function with little-to-no
-//     // penalty for duplicate calls. This must be a static function even
-//     // for stateful traits.
-//     static int InvalidValue() {
-//       return 0;
-//     }
-//
-//     // This free function will not be called if f == InvalidValue()!
-//     static void Free(int f) {
-//       ::FreeFoo(f);
-//     }
+//     static int InvalidValue() { return 0; }
+//     static void Free(int f) { ::FreeFoo(f); }  // Not called when f is invalid.
 //   };
-//
 //   using ScopedFoo = ScopedGeneric<int, FooScopedTraits>;
-//
-// A Traits type may choose to track ownership of objects in parallel with
-// ScopedGeneric. To do so, it must implement the Acquire and Release methods,
-// which will be called by ScopedGeneric during ownership transfers and extend
-// the ScopedGenericOwnershipTracking tag type.
-//
-//   struct BarScopedTraits : public ScopedGenericOwnershipTracking {
-//     using ScopedGenericType = ScopedGeneric<int, BarScopedTraits>;
-//     static int InvalidValue() {
-//       return 0;
-//     }
-//
-//     static void Free(int b) {
-//       ::FreeBar(b);
-//     }
-//
-//     static void Acquire(const ScopedGenericType& owner, int b) {
-//       ::TrackAcquisition(b, owner);
-//     }
-//
-//     static void Release(const ScopedGenericType& owner, int b) {
-//       ::TrackRelease(b, owner);
-//     }
-//   };
-//
-//   using ScopedBar = ScopedGeneric<int, BarScopedTraits>;
 struct ScopedGenericOwnershipTracking {};
 
 template <typename T, typename Traits>
 class ScopedGeneric {
  private:
-  // This must be first since it's used inline below.
-  //
-  // Use the empty base class optimization to allow us to have a D
-  // member, while avoiding any space overhead for it when D is an
-  // empty class.  See e.g. http://www.cantrip.org/emptyopt.html for a good
-  // discussion of this technique.
+  // Empty base class optimization: keeps a D member with no space overhead
+  // when D is an empty class.
   struct Data : public Traits {
     explicit Data(const T& in) : generic(in) {}
     Data(const T& in, const Traits& other) : Traits(other), generic(in) {}
@@ -99,19 +45,18 @@ class ScopedGeneric {
 
   ScopedGeneric() : data_(traits_type::InvalidValue()) {}
 
-  // Constructor. Takes responsibility for freeing the resource associated with
-  // the object T.
+  // Takes ownership of the resource held by |value|.
   explicit ScopedGeneric(const element_type& value) : data_(value) {
     TrackAcquire(data_.generic);
   }
 
-  // Constructor. Allows initialization of a stateful traits object.
+  // Initializes with a stateful traits object.
   ScopedGeneric(const element_type& value, const traits_type& traits)
       : data_(value, traits) {
     TrackAcquire(data_.generic);
   }
 
-  // Move constructor. Allows initialization from a ScopedGeneric rvalue.
+  // Move constructor.
   ScopedGeneric(ScopedGeneric<T, Traits>&& rvalue)
       : data_(rvalue.release(), rvalue.get_traits()) {
     TrackAcquire(data_.generic);
@@ -121,15 +66,13 @@ class ScopedGeneric {
 
   virtual ~ScopedGeneric() { FreeIfNecessary(); }
 
-  // operator=. Allows assignment from a ScopedGeneric rvalue.
   ScopedGeneric& operator=(ScopedGeneric<T, Traits>&& rvalue) {
     reset(rvalue.release());
     return *this;
   }
 
-  // Frees the currently owned object, if any. Then takes ownership of a new
-  // object, if given. Self-resets are not allowd as on unique_ptr. See
-  // http://crbug.com/162971
+  // Frees the currently owned object, if any, then takes ownership of the
+  // new value. Self-reset is not allowed.
   void reset(const element_type& value = traits_type::InvalidValue()) {
     if (data_.generic != traits_type::InvalidValue() && data_.generic == value)
       abort();
@@ -153,9 +96,8 @@ class ScopedGeneric {
     other.TrackAcquire(other.data_.generic);
   }
 
-  // Release the object. The return value is the current object held by this
-  // object. After this operation, this object will hold a null value, and
-  // will not own the object any more.
+  // Releases the object and returns it. This object then holds the invalid
+  // value and no longer owns the resource.
   element_type release() {
     element_type old_generic = data_.generic;
     data_.generic = traits_type::InvalidValue();
@@ -163,42 +105,14 @@ class ScopedGeneric {
     return old_generic;
   }
 
-  // A helper class that provides a T* that can be used to take ownership of
-  // a value returned from a function via out-parameter. When the Receiver is
-  // destructed (which should usually be at the end of the statement in which
-  // receive is called), ScopedGeneric::reset() will be called with the
-  // Receiver's value.
+  // Receiver hands out a T* for taking ownership via out-parameter. On
+  // destruction it calls reset() with the received value.
   //
-  // In the simple case of a function that assigns the value before it returns,
-  // C++'s lifetime extension can be used as follows:
+  //   ScopedFoo foo;
+  //   bool result = GetFoo(ScopedFoo::Receiver(foo).get());
   //
-  //    ScopedFoo foo;
-  //    bool result = GetFoo(ScopedFoo::Receiver(foo).get());
-  //
-  // Note that the lifetime of the Receiver is extended until the semicolon,
-  // and ScopedGeneric is assigned the value upon destruction of the Receiver,
-  // so the following code would not work:
-  //
-  //    // BROKEN!
-  //    ScopedFoo foo;
-  //    UseFoo(&foo, GetFoo(ScopedFoo::Receiver(foo).get()));
-  //
-  // In more complicated scenarios, you may need to provide an explicit scope
-  // for the Receiver, as in the following:
-  //
-  //    std::vector<ScopedFoo> foos(64);
-  //
-  //    {
-  //      std::vector<ScopedFoo::Receiver> foo_receivers;
-  //      for (auto foo : foos) {
-  //        foo_receivers_.emplace_back(foo);
-  //      }
-  //      for (auto receiver : foo_receivers) {
-  //        SubmitGetFooRequest(receiver.get());
-  //      }
-  //      WaitForFooRequests();
-  //    }
-  //    UseFoos(foos);
+  // The Receiver lives until the end of the statement. If the value is
+  // written asynchronously, keep the Receiver in an explicit scope.
   class Receiver {
    public:
     explicit Receiver(ScopedGeneric& parent) : scoped_generic_(&parent) {
@@ -221,12 +135,8 @@ class ScopedGeneric {
         scoped_generic_->receiving_ = false;
       }
     }
-    // We hand out a pointer to a field in Receiver instead of directly to
-    // ScopedGeneric's internal storage in order to make it so that users can't
-    // accidentally silently break ScopedGeneric's invariants. This way, an
-    // incorrect use-after-scope-exit is more detectable by ASan or static
-    // analysis tools, as the pointer is only valid for the lifetime of the
-    // Receiver, not the ScopedGeneric.
+    // Points at Receiver's own storage, not ScopedGeneric's, so misuse
+    // after scope exit is detectable by ASan or static analysis.
     T* get() {
       used_ = true;
       return &value_;
@@ -240,8 +150,6 @@ class ScopedGeneric {
 
   const element_type& get() const { return data_.generic; }
 
-  // Returns true if this object doesn't hold the special null value for the
-  // associated data type.
   bool is_valid() const { return data_.generic != traits_type::InvalidValue(); }
 
   bool operator==(const element_type& value) const { return data_.generic == value; }
@@ -283,9 +191,8 @@ class ScopedGeneric {
   base::enable_if_t<!base::is_base_of_v<ScopedGenericOwnershipTracking, Traits>, Void>
   TrackRelease(const T& value) {}
 
-  // Forbid comparison. If U != T, it totally doesn't make sense, and if U ==
-  // T, it still doesn't make sense because you should never have the same
-  // object owned by two different ScopedGenerics.
+  // Forbid comparison: the same object must never be owned by two
+  // ScopedGenerics.
   template <typename T2, typename Traits2>
   bool operator==(const ScopedGeneric<T2, Traits2>& p2) const;
   template <typename T2, typename Traits2>

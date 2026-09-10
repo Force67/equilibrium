@@ -21,8 +21,8 @@ constinit struct {
 
 namespace detail {
 void InvokeOutOfMemoryHandler(const base::SourceLocation&, const char* reason) {
-  // TODO: also give out the source_loc?
-  // give redzone memory (a prereserved tiny segment for throwing the error.)
+  // TODO: pass the source location through.
+  // Redzone memory: a pre-reserved tiny segment for throwing the error.
   oom_data.handler(oom_data.user_context, reason);
 }
 }  // namespace detail

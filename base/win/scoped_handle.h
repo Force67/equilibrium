@@ -9,7 +9,7 @@
 #include "base/check.h"
 #include "base/compiler.h"
 
-// TODO(rvargas): remove this with the rest of the verifier.
+// TODO: remove this with the rest of the verifier.
 #if defined(_WIN32)
 #include <intrin.h>
 #define BASE_WIN_GET_CALLER _ReturnAddress()
@@ -20,15 +20,13 @@
 namespace base {
 namespace win {
 
-// Generic wrapper for raw handles that takes care of closing handles
-// automatically. The class interface follows the style of
-// the ScopedFILE class with two additions:
-//   - IsValid() method can tolerate multiple invalid handle values such as NULL
-//     and INVALID_HANDLE_VALUE (-1) for Win32 handles.
+// Generic wrapper for raw handles that closes them automatically, in the
+// style of ScopedFILE with two additions:
+//   - IsValid() tolerates multiple invalid handle values (NULL and
+//     INVALID_HANDLE_VALUE).
 //   - Set() (and the constructors and assignment operators that call it)
-//     preserve the Windows LastError code. This ensures that GetLastError() can
-//     be called after stashing a handle in a GenericScopedHandle object. Doing
-//     this explicitly is necessary because of bug 528394 and VC++ 2015.
+//     preserve the Windows LastError code so GetLastError() stays callable
+//     after stashing a handle (VC++ 2015 quirk).
 template <class Traits, class Verifier>
 class GenericScopedHandle {
  public:

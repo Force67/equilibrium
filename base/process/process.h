@@ -1,7 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
-// https://source.chromium.org/chromium/chromium/src/+/main:base/process/process.h
+
+// Ported from Chromium's base::Process.
 
 #include <base/export.h>
 #include <base/strings/string_ref.h>

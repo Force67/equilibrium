@@ -1,16 +1,11 @@
 // Tests for the EBR-based lock-free ordered hash map.
 //
-// What "lock-free" means for this container:
-//   - find()  / insert() / remove() never block on a mutex.
-//   - Multiple threads can mix all operations concurrently without UAF
-//     thanks to epoch-based reclamation: a node retired by remove() is
-//     not freed until every reader that could possibly hold a pointer to
-//     it has exited its read-side critical section (its ebr::Guard).
+// find/insert/remove never block on a mutex, and epoch-based reclamation
+// keeps retired nodes alive until every reader's ebr::Guard has exited.
 //
-// We hammer the container with the same patterns the mutex-based
-// ConcurrentOrderedMap is verified against, plus the things that are
-// uniquely interesting for a lock-free implementation: large concurrent
-// remove churn, GC under load, iterator-during-write.
+// The stress patterns mirror ConcurrentOrderedMap, plus lock-free specific
+// cases: heavy concurrent remove churn, GC under load, iteration during
+// writes.
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -111,17 +106,21 @@ TEST(LockFreeOrderedHashMap, ReinsertAfterRemove) {
 TEST(LockFreeOrderedHashMap, ManyInsertsKeepOrder) {
   IntMap m(64);
   constexpr int kN = 5000;
-  for (int i = 0; i < kN; ++i) m.insert(i, i * 2);
+  for (int i = 0; i < kN; ++i)
+    m.insert(i, i * 2);
 
   auto keys = m.ordered_keys_snapshot();
   ASSERT_EQ(keys.size(), static_cast<arch_types::mem_size>(kN));
-  for (int i = 0; i < kN; ++i) EXPECT_EQ(keys[i], i);
+  for (int i = 0; i < kN; ++i)
+    EXPECT_EQ(keys[i], i);
 }
 
 TEST(LockFreeOrderedHashMap, GarbageCollectFreesRetiredNodes) {
   IntMap m(16);
-  for (int i = 0; i < 1000; ++i) m.insert(i, int{i});
-  for (int i = 0; i < 1000; ++i) m.remove(i);
+  for (int i = 0; i < 1000; ++i)
+    m.insert(i, int{i});
+  for (int i = 0; i < 1000; ++i)
+    m.remove(i);
   // Force a GC pass — internally walks the staged + retired lists and
   // physically frees nodes whose retirement epoch is old enough.
   m.collect_garbage();
@@ -143,7 +142,8 @@ TEST(LockFreeOrderedHashMap, ConcurrentInsertReachability) {
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
-      while (!go.load()) {}
+      while (!go.load()) {
+      }
       for (int i = 0; i < kPerThread; ++i) {
         const int k = t * kPerThread + i;
         m.insert(k, int{k});
@@ -151,7 +151,8 @@ TEST(LockFreeOrderedHashMap, ConcurrentInsertReachability) {
     });
   }
   go.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   for (int k = 0; k < kTotal; ++k) {
     int v = -1;
@@ -179,21 +180,25 @@ TEST(LockFreeOrderedHashMap, ConcurrentRemoveSafe) {
   constexpr int kTotal = kThreads * kPerThread;
 
   IntMap m(64);
-  for (int k = 0; k < kTotal; ++k) m.insert(k, int{k});
+  for (int k = 0; k < kTotal; ++k)
+    m.insert(k, int{k});
 
   base::Atomic<bool> go{false};
   base::Atomic<int> removed{0};
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
-      while (!go.load()) {}
+      while (!go.load()) {
+      }
       for (int i = 0; i < kPerThread; ++i) {
-        if (m.remove(t * kPerThread + i)) removed.fetch_add(1);
+        if (m.remove(t * kPerThread + i))
+          removed.fetch_add(1);
       }
     });
   }
   go.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   EXPECT_EQ(removed.load(), kTotal);
   for (int k = 0; k < kTotal; ++k) {
@@ -215,7 +220,8 @@ TEST(LockFreeOrderedHashMap, ConcurrentMixedOperations) {
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
-      while (!go.load()) {}
+      while (!go.load()) {
+      }
       for (int i = 0; i < kOpsPerThread; ++i) {
         const int key = (t * 7919 + i * 31) % kKeySpace;
         switch ((t + i) % 3) {
@@ -235,7 +241,8 @@ TEST(LockFreeOrderedHashMap, ConcurrentMixedOperations) {
     });
   }
   go.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   // No GC call here on purpose: find() must work even if deleted nodes
   // haven't been physically swept yet. (We added a special path in find()
@@ -265,7 +272,8 @@ TEST(LockFreeOrderedHashMap, ReadersDuringWritesNoUAF) {
   constexpr int kDurationMs = 200;
 
   IntMap m(64);
-  for (int i = 0; i < 200; ++i) m.insert(i, int{i});
+  for (int i = 0; i < 200; ++i)
+    m.insert(i, int{i});
 
   base::Atomic<bool> stop{false};
   base::Atomic<int> reader_iterations{0};
@@ -304,7 +312,8 @@ TEST(LockFreeOrderedHashMap, ReadersDuringWritesNoUAF) {
 
   std::this_thread::sleep_for(std::chrono::milliseconds(kDurationMs));
   stop.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   EXPECT_EQ(reader_uaf_proxy.load(), 0)
       << "out-of-range key observed during concurrent traversal — possible UAF";

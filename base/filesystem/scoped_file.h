@@ -15,8 +15,8 @@ namespace base {
 
 namespace internal {
 #if defined(OS_CHROMEOS) || defined(OS_LINUX)
-// On ChromeOS and Linux we guard FD lifetime with a global table and hook into
-// libc close() to perform checks.
+// On ChromeOS and Linux, FD lifetime is guarded by a global table plus a
+// libc close() hook for checks.
 struct BASE_EXPORT ScopedFDCloseTraits : public ScopedGenericOwnershipTracking {
 #else
 struct BASE_EXPORT ScopedFDCloseTraits {
@@ -39,22 +39,10 @@ namespace subtle {
 // early as possible in a process's lifetime.
 void BASE_EXPORT EnableFDOwnershipEnforcement(bool enabled);
 
-// Resets ownership state of all FDs. The only permissible use of this API is
-// in a forked child process between the fork() and a subsequent exec() call.
-//
-// For one issue, it is common to mass-close most open FDs before calling
-// exec(), to avoid leaking FDs into the new executable's environment. For
-// processes which have enabled FD ownership enforcement, this reset operation
-// is necessary before performing such closures.
-//
-// Furthermore, fork()+exec() may be used in a multithreaded context, and
-// because fork() is not atomic, the FD ownership state in the child process may
-// be inconsistent with the actual set of opened file descriptors once fork()
-// returns in the child process.
-//
-// It is therefore especially important to call this ASAP after fork() in the
-// child process if any FD manipulation will be done prior to the subsequent
-// exec call.
+// Resets ownership state of all FDs. Only for a forked child between fork()
+// and exec(): mass-closing FDs before exec requires the reset, and the state
+// may be inconsistent after fork() in a multithreaded parent. Call this as
+// early as possible if any FD manipulation happens before exec.
 void BASE_EXPORT ResetFDOwnership();
 
 }  // namespace subtle
@@ -63,17 +51,9 @@ void BASE_EXPORT ResetFDOwnership();
 // -----------------------------------------------------------------------------
 
 #if defined(OS_POSIX) || defined(OS_FUCHSIA)
-// A low-level Posix file descriptor closer class. Use this when writing
-// platform-specific code, especially that does non-file-like things with the
-// FD (like sockets).
-//
-// If you're writing low-level Windows code, see base/win/scoped_handle.h
-// which provides some additional functionality.
-//
-// If you're writing cross-platform code that deals with actual files, you
-// should generally use base::File instead which can be constructed with a
-// handle, and in addition to handling ownership, has convenient cross-platform
-// file manipulation functions on it.
+// A low-level POSIX file descriptor closer for platform-specific code that
+// does non-file things with the FD (sockets and the like). For cross-platform
+// file handling use base::File; for Windows handles see base/win/scoped_handle.h.
 typedef ScopedGeneric<int, internal::ScopedFDCloseTraits> ScopedFD;
 #endif
 

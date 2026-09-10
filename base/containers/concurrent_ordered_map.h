@@ -1,30 +1,21 @@
 // Copyright (C) 2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// ConcurrentOrderedMap<Key, Value>
+// Hash map that preserves insertion order, safe for concurrent use. Backed by
+// a single base::SharedMutex:
+//   - find() / iteration take a shared lock, so reads scale.
+//   - insert() / remove() / clear() take an exclusive lock, so writes
+//     serialize against each other and against readers.
 //
-// A hash map that preserves insertion order, safe for concurrent use from
-// multiple threads. Backed by a single base::SharedMutex:
-//   - find() / iteration take a shared lock, concurrent reads scale.
-//   - insert() / remove() / clear() take an exclusive lock, writes
-//     serialize against each other and against active readers.
+// Deliberately not lock-free: a lock-free version needs hazard pointers or
+// epoch-based reclamation to free nodes safely under concurrent remove. A
+// shared lock is a small predictable cost on the read path instead.
 //
-// Why not pure lock-free?  An earlier version of this container was
-// nominally lock-free but inherently unsafe under concurrent remove (the
-// bucket linked list freed nodes that other threads might still be reading,
-// classic use-after-free).  Doing it properly requires hazard pointers or
-// epoch-based reclamation, non-trivial infrastructure for an uncommon
-// use case.  This version trades that complexity for a small predictable
-// cost on the read path: a single atomic increment to take the shared lock.
+// Layout: open-addressing buckets of Node* heads, plus a doubly-linked
+// insertion-order list. Each node lives in exactly one bucket and one order
+// position; both are spliced under the lock.
 //
-// Layout:
-//   - buckets_ : open-addressing array of singly-linked Node* heads.
-//   - orderHead_ / orderTail_ : doubly-linked insertion-order list.
-//   - Each Node lives in exactly one bucket and exactly one position in
-//     the order list. They're spliced in/out together under the lock.
-//
-// Iteration: use for_each_in_order() or for_each_in_order_mut(), those
-// hold the appropriate lock for the duration of the callback. Don't store
+// Iterate with for_each_in_order() / for_each_in_order_mut(). Do not store
 // raw Node* outside the callback; the lock is released on return.
 #pragma once
 
@@ -43,8 +34,8 @@ class ConcurrentOrderedMap {
  public:
   struct Node {
     base::Pair<Key, Value> keyValue;
-    Node* next;        // next in bucket linked list
-    Node* orderNext;   // next in insertion order
+    Node* next;       // next in bucket linked list
+    Node* orderNext;  // next in insertion order
     Node* orderPrev;
 
     Node(const Key& k, Value&& v)
@@ -53,17 +44,14 @@ class ConcurrentOrderedMap {
           orderNext(nullptr),
           orderPrev(nullptr) {}
     Node(const Key& k, const Value& v)
-        : keyValue{k, v},
-          next(nullptr),
-          orderNext(nullptr),
-          orderPrev(nullptr) {}
+        : keyValue{k, v}, next(nullptr), orderNext(nullptr), orderPrev(nullptr) {}
   };
 
-  explicit ConcurrentOrderedMap(mem_size bucketCount)
-      : bucketCount_(bucketCount) {
+  explicit ConcurrentOrderedMap(mem_size bucketCount) : bucketCount_(bucketCount) {
     BASE_BUGCHECK(bucketCount > 0, "ConcurrentOrderedMap needs > 0 buckets");
     buckets_ = new Node*[bucketCount_];
-    for (mem_size i = 0; i < bucketCount_; ++i) buckets_[i] = nullptr;
+    for (mem_size i = 0; i < bucketCount_; ++i)
+      buckets_[i] = nullptr;
   }
 
   ~ConcurrentOrderedMap() {
@@ -146,7 +134,8 @@ class ConcurrentOrderedMap {
       delete n;
       n = next;
     }
-    for (mem_size i = 0; i < bucketCount_; ++i) buckets_[i] = nullptr;
+    for (mem_size i = 0; i < bucketCount_; ++i)
+      buckets_[i] = nullptr;
     orderHead_ = nullptr;
     orderTail_ = nullptr;
     size_ = 0;
@@ -170,7 +159,8 @@ class ConcurrentOrderedMap {
     base::SharedLockGuard<base::SharedMutex> lk(mutex_);
     const mem_size idx = BucketIndex(key);
     for (Node* n = buckets_[idx]; n; n = n->next) {
-      if (n->keyValue.first == key) return true;
+      if (n->keyValue.first == key)
+        return true;
     }
     return false;
   }

@@ -1,6 +1,6 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// Core definitions for compiler specifics.
+// Core definitions for endianess helpers.
 #pragma once
 
 #include <base/arch.h>

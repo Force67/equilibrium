@@ -218,7 +218,8 @@ class RedBlackTree2 {
   // Re-inserts every value of `other`'s subtree into this tree. The shape is
   // rebuilt by the usual insert path rather than mirrored.
   void CopySubtree(const RedBlackTree2& other, Node* node) {
-    if (node == other.nil_) return;
+    if (node == other.nil_)
+      return;
     bool inserted = false;
     FindOrInsert(node->value, &inserted);
     CopySubtree(other, node->left);
@@ -270,9 +271,7 @@ class RedBlackTree2 {
 
   // Moving steals the nodes; the source keeps its own (empty) sentinel so it
   // stays usable and destructible.
-  RedBlackTree2(RedBlackTree2&& other) noexcept : RedBlackTree2() {
-    Swap(other);
-  }
+  RedBlackTree2(RedBlackTree2&& other) noexcept : RedBlackTree2() { Swap(other); }
 
   RedBlackTree2& operator=(RedBlackTree2&& other) noexcept {
     if (this != &other) {
@@ -392,8 +391,7 @@ class RedBlackTree2 {
       y->color = z->color;
     }
 
-    // THIS IS THE FIX: We simply delete the node. The 'delete' operator
-    // handles calling the destructor for us. No manual call is needed.
+    // delete handles the destructor call; no manual call needed.
     delete z;
 
     if (originalColor == BLACK) {

@@ -15,19 +15,13 @@ class File;
 constexpr int kInvalidFd = -1;
 
 // -----------------------------------------------------------------------------
-// We introduct a special structure for file descriptors in order that we are
-// able to use template specialisation to special-case their handling.
+// Wrapper for file descriptors sent over IPC, allowing template
+// specialisation of their handling.
 //
-// IMPORTANT: This is primarily intended for use when sending file descriptors
-// over IPC. Even if |auto_close| is true, base::FileDescriptor does NOT close()
-// |fd| when going out of scope. Instead, a consumer of a base::FileDescriptor
-// must invoke close() on |fd| if |auto_close| is true.
-//
-// In the case of IPC, the IPC subsystem knows to close() |fd| after sending
-// a message that contains a base::FileDescriptor if auto_close == true. On the
-// other end, the receiver must make sure to close() |fd| after it has finished
-// processing the IPC message. See the IPC::ParamTraits<> specialization in
-// ipc/ipc_message_utils.h for all the details.
+// IMPORTANT: base::FileDescriptor never closes |fd| on scope exit, even when
+// |auto_close| is true. The IPC subsystem closes |fd| after sending a message
+// containing it when auto_close == true; the receiver must close() |fd| after
+// processing the message.
 // -----------------------------------------------------------------------------
 struct BASE_EXPORT FileDescriptor {
   FileDescriptor() = default;

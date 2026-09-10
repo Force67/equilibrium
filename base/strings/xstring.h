@@ -1,8 +1,8 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
-// XString implementation - our optimized string class.
-// Note that this file has to be called 'xstring.h' instead of 'string.h' for
-// backwards compat reasons with the c header.
+// XString implementation, the optimized string class.
+// Named 'xstring.h' instead of 'string.h' for backwards compatibility with the
+// C header.
 #pragma once
 
 #include <base/export.h>
@@ -23,20 +23,19 @@ using StringU32 = XBasicString<char32_t>;
 
 // Common SmallString shapes — larger inline buffer, heap fallback.
 // Names mirror their typical use; pick whichever sizes the call site needs.
-using NameString = BasicSmallString<char, 32>;     // identifiers, block names
-using PathString = BasicSmallString<char, 192>;    // file paths, urls
+using NameString = BasicSmallString<char, 32>;   // identifiers, block names
+using PathString = BasicSmallString<char, 192>;  // file paths, urls
 
 // Common FixedString shapes — pure stack, no heap, asserts on overflow.
 using TagString = BasicFixedString<16>;
 using ShortString = BasicFixedString<32>;
 }  // namespace base
 
-// std::format interop. base does its own formatting (base/strings/format.h) and
-// does not use <format> itself, but a consumer that does must not be left with
-// the library's default: BasicBaseString exposes begin()/end(), so C++23 range
-// formatting happily prints it as ['a', 'b', ...] instead of the text, and a
-// standard library without range formatting rejects it outright. Specializing
-// here, next to the type, is what makes both cases behave.
+// std::format interop. base does its own formatting (base/strings/format.h)
+// and does not use <format> itself, but a consumer that does must not be left
+// with the default: begin()/end() make C++23 range formatting print
+// ['a', 'b', ...] instead of the text, and a library without range formatting
+// rejects the type outright.
 //
 // Define BASE_NO_STD_FORMAT to keep <format> out of the build entirely.
 #if !defined(BASE_NO_STD_FORMAT) && __has_include(<format>)

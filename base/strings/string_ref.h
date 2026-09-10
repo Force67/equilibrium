@@ -34,7 +34,8 @@ class BasicStringRef {
   static constexpr mem_size npos = kStringNotFoundPos;
 
   // default ctor: empty ref pointing to a static empty string
-  constexpr BasicStringRef() : data_(s_empty_), length_(0), tags_(StringRefFlags::kIsNullTerm) {}
+  constexpr BasicStringRef()
+      : data_(s_empty_), length_(0), tags_(StringRefFlags::kIsNullTerm) {}
 
   // construct from base::String<T>
   template <class TOther>
@@ -155,7 +156,8 @@ class BasicStringRef {
                         const BasicStringRef<TChar>& rhs) {
     const mem_size min_len = lhs.length_ < rhs.length_ ? lhs.length_ : rhs.length_;
     int result = memcmp(lhs.data_, rhs.data_, min_len * sizeof(TChar));
-    if (result != 0) return result < 0;
+    if (result != 0)
+      return result < 0;
     return lhs.length_ < rhs.length_;
   }
 
@@ -175,22 +177,17 @@ class BasicStringRef {
   }
 
   // Use this in the rare case where you might have an empty string_ref;
-  static inline BasicStringRef<TChar> null_ref() {
-    return BasicStringRef<TChar>();
-  }
+  static inline BasicStringRef<TChar> null_ref() { return BasicStringRef<TChar>(); }
 
   inline bool IsNullTerminated() const { return tags_ & StringRefFlags::kIsNullTerm; }
 
-  // NOTE(Vince): fixes one of my biggest pet peeves with the STL, which is the
-  // fact that we cannot know if a referenced string is null terminated using
-  // std::string_view
-  // Prefer using this over .data()
+  // Unlike std::string_view, this reports whether the referenced string is
+  // null terminated. Prefer over .data().
   inline const TChar* c_str() const {
     BASE_BUGCHECK(tags_ & StringRefFlags::kIsNullTerm,
-             "String piece is not null terminated. c_str() is therefore illegal");
+                  "String piece is not null terminated. c_str() is therefore illegal");
 
-    // TODO: review the impact of this..
-    // tags_ |= StringRefFlags::kInvalidateDeadRef;
+    // TODO: review impact of tagging kInvalidateDeadRef here.
     return data_;
   }
 
@@ -265,23 +262,31 @@ class BasicStringRef {
 
   // Last occurrence at or before `pos`.
   mem_size rfind(TChar c, mem_size pos = npos) const {
-    if (length_ == 0) return npos;
+    if (length_ == 0)
+      return npos;
     mem_size i = (pos == npos || pos >= length_) ? length_ - 1 : pos;
     for (;; --i) {
-      if (data_[i] == c) return i;
-      if (i == 0) return npos;
+      if (data_[i] == c)
+        return i;
+      if (i == 0)
+        return npos;
     }
   }
 
   mem_size rfind(const TChar* s, mem_size pos = npos) const {
-    if (!s) return npos;
+    if (!s)
+      return npos;
     const mem_size s_len = base::CountStringLength(s);
-    if (s_len == 0) return pos < length_ ? pos : length_;
-    if (s_len > length_) return npos;
+    if (s_len == 0)
+      return pos < length_ ? pos : length_;
+    if (s_len > length_)
+      return npos;
     mem_size i = (pos == npos || pos > length_ - s_len) ? length_ - s_len : pos;
     for (;; --i) {
-      if (memcmp(data_ + i, s, s_len * sizeof(TChar)) == 0) return i;
-      if (i == 0) return npos;
+      if (memcmp(data_ + i, s, s_len * sizeof(TChar)) == 0)
+        return i;
+      if (i == 0)
+        return npos;
     }
   }
 
@@ -289,23 +294,28 @@ class BasicStringRef {
   mem_size find_last_of(TChar c, mem_size pos = npos) const { return rfind(c, pos); }
 
   mem_size find_last_of(const TChar* set, mem_size pos = npos) const {
-    if (!set || length_ == 0) return npos;
+    if (!set || length_ == 0)
+      return npos;
     const mem_size set_len = base::CountStringLength(set);
     mem_size i = (pos == npos || pos >= length_) ? length_ - 1 : pos;
     for (;; --i) {
       for (mem_size k = 0; k < set_len; ++k) {
-        if (data_[i] == set[k]) return i;
+        if (data_[i] == set[k])
+          return i;
       }
-      if (i == 0) return npos;
+      if (i == 0)
+        return npos;
     }
   }
 
   mem_size find_first_of(const TChar* set, mem_size pos = 0) const {
-    if (!set) return npos;
+    if (!set)
+      return npos;
     const mem_size set_len = base::CountStringLength(set);
     for (mem_size i = pos; i < length_; ++i) {
       for (mem_size k = 0; k < set_len; ++k) {
-        if (data_[i] == set[k]) return i;
+        if (data_[i] == set[k])
+          return i;
       }
     }
     return npos;
@@ -321,37 +331,45 @@ class BasicStringRef {
     const mem_size shortest = length_ < other.length_ ? length_ : other.length_;
     if (shortest > 0) {
       const int diff = memcmp(data_, other.data_, shortest * sizeof(TChar));
-      if (diff != 0) return diff;
+      if (diff != 0)
+        return diff;
     }
-    if (length_ == other.length_) return 0;
+    if (length_ == other.length_)
+      return 0;
     return length_ < other.length_ ? -1 : 1;
   }
 
   bool starts_with(TChar c) const { return length_ > 0 && data_[0] == c; }
 
   bool starts_with(const TChar* s) const {
-    if (!s) return false;
+    if (!s)
+      return false;
     const mem_size s_len = base::CountStringLength(s);
-    if (s_len > length_) return false;
+    if (s_len > length_)
+      return false;
     return memcmp(data_, s, s_len * sizeof(TChar)) == 0;
   }
 
   bool starts_with(const BasicStringRef& s) const {
-    if (s.size() > length_) return false;
+    if (s.size() > length_)
+      return false;
     return memcmp(data_, s.data(), s.size() * sizeof(TChar)) == 0;
   }
 
   bool ends_with(TChar c) const { return length_ > 0 && data_[length_ - 1] == c; }
 
   bool ends_with(const TChar* s) const {
-    if (!s) return false;
+    if (!s)
+      return false;
     const mem_size s_len = base::CountStringLength(s);
-    if (s_len > length_) return false;
+    if (s_len > length_)
+      return false;
     return memcmp(data_ + (length_ - s_len), s, s_len * sizeof(TChar)) == 0;
   }
 
   bool ends_with(const BasicStringRef& s) const {
-    if (s.size() > length_) return false;
+    if (s.size() > length_)
+      return false;
     return memcmp(data_ + (length_ - s.size()), s.data(), s.size() * sizeof(TChar)) == 0;
   }
 

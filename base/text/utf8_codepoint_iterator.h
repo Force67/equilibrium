@@ -5,23 +5,16 @@
 #include <base/external/icu/icu_utf.h>
 #include <base/strings/string_ref.h>
 
-// note that:
-// Character is an overloaded term that can mean many things.
-//
-// A code point is the atomic unit of information. Text is a sequence of code
-// points. Each code point is a number which is given meaning by the Unicode
-// standard.
-//
-// A code unit is the unit
-// of storage of a part of an encoded code point. In UTF-8 this means 8 bits, in
-// UTF-16 this means 16 bits. A single code unit may represent a full code
-// point, or part of a code point. For example, the snowman glyph (☃) is a
-// single code point but 3 UTF-8 code units, and 1 UTF-16 code unit.
+// Terminology:
+// A code point is the atomic unit of text, a number given meaning by Unicode.
+// A code unit is one unit of storage for an encoded code point: 8 bits in
+// UTF-8, 16 bits in UTF-16. A code point may need multiple code units, e.g.
+// the snowman glyph (☃) is 1 code point, 3 UTF-8 units, 1 UTF-16 unit.
 
 namespace base {
 class UTF8CodePointIterator {
  public:
-  // note that this is 4 bytes since the biggest utf8 char can be 4 bytes
+  // 4 bytes: the largest UTF-8 code point needs 4 bytes.
   using character_type = base_icu::UChar32;
 
   // Requires |str| to live as long as the UTF8CharIterator does.

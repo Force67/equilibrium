@@ -1,21 +1,18 @@
 // Copyright (C) 2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// BasicSmallString<TChar, N>
-//
-// Like BasicBaseString, but the inline (small) buffer is templated to hold
-// up to N characters. When the string outgrows N it spills onto the heap
-// via TAllocator. Use it for things like file paths or names where the
-// common case is comfortably larger than the 22-byte SSO buffer of
-// BasicBaseString but you still want to avoid heap traffic.
+// BasicSmallString<TChar, N>: like BasicBaseString but with a templated
+// inline buffer of N characters. Spills onto the heap via TAllocator when it
+// outgrows N. Use when values are usually larger than BasicBaseString's
+// 22-byte SSO buffer but heap traffic is still unwanted.
 //
 // Layout:
 //   - Inline mode: SmallRep { character_type data[N+1]; size_type size; }
 //   - Heap  mode: LargeRep  { character_type* data;     size_type size, capacity; }
 //   - Discriminator: explicit bool is_large_ at the tail.
 //
-// We deliberately avoid the bit-stuffing trick used by BasicBaseString — for
-// large N the bookkeeping wins us nothing and bool is_large_ is unambiguous.
+// Deliberately no bit-stuffing: for large N the bookkeeping buys nothing and
+// the explicit bool is unambiguous.
 #pragma once
 
 #include <base/arch.h>
@@ -30,9 +27,7 @@
 
 namespace base {
 
-template <typename TChar,
-          mem_size N,
-          class TAllocator = base::DefaultAllocator>
+template <typename TChar, mem_size N, class TAllocator = base::DefaultAllocator>
 class BasicSmallString {
   static_assert(N > 0, "BasicSmallString requires N > 0");
 
@@ -74,9 +69,7 @@ class BasicSmallString {
   const character_type* const_data() const noexcept {
     return is_large_ ? large_.data_ : small_.data_;
   }
-  size_type get_size() const noexcept {
-    return is_large_ ? large_.size_ : small_.size_;
-  }
+  size_type get_size() const noexcept { return is_large_ ? large_.size_ : small_.size_; }
   size_type get_capacity() const noexcept {
     return is_large_ ? large_.capacity_ : kInlineCapacity;
   }
@@ -97,14 +90,14 @@ class BasicSmallString {
 
   void deallocate_large_if_needed() {
     if (is_large_) {
-      TAllocator::Free(large_.data_,
-                       (large_.capacity_ + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_, (large_.capacity_ + 1) * sizeof(character_type));
     }
   }
 
   // Grow capacity to at least `required` characters. Preserves contents.
   void grow_to(size_type required) {
-    if (required <= get_capacity()) return;
+    if (required <= get_capacity())
+      return;
 
     // Geometric growth: 1.5x rounded up.
     size_type new_capacity = required + (required / 2);
@@ -131,7 +124,8 @@ class BasicSmallString {
 
   BasicSmallString(const character_type* str) {
     init_empty();
-    if (str) assign(str);
+    if (str)
+      assign(str);
   }
 
   BasicSmallString(const character_type* str, size_type len) {
@@ -149,7 +143,8 @@ class BasicSmallString {
     if (count > 0) {
       grow_to(count);
       character_type* d = mutable_data();
-      for (size_type i = 0; i < count; ++i) d[i] = c;
+      for (size_type i = 0; i < count; ++i)
+        d[i] = c;
       set_size(count);
       terminate();
     }
@@ -158,8 +153,8 @@ class BasicSmallString {
   template <mem_size ArraySize>
   BasicSmallString(const character_type (&arr)[ArraySize]) {
     init_empty();
-    assign(arr, static_cast<size_type>(base::CountStringLength(
-                    arr, ArraySize > 0 ? ArraySize - 1 : 0)));
+    assign(arr, static_cast<size_type>(
+                    base::CountStringLength(arr, ArraySize > 0 ? ArraySize - 1 : 0)));
   }
 
   BasicSmallString(const BasicSmallString& other) {
@@ -194,7 +189,8 @@ class BasicSmallString {
   // -- Assignment --
 
   BasicSmallString& operator=(const BasicSmallString& other) {
-    if (this != &other) assign(other.const_data(), other.get_size());
+    if (this != &other)
+      assign(other.const_data(), other.get_size());
     return *this;
   }
 
@@ -225,7 +221,8 @@ class BasicSmallString {
       clear();
       return;
     }
-    if (len > get_capacity()) grow_to(len);
+    if (len > get_capacity())
+      grow_to(len);
     memcpy(mutable_data(), str, len * sizeof(character_type));
     set_size(len);
     terminate();
@@ -246,9 +243,7 @@ class BasicSmallString {
   character_type* begin() noexcept { return mutable_data(); }
   character_type* end() noexcept { return mutable_data() + get_size(); }
   const character_type* begin() const noexcept { return const_data(); }
-  const character_type* end() const noexcept {
-    return const_data() + get_size();
-  }
+  const character_type* end() const noexcept { return const_data() + get_size(); }
 
   character_type& operator[](size_type i) {
     BASE_BUGCHECK(i < get_size(), "Index out of bounds");
@@ -274,16 +269,15 @@ class BasicSmallString {
 
   size_type size() const noexcept { return get_size(); }
   size_type length() const noexcept { return get_size(); }
-  size_type byte_size() const noexcept {
-    return get_size() * sizeof(character_type);
-  }
+  size_type byte_size() const noexcept { return get_size() * sizeof(character_type); }
   bool empty() const noexcept { return get_size() == 0; }
   size_type capacity() const noexcept { return get_capacity(); }
   static constexpr size_type inline_capacity() noexcept { return N; }
   bool is_inline() const noexcept { return !is_large_; }
 
   void reserve(size_type new_capacity) {
-    if (new_capacity > get_capacity()) grow_to(new_capacity);
+    if (new_capacity > get_capacity())
+      grow_to(new_capacity);
   }
 
   void resize(size_type new_size) {
@@ -308,7 +302,8 @@ class BasicSmallString {
   }
 
   void shrink_to_fit() {
-    if (!is_large_) return;
+    if (!is_large_)
+      return;
     const size_type cur = large_.size_;
     if (cur <= kInlineCapacity) {
       // Move heap contents back inline.
@@ -324,8 +319,7 @@ class BasicSmallString {
           TAllocator::Allocate((cur + 1) * sizeof(character_type)));
       memcpy(new_data, large_.data_, cur * sizeof(character_type));
       new_data[cur] = character_type{};
-      TAllocator::Free(large_.data_,
-                       (large_.capacity_ + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_, (large_.capacity_ + 1) * sizeof(character_type));
       large_.data_ = new_data;
       large_.capacity_ = cur;
     }
@@ -347,10 +341,12 @@ class BasicSmallString {
   }
 
   void append(const character_type* str, size_type count) {
-    if (count == 0) return;
+    if (count == 0)
+      return;
     const size_type old_size = get_size();
     const size_type new_size = old_size + count;
-    if (new_size > get_capacity()) grow_to(new_size);
+    if (new_size > get_capacity())
+      grow_to(new_size);
     memcpy(mutable_data() + old_size, str, count * sizeof(character_type));
     set_size(new_size);
     terminate();
@@ -361,7 +357,8 @@ class BasicSmallString {
 
   void push_back(character_type c) {
     const size_type old_size = get_size();
-    if (old_size + 1 > get_capacity()) grow_to(old_size + 1);
+    if (old_size + 1 > get_capacity())
+      grow_to(old_size + 1);
     mutable_data()[old_size] = c;
     set_size(old_size + 1);
     terminate();
@@ -369,13 +366,16 @@ class BasicSmallString {
 
   void insert(size_type pos, size_type count, character_type c) {
     BASE_BUGCHECK(pos <= get_size(), "Invalid insert position");
-    if (count == 0) return;
+    if (count == 0)
+      return;
     const size_type old_size = get_size();
     const size_type new_size = old_size + count;
-    if (new_size > get_capacity()) grow_to(new_size);
+    if (new_size > get_capacity())
+      grow_to(new_size);
     character_type* d = mutable_data();
     memmove(d + pos + count, d + pos, (old_size - pos) * sizeof(character_type));
-    for (size_type i = 0; i < count; ++i) d[pos + i] = c;
+    for (size_type i = 0; i < count; ++i)
+      d[pos + i] = c;
     set_size(new_size);
     terminate();
   }
@@ -384,10 +384,10 @@ class BasicSmallString {
     const size_type cur = get_size();
     BASE_BUGCHECK(pos <= cur, "Invalid erase position");
     count = base::Min(count, cur - pos);
-    if (count == 0) return;
+    if (count == 0)
+      return;
     character_type* d = mutable_data();
-    memmove(d + pos, d + pos + count,
-            (cur - pos - count) * sizeof(character_type));
+    memmove(d + pos, d + pos + count, (cur - pos - count) * sizeof(character_type));
     set_size(cur - count);
     terminate();
   }
@@ -418,9 +418,12 @@ class BasicSmallString {
     const size_type left_size = get_size();
     const size_type min_size = base::Min(left_size, count);
     int result = memcmp(const_data(), str, min_size * sizeof(character_type));
-    if (result != 0) return result;
-    if (left_size < count) return -1;
-    if (left_size > count) return 1;
+    if (result != 0)
+      return result;
+    if (left_size < count)
+      return -1;
+    if (left_size > count)
+      return 1;
     return 0;
   }
 
@@ -428,23 +431,29 @@ class BasicSmallString {
 
   size_type find(character_type c, size_type pos = 0) const {
     const size_type cur = get_size();
-    if (pos >= cur) return npos;
+    if (pos >= cur)
+      return npos;
     const character_type* d = const_data();
     for (size_type i = pos; i < cur; ++i) {
-      if (d[i] == c) return i;
+      if (d[i] == c)
+        return i;
     }
     return npos;
   }
 
   size_type find(const character_type* s, size_type pos = 0) const {
-    if (!s) return npos;
+    if (!s)
+      return npos;
     const size_type s_len = static_cast<size_type>(base::CountStringLength(s));
     const size_type cur = get_size();
-    if (s_len == 0) return pos <= cur ? pos : npos;
-    if (pos + s_len > cur) return npos;
+    if (s_len == 0)
+      return pos <= cur ? pos : npos;
+    if (pos + s_len > cur)
+      return npos;
     const character_type* d = const_data();
     for (size_type i = pos; i <= cur - s_len; ++i) {
-      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0) return i;
+      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0)
+        return i;
     }
     return npos;
   }
@@ -455,12 +464,15 @@ class BasicSmallString {
 
   size_type find_last_of(character_type c, size_type pos = npos) const {
     const size_type cur = get_size();
-    if (cur == 0) return npos;
+    if (cur == 0)
+      return npos;
     size_type i = (pos == npos || pos >= cur) ? cur - 1 : pos;
     const character_type* d = const_data();
     for (;; --i) {
-      if (d[i] == c) return i;
-      if (i == 0) return npos;
+      if (d[i] == c)
+        return i;
+      if (i == 0)
+        return npos;
     }
   }
 };
@@ -470,16 +482,18 @@ class BasicSmallString {
 template <typename TChar, mem_size N, class TAllocator>
 bool operator==(const BasicSmallString<TChar, N, TAllocator>& lhs,
                 const BasicSmallString<TChar, N, TAllocator>& rhs) {
-  if (lhs.size() != rhs.size()) return false;
+  if (lhs.size() != rhs.size())
+    return false;
   return memcmp(lhs.data(), rhs.data(), lhs.byte_size()) == 0;
 }
 
 template <typename TChar, mem_size N, class TAllocator>
-bool operator==(const BasicSmallString<TChar, N, TAllocator>& lhs,
-                const TChar* rhs) {
-  if (rhs == nullptr) return lhs.empty();
+bool operator==(const BasicSmallString<TChar, N, TAllocator>& lhs, const TChar* rhs) {
+  if (rhs == nullptr)
+    return lhs.empty();
   const auto rhs_len = base::CountStringLength(rhs);
-  if (rhs_len != lhs.size()) return false;
+  if (rhs_len != lhs.size())
+    return false;
   return memcmp(lhs.data(), rhs, lhs.byte_size()) == 0;
 }
 

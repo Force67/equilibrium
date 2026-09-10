@@ -253,8 +253,7 @@ bool NormalizePath(const Path& path, Path* normalized_path) {
   return true;
 }
 
-// TODO(rkc): Refactor GetFileInfo and FileEnumerator to handle symlinks
-// correctly. http://code.google.com/p/chromium-os/issues/detail?id=15948
+// TODO: make GetFileInfo and FileEnumerator handle symlinks correctly.
 bool IsLink(const Path& file_path) {
   stat_wrapper_t st;
   // If we can't lstat the file, it's safe to assume that the file won't at

@@ -26,7 +26,7 @@ constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
 #endif
 }  // namespace
 
-// TODO: maybe refactor this in some complex obj init instantiate shit
+// TODO: refactor this into a proper initialization sequence.
 PageTable* EQMemoryRouter::page_table() {
   if (!page_table_data_[0]) {
     // 8192 page entries = 512 MiB addressable with 64 KiB pages.
@@ -34,7 +34,7 @@ PageTable* EQMemoryRouter::page_table() {
     PageTable* table = new (&page_table_data_[sizeof(UINT_MAX)]) PageTable(
         1_tib /*This should be a base compile opt later on..*/, kIdealPageSize, 8192);
     InitializeAllocators(*table);
-    // tombstone this so never ever ever there can be more than one pagetable.
+    // Tombstone so at most one page table can ever be created.
     *reinterpret_cast<uint32_t*>(&page_table_data_[0]) = UINT32_MAX;
     return table;
   }
@@ -42,7 +42,7 @@ PageTable* EQMemoryRouter::page_table() {
 }
 
 void EQMemoryRouter::InitializeAllocators(PageTable& page_table) {
-  // placement new
+  // placement-new the allocator instances into preallocated storage.
   allocators_[AllocatorID::kBucketAllocator] =
       new (bucket_allocator_storage) BucketAllocator(page_table);
   allocators_[AllocatorID::kPageAllocator] =

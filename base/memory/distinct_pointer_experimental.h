@@ -10,9 +10,8 @@ namespace base {
 enum class MakeNow {};
 enum class MakeLater {};
 
-// this class by design does *not* expose any of the following:
-// - .get() as this can lead to use after free
-// - .free() as this can lead to dangeling references
+// By design this class does not expose .get() (use-after-free risk) or
+// .free() (dangling reference risk).
 template <typename T,
           class TConstructionPolicy = MakeNow,
           class TDeleter = base::DefaultDeleter<T>>

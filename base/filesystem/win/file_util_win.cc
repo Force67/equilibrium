@@ -21,7 +21,7 @@ bool CreateTemporaryDirInDir(const Path& base_dir,
 
   Path path_to_create;
   for (int count = 0; count < 50; ++count) {
-    // TODO(Vince): numeric conv functions
+    // TODO: numeric conversion helpers.
     auto name = base::Format("scoped_dir_{}_{}", ::GetCurrentProcessId(), RandomUint());
 
     path_to_create = base_dir / name.c_str();
@@ -79,10 +79,12 @@ DWORD DeleteFileRecursive(const Path& path,
       continue;
 
     const Path current = path / Path(Path::BufferType(name));
-    const bool is_directory = (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+    const bool is_directory =
+        (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 
     // Try to clear the read-only bit if we find it.
-    if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_READONLY) && (recursive || !is_directory)) {
+    if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_READONLY) &&
+        (recursive || !is_directory)) {
       ::SetFileAttributesW(current.c_str(),
                            find_data.dwFileAttributes & ~DWORD{FILE_ATTRIBUTE_READONLY});
     }

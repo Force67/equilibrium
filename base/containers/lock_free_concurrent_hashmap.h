@@ -9,44 +9,12 @@
 #include <base/memory/move.h>
 
 namespace base {
-// LockFreeHashMap is a concurrent hash map implementation that provides
-// lock-free
-// operations for insertion, deletion, and lookup. It's designed to handle
-// high-concurrency scenarios efficiently by minimizing blocking and
-// synchronization.
+// Concurrent hash map with lock-free insert, remove and lookup. Fixed bucket
+// count; each bucket is a singly linked list updated with atomics.
 //
-// How it Works:
-// - The map consists of a fixed number of buckets, with each bucket containing
-// a
-//   singly linked list of nodes.
-// - Each node stores a key-value pair, similar to a standard hash map.
-// - Insertion, deletion, and lookup operations are performed using atomic
-// operations,
-//   ensuring that the map can be safely used by multiple threads without
-//   explicit locks.
-// - The hash function determines the bucket index for each key, and the node is
-// then
-//   inserted into the corresponding bucket's linked list.
-//
-// Ordering:
-// - This implementation does not maintain the order of insertion. The elements
-// in each
-//   bucket follow the order in which they were inserted, but this order is not
-//   preserved across the entire map.
-// - The iteration order will follow the sequence of buckets and then the linked
-// list within
-//   each bucket, but this is not indicative of insertion order.
-// - Due to its concurrent nature and bucket-based storage, the insertion order
-// is not
-//   deterministic, especially under high-concurrency scenarios.
-//
-// Note:
-// - This class is suitable for scenarios where concurrent access to a hash map
-// is required
-//   and the order of elements is not a concern.
-// - It provides efficient key-based lookup and modification operations with
-// minimized
-//   contention among threads.
+// Iteration order is not insertion order and is not deterministic across
+// threads. Removal is logical (tombstones); memory is reclaimed only in
+// collect_garbage() or the destructor.
 template <typename Key, typename Value>
 class LockFreeHashMap {
  public:
@@ -80,7 +48,6 @@ class LockFreeHashMap {
     KeyValuePair& operator*() { return currentNode->keyValue; }
     KeyValuePair* operator->() { return &currentNode->keyValue; }
 
-    // Equality and inequality operators
     bool operator==(const Iterator& other) const {
       return currentNode == other.currentNode;
     }
@@ -90,11 +57,11 @@ class LockFreeHashMap {
     // Walks forward past tombstones and empty buckets.
     void AdvanceToLive() {
       for (;;) {
-        while (currentNode &&
-               currentNode->dead.load(base::memory_order_acquire)) {
+        while (currentNode && currentNode->dead.load(base::memory_order_acquire)) {
           currentNode = currentNode->next.load(base::memory_order_acquire);
         }
-        if (currentNode || bucketIndex >= map->bucketCount - 1) return;
+        if (currentNode || bucketIndex >= map->bucketCount - 1)
+          return;
         ++bucketIndex;
         currentNode = map->buckets[bucketIndex].load(base::memory_order_acquire);
       }
@@ -121,8 +88,7 @@ class LockFreeHashMap {
     // quiescence (collect_garbage or the destructor).
     base::Atomic<bool> dead;
 
-    Node(Key k, Value&& v)
-        : keyValue{k, base::move(v)}, next(nullptr), dead(false) {}
+    Node(Key k, Value&& v) : keyValue{k, base::move(v)}, next(nullptr), dead(false) {}
   };
 
  private:
@@ -155,8 +121,7 @@ class LockFreeHashMap {
     Node* head = buckets[index].load(base::memory_order_acquire);
 
     while (head) {
-      if (head->keyValue.first == key &&
-          !head->dead.load(base::memory_order_acquire)) {
+      if (head->keyValue.first == key && !head->dead.load(base::memory_order_acquire)) {
         value = head->keyValue.second;
         return true;
       }
@@ -174,8 +139,7 @@ class LockFreeHashMap {
     Node* head = buckets[index].load(base::memory_order_acquire);
 
     while (head) {
-      if (head->keyValue.first == key &&
-          !head->dead.load(base::memory_order_acquire)) {
+      if (head->keyValue.first == key && !head->dead.load(base::memory_order_acquire)) {
         bool expected = false;
         if (head->dead.compare_exchange_strong(expected, true,
                                                base::memory_order_acq_rel)) {

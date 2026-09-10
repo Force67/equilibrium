@@ -7,7 +7,7 @@
 
 namespace base {
 
-// ugly macros
+// Path separator macros.
 #if defined(OS_WIN)
 #define BASE_PATH_SEP_MACRO L'\\'
 #define BASE_PATH_LITERAL(x) L##x
@@ -29,21 +29,11 @@ class BASE_EXPORT Path {
 #endif
 
 #if defined(OS_POSIX)
-  // On MacOs,these are encoded in utf8, linux encoding is not strictly
-  // specified however we aim to enforce utf8 on linux too
-
-  // Specifically, Glib (used by Gtk+ apps) assumes that all file names are
-  // UTF-8 encoded, regardless of the user's locale. This may be overridden with
-  // the environment variables G_FILENAME_ENCODING and G_BROKEN_FILENAMES. On
-  // the other hand, Qt defaults to assuming that all file names are encoded in
-  // the current user's locale. An individual application may choose to override
-  // this assumption, though I do not know of any that do, and there is no
-  // external override switch. Modern Linux distributions are set up such that
-  // all users are using UTF-8 locales and paths on foreign filesystem mounts
-  // are translated to UTF-8, so this difference in strategies generally has no
-  // effect. However, if you really want to be safe, you cannot assume any
-  // structure about filenames beyond "NUL-terminated,
-  // '/'-delimited sequence of bytes".
+  // macOS encodes filenames as UTF-8. Linux does not strictly specify an
+  // encoding: GTK assumes UTF-8, Qt uses the user's locale, and neither has a
+  // reliable external override. Modern distributions use UTF-8 locales and
+  // translate foreign mounts, so UTF-8 is enforced here too. To be fully safe,
+  // treat filenames only as "NUL-terminated, '/'-delimited bytes".
   using CharType = char8_t;
   static constexpr CharType kSeperator = u8'/';
 #endif
@@ -86,18 +76,13 @@ class BASE_EXPORT Path {
   // windows or forward slashes on *nix
   static void Normalize(BufferType&);
 
-  // returns a Path corresponding to the directory containing the path
-  // named by this object, stripping away the file component.  If this object
-  // only contains one component, returns a FilePath identifying
-  // kCurrentDirectory.  If this object already refers to the root directory,
-  // returns a Path identifying the root directory. Please note that this
-  // doesn't resolve directory navigation, e.g. the result for "../a" is "..".
+  // Returns the directory containing this path, stripping the file component.
+  // A single component yields kCurrentDirectory, the root yields itself.
+  // Navigation is not resolved: DirName("../a") == "..".
   [[nodiscard]] Path DirName() const;
 
-  // returns a Path corresponding to the last path component of this
-  // object, either a file or a directory.  If this object already refers to
-  // the root directory, returns a Path identifying the root directory;
-  // this is the only situation in which BaseName will return an absolute path.
+  // Returns the last path component, file or directory. Only BaseName of the
+  // root directory returns an absolute path.
   [[nodiscard]] Path BaseName() const;
   [[nodiscard]] Path Extension() const;
 

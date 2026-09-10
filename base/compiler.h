@@ -157,7 +157,6 @@
 
 // TODO: CACHELINE_SIZE 64
 
-// TODO: Evaluate if this belongs here.
 namespace base {
 #ifdef _MSC_VER
 // It's MSVC, so we just have to guess ... and allow an override
@@ -184,5 +183,4 @@ constexpr std::size_t countof_impl(const T (&)[N]) noexcept {
 #define _countof(arr) ::detail::countof_impl(arr)
 #endif
 
-// TODO(Vince)
-// REG_DWORD_LITTLE_ENDIAN
+// TODO(Vince): REG_DWORD_LITTLE_ENDIAN

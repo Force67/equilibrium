@@ -155,12 +155,9 @@ bool File::SetLength(int64_t length) {
   if (!::SetFilePointerEx(file_.Get(), length_li, NULL, FILE_BEGIN))
     return false;
 
-  // Set the new file length and move the file pointer to its old position.
-  // This is consistent with ftruncate()'s behavior, even when the file
-  // pointer points to a location beyond the end of the file.
-  // TODO(rvargas): Emulating ftruncate details seem suspicious and it is not
-  // promised by the interface (nor was promised by PlatformFile). See if this
-  // implementation detail can be removed.
+  // Set the new file length and move the file pointer to its old position,
+  // matching ftruncate() behavior even when the pointer lies beyond EOF.
+  // TODO: check whether emulating this ftruncate detail is still needed.
   return ((::SetEndOfFile(file_.Get()) != FALSE) &&
           (::SetFilePointerEx(file_.Get(), file_pointer, NULL, FILE_BEGIN) != FALSE));
 }
@@ -286,7 +283,6 @@ File::Error File::OSErrorToFileError(uint32_t last_error) {
     case ERROR_DISK_CORRUPT:  // The disk structure is corrupted and unreadable.
       return FILE_ERROR_IO;
     default:
-      // UmaHistogramSparse("PlatformFile.UnknownErrors.Windows", last_error);
       // This function should only be called for errors.
       BASE_BUGCHECK(static_cast<DWORD>(ERROR_SUCCESS) != last_error);
       return FILE_ERROR_FAILED;

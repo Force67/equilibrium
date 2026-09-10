@@ -17,13 +17,11 @@ struct KnobEntry {
 };
 
 // Usage: global Knob<bool> MyBooleanOption;
-// Then run python /equilibrium/base/gen_knobs.py . knobs.h
-// It will generate:
-// - void InitializeAllKnobs()
-// - void DestructAllKnobs()
-// and void InitializeAllKnobsAndRegister(KnobEntry (&knob_list)[kKnobCount])
-// Names will be convered to snake_case ish for the displaynames.
-// We guarantee the data starts at offset 0 from the knob_obj.
+// Then run python /equilibrium/base/gen_knobs.py . knobs.h to generate
+// InitializeAllKnobs(), DestructAllKnobs(), and
+// InitializeAllKnobsAndRegister(KnobEntry (&knob_list)[kKnobCount]).
+// Display names are converted to snake_case. Data starts at offset 0 from
+// knob_obj.
 
 // Specialization for POD types
 template <typename T, bool is_trivial = base::IsTrivial<T>>

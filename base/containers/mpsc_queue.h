@@ -9,14 +9,13 @@
 
 namespace base {
 
-// Wait-free MPSC linked-list queue.
+// Wait-free MPSC linked-list queue (C++ translation of
+// https://github.com/dbittman/waitfree-mpsc-queue).
 //
-// The queue keeps a sentinel node ahead of the data nodes. Historically the
-// sentinel embedded a default-constructed `T value;`, which made the whole
-// container unusable for non-default-constructible payloads. The Node now
-// stores `value` inside an anonymous union so its lifetime is managed by hand:
-// the sentinel never constructs `value`; data nodes do; dequeue destroys the
-// value after copying it out; the destructor walks the chain destroying live
+// A sentinel node precedes the data nodes. Its `value` storage is never
+// constructed: Node stores `value` in an anonymous union with hand-managed
+// lifetime, so non-default-constructible payloads work. Data nodes construct
+// on push, dequeue destroys after copying out, the destructor destroys live
 // payloads.
 template <typename T>
 class MPSCQueue {
@@ -120,7 +119,8 @@ class MPSCQueue {
   bool dequeue(T& out) {
     Node* tail = tail_.load(base::memory_order_relaxed);
     Node* next = tail->next.load(base::memory_order_acquire);
-    if (next == nullptr) return false;
+    if (next == nullptr)
+      return false;
 
     // Move the value out, then destroy the source. After this point `next`
     // becomes the new sentinel and must NOT have a live `value` (otherwise the
@@ -138,7 +138,8 @@ class MPSCQueue {
   bool peek(T*& value) const {
     Node* tail = tail_.load(base::memory_order_relaxed);
     Node* next = tail->next.load(base::memory_order_acquire);
-    if (next == nullptr) return false;
+    if (next == nullptr)
+      return false;
     value = &next->value;
     return true;
   }
@@ -146,7 +147,8 @@ class MPSCQueue {
   bool removeFront() {
     Node* tail = tail_.load(base::memory_order_relaxed);
     Node* next = tail->next.load(base::memory_order_acquire);
-    if (next == nullptr) return false;
+    if (next == nullptr)
+      return false;
 
     next->value.~T();
     tail_.store(next, base::memory_order_release);
@@ -162,8 +164,8 @@ class MPSCQueue {
   // Approximate queue size. O(n) walk -- use sparingly.
   mem_size size_approx() const {
     mem_size count = 0;
-    Node* current = tail_.load(base::memory_order_acquire)
-                        ->next.load(base::memory_order_acquire);
+    Node* current =
+        tail_.load(base::memory_order_acquire)->next.load(base::memory_order_acquire);
     while (current != nullptr) {
       ++count;
       current = current->next.load(base::memory_order_acquire);

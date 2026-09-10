@@ -1,11 +1,8 @@
 // Tests for ConcurrentOrderedMap.
 //
-// We want correctness under all four concurrent operation mixes that the
-// old "lock-free" version got wrong:
-//   - concurrent inserts            (forward + backward link consistency)
-//   - concurrent finds               (lock-free read path is the hot path)
-//   - concurrent removes             (the original UAF)
-//   - concurrent insert/find/remove  (mixed, the realistic stress)
+// Covers the four concurrent operation mixes the earlier lock-free version
+// got wrong: concurrent inserts, concurrent finds, concurrent removes, and
+// all three mixed (the realistic stress).
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -113,7 +110,8 @@ TEST(ConcurrentOrderedMap, InsertOrAssignOverwrites) {
 
 TEST(ConcurrentOrderedMap, ClearEmptiesEverything) {
   base::ConcurrentOrderedMap<int, int> m(8);
-  for (int i = 0; i < 100; ++i) m.insert(i, i);
+  for (int i = 0; i < 100; ++i)
+    m.insert(i, i);
   EXPECT_EQ(m.size(), 100u);
   m.clear();
   EXPECT_EQ(m.size(), 0u);
@@ -125,7 +123,8 @@ TEST(ConcurrentOrderedMap, ClearEmptiesEverything) {
 TEST(ConcurrentOrderedMap, ManyInsertsKeepOrder) {
   constexpr int kN = 5000;
   base::ConcurrentOrderedMap<int, int> m(64);
-  for (int i = 0; i < kN; ++i) m.insert(i, i * 2);
+  for (int i = 0; i < kN; ++i)
+    m.insert(i, i * 2);
 
   // Order is the insertion order.
   int expected = 0;
@@ -151,7 +150,8 @@ TEST(ConcurrentOrderedMap, ConcurrentInsertReachability) {
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
-      while (!go.load()) {}
+      while (!go.load()) {
+      }
       for (int i = 0; i < kPerThread; ++i) {
         const int k = t * kPerThread + i;
         m.insert(k, k);
@@ -159,7 +159,8 @@ TEST(ConcurrentOrderedMap, ConcurrentInsertReachability) {
     });
   }
   go.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   EXPECT_EQ(m.size(), static_cast<arch_types::mem_size>(kTotal));
 
@@ -190,24 +191,28 @@ TEST(ConcurrentOrderedMap, ConcurrentFindAfterInsert) {
   constexpr int kFindsPerReader = 5000;
 
   base::ConcurrentOrderedMap<int, int> m(512);
-  for (int i = 0; i < kKeys; ++i) m.insert(i, i + 1);
+  for (int i = 0; i < kKeys; ++i)
+    m.insert(i, i + 1);
 
   base::Atomic<int> hits{0};
   base::Atomic<bool> go{false};
   std::vector<std::thread> ts;
   for (int t = 0; t < kReaders; ++t) {
     ts.emplace_back([&] {
-      while (!go.load()) {}
+      while (!go.load()) {
+      }
       for (int i = 0; i < kFindsPerReader; ++i) {
         int v;
         if (m.find(i % kKeys, v)) {
-          if (v == (i % kKeys) + 1) hits.fetch_add(1, base::memory_order_relaxed);
+          if (v == (i % kKeys) + 1)
+            hits.fetch_add(1, base::memory_order_relaxed);
         }
       }
     });
   }
   go.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
   EXPECT_EQ(hits.load(), kReaders * kFindsPerReader);
 }
 
@@ -222,7 +227,8 @@ TEST(ConcurrentOrderedMap, ConcurrentRemoveSafe) {
 
   base::ConcurrentOrderedMap<int, int> m(64);
   // Pre-populate.
-  for (int k = 0; k < kTotal; ++k) m.insert(k, k);
+  for (int k = 0; k < kTotal; ++k)
+    m.insert(k, k);
   EXPECT_EQ(m.size(), static_cast<arch_types::mem_size>(kTotal));
 
   base::Atomic<bool> go{false};
@@ -230,14 +236,17 @@ TEST(ConcurrentOrderedMap, ConcurrentRemoveSafe) {
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
-      while (!go.load()) {}
+      while (!go.load()) {
+      }
       for (int i = 0; i < kPerThread; ++i) {
-        if (m.remove(t * kPerThread + i)) removed.fetch_add(1);
+        if (m.remove(t * kPerThread + i))
+          removed.fetch_add(1);
       }
     });
   }
   go.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   EXPECT_EQ(removed.load(), kTotal);
   EXPECT_EQ(m.size(), 0u);
@@ -258,7 +267,8 @@ TEST(ConcurrentOrderedMap, ConcurrentMixedOperations) {
   std::vector<std::thread> ts;
   for (int t = 0; t < kThreads; ++t) {
     ts.emplace_back([&, t] {
-      while (!go.load()) {}
+      while (!go.load()) {
+      }
       // Pseudo-random op selection driven by (t,i) only — deterministic
       // per-thread, no shared RNG.
       for (int i = 0; i < kOpsPerThread; ++i) {
@@ -280,7 +290,8 @@ TEST(ConcurrentOrderedMap, ConcurrentMixedOperations) {
     });
   }
   go.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   // After all writers stopped, size() must equal the iteration count.
   arch_types::mem_size by_size = m.size();
@@ -299,14 +310,16 @@ TEST(ConcurrentOrderedMap, ConcurrentReadersDuringWrites) {
   constexpr int kDurationMs = 100;
 
   base::ConcurrentOrderedMap<int, int> m(64);
-  for (int i = 0; i < 200; ++i) m.insert(i, i);
+  for (int i = 0; i < 200; ++i)
+    m.insert(i, i);
 
   base::Atomic<bool> stop{false};
   base::Atomic<int> iteration_errors{0};
 
   // Pre-populate with insert_or_assign so duplicates can't sneak in.
   m.clear();
-  for (int i = 0; i < 200; ++i) m.insert_or_assign(i, i);
+  for (int i = 0; i < 200; ++i)
+    m.insert_or_assign(i, i);
 
   std::vector<std::thread> ts;
   for (int w = 0; w < kWriters; ++w) {
@@ -339,7 +352,8 @@ TEST(ConcurrentOrderedMap, ConcurrentReadersDuringWrites) {
 
   std::this_thread::sleep_for(std::chrono::milliseconds(kDurationMs));
   stop.store(true);
-  for (auto& th : ts) th.join();
+  for (auto& th : ts)
+    th.join();
 
   EXPECT_EQ(iteration_errors.load(), 0)
       << "duplicate keys observed within a single iteration — lock failed";

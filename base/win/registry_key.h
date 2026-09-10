@@ -2,8 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-// adapted from:
-// https://source.chromium.org/chromium/chromium/src/+/main:base/win/registry.h
+// Adapted from Chromium's base/win/registry.h.
 
 #include <base/arch.h>
 #include <base/export.h>

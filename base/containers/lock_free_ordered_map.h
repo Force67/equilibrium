@@ -1,30 +1,19 @@
 // Copyright (C) 2023-2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// LockFreeOrderedHashMap<Key, Value>
-//
-// A genuinely lock-free hash map that also preserves insertion order.
-//   - insert / find / remove are all lock-free (CAS-only on the hot path).
-//   - Memory reclamation is handled by epoch-based reclamation (EBR), so
-//     readers can never use-after-free a node a writer is removing.
+// Lock-free hash map that preserves insertion order.
+//   - insert / find / remove are lock-free (CAS only on the hot path).
+//   - Memory reclamation uses epoch-based reclamation (EBR), so readers
+//     never use-after-free a node a writer removes.
 //   - The order list is a Michael & Scott queue keyed off insertion time,
-//     spliced atomically alongside the bucket linked list.
+//     spliced atomically alongside the bucket list.
 //
-// EBR design (loosely after CMU's ParlayHash):
-//   - Every operation grabs an `ebr::Guard` which "announces" the current
-//     global epoch in a per-thread slot.
-//   - remove() marks the node deleted and tries to CAS-unlink from the
-//     bucket; if that fails it leaves the node tagged-but-still-linked
-//     and the next sweep / find will deal with it.
-//   - A periodic GC pass walks the bucket + order chains, physically
-//     unlinks tagged nodes, stamps each with the current epoch, then frees
-//     any node whose retirement epoch is at least 2 ahead of the minimum
-//     active epoch, guaranteed unreachable by any concurrent reader.
-//
-// History: this implementation grew up inside zetanet (znet/fancy_queue.h)
-// to support the network packet ACK queue. It's been lifted here so the
-// rest of the engine has a single canonical lock-free ordered map and the
-// container sits in the layer it logically belongs to.
+// EBR design (loosely after CMU's ParlayHash): every operation announces the
+// current global epoch in a per-thread slot via ebr::Guard. remove() marks the
+// node deleted and CAS-unlinks from the bucket; on failure the node stays
+// tagged-but-linked for the next sweep or find. A GC pass physically unlinks
+// tagged nodes and frees any whose retirement epoch is at least 2 ahead of the
+// minimum active epoch, hence unreachable by any concurrent reader.
 #pragma once
 
 #include <base/arch.h>
@@ -41,10 +30,9 @@
 namespace base {
 
 // ---------------------------------------------------------------------------
-// Epoch-based reclamation (EBR).
-// Protects concurrent readers from use-after-free: a node is only freed
-// once every thread that could possibly hold a pointer to it has exited
-// its read-side critical section.  Based on ParlayHash (CMU).
+// Epoch-based reclamation (EBR), based on ParlayHash (CMU).
+// Frees a node only after every thread that could hold a pointer to it has
+// exited its read-side critical section.
 // ---------------------------------------------------------------------------
 namespace ebr {
 
@@ -52,8 +40,8 @@ namespace ebr {
 // Only live threads consume slots; IDs are recycled when threads exit.
 constexpr int kMaxSlots = 4096;
 
-// Both structures are padded to whole cache lines on purpose, to keep the
-// epoch counters off each other's lines; MSVC reports that padding as C4324.
+// Both structures are padded to whole cache lines so the epoch counters do
+// not share lines; MSVC reports the padding as C4324.
 FOLLY_PUSH_WARNING
 FOLLY_MSVC_DISABLE_WARNING(4324)
 struct alignas(64) AnnounceSlot {
@@ -98,20 +86,20 @@ struct EpochState {
     while (true) {
       long e = current.load(base::memory_order_acquire);
       slots[id].epoch.exchange(e, base::memory_order_seq_cst);
-      if (current.load(base::memory_order_acquire) == e) return id;
+      if (current.load(base::memory_order_acquire) == e)
+        return id;
     }
   }
 
-  void unannounce(int id) {
-    slots[id].epoch.store(-1, base::memory_order_release);
-  }
+  void unannounce(int id) { slots[id].epoch.store(-1, base::memory_order_release); }
 
   void try_advance() {
     long e = current.load(base::memory_order_acquire);
     int n = high_watermark.load(base::memory_order_acquire);
     for (int i = 0; i < n; i++) {
       long a = slots[i].epoch.load(base::memory_order_acquire);
-      if (a != -1 && a < e) return;
+      if (a != -1 && a < e)
+        return;
     }
     current.compare_exchange_strong(e, e + 1, base::memory_order_release,
                                     base::memory_order_relaxed);
@@ -150,14 +138,16 @@ struct Guard {
 
   Guard() : active_(true) {
     auto& reg = thread_reg();
-    if (reg.nest_count++ == 0) state().announce(reg.id);
+    if (reg.nest_count++ == 0)
+      state().announce(reg.id);
   }
   explicit Guard(inactive_t) : active_(false) {}
 
   ~Guard() {
     if (active_) {
       auto& reg = thread_reg();
-      if (--reg.nest_count == 0) state().unannounce(reg.id);
+      if (--reg.nest_count == 0)
+        state().unannounce(reg.id);
     }
   }
 
@@ -166,7 +156,8 @@ struct Guard {
     if (this != &o) {
       if (active_) {
         auto& reg = thread_reg();
-        if (--reg.nest_count == 0) state().unannounce(reg.id);
+        if (--reg.nest_count == 0)
+          state().unannounce(reg.id);
       }
       active_ = o.active_;
       o.active_ = false;
@@ -191,10 +182,10 @@ class LockFreeOrderedHashMap {
     base::Atomic<Node*> bucketNext;  // next in hash bucket chain
     base::Atomic<Node*> orderNext;   // next in insertion-order chain
     base::Atomic<bool> is_deleted;
-    Node* staging_next;              // lock-free staging stack link
-    bool bucket_swept;               // GC unlinked from bucket chain
-    bool order_swept;                // GC unlinked from order chain
-    long retired_epoch;              // epoch when fully unlinked (-1 = live)
+    Node* staging_next;  // lock-free staging stack link
+    bool bucket_swept;   // GC unlinked from bucket chain
+    bool order_swept;    // GC unlinked from order chain
+    long retired_epoch;  // epoch when fully unlinked (-1 = live)
 
     Node(const Key& k, Value&& v)
         : keyValue{k, base::move(v)},
@@ -237,7 +228,8 @@ class LockFreeOrderedHashMap {
     mem_size index = hash_key(key);
     Node* curr = buckets[index].load(base::memory_order_acquire);
     while (curr) {
-      if (curr->keyValue.first == key) return curr;
+      if (curr->keyValue.first == key)
+        return curr;
       curr = curr->bucketNext.load(base::memory_order_acquire);
     }
     return nullptr;
@@ -260,8 +252,7 @@ class LockFreeOrderedHashMap {
         Node* expected = node;
         Node* next = node->bucketNext.load(base::memory_order_relaxed);
         return prev_ptr->compare_exchange_strong(
-            expected, next, base::memory_order_release,
-            base::memory_order_relaxed);
+            expected, next, base::memory_order_release, base::memory_order_relaxed);
       }
       prev_ptr = &curr->bucketNext;
       curr = curr->bucketNext.load(base::memory_order_acquire);
@@ -274,8 +265,7 @@ class LockFreeOrderedHashMap {
     do {
       node->staging_next = old_head;
     } while (!staging_head_.compare_exchange_weak(
-        old_head, node, base::memory_order_release,
-        base::memory_order_relaxed));
+        old_head, node, base::memory_order_release, base::memory_order_relaxed));
   }
 
  public:
@@ -293,8 +283,7 @@ class LockFreeOrderedHashMap {
     ebr::Guard guard_;
 
     void skip_deleted() {
-      while (currentNode &&
-             currentNode->is_deleted.load(base::memory_order_acquire)) {
+      while (currentNode && currentNode->is_deleted.load(base::memory_order_acquire)) {
         static_cast<IteratorType*>(this)->advance_impl();
       }
     }
@@ -318,9 +307,7 @@ class LockFreeOrderedHashMap {
     bool operator==(const IteratorBase& other) const {
       return currentNode == other.currentNode && map == other.map;
     }
-    bool operator!=(const IteratorBase& other) const {
-      return !(*this == other);
-    }
+    bool operator!=(const IteratorBase& other) const { return !(*this == other); }
 
     IteratorType& operator++() {
       if (currentNode) {
@@ -337,13 +324,11 @@ class LockFreeOrderedHashMap {
 
     void advance_impl() {
       if (this->currentNode)
-        this->currentNode =
-            this->currentNode->orderNext.load(base::memory_order_acquire);
+        this->currentNode = this->currentNode->orderNext.load(base::memory_order_acquire);
     }
 
    public:
-    OrderIterator(const LockFreeOrderedHashMap<Key, Value>* m,
-                  Node* start_node)
+    OrderIterator(const LockFreeOrderedHashMap<Key, Value>* m, Node* start_node)
         : IteratorBase<OrderIterator>(m, start_node) {}
     OrderIterator(const LockFreeOrderedHashMap<Key, Value>* m)
         : IteratorBase<OrderIterator>(m) {}
@@ -357,15 +342,16 @@ class LockFreeOrderedHashMap {
     mem_size bucketIndex;
 
     void advance_impl() {
-      if (!this->currentNode) return;
-      this->currentNode =
-          this->currentNode->bucketNext.load(base::memory_order_acquire);
+      if (!this->currentNode)
+        return;
+      this->currentNode = this->currentNode->bucketNext.load(base::memory_order_acquire);
       while (!this->currentNode && bucketIndex < this->map->bucketCount - 1) {
         ++bucketIndex;
         this->currentNode =
             this->map->buckets[bucketIndex].load(base::memory_order_acquire);
       }
-      if (!this->currentNode) bucketIndex = this->map->bucketCount;
+      if (!this->currentNode)
+        bucketIndex = this->map->bucketCount;
     }
 
    public:
@@ -377,19 +363,16 @@ class LockFreeOrderedHashMap {
         : IteratorBase<BucketIterator>(m), bucketIndex(m->bucketCount) {}
 
     bool operator==(const BucketIterator& other) const {
-      return this->currentNode == other.currentNode &&
-             bucketIndex == other.bucketIndex && this->map == other.map;
+      return this->currentNode == other.currentNode && bucketIndex == other.bucketIndex &&
+             this->map == other.map;
     }
-    bool operator!=(const BucketIterator& other) const {
-      return !(*this == other);
-    }
+    bool operator!=(const BucketIterator& other) const { return !(*this == other); }
   };
 
   // ---- begin / end ----
 
   OrderIterator order_begin() const {
-    return OrderIterator(this,
-                         orderHead.load(base::memory_order_acquire));
+    return OrderIterator(this, orderHead.load(base::memory_order_acquire));
   }
   OrderIterator order_end() const { return OrderIterator(this); }
 
@@ -398,7 +381,8 @@ class LockFreeOrderedHashMap {
       Node* node = buckets[i].load(base::memory_order_acquire);
       while (node && node->is_deleted.load(base::memory_order_acquire))
         node = node->bucketNext.load(base::memory_order_acquire);
-      if (node) return BucketIterator(this, i, node);
+      if (node)
+        return BucketIterator(this, i, node);
     }
     return end();
   }
@@ -407,9 +391,7 @@ class LockFreeOrderedHashMap {
   // ---- Constructor / Destructor ----
 
   explicit LockFreeOrderedHashMap(mem_size count)
-      : bucketCount(count > 0 ? count : 1),
-        orderHead(nullptr),
-        orderTail(nullptr) {
+      : bucketCount(count > 0 ? count : 1), orderHead(nullptr), orderTail(nullptr) {
     buckets = new base::Atomic<Node*>[bucketCount];
     for (mem_size i = 0; i < bucketCount; ++i)
       buckets[i].store(nullptr, base::memory_order_relaxed);
@@ -476,23 +458,17 @@ class LockFreeOrderedHashMap {
       newNode->bucketNext.store(oldHead, base::memory_order_relaxed);
 
       if (buckets[index].compare_exchange_weak(
-              oldHead, newNode, base::memory_order_release,
-              base::memory_order_relaxed)) {
+              oldHead, newNode, base::memory_order_release, base::memory_order_relaxed)) {
         // Post-CAS duplicate detection.
         //
-        // Correctness relies on the prepend-chain ordering invariant:
-        // the scan follows newNode→bucketNext (toward *older* nodes),
-        // so it only sees nodes that CAS'd *before* us (they are deeper
-        // in the chain).  A node that CAS'd *after* us sits between the
-        // bucket head and us, unreachable from bucketNext.
-        //
-        // Among any set of concurrent duplicates for the same key, exactly
-        // one, the deepest (first to CAS), finds no duplicate behind
-        // itself and proceeds.  Every shallower node finds the deeper one
-        // and backs off.  No symmetric tiebreaker is needed because the
-        // acyclic singly-linked chain provides natural asymmetry.
-        Node* check =
-            newNode->bucketNext.load(base::memory_order_acquire);
+        // The prepend-chain ordering invariant makes this safe: the scan
+        // follows newNode->bucketNext toward *older* nodes, so it sees only
+        // nodes that CAS'd before us. Among concurrent duplicates for the
+        // same key, exactly one (the deepest, first to CAS) finds no
+        // duplicate behind itself and proceeds; every shallower node backs
+        // off. The acyclic chain provides the asymmetry, no tiebreaker
+        // needed.
+        Node* check = newNode->bucketNext.load(base::memory_order_acquire);
         while (check) {
           if (check->keyValue.first == key &&
               !check->is_deleted.load(base::memory_order_acquire)) {
@@ -518,12 +494,12 @@ class LockFreeOrderedHashMap {
       Node* current_tail = orderTail.load(base::memory_order_acquire);
 
       if (current_tail == nullptr) {
-        if (orderHead.compare_exchange_weak(
-                expected_tail, newNode, base::memory_order_release,
-                base::memory_order_relaxed)) {
-          orderTail.compare_exchange_strong(
-              expected_tail, newNode, base::memory_order_release,
-              base::memory_order_relaxed);
+        if (orderHead.compare_exchange_weak(expected_tail, newNode,
+                                            base::memory_order_release,
+                                            base::memory_order_relaxed)) {
+          orderTail.compare_exchange_strong(expected_tail, newNode,
+                                            base::memory_order_release,
+                                            base::memory_order_relaxed);
           return true;
         }
         expected_tail = nullptr;
@@ -531,25 +507,24 @@ class LockFreeOrderedHashMap {
       }
 
       expected_tail = current_tail;
-      Node* tail_next =
-          current_tail->orderNext.load(base::memory_order_acquire);
+      Node* tail_next = current_tail->orderNext.load(base::memory_order_acquire);
 
       if (orderTail.load(base::memory_order_acquire) != current_tail)
         continue;
 
       if (tail_next != nullptr) {
-        orderTail.compare_exchange_weak(
-            current_tail, tail_next, base::memory_order_release,
-            base::memory_order_relaxed);
+        orderTail.compare_exchange_weak(current_tail, tail_next,
+                                        base::memory_order_release,
+                                        base::memory_order_relaxed);
         continue;
       }
 
-      if (current_tail->orderNext.compare_exchange_weak(
-              tail_next, newNode, base::memory_order_release,
-              base::memory_order_relaxed)) {
-        orderTail.compare_exchange_strong(
-            current_tail, newNode, base::memory_order_release,
-            base::memory_order_relaxed);
+      if (current_tail->orderNext.compare_exchange_weak(tail_next, newNode,
+                                                        base::memory_order_release,
+                                                        base::memory_order_relaxed)) {
+        orderTail.compare_exchange_strong(current_tail, newNode,
+                                          base::memory_order_release,
+                                          base::memory_order_relaxed);
         return true;
       }
     }
@@ -558,15 +533,11 @@ class LockFreeOrderedHashMap {
  public:
   // Walks the bucket chain looking for the first *live* matching node.
   //
-  // It would be tempting to reuse find_in_bucket() here, but that helper
-  // returns the first match by key regardless of is_deleted, which is
-  // what insert/remove want (so they can help-unlink tagged-but-still-
-  // linked nodes). For the public find() we need to skip past tagged
-  // nodes: a concurrent remove may have marked an old node as deleted
-  // but lost the unlink CAS to contention, leaving it linked at the head
-  // of the bucket chain even though a *newer* live node for the same key
-  // sits deeper. Returning the deleted shallow node and giving up would
-  // miss the live one.
+  // Deliberately not find_in_bucket(): that helper returns the first match
+  // regardless of is_deleted, which insert/remove need for help-unlinking.
+  // Here a concurrent remove may have tagged an old node as deleted but lost
+  // the unlink CAS, leaving it linked at the head while a newer live node sits
+  // deeper; returning the shallow deleted node would miss the live one.
   bool find(const Key& key, Value& value) const {
     ebr::Guard guard;
     mem_size index = hash_key(key);
@@ -641,17 +612,18 @@ class LockFreeOrderedHashMap {
     ebr::Guard guard;
     while (true) {
       Node* node = find_in_bucket(key);
-      if (!node) return false;
+      if (!node)
+        return false;
 
       bool expected = false;
       if (node->is_deleted.compare_exchange_weak(
-              expected, true, base::memory_order_release,
-              base::memory_order_relaxed)) {
+              expected, true, base::memory_order_release, base::memory_order_relaxed)) {
         try_unlink_from_bucket(node);
         delete_since_gc_.fetch_add(1, base::memory_order_relaxed);
         return true;
       }
-      if (expected) return false;
+      if (expected)
+        return false;
     }
   }
 
@@ -666,8 +638,7 @@ class LockFreeOrderedHashMap {
     // delete count (not staging count) so insert-heavy workloads don't
     // pay for GC sweeps on live nodes.  try_to_lock avoids blocking the
     // hot path if GC is already running on another thread.
-    if (delete_since_gc_.load(base::memory_order_relaxed) >=
-        kAutoGCThreshold) {
+    if (delete_since_gc_.load(base::memory_order_relaxed) >= kAutoGCThreshold) {
       base::UniqueLock<base::Mutex> lock(gc_mutex_, base::try_to_lock);
       if (lock.owns_lock())
         collect_garbage_locked();
@@ -676,8 +647,7 @@ class LockFreeOrderedHashMap {
 
   void collect_garbage_locked() {
     // 1. Drain lock-free staging stack into the tracked list.
-    Node* staged =
-        staging_head_.exchange(nullptr, base::memory_order_acquire);
+    Node* staged = staging_head_.exchange(nullptr, base::memory_order_acquire);
     while (staged) {
       Node* next = staged->staging_next;
       all_nodes_.push_back(staged);
@@ -693,9 +663,9 @@ class LockFreeOrderedHashMap {
         Node* next = curr->bucketNext.load(base::memory_order_acquire);
         if (curr->is_deleted.load(base::memory_order_acquire)) {
           Node* expected = curr;
-          if (prev_ptr->compare_exchange_strong(
-                  expected, next, base::memory_order_release,
-                  base::memory_order_relaxed)) {
+          if (prev_ptr->compare_exchange_strong(expected, next,
+                                                base::memory_order_release,
+                                                base::memory_order_relaxed)) {
             curr->bucket_swept = true;
             curr = next;
             continue;
@@ -714,18 +684,15 @@ class LockFreeOrderedHashMap {
     Node* curr = orderHead.load(base::memory_order_acquire);
     while (curr) {
       Node* next = curr->orderNext.load(base::memory_order_acquire);
-      if (curr->is_deleted.load(base::memory_order_acquire) &&
-          next != nullptr) {
+      if (curr->is_deleted.load(base::memory_order_acquire) && next != nullptr) {
         Node* expected = curr;
         bool unlinked;
         if (prev) {
           unlinked = prev->orderNext.compare_exchange_strong(
-              expected, next, base::memory_order_release,
-              base::memory_order_relaxed);
+              expected, next, base::memory_order_release, base::memory_order_relaxed);
         } else {
           unlinked = orderHead.compare_exchange_strong(
-              expected, next, base::memory_order_release,
-              base::memory_order_relaxed);
+              expected, next, base::memory_order_release, base::memory_order_relaxed);
         }
         if (unlinked) {
           curr->order_swept = true;
@@ -746,8 +713,7 @@ class LockFreeOrderedHashMap {
     long current_e = ebr::state().get_current();
     for (mem_size i = 0; i < all_nodes_.size(); ++i) {
       Node* n = all_nodes_[i];
-      if (n->bucket_swept &&
-          n->order_swept && n->retired_epoch < 0)
+      if (n->bucket_swept && n->order_swept && n->retired_epoch < 0)
         n->retired_epoch = current_e;
     }
 
@@ -758,8 +724,7 @@ class LockFreeOrderedHashMap {
     long safe = ebr::state().get_current();
     mem_size write_idx = 0;
     for (mem_size i = 0; i < all_nodes_.size(); ++i) {
-      if (all_nodes_[i]->retired_epoch >= 0 &&
-          all_nodes_[i]->retired_epoch + 2 <= safe) {
+      if (all_nodes_[i]->retired_epoch >= 0 && all_nodes_[i]->retired_epoch + 2 <= safe) {
         delete all_nodes_[i];
       } else {
         all_nodes_[write_idx++] = all_nodes_[i];

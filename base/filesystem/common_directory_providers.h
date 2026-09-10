@@ -26,35 +26,25 @@ enum class KnownPath {
   DirProgramFiles6432,  // See table above.
 
   DirIeInternetCache,       // Temporary Internet Files directory.
-  DirCommonStartMenu,       // Usually "C:\ProgramData\Microsoft\Windows\
-                                // Start Menu\Programs"
-  DirStartMenu,             // Usually "C:\Users\<user>\AppData\Roaming\
-                                // Microsoft\Windows\Start Menu\Programs"
-  DirCommonStartup,         // Usually "C:\ProgramData\Microsoft\Windows\
-                                // Start Menu\Programs\Startup"
-  DirUserStartup,           // Usually "C:\Users\<user>\AppData\Roaming\
-                                // Microsoft\Windows\Start Menu\Programs\Startup"
-  DirRoamingAppData,        // Roaming Application Data directory under the
-                            // user profile.
-                            // Usually "C:\Users\<user>\AppData\Roaming".
-                            // Data for specific applications is stored in
-                            // subdirectories.
-  DirLocalAppData,          // Local Application Data directory under the
-                            // user profile.
-                            // Usually "C:\Users\<user>\AppData\Local".
-                            // Data for specific applications is stored in
-                            // subdirectories.
-  DirCommonAppData,         // Usually "C:\ProgramData". Data for specific
-                            // applications is stored in subdirectories.
-  DirAppShortcuts,          // Where tiles on the start screen are stored,
-                            // only for Windows 8. Maps to "Local\AppData\
-                                // Microsoft\Windows\Application Shortcuts\".
-  DirCommonDesktop,         // Directory for the common desktop (visible
-                            // on all user's Desktop).
-  DirUserQuickLaunch,       // Directory for the quick launch shortcuts.
-  DirTaskbarPins,           // Directory for the shortcuts pinned to taskbar.
-  DirImplicitAppShortcuts,  // The implicit user pinned shortcut directory.
-  DirWindowsFonts,          // Usually C:\Windows\Fonts.
+  DirCommonStartMenu,       // C:\ProgramData\Microsoft\Windows\
+                            // Start Menu\Programs
+  DirStartMenu,             // C:\Users\<user>\AppData\Roaming\
+                            // Microsoft\Windows\Start Menu\Programs
+  DirCommonStartup,         // C:\ProgramData\Microsoft\Windows\
+                            // Start Menu\Programs\Startup
+  DirUserStartup,           // C:\Users\<user>\AppData\Roaming\
+                            // Microsoft\Windows\Start Menu\Programs\Startup
+  DirRoamingAppData,        // C:\Users\<user>\AppData\Roaming.
+  DirLocalAppData,          // C:\Users\<user>\AppData\Local.
+  DirCommonAppData,         // C:\ProgramData.
+  DirAppShortcuts,          // Windows 8 start-screen tiles; maps to
+                            // "Local\AppData\Microsoft\Windows\
+                            // Application Shortcuts\".
+  DirCommonDesktop,         // Common desktop, visible on all users' Desktop.
+  DirUserQuickLaunch,       // Quick launch shortcuts.
+  DirTaskbarPins,           // Shortcuts pinned to the taskbar.
+  DirImplicitAppShortcuts,  // Implicit user pinned shortcuts.
+  DirWindowsFonts,          // C:\Windows\Fonts.
 
   PathWinEnd
 };

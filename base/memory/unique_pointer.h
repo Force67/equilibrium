@@ -1,8 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
-// UniquePtr implementation that aims to be more safe than its std counterpart,
-// see https://www.reddit.com/r/cpp/comments/pkru4h/safer_usage_of_c_in_chrome/
-// for more info
+// UniquePtr implementation that aims to be safer than its std counterpart.
+// See https://www.reddit.com/r/cpp/comments/pkru4h/safer_usage_of_c_in_chrome/.
 #pragma once
 
 #include <base/check.h>
@@ -61,7 +60,7 @@ class UniquePointer {
   BASE_NOCOPY(UniquePointer)
 
   inline UniquePointer& operator=(UniquePointer&& rhs) noexcept
-  /*TODO(Vince): requires(is_move_assignable_v<T>)*/ {
+  /*TODO: requires(is_move_assignable_v<T>)*/ {
     if (this != base::AddressOf(rhs)) {
       // Free existing pointer before stealing.
       if (pointer_)
@@ -76,7 +75,7 @@ class UniquePointer {
   template <typename U>
   inline UniquePointer<U>& operator=(UniquePointer&& rhs) noexcept
       requires(std::convertible_to<T, U>)
-  /*TODO(Vince): requires(is_move_assignable_v<T>)*/ {
+  /*TODO: requires(is_move_assignable_v<T>)*/ {
     if (this != base::AddressOf(rhs)) {
       // steal & invalidate right side.
       pointer_ = rhs.pointer_;

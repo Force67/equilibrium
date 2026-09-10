@@ -5,77 +5,16 @@
 
 #include "base/export.h"
 
-// Simple LinkedList type. (See the Q&A section to understand how this
-// differs from std::list).
+// Intrusive doubly linked list. The stored type derives from LinkNode<T>, so
+// the list needs no per-node heap allocations. Prefer std::list unless erase
+// performance or allocation freedom matters: erase is O(1) here versus O(n)
+// for std::list<T*>.
 //
-// To use, start by declaring the class which will be contained in the linked
-// list, as extending LinkNode (this gives it next/previous pointers).
-//
-//   class MyNodeType : public LinkNode<MyNodeType> {
-//     ...
-//   };
-//
-// Next, to keep track of the list's head/tail, use a LinkedList instance:
-//
+//   class MyNodeType : public LinkNode<MyNodeType> {};
 //   LinkedList<MyNodeType> list;
-//
-// To add elements to the list, use any of LinkedList::Append,
-// LinkNode::InsertBefore, or LinkNode::InsertAfter:
-//
-//   LinkNode<MyNodeType>* n1 = ...;
-//   LinkNode<MyNodeType>* n2 = ...;
-//   LinkNode<MyNodeType>* n3 = ...;
-//
-//   list.Append(n1);
-//   list.Append(n3);
-//   n2->InsertBefore(n3);
-//
-// Lastly, to iterate through the linked list forwards:
-//
-//   for (LinkNode<MyNodeType>* node = list.head();
-//        node != list.end();
-//        node = node->next()) {
-//     MyNodeType* value = node->value();
-//     ...
-//   }
-//
-// Or to iterate the linked list backwards:
-//
-//   for (LinkNode<MyNodeType>* node = list.tail();
-//        node != list.end();
-//        node = node->previous()) {
-//     MyNodeType* value = node->value();
-//     ...
-//   }
-//
-// Questions and Answers:
-//
-// Q. Should I use std::list or base::LinkedList?
-//
-// A. The main reason to use base::LinkedList over std::list is
-//    performance. If you don't care about the performance differences
-//    then use an STL container, as it makes for better code readability.
-//
-//    Comparing the performance of base::LinkedList<T> to std::list<T*>:
-//
-//    * Erasing an element of type T* from base::LinkedList<T> is
-//      an O(1) operation. Whereas for std::list<T*> it is O(n).
-//      That is because with std::list<T*> you must obtain an
-//      iterator to the T* element before you can call erase(iterator).
-//
-//    * Insertion operations with base::LinkedList<T> never require
-//      heap allocations.
-//
-// Q. How does base::LinkedList implementation differ from std::list?
-//
-// A. Doubly-linked lists are made up of nodes that contain "next" and
-//    "previous" pointers that reference other nodes in the list.
-//
-//    With base::LinkedList<T>, the type being inserted already reserves
-//    space for the "next" and "previous" pointers (base::LinkNode<T>*).
-//    Whereas with std::list<T> the type can be anything, so the implementation
-//    needs to glue on the "next" and "previous" pointers using
-//    some internal node type.
+//   list.Append(node);
+//   node->InsertBefore(other);
+//   for (LinkNode<MyNodeType>* n = list.head(); n != list.end(); n = n->next())
 
 namespace base {
 

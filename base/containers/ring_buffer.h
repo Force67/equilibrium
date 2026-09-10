@@ -9,14 +9,11 @@
 namespace base {
 
 // base::RingBuffer uses a fixed-size array, unlike base::circular_deque and
-// std::deque, and so, one can access only the last |kSize| elements. Also, you
-// can add elements to the front and read/modify random elements, but cannot
-// remove elements from the back. Therefore, it does not have a |Size| method,
-// only |BufferSize|, which is a constant, and |CurrentIndex|, which is the
-// number of elements added so far.
-//
-// If the above is sufficient for your use case, base::RingBuffer should be more
-// efficient than base::circular_deque.
+// std::deque: you can access only the last |kSize| elements, add to the front,
+// and read/modify random elements, but cannot remove from the back. There is
+// no |Size| method, only the constant |BufferSize| and |CurrentIndex| (the
+// number of elements added so far). If that fits your use case, it is more
+// efficient than circular_deque.
 template <typename T, mem_size kSize>
 class RingBuffer {
  public:

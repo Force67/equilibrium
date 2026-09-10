@@ -20,8 +20,7 @@ class Span {
  public:
   explicit constexpr Span(const T* ptr, mem_size len) : ptr_(ptr), len_(len) {}
 
-  // TODO: this allows to create a span from a span, which is not intended
-  // behaviour, disable that
+  // TODO: disallow creating a span from a span.
   template <class TT>
   constexpr Span(TT& container) noexcept
     requires HasContainerTraits<TT>

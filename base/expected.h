@@ -1,10 +1,8 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// It is similar to std::optional, but std::optional can only indicate a normal
-// value or std::nullopt, i.e. a null value. In contrast, std::expected can
-// indicate an expected value and an error value, which is equivalent to the
-// two-member std::variant, but is more convenient to use on the interface.
+// Like std::optional but carries an error value instead of nullopt; the
+// interface is more convenient than a two-member std::variant.
 #pragma once
 
 #include <base/check.h>
@@ -51,7 +49,7 @@ class Expected {
       expected_value_ = base::move(value);
   }
 
-  ~Expected(){};
+  ~Expected() {};
 
   constexpr bool has_error() noexcept {
 #if defined(CONFIG_DEBUG)

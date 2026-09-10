@@ -11,10 +11,9 @@ bool MemoryMappedFile::Map() {
   if (file_size_ == -1)
     return false;
 
-  // weird af: In Windows, when a file is created, it does not automatically
-  // allocate space on the disk unless it's written to. Therefore, trying to map
-  // a newly created but empty (zero-length) file will fail because
-  // memory-mapped files require the underlying file to have a non-zero size.
+  // Windows does not allocate disk space for a newly created file until it is
+  // written to. Mapping a zero-length file therefore fails, so write one byte
+  // first.
   parent_file_.Write(0, "", 1);
 
   auto handle = parent_file_.underlying_platform_file().Get();

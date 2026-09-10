@@ -36,20 +36,15 @@ using CheckHandler = void(const char*, const char*, const char*, const char*);
 BASE_EXPORT void SetCheckHandler(CheckHandler*);
 }  // namespace base
 
-// NOTE(Vince): do not apply the [[likely]] or [[unlikely]] attributes here, as
-// these actively harm optimization. See
-// https://blog.aaronballman.com/2020/08/dont-use-the-likely-or-unlikely-attributes/
+// Do not apply [[likely]]/[[unlikely]] here; they actively harm optimization.
+// See https://blog.aaronballman.com/2020/08/dont-use-the-likely-or-unlikely-attributes/
 
 // All checks follow the format:
-// check: project!file.cc!function!line >conidition< (Reason)
+// check: project!file.cc!function!line >condition< (Reason)
 
-// A DCHECK is only present in non shipping builds and is ment for catching
-// programmer misuse that needs to be fixed before release
-//
-// Q: How do DCHECKs relate to asserts?
-// A: As asserts usually get stripped in shipping builds, a dcheck is the
-//    logical choice to use in cases which can be triggered and fixed during
-//    development.
+// A DCHECK exists only in non-shipping builds. Use it for programmer misuse
+// that must be fixed before release; plain asserts are usually stripped in
+// shipping builds.
 
 #ifndef CONFIG_SHIPPING
 
@@ -118,5 +113,7 @@ BASE_EXPORT void SetCheckHandler(CheckHandler*);
 // newline
 #else
 #define BASE_IMPOSSIBLE \
-  { CHECK_BREAK; }
+  {                     \
+    CHECK_BREAK;        \
+  }
 #endif

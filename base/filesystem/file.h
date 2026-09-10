@@ -66,7 +66,6 @@ class BASE_EXPORT File {
                                           // See DeleteOnClose() for details.
 
     // Deprecated names for Windows flags. Use WIN_-prefixed flags instead.
-    // TODO(crbug.com/1244149): Migrate all call sites.
     FLAG_EXCLUSIVE_READ = FLAG_WIN_EXCLUSIVE_READ,
     FLAG_EXCLUSIVE_WRITE = FLAG_WIN_EXCLUSIVE_WRITE,
     FLAG_TEMPORARY = FLAG_WIN_TEMPORARY,
@@ -77,13 +76,8 @@ class BASE_EXPORT File {
     FLAG_SEQUENTIAL_SCAN = FLAG_WIN_SEQUENTIAL_SCAN,
   };
 
-  // This enum has been recorded in multiple histograms using PlatformFileError
-  // enum. If the order of the fields needs to change, please ensure that those
-  // histograms are obsolete or have been moved to a different enum.
-  //
-  // FILE_ERROR_ACCESS_DENIED is returned when a call fails because of a
-  // filesystem restriction. FILE_ERROR_SECURITY is returned when a browser
-  // policy doesn't allow the operation to be executed.
+  // FILE_ERROR_ACCESS_DENIED means a filesystem restriction rejected the call;
+  // FILE_ERROR_SECURITY means policy disallowed the operation.
   enum Error {
     FILE_OK = 0,
     FILE_ERROR_FAILED = -1,
@@ -200,38 +194,31 @@ class BASE_EXPORT File {
   bool WriteAndCheck(int64_t offset, base::Span<const uint8_t> data);
   bool WriteAtCurrentPosAndCheck(base::Span<const uint8_t> data);
 
-  // Reads the given number of bytes (or until EOF is reached) starting with the
-  // given offset. Returns the number of bytes read, or -1 on error. Note that
-  // this function makes a best effort to read all data on all platforms, so it
-  // is not intended for stream oriented files but instead for cases when the
-  // normal expectation is that actually |size| bytes are read unless there is
-  // an error.
+  // Reads up to |size| bytes (or until EOF) at |offset|. Returns the number
+  // of bytes read, or -1 on error. Makes a best effort to read all data on
+  // all platforms; not for stream-oriented files.
   int Read(int64_t offset, char* data, int size);
 
-  // Same as above but without seek.
+  // Same as Read() without the seek.
   int ReadAtCurrentPos(char* data, int size);
 
-  // Reads the given number of bytes (or until EOF is reached) starting with the
-  // given offset, but does not make any effort to read all data on all
-  // platforms. Returns the number of bytes read, or -1 on error.
+  // Like Read() but makes no effort to read all data. Returns the number of
+  // bytes read, or -1 on error.
   int ReadNoBestEffort(int64_t offset, char* data, int size);
 
-  // Same as above but without seek.
+  // Same as ReadNoBestEffort() without the seek.
   int ReadAtCurrentPosNoBestEffort(char* data, int size);
 
-  // Writes the given buffer into the file at the given offset, overwriting any
-  // data that was previously there. Returns the number of bytes written, or -1
-  // on error. Note that this function makes a best effort to write all data on
-  // all platforms. |data| can be nullptr when |size| is 0.
-  // Ignores the offset and writes to the end of the file if the file was opened
-  // with FLAG_APPEND.
+  // Writes the buffer at |offset|, overwriting existing data. Returns the
+  // number of bytes written, or -1 on error. Makes a best effort to write all
+  // data on all platforms. |data| may be nullptr when |size| is 0. With
+  // FLAG_APPEND the offset is ignored and writes go to the end of the file.
   int Write(int64_t offset, const char* data, size_t size);
 
-  // Save as above but without seek.
+  // Same as Write() without the seek.
   int WriteAtCurrentPos(const char* data, int size);
 
-  // Save as above but does not make any effort to write all data on all
-  // platforms. Returns the number of bytes written, or -1 on error.
+  // Like Write() but makes no effort to write all data.
   int WriteAtCurrentPosNoBestEffort(const char* data, int size);
 
   // Returns the current size of this file, or a negative number on failure.
@@ -244,16 +231,8 @@ class BASE_EXPORT File {
 
   // Instructs the filesystem to flush the file to disk. (POSIX: fsync, Windows:
   // FlushFileBuffers).
-  // Calling Flush() does not guarantee file integrity and thus is not a valid
-  // substitute for file integrity checks and recovery code paths for malformed
-  // files. It can also be *really* slow, so avoid blocking on Flush(),
-  // especially please don't block shutdown on Flush().
-  // Latency percentiles of Flush() across all platforms as of July 2016:
-  // 50 %     > 5 ms
-  // 10 %     > 58 ms
-  //  1 %     > 357 ms
-  //  0.1 %   > 1.8 seconds
-  //  0.01 %  > 7.6 seconds
+  // Flush() is slow (p99 latency > 300ms on some platforms) and does not
+  // guarantee file integrity. Avoid blocking on it, especially at shutdown.
   bool Flush();
 
   // Returns some basic information for the given file.
@@ -265,26 +244,16 @@ class BASE_EXPORT File {
     kExclusive,
   };
 
-  // Attempts to take an exclusive write lock on the file. Returns immediately
-  // (i.e. does not wait for another process to unlock the file). If the lock
-  // was obtained, the result will be FILE_OK. A lock only guarantees
-  // that other processes may not also take a lock on the same file with the
-  // same API - it may still be opened, renamed, unlinked, etc.
+  // Attempts to take the lock immediately (does not wait). Returns FILE_OK on
+  // success. A lock only stops other processes from locking the same file via
+  // this API; the file can still be opened, renamed or unlinked.
   //
-  // Common semantics:
-  //  * Locks are held by processes, but not inherited by child processes.
-  //  * Locks are released by the OS on file close or process termination.
-  //  * Locks are reliable only on local file systems.
-  //  * Duplicated file handles may also write to locked files.
-  // Windows-specific semantics:
-  //  * Locks are mandatory for read/write APIs, advisory for mapping APIs.
-  //  * Within a process, locking the same file (by the same or new handle)
-  //    will fail.
-  // POSIX-specific semantics:
-  //  * Locks are advisory only.
-  //  * Within a process, locking the same file (by the same or new handle)
-  //    will succeed. The new lock replaces the old lock.
-  //  * Closing any descriptor on a given file releases the lock.
+  // Locks are held by processes, not inherited by children, released by the OS
+  // on close or termination, and reliable only on local file systems.
+  // Windows: locks are mandatory for read/write APIs, advisory for mappings,
+  // and locking the same file again within a process fails.
+  // POSIX: locks are advisory, relocking the same file replaces the lock, and
+  // closing any descriptor on the file releases the lock.
   Error Lock(LockMode mode);
 
   // Unlock a file previously locked.
@@ -293,46 +262,26 @@ class BASE_EXPORT File {
 #endif  // !defined(OS_FUCHSIA)
 
   // Returns a new object referencing this file for use within the current
-  // process. Handling of FLAG_DELETE_ON_CLOSE varies by OS. On POSIX, the File
-  // object that was created or initialized with this flag will have unlinked
-  // the underlying file when it was created or opened. On Windows, the
-  // underlying file is deleted when the last handle to it is closed.
+  // process. With FLAG_DELETE_ON_CLOSE, POSIX unlinks the file at open time;
+  // Windows deletes it when the last handle closes.
   File Duplicate() const;
 
   bool async() const { return async_; }
 
 #if defined(OS_WIN)
-  // Sets or clears the DeleteFile disposition on the file. Returns true if
-  // the disposition was set or cleared, as indicated by |delete_on_close|.
+  // Sets or clears the DeleteFile disposition on the file. Returns true on
+  // success.
   //
-  // Microsoft Windows deletes a file only when the DeleteFile disposition is
-  // set on a file when the last handle to the last underlying kernel File
-  // object is closed. This disposition is be set by:
-  // - Calling the Win32 DeleteFile function with the path to a file.
-  // - Opening/creating a file with FLAG_DELETE_ON_CLOSE and then closing all
-  //   handles to that File object.
-  // - Opening/creating a file with FLAG_CAN_DELETE_ON_CLOSE and subsequently
-  //   calling DeleteOnClose(true).
+  // Windows deletes a file only when the disposition is set and the last
+  // handle to the underlying kernel File object closes. The disposition is set
+  // by DeleteFile(), by FLAG_DELETE_ON_CLOSE, or by
+  // FLAG_CAN_DELETE_ON_CLOSE + DeleteOnClose(true). All handles must have been
+  // opened with FLAG_WIN_SHARE_DELETE.
   //
-  // In all cases, all pre-existing handles to the file must have been opened
-  // with FLAG_WIN_SHARE_DELETE. Once the disposition has been set by any of the
-  // above means, no new File objects can be created for the file.
-  //
-  // So:
-  // - Use FLAG_WIN_SHARE_DELETE when creating/opening a file to allow another
-  //   entity on the system to cause it to be deleted when it is closed. (Note:
-  //   another entity can delete the file the moment after it is closed, so not
-  //   using this permission doesn't provide any protections.)
-  // - Use FLAG_DELETE_ON_CLOSE for any file that is to be deleted after use.
-  //   The OS will ensure it is deleted even in the face of process termination.
-  //   Note that it's possible for deletion to be canceled via another File
-  //   object referencing the same file using DeleteOnClose(false) to clear the
-  //   DeleteFile disposition after the original File is closed.
-  // - Use FLAG_CAN_DELETE_ON_CLOSE in conjunction with DeleteOnClose() to alter
-  //   the DeleteFile disposition on an open handle. This fine-grained control
-  //   allows for marking a file for deletion during processing so that it is
-  //   deleted in the event of untimely process termination, and then clearing
-  //   this state once the file is suitable for persistence.
+  // Use FLAG_WIN_SHARE_DELETE to let others delete the file after close,
+  // FLAG_DELETE_ON_CLOSE for files deleted after use (survives process
+  // termination), and FLAG_CAN_DELETE_ON_CLOSE + DeleteOnClose() to toggle the
+  // disposition on an open handle.
   bool DeleteOnClose(bool delete_on_close);
 #endif
 
