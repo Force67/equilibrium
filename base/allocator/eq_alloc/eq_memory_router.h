@@ -3,6 +3,7 @@
 // This defines the memory routing stategy used by eq_alloc
 #pragma once
 
+#include <base/atomic.h>
 #include <base/compiler.h>
 #include <base/export.h>
 #include <base/numeric_limits.h>
@@ -164,8 +165,19 @@ struct BASE_EXPORT EQMemoryRouter {
   PageTable* page_table();
 
  private:
+  // page_table() runs on whichever thread allocates first and every other
+  // thread has to wait for it, so the construction state is a three-value
+  // atomic rather than a byte written into the storage itself. Keeping it out
+  // of the storage also puts the PageTable at offset zero: the previous layout
+  // reserved four bytes for a tombstone and then constructed the object at
+  // that offset, inside storage aligned for offset zero only.
+  static constexpr u32 kUninitialized = 0;
+  static constexpr u32 kInitializing = 1;
+  static constexpr u32 kInitialized = 2;
+  base::Atomic<u32> page_table_state_{kUninitialized};
+
   //~EQMemoryRouter() { page_table()->~PageTable(); }
-  alignas(PageTable) byte page_table_data_[4 /*magic*/ + sizeof(PageTable)]{};
+  alignas(PageTable) byte page_table_data_[sizeof(PageTable)]{};
   // see
   // https://cdn.discordapp.com/attachments/818575873203503165/1005495331636662373/unknown.png
   // every index (number stored from 1 - 255 at given position) corresponds to a

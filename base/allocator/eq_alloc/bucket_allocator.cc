@@ -44,13 +44,8 @@ BucketAllocator::SlabHeader* BucketAllocator::NewSlab(int class_index) {
 }
 
 // slow: get a fresh slab
-void* BucketAllocator::AllocateSlow(int idx) {
-  SlabHeader* slab;
-  {
-    base::NonOwningScopedLockGuard _(bins_[idx].lock);
-    (void)_;
-    slab = NewSlab(idx);
-  }
+void* BucketAllocator::AllocateSlowLocked(int idx) {
+  SlabHeader* slab = NewSlab(idx);
   if (!slab)
     return nullptr;
   tl_.active[idx] = slab;
@@ -64,6 +59,12 @@ void* BucketAllocator::AllocateSlow(int idx) {
 
 void* BucketAllocator::Allocate(mem_size size, mem_size /*alignment*/) {
   const int idx = ClassIndex(size);
+  // The slab is this thread's, but any thread can free a slot back into it, so
+  // the free list and the bump cursor are shared. The size class's lock covers
+  // both, and it is the same lock Free() takes.
+  base::NonOwningScopedLockGuard _(bins_[idx].lock);
+  (void)_;
+
   SlabHeader* slab = tl_.active[idx];
 
   if (slab) {
@@ -83,7 +84,7 @@ void* BucketAllocator::Allocate(mem_size size, mem_size /*alignment*/) {
   }
 
   // 3) slab exhausted or missing — get a new one
-  return AllocateSlow(idx);
+  return AllocateSlowLocked(idx);
 }
 
 mem_size BucketAllocator::Free(void* block) {
@@ -93,6 +94,18 @@ mem_size BucketAllocator::Free(void* block) {
   // O(1) slab lookup via AND mask, then push to slab's intrusive free list.
   // same structure as mimalloc: 1 AND + 2 stores.
   SlabHeader* slab = SlabFromPtr(block);
+  // class_index is immutable once the slab exists, so it can pick the lock.
+  // The mask is what keeps a header this allocator did not write from indexing
+  // bins_ out of bounds; for a well-formed slab it is the identity, and the
+  // DCHECK is what reports the malformed case.
+  static_assert((kNumClasses & (kNumClasses - 1)) == 0, "the mask needs a power of two");
+  const u32 slab_class = slab->class_index;
+  BASE_DCHECK(slab_class < kNumClasses, "Free(): block outside any size class");
+  const int idx = static_cast<int>(slab_class & (kNumClasses - 1));
+  // The slab may belong to another thread; the push has to be serialized
+  // against that thread's Allocate or the two lose free-list entries.
+  base::NonOwningScopedLockGuard _(bins_[idx].lock);
+  (void)_;
   *reinterpret_cast<void**>(block) = slab->free_list;
   slab->free_list = block;
   return slab->slot_size;

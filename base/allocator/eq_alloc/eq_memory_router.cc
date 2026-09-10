@@ -7,9 +7,7 @@
 
 #include <base/allocator/eq_alloc/eq_memory_router.h>
 
-#include <climits>  // UINT_MAX
-#include <cstdint>  // UINT32_MAX
-#include <new>      // for placement new
+#include <new>  // for placement new
 
 namespace base {
 
@@ -28,17 +26,34 @@ constexpr u32 kIdealAlignment = static_cast<u32>(1_mib);
 
 // TODO: refactor this into a proper initialization sequence.
 PageTable* EQMemoryRouter::page_table() {
-  if (!page_table_data_[0]) {
+  auto* table = reinterpret_cast<PageTable*>(&page_table_data_[0]);
+
+  // The fast path, once the table is published.
+  if (page_table_state_.load(memory_order_acquire) == kInitialized)
+    return table;
+
+  // Exactly one thread wins the claim and constructs; a test-then-construct
+  // would let two concurrent first allocations both build a page table over
+  // the same storage and hand out two sets of allocators.
+  u32 expected = kUninitialized;
+  if (page_table_state_.compare_exchange_strong(expected, kInitializing,
+                                                memory_order_acq_rel,
+                                                memory_order_acquire)) {
     // 8192 page entries = 512 MiB addressable with 64 KiB pages.
     // metadata overhead: 8192 * 16 = 128 KiB.
-    PageTable* table = new (&page_table_data_[sizeof(UINT_MAX)]) PageTable(
+    new (table) PageTable(
         1_tib /*This should be a base compile opt later on..*/, kIdealPageSize, 8192);
     InitializeAllocators(*table);
-    // Tombstone so at most one page table can ever be created.
-    *reinterpret_cast<uint32_t*>(&page_table_data_[0]) = UINT32_MAX;
+    page_table_state_.store(kInitialized, memory_order_release);
     return table;
   }
-  return reinterpret_cast<PageTable*>(&page_table_data_[sizeof(UINT_MAX)]);
+
+  // The losers wait for the winner to publish. There is no yield primitive
+  // this far down in the allocator, and the window is one PageTable
+  // construction long.
+  while (page_table_state_.load(memory_order_acquire) != kInitialized) {
+  }
+  return table;
 }
 
 void EQMemoryRouter::InitializeAllocators(PageTable& page_table) {

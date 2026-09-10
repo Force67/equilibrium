@@ -14,8 +14,12 @@ DynamicLibrary::DynamicLibrary(DynamicLibrary&& rhs) noexcept {
 }
 
 DynamicLibrary::~DynamicLibrary() {
-  if (should_free_) {
-    BASE_DCHECK(DynamicLibrary::Free(), "Failed to release loaded library")
-  }
+  if (!should_free_)
+    return;
+  // Free() cannot sit inside the DCHECK expression: BASE_DCHECK compiles its
+  // argument away in shipping builds, which would skip the release entirely.
+  const bool released = DynamicLibrary::Free();
+  BASE_DCHECK(released, "Failed to release loaded library");
+  TK_UNUSED(released);
 }
 }  // namespace base

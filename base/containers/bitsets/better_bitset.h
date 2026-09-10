@@ -8,6 +8,8 @@
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/builtins_bit.h>
 
+#include <climits>
+
 namespace base {
 template <mem_size N>
   requires(N > 0)

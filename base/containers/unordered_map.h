@@ -9,12 +9,14 @@
 #include <base/arch.h>
 #include <base/check.h>
 #include <base/compiler.h>
+#include <base/memory/allocation_size.h>
 #include <base/memory/move.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/container_traits.h>
 #include <base/containers/pair.h>
 #include <base/hashing/fnv1a.h>
 #include <base/hashing/hash.h>
+#include <base/math/value_bounds.h>
 
 #include <initializer_list>
 #include <new>
@@ -107,8 +109,10 @@ class UnorderedMap {
   }
 
   void GrowAndRehash(mem_size target_count = 0) {
-    const mem_size new_count = target_count > 0 ? target_count
-        : (bucket_count_ == 0 ? 16 : bucket_count_ * 2);
+    const mem_size new_count =
+        target_count > 0
+            ? target_count
+            : (bucket_count_ == 0 ? 16 : base::CheckedCountProduct(bucket_count_, 2));
     Slot* new_slots = AllocSlots(new_count);
 
     if (slots_) {
@@ -137,7 +141,12 @@ class UnorderedMap {
   }
 
   Slot* AllocSlots(mem_size count) {
-    auto* mem = static_cast<Slot*>(TAllocator::Allocate(count * sizeof(Slot)));
+    auto* mem = static_cast<Slot*>(
+        TAllocator::Allocate(base::CheckedAllocationSize(count, sizeof(Slot))));
+    // DefaultAllocator throws rather than returning null, but a custom
+    // TAllocator may return it. The loop below writes every requested slot, so
+    // a null block would be an out-of-bounds write, not a failed insert.
+    BASE_FATAL_CHECK(mem, "UnorderedMap: slot allocation failed");
     for (mem_size i = 0; i < count; ++i) {
       mem[i].state = kEmpty;
     }
@@ -418,11 +427,13 @@ class UnorderedMap {
   // triggering a rehash.  Useful when the map is accessed via raw
   // pointers from concurrent code that must not observe a rehash.
   void reserve(mem_size count) {
-    mem_size required = static_cast<mem_size>(
-        static_cast<f64>(count) / kMaxLoadFactor) + 1;
-    // Round up to next power of two
-    mem_size target = 16;
-    while (target < required) target *= 2;
+    // count / kMaxLoadFactor in integer arithmetic. Going through f64 would
+    // lose precision near the top of the range and convert back out of range.
+    static_assert(kMaxLoadFactor == 0.75, "kNumerator/kDenominator track the load factor");
+    constexpr mem_size kNumerator = 4, kDenominator = 3;
+    const mem_size required =
+        base::CheckedCountSum(base::CheckedCountProduct(count, kNumerator) / kDenominator, 1);
+    const mem_size target = base::Max<mem_size>(16, base::CheckedRoundUpToPowerOfTwo(required));
     if (target > bucket_count_) GrowAndRehash(target);
   }
 

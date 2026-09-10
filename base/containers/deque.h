@@ -2,6 +2,7 @@
 
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/memory/allocation_size.h>
 #include <base/memory/move.h>
 #include <base/containers/container_traits.h>
 #include <base/memory/cxx_lifetime.h>
@@ -19,7 +20,12 @@ class SimpleDeque {
   mem_size size_;
 
   void Grow(mem_size new_capacity) {
-    T* new_data = static_cast<T*>(TAllocator::Allocate(new_capacity * sizeof(T)));
+    T* new_data = static_cast<T*>(
+        TAllocator::Allocate(base::CheckedAllocationSize(new_capacity, sizeof(T))));
+    // DefaultAllocator throws rather than returning null, but a custom
+    // TAllocator may return it, and every slot below is default-constructed in
+    // place.
+    BASE_FATAL_CHECK(new_data, "SimpleDeque: allocation failed");
     // Default-construct all slots.
     for (mem_size i = 0; i < new_capacity; ++i) {
       ::new (static_cast<void*>(&new_data[i])) T();
@@ -96,7 +102,7 @@ class SimpleDeque {
 
   void push_front(const T& value) {
     if (size_ == capacity_) {
-      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+      Grow(capacity_ == 0 ? 4 : base::CheckedCountProduct(capacity_, 2));
     }
     front_index_ = (front_index_ == 0) ? capacity_ - 1 : front_index_ - 1;
     data_[front_index_] = value;
@@ -105,7 +111,7 @@ class SimpleDeque {
 
   void push_back(const T& value) {
     if (size_ == capacity_) {
-      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+      Grow(capacity_ == 0 ? 4 : base::CheckedCountProduct(capacity_, 2));
     }
     data_[back_index_] = value;
     back_index_ = (back_index_ + 1) % capacity_;
@@ -116,7 +122,7 @@ class SimpleDeque {
   // can be queued at all.
   void push_front(T&& value) {
     if (size_ == capacity_) {
-      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+      Grow(capacity_ == 0 ? 4 : base::CheckedCountProduct(capacity_, 2));
     }
     front_index_ = (front_index_ == 0) ? capacity_ - 1 : front_index_ - 1;
     data_[front_index_] = base::move(value);
@@ -125,7 +131,7 @@ class SimpleDeque {
 
   void push_back(T&& value) {
     if (size_ == capacity_) {
-      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+      Grow(capacity_ == 0 ? 4 : base::CheckedCountProduct(capacity_, 2));
     }
     data_[back_index_] = base::move(value);
     back_index_ = (back_index_ + 1) % capacity_;
@@ -135,7 +141,7 @@ class SimpleDeque {
   template <typename... TArgs>
   T& emplace_back(TArgs&&... args) {
     if (size_ == capacity_) {
-      Grow(capacity_ == 0 ? 4 : capacity_ * 2);
+      Grow(capacity_ == 0 ? 4 : base::CheckedCountProduct(capacity_, 2));
     }
     T& slot = data_[back_index_];
     slot = T(base::forward<TArgs>(args)...);

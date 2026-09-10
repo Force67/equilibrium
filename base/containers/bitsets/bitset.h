@@ -7,6 +7,7 @@
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/builtins_bit.h>
+#include <climits>
 #include <cstring>
 
 namespace base {

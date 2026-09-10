@@ -22,11 +22,13 @@ class BASE_EXPORT ThreadPool {
   void enqueue(base::Function<void()> task);
   void adjustThreadCount();
 
-  size_t workerCount() const { return workers.size(); }
+  size_t workerCount() const;
   size_t pendingTasks();
 
  private:
   void workerThreadFunction();
+  // Adds workers until there are |target| of them. Call with workersMutex
+  // held: it both reads and grows |workers|.
   void scaleUp(size_t target);
 
   // LIFO stack rather than a deque: tasks carry no ordering contract, and
@@ -34,6 +36,12 @@ class BASE_EXPORT ThreadPool {
   base::SpinningMutex queueMutex;
   base::Vector<base::Function<void()>> taskQueue;
 
+  // The worker list has its own lock rather than sharing queueMutex, so that
+  // spawning a thread never stalls the workers polling the queue. Every read
+  // and every write of |workers| happens under it, including the size checks
+  // that decide whether to grow: two concurrent enqueues that both read an
+  // unsynchronized size pick the same target and push into the same Vector.
+  mutable base::SpinningMutex workersMutex;
   base::Vector<base::Thread*> workers;
   size_t minThreads, maxThreads;
   base::Atomic<bool> stop;

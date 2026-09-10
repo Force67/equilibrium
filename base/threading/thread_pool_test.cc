@@ -81,6 +81,37 @@ TEST(ThreadPool, DestructionWithIdleWorkers) {
   // Destructor must not hang or leak with never-used workers.
 }
 
+TEST(ThreadPool, ConcurrentEnqueueKeepsTheWorkerListIntact) {
+  // Regression: the depth check read workers.size() and scaleUp grew workers
+  // with no lock held. Two enqueues could read the same size, pick the same
+  // target, and push into the same Vector at once -- overshooting maxThreads,
+  // losing a worker, or tearing the Vector outright.
+  constexpr size_t kMaxThreads = 16;
+  constexpr int kProducers = 8;
+  constexpr int kPerProducer = 400;
+  constexpr int kExpected = kProducers * kPerProducer;
+
+  base::Atomic<int> counter{0};
+  {
+    base::ThreadPool pool(1, kMaxThreads);
+    std::thread producers[kProducers];
+    for (auto& producer : producers) {
+      producer = std::thread([&pool, &counter]() {
+        for (int i = 0; i < kPerProducer; i++)
+          pool.enqueue([&counter]() { counter.fetch_add(1); });
+      });
+    }
+    for (auto& producer : producers)
+      producer.join();
+
+    // The destructor drops whatever is still queued, so drain first.
+    SpinWait(counter, kExpected, 30000);
+    EXPECT_GE(pool.workerCount(), 1u);
+    EXPECT_LE(pool.workerCount(), kMaxThreads);
+  }
+  EXPECT_EQ(counter.load(), kExpected);
+}
+
 TEST(ThreadPool, StartWithPriorityDoesNotTrap) {
   // Regression: posix SetThreadPriority used to DCHECK(false), making every
   // Thread::Start crash in debug builds.

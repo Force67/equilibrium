@@ -25,6 +25,12 @@ namespace detail {
 // param if needed.
 BASE_EXPORT void DCheck(const SourceLocation&, const char* message = nullptr);
 BASE_EXPORT void BugCheck(const SourceLocation&, const char* message = nullptr);
+
+// Reports the failure through the installed check handler and then terminates.
+// Never returns, in any build configuration.
+[[noreturn]] BASE_EXPORT void FatalCheckFailure(const char* file,
+                                                int line,
+                                                const char* message);
 }  // namespace detail
 
 // Asserts are user facing exceptional cases, after which the program state is
@@ -101,6 +107,17 @@ BASE_EXPORT void SetCheckHandler(CheckHandler*);
 
 #define BASE_BUGCHECK(x, ...)
 #endif
+
+// A DCHECK and a BUGCHECK are diagnostics: both compile down to CHECK_BREAK,
+// which is a no-op outside CONFIG_DEBUG, so execution continues past a failed
+// one in a shipping build. A FATAL_CHECK terminates in every configuration.
+// Use it for the invariants whose violation would corrupt memory -- allocation
+// size arithmetic, bounds arithmetic -- where continuing is worse than dying.
+#define BASE_FATAL_CHECK(expression, message)                          \
+  do {                                                                 \
+    if (!(expression))                                                 \
+      ::base::detail::FatalCheckFailure(__FILE__, __LINE__, (message)); \
+  } while (0)
 
 #if defined(BASE_RECORD_CHECKS)
 // Another form of bugcheck.

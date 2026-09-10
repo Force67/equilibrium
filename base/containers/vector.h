@@ -6,6 +6,7 @@
 
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/memory/allocation_size.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/memory/move.h>
 #include <base/math/value_bounds.h>
@@ -348,8 +349,9 @@ class Vector {
     BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
     const auto index = pos - begin();
 
-    if (size() + count > capacity()) {
-      const mem_size new_cap = CalculateNewCapacity(size() + count);
+    const mem_size required = base::CheckedCountSum(size(), count);
+    if (required > capacity()) {
+      const mem_size new_cap = CalculateNewCapacity(required);
       GrowCapacity(size(), new_cap);
       pos = begin() + index;
     }
@@ -387,8 +389,9 @@ class Vector {
     BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
     const auto index = pos - begin();
 
-    if (size() + count > capacity()) {
-      const mem_size new_cap = CalculateNewCapacity(size() + count);
+    const mem_size required = base::CheckedCountSum(size(), count);
+    if (required > capacity()) {
+      const mem_size new_cap = CalculateNewCapacity(required);
       GrowCapacity(size(), new_cap);
       pos = begin() + index;
     }
@@ -595,7 +598,7 @@ class Vector {
 
  private:
   mem_size CalculateNewCapacity(mem_size cap) {
-    return cap > 0 ? cap * kDefaultMult : 1;
+    return cap > 0 ? base::CheckedCountProduct(cap, kDefaultMult) : 1;
   }
 
   void MakeHoleForInsert(T* pos, mem_size count) {
@@ -655,7 +658,14 @@ class Vector {
   }
 
   T* Allocate(mem_size cap) {
-    return static_cast<T*>(TAllocator::Allocate(cap * sizeof(T)));
+    auto* block =
+        static_cast<T*>(TAllocator::Allocate(base::CheckedAllocationSize(cap, sizeof(T))));
+    // DefaultAllocator throws instead of returning null, but TAllocator is a
+    // template parameter and a custom one may report failure by returning it.
+    // Every caller constructs elements into the block straight away, so a null
+    // block has to stop here rather than become an out-of-bounds write.
+    BASE_FATAL_CHECK(block, "Vector: allocation failed");
+    return block;
   }
   void Free(T* block, mem_size n) {
     if (block)

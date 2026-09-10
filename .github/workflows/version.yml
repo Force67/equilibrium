@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - coderelease
-      
+
+# The version action commits a changelog and pushes a tag. Nothing in this
+# workflow needs more than that, and stating it here keeps the ambient
+# GITHUB_TOKEN that actions/checkout persists from carrying anything else.
+permissions:
+  contents: write
+
 jobs:
   my-job:
     runs-on: ubuntu-latest
@@ -17,7 +23,13 @@ jobs:
       - name: Set it again
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - name: Tag stuff with version-it
-        uses: Force67/version.it@main
+        # Pinned to a commit, not @main. This step receives a token, and a
+        # branch reference lets upstream replace the code that reads it with no
+        # review on this side. Bump the SHA deliberately and move the comment
+        # with it.
+        uses: Force67/version.it@1968ae9844fc3125b1b64a2b3187509dad71dcc4 # main as of 2023-09-01
         env:
+          # The action reads GITHUB_TOKEN and nothing else (python/version_it.py
+          # at the pinned commit). It never looked at ACCESS_TOKEN, so passing a
+          # second copy of the secret only widened where it could leak from.
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          ACCESS_TOKEN: ${{ secrets.GH_TOKEN }}

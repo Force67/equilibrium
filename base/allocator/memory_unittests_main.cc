@@ -16,8 +16,11 @@
 #include <allocator/virtual_memory.h>
 #include <allocator/memory_coordinator.h>
 
+#include <base/atomic.h>
+
 #include <cstdio>
 #include <cstring>
+#include <thread>
 
 using namespace base;
 
@@ -413,6 +416,89 @@ void Bucket_DataIntegrity() {
   TEST_PASS();
 }
 
+void Bucket_ConcurrentCrossThreadFree() {
+  TEST_BEGIN("Bucket_ConcurrentCrossThreadFree");
+  // The active slab is thread-local, but a slot allocated on one thread can be
+  // freed on another. Free() pushing onto slab->free_list while the slab's own
+  // thread pops from it used to be unsynchronized: the two lose entries, and a
+  // torn next pointer hands out an address that is not a slot.
+  //
+  // Every thread produces into its own row and consumes the row before it, with
+  // the handoff going through an atomic per slot, so a free really does land on
+  // another thread's slab while that thread is still allocating.
+  constexpr int kThreads = 4;
+  constexpr int kPerThread = 2000;
+  constexpr mem_size kSize = 64;
+
+  PageTable pt(0x10000ULL * 512, 0x10000, 512);
+  BucketAllocator alloc(pt);
+
+  static base::Atomic<void*> handoff[kThreads][kPerThread];
+  for (int t = 0; t < kThreads; t++)
+    for (int i = 0; i < kPerThread; i++)
+      handoff[t][i].store(nullptr);
+
+  static void* produced[kThreads][kPerThread];
+  base::Atomic<int> failures{0};
+
+  auto worker = [&](int id) {
+    const int consumes = (id + kThreads - 1) % kThreads;
+    for (int i = 0; i < kPerThread; i++) {
+      void* block = alloc.Allocate(kSize, 8);
+      if (!block) {
+        failures.fetch_add(1);
+        return;
+      }
+      ::memset(block, static_cast<byte>(id + 1), kSize);
+      produced[id][i] = block;
+      handoff[id][i].store(block);
+
+      // Take the neighbour's slot for the same index. Everyone publishes before
+      // consuming at a given index, so this cannot deadlock.
+      void* theirs = nullptr;
+      while ((theirs = handoff[consumes][i].load()) == nullptr) {
+      }
+      // The pattern proves the slot was handed to exactly one producer: a
+      // duplicate would have been overwritten by the other one's memset.
+      auto* data = static_cast<byte*>(theirs);
+      const byte expected = static_cast<byte>(consumes + 1);
+      for (mem_size j = 0; j < kSize; j++) {
+        if (data[j] != expected) {
+          failures.fetch_add(1);
+          return;
+        }
+      }
+      alloc.Free(theirs);
+    }
+  };
+
+  std::thread threads[kThreads];
+  for (int t = 0; t < kThreads; t++)
+    threads[t] = std::thread(worker, t);
+  for (auto& thread : threads)
+    thread.join();
+
+  EXPECT(failures.load() == 0);
+
+  // Addresses recur legitimately -- a freed slot is handed straight back out --
+  // so the invariant is not uniqueness but shape: a torn free-list pointer
+  // yields an address that is not a slot boundary inside a slab of this class.
+  for (int t = 0; t < kThreads; t++) {
+    for (int i = 0; i < kPerThread; i++) {
+      const auto address = reinterpret_cast<pointer_size>(produced[t][i]);
+      const auto* slab = reinterpret_cast<BucketAllocator::SlabHeader*>(
+          address & ~(pt.page_size() - 1));
+      const mem_size slot_offset = address - reinterpret_cast<pointer_size>(slab) -
+                                   sizeof(BucketAllocator::SlabHeader);
+      EXPECT(slab->slot_size == kSize);
+      EXPECT(slot_offset % kSize == 0);
+      EXPECT(slot_offset / kSize < slab->total_slots);
+    }
+  }
+
+  TEST_PASS();
+}
+
 // ============================================================================
 // HeapAllocator
 // ============================================================================
@@ -774,6 +860,7 @@ int main() {
   Bucket_ReAllocateShrink();
   Bucket_ReAllocateGrow();
   Bucket_DataIntegrity();
+  Bucket_ConcurrentCrossThreadFree();
 
   printf("\n--- HeapAllocator ---\n");
   Heap_BasicAllocFree();

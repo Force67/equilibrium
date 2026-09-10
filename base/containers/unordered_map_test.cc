@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <base/containers/unordered_map.h>
+#include <base/numeric_limits.h>
 #include <base/strings/xstring.h>
 
 namespace {
@@ -219,6 +220,39 @@ TEST(UnorderedMapInitTest, BraceInitializationKeepsTheFirstOfARepeatedKey) {
 
   EXPECT_EQ(map.size(), 1u);
   EXPECT_EQ(*map.find(1), 10);
+}
+
+TEST(UnorderedMapTest, ReserveRoundsToAPowerOfTwoAboveTheRequest) {
+  base::UnorderedMap<i32, i32> map;
+  map.reserve(1000);
+  // 1000 elements at a 0.75 load factor need 1334 buckets, so 2048.
+  EXPECT_EQ(map.bucket_count(), 2048u);
+  // Nothing rehashes while the reservation holds.
+  for (i32 i = 0; i < 1000; ++i)
+    map.insert(i, i);
+  EXPECT_EQ(map.bucket_count(), 2048u);
+  EXPECT_EQ(map.size(), 1000u);
+}
+
+TEST(UnorderedMapTest, ReserveBelowTheFloorStillGivesSixteenBuckets) {
+  base::UnorderedMap<i32, i32> map;
+  map.reserve(1);
+  EXPECT_EQ(map.bucket_count(), 16u);
+}
+
+// reserve used to size the slot array with an unchecked multiply, and to round
+// up with `while (target < required) target *= 2` -- a loop that wraps to zero
+// and spins forever for a request this large.
+TEST(UnorderedMapOverflowDeathTest, ReserveOfAnUnrepresentableCount) {
+  // The alias keeps the template argument comma out of the macro argument list.
+  using IntMap = base::UnorderedMap<i32, i32>;
+  volatile mem_size count = base::MinMax<mem_size>::max() / 2;
+  EXPECT_DEATH(
+      {
+        IntMap map;
+        map.reserve(count);
+      },
+      "overflows");
 }
 
 }  // namespace

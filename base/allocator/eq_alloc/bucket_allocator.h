@@ -16,10 +16,17 @@ namespace base {
 //
 //   - 8 power-of-2 size classes: 8 .. 1024 bytes
 //   - Each 64 KiB page is a slab serving one size class
-//   - Thread-local slab ownership — alloc/free operate directly on the
-//     slab's intrusive free list (no intermediary cache, no locking)
+//   - Each thread bump-allocates from its own active slab, so threads rarely
+//     touch the same slab
 //   - Bump allocation for fresh slots, free list for recycled slots
 //   - Mask-based O(1) slab lookup (ptr & ~0xFFFF → SlabHeader)
+//
+// The active slab is thread-local but the slots inside it are not: a slot
+// allocated on one thread can be freed on another, which puts that slab's
+// intrusive free list and bump cursor back into shared mutable state. Every
+// mutation of a SlabHeader therefore runs under its size class's lock. The
+// immutable fields (class_index, slot_size, total_slots) are readable without
+// it, because NewSlab writes them before the slab becomes reachable.
 class BASE_EXPORT BucketAllocator final : public Allocator {
   friend struct EQMemoryRouter;
 
@@ -62,7 +69,8 @@ class BASE_EXPORT BucketAllocator final : public Allocator {
     base::SpinningMutex lock;
   };
 
-  NOINLINE void* AllocateSlow(int idx);
+  // Both expect bins_[class_index].lock to be held by the caller.
+  NOINLINE void* AllocateSlowLocked(int idx);
   SlabHeader* NewSlab(int class_index);
 
   STRONG_INLINE SlabHeader* SlabFromPtr(void* ptr) const {

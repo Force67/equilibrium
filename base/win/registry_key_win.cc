@@ -249,31 +249,45 @@ LONG RegistryKey::ReadI64(const wchar_t* name, i64& out_value) const {
 }
 
 LONG RegistryKey::ReadValue(const wchar_t* name, base::StringW& out_value) const {
-  const size_t kMaxStringLength = 1024;  // This is after expansion.
+  constexpr DWORD kMaxStringLength = 1024;  // This is after expansion.
   // Use the one of the other forms of ReadValue if 1024 is too small for you.
-  wchar_t raw_value[kMaxStringLength];
-  DWORD type = REG_SZ, size = sizeof(raw_value);
+  //
+  // The arrays hold one wchar_t more than the API is allowed to fill. A REG_SZ
+  // value that exactly fills the buffer comes back without a terminator, so
+  // the spare slot is where this function writes one.
+  wchar_t raw_value[kMaxStringLength + 1];
+  DWORD type = REG_SZ, size = sizeof(wchar_t) * kMaxStringLength;
   LONG result = ReadValue(name, raw_value, size, type);
-  if (result == ERROR_SUCCESS) {
-    if (type == REG_SZ) {
-      out_value = raw_value;
-    } else if (type == REG_EXPAND_SZ) {
-      wchar_t expanded[kMaxStringLength];
-      size = ExpandEnvironmentStringsW(raw_value, expanded, kMaxStringLength);
-      // Success: returns the number of wchar_t's copied
-      // Fail: buffer too small, returns the size required
-      // Fail: other, returns 0
-      if (size == 0 || size > kMaxStringLength) {
-        result = ERROR_MORE_DATA;
-      } else {
-        out_value = expanded;
-      }
-    } else {
-      // Not a string. Oops.
-      result = ERROR_CANTREAD;
-    }
+  if (result != ERROR_SUCCESS)
+    return result;
+  if (type != REG_SZ && type != REG_EXPAND_SZ)
+    return ERROR_CANTREAD;  // Not a string. Oops.
+
+  // |size| is how many bytes RegQueryValueExW wrote, and it is the only bound
+  // on the buffer that holds. Terminate at that bound, then take the text up
+  // to the first terminator the way the value's type defines it.
+  DWORD written = to_wchar_size(size);
+  if (written > kMaxStringLength)
+    written = kMaxStringLength;
+  raw_value[written] = L'\0';
+  DWORD length = 0;
+  while (length < written && raw_value[length] != L'\0')
+    ++length;
+
+  if (type == REG_SZ) {
+    out_value.assign(raw_value, length);
+    return result;
   }
 
+  wchar_t expanded[kMaxStringLength + 1];
+  // Success: returns the number of wchar_t's copied, terminator included
+  // Fail: buffer too small, returns the size required
+  // Fail: other, returns 0
+  const DWORD expanded_size =
+      ExpandEnvironmentStringsW(raw_value, expanded, kMaxStringLength + 1);
+  if (expanded_size == 0 || expanded_size > kMaxStringLength + 1)
+    return ERROR_MORE_DATA;
+  out_value.assign(expanded, expanded_size - 1);
   return result;
 }
 

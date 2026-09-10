@@ -20,18 +20,25 @@ bool DynamicLibrary::Load(const base::Path& path, bool should_free) {
   BASE_DCHECK(!handle_, "Attempted to load an already existing library");
   BASE_DCHECK(!path.empty(), "Empty library path");
 
-  if (LoadExisting(path))
-    return true;
-
-  // user preference
-  should_free_ = should_free;
-
-  BASE_BUGCHECK(!base::DoIsStringUTF8(path.c_str(), path.length()),
+  BASE_BUGCHECK(base::DoIsStringUTF8(path.c_str(), path.length()),
            "DynamicLibrary::Load(): BASE requires paths to be utf8 encoded!");
+
+  // An already-mapped library goes through LoadExisting, which matches partial
+  // sonames ("libstdc++.so" against "libstdc++.so.6") that dlopen rejects.
+  // Both paths end up holding a reference of their own, so |should_free| means
+  // the same thing on either: give it back, or leave it outstanding. Giving it
+  // back cannot unload a module that was already mapped, because whoever
+  // mapped it still holds theirs.
+  if (LoadExisting(path)) {
+    should_free_ = should_free;
+    return true;
+  }
 
   // TODO(vince): RTLD_LAZY preferences in flags...
   handle_ = ::dlopen(reinterpret_cast<const char*>(path.c_str()), RTLD_NOW);
-  return handle_;
+  // user preference: whether the reference just taken is ours to give back
+  should_free_ = handle_ != nullptr && should_free;
+  return loaded();
 }
 
 #if defined(__APPLE__)
@@ -40,11 +47,13 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
   BASE_DCHECK(!handle_, "Attempted to load an already existing library");
   BASE_DCHECK(!path.empty(), "Empty library path");
 
-  should_free_ = false;
   // RTLD_NOLOAD returns a usable handle only when the library is already mapped
   // into the process, which is what dl_iterate_phdr emulates on Linux.
   handle_ = ::dlopen(reinterpret_cast<const char*>(path.c_str()),
                      RTLD_NOW | RTLD_NOLOAD);
+  // The reference RTLD_NOLOAD took is ours; giving it back cannot unload the
+  // module, because the code that loaded it still holds its own.
+  should_free_ = handle_ != nullptr;
   return loaded();
 }
 
@@ -54,10 +63,12 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
   BASE_DCHECK(!handle_, "Attempted to load an already existing library");
   BASE_DCHECK(!path.empty(), "Empty library path");
 
-  should_free_ = false;
-
+  // dl_iterate_phdr matches partial names -- "libc.so" against
+  // "/lib/x86_64-linux-gnu/libc.so.6" -- which dlopen does not, so the walk
+  // runs first and reports only the name it matched. Its dlpi_addr is the
+  // module's load bias, not a handle: dlsym and dlclose reject it.
   struct Context {
-    void* handle;
+    const char* name;
     const base::Path::BufferType& path_ref;
   } context{nullptr, path.path()};
 
@@ -83,26 +94,39 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
     // lib/x86_64-linux-gnu/libstdc++.so.6
     if (ref.find(context->path_ref.c_str(), 0, context->path_ref.length()) !=
         base::StringRef::npos) {
-      context->handle = reinterpret_cast<void*>(info->dlpi_addr);
-      return 0;
+      context->name = info->dlpi_name;
+      return 1;  // stop the walk on the first match
     }
 
     return 0;
   };
 
   ::dl_iterate_phdr(callback, &context);
-  handle_ = context.handle;
+  if (!context.name)
+    return false;
 
+  // RTLD_NOLOAD turns the matched name into a handle without loading anything.
+  // The reference it takes is ours; giving it back cannot unload the module,
+  // because the code that loaded it still holds its own.
+  handle_ = ::dlopen(context.name, RTLD_NOW | RTLD_NOLOAD);
+  should_free_ = handle_ != nullptr;
   return loaded();
 }
 
 #endif  // __APPLE__
 
 bool DynamicLibrary::Free() {
-  return !handle_ ? false : ::dlclose(handle_) == 0;
+  if (!handle_ || !should_free_)
+    return false;
+  const bool released = ::dlclose(handle_) == 0;
+  handle_ = nullptr;
+  should_free_ = false;
+  return released;
 }
 
 void* DynamicLibrary::FindSymbolPointer(const char* name) const {
-  return ::dlsym(handle_, name);
+  // dlsym has no defined behaviour for a null handle; RTLD_DEFAULT is a
+  // distinct sentinel, not the null pointer.
+  return handle_ ? ::dlsym(handle_, name) : nullptr;
 }
 }  // namespace base

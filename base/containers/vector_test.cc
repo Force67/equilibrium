@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <base/containers/vector.h>
+#include <base/numeric_limits.h>
 
 namespace {
 using namespace base;
@@ -430,6 +431,43 @@ TEST(VectorFindTest, FindInUnsortedArray) {
   auto* found = vec.find(3);
   ASSERT_NE(found, nullptr);
   EXPECT_EQ(*found, 3);
+}
+
+// A count whose byte size does not fit in mem_size used to wrap into a small
+// allocation that the vector then filled with the full count. push_back,
+// reserve and resize return void, so there is nothing to report a refusal
+// through: the only memory-safe answer is to stop.
+TEST(VectorOverflowDeathTest, ReserveOfAnUnrepresentableCount) {
+  volatile mem_size count = base::MinMax<mem_size>::max() / sizeof(i64) + 1;
+  EXPECT_DEATH(
+      {
+        base::Vector<i64> vec;
+        vec.reserve(count);
+      },
+      "allocation size overflows");
+}
+
+TEST(VectorOverflowDeathTest, ResizeOfAnUnrepresentableCount) {
+  volatile mem_size count = base::MinMax<mem_size>::max() / sizeof(i32) + 1;
+  EXPECT_DEATH(
+      {
+        base::Vector<i32> vec;
+        vec.resize(count);
+      },
+      "allocation size overflows");
+}
+
+TEST(VectorOverflowDeathTest, InsertCountThatOverflowsTheSize) {
+  volatile mem_size count = base::MinMax<mem_size>::max();
+  EXPECT_DEATH(
+      {
+        base::Vector<u8> vec;
+        vec.push_back(1);
+        // size() + count wraps to 0, which used to satisfy the capacity check
+        // and skip the growth entirely.
+        vec.insert(vec.begin(), count, u8(2));
+      },
+      "element count sum overflows");
 }
 
 }  // namespace

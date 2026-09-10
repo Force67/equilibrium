@@ -20,6 +20,7 @@ void NapBriefly() {
 ThreadPool::ThreadPool(size_t min_threads, size_t max_threads)
     : minThreads(min_threads), maxThreads(max_threads), stop(false), activeWorkers(0) {
   BASE_DCHECK(minThreads <= maxThreads, "ThreadPool: min > max");
+  base::NonOwningScopedLockGuard<base::SpinningMutex> lock(workersMutex);
   scaleUp(minThreads);
 }
 
@@ -27,8 +28,10 @@ ThreadPool::~ThreadPool() {
   stop.store(true);
   while (activeWorkers.load() > 0)
     NapBriefly();
+  base::NonOwningScopedLockGuard<base::SpinningMutex> lock(workersMutex);
   for (base::Thread* worker : workers)
     delete worker;
+  workers.clear();
 }
 
 void ThreadPool::enqueue(base::Function<void()> task) {
@@ -38,14 +41,23 @@ void ThreadPool::enqueue(base::Function<void()> task) {
     taskQueue.push_back(base::move(task));
     depth = taskQueue.size();
   }
-  // Grow while the queue outpaces the workers.
-  if (depth > workers.size() && workers.size() < maxThreads)
-    scaleUp(workers.size() + 1);
+  // Grow while the queue outpaces the workers. The size that decides this and
+  // the growth that acts on it have to be one critical section, or two callers
+  // both read the same size, both pick the same target, and both push.
+  base::NonOwningScopedLockGuard<base::SpinningMutex> lock(workersMutex);
+  const size_t current = workers.size();
+  if (depth > current && current < maxThreads)
+    scaleUp(current + 1);
 }
 
 void ThreadPool::adjustThreadCount() {
   // Growth happens in enqueue; nothing shrinks (workers are cheap when
   // idle and Thread has no join to retire them safely mid-run).
+}
+
+size_t ThreadPool::workerCount() const {
+  base::NonOwningScopedLockGuard<base::SpinningMutex> lock(workersMutex);
+  return workers.size();
 }
 
 size_t ThreadPool::pendingTasks() {

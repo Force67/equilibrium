@@ -44,38 +44,56 @@ bool MemoryMappedFile::Map() {
     return false;
   }
 
+  view_offset_ = 0;
+  view_size_ = file_size_;
   return true;
 }
 
 bool MemoryMappedFile::ReMap(u64 offset, mem_size mapped_bytes) {
   if (memory_view_address_ != nullptr) {
-    munmap(memory_view_address_, file_size_);
+    // The length has to be the view's own, not the file's: they differ after
+    // any partial ReMap, and munmap with the wrong length unmaps the wrong
+    // range.
+    munmap(memory_view_address_, view_size_);
+    memory_view_address_ = nullptr;
+    view_offset_ = 0;
+    view_size_ = 0;
   }
 
   if (offset > file_size_) {
     return false;
   }
 
-  if (offset + mapped_bytes > file_size_) {
-    mapped_bytes = file_size_ - offset;
+  // Clamped by subtraction. `offset + mapped_bytes > file_size_` wraps for a
+  // large offset, which skips the clamp and maps past the end of the file.
+  const u64 available = file_size_ - offset;
+  if (mapped_bytes > available) {
+    mapped_bytes = static_cast<mem_size>(available);
+  }
+  if (mapped_bytes == 0) {
+    return false;  // mmap rejects a zero-length mapping.
   }
 
-  memory_view_address_ =
-      mmap(nullptr, mapped_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, offset);
+  memory_view_address_ = mmap(nullptr, mapped_bytes, PROT_READ | PROT_WRITE,
+                              MAP_SHARED, fd_, static_cast<off_t>(offset));
   if (memory_view_address_ == MAP_FAILED) {
     BASE_LOG_ERROR("Error remapping file: {}", strerror(errno));
     memory_view_address_ = nullptr;
     return false;
   }
 
+  view_offset_ = offset;
+  view_size_ = mapped_bytes;
   return true;
 }
 
 void MemoryMappedFile::Close() {
   if (memory_view_address_) {
-    munmap(memory_view_address_, file_size_);
+    munmap(memory_view_address_, view_size_);
     memory_view_address_ = nullptr;
   }
+  view_offset_ = 0;
+  view_size_ = 0;
   if (fd_ != -1) {
     close(fd_);
     fd_ = -1;
