@@ -2,6 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #include <gtest/gtest.h>
 
+#include <base/numeric_limits.h>
+
 #include "small_string.h"
 
 namespace {
@@ -175,6 +177,59 @@ TEST(SmallStringTest, ReserveTriggersHeap) {
   EXPECT_FALSE(s.is_inline());
   EXPECT_GE(s.capacity(), 100u);
   EXPECT_STREQ(s.c_str(), "hi");
+}
+
+// -- Allocation size arithmetic --
+
+// size_type is u32 here, and both the growth and the deallocation compute
+// (capacity + 1) in it. max_size() has to leave that one slot free.
+TEST(SmallStringOverflow, MaxSizeLeavesRoomForTheTerminator) {
+  EXPECT_EQ(SS8::max_size(), base::MinMax<u32>::max() - 1);
+  EXPECT_LE(SS8::inline_capacity(), SS8::max_size());
+}
+
+TEST(SmallStringOverflow, GrowthNeverReportsLessCapacityThanAskedFor) {
+  // `required + required / 2` had no guard at all: near the top of u32 it
+  // wrapped to a capacity below |required|, which the caller then overran.
+  SS8 s;
+  for (u32 n = 1; n <= (1u << 16); n *= 2) {
+    while (s.size() < n)
+      s.push_back('x');
+    ASSERT_EQ(s.size(), n);
+    ASSERT_GE(s.capacity(), n);
+  }
+}
+
+TEST(SmallStringOverflowDeathTest, ReserveAboveMaxSizeTerminates) {
+  volatile u32 capacity = base::MinMax<u32>::max();
+  EXPECT_DEATH(
+      {
+        SS8 s;
+        s.reserve(capacity);
+      },
+      "capacity exceeds max_size");
+}
+
+TEST(SmallStringOverflowDeathTest, AppendCountThatOverflowsTheLengthTerminates) {
+  // old_size + count wraps in 32 bits to something the inline buffer already
+  // satisfies, so no growth happened and the copy ran off the end.
+  volatile u32 count = base::MinMax<u32>::max();
+  EXPECT_DEATH(
+      {
+        SS8 s("a");
+        s.append("ignored", count);
+      },
+      "length sum overflows");
+}
+
+TEST(SmallStringOverflowDeathTest, InsertCountThatOverflowsTheLengthTerminates) {
+  volatile u32 count = base::MinMax<u32>::max() - 1;
+  EXPECT_DEATH(
+      {
+        SS8 s("abc");
+        s.insert(1, count, 'x');
+      },
+      "length sum overflows");
 }
 
 }  // namespace

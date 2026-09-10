@@ -150,12 +150,71 @@ class BasicBaseString {
 
   // -- Capacity / allocation helpers --
 
+  // The top bit of capacity_ is on loan to the is-large flag.
+  static constexpr size_type kCapacityFlagBit =
+      static_cast<size_type>(kLargeFlag) << ((sizeof(size_type) - 1) * 8);
+
+  // Two independent ceilings on a capacity. The first: a capacity with the
+  // flag bit set would read back masked, and so smaller than the buffer really
+  // is.
+  static constexpr size_type kCapacityFieldMax =
+      base::MinMax<size_type>::max() & ~kCapacityFlagBit;
+
+  // The second: the buffer is (capacity + 1) characters, and that byte count
+  // has to fit in a size_type *and* be a legal object size. operator new
+  // cannot hand back more than PTRDIFF_MAX, and pointer arithmetic inside a
+  // block larger than that would be undefined regardless.
+  static constexpr mem_size kSizeTypeMax = base::MinMax<size_type>::max();
+  static constexpr mem_size kObjectBytesMax =
+      static_cast<mem_size>(base::MinMax<pointer_diff>::max());
+  static constexpr mem_size kBufferBytesMax =
+      kSizeTypeMax < kObjectBytesMax ? kSizeTypeMax : kObjectBytesMax;
+  static constexpr size_type kCharCountMax =
+      static_cast<size_type>(kBufferBytesMax / sizeof(character_type) - 1);
+
+  static constexpr size_type kMaxCapacity =
+      kCapacityFieldMax < kCharCountMax ? kCapacityFieldMax : kCharCountMax;
+
+  // The one place the buffer byte count is computed. Safe for any capacity at
+  // or below kMaxCapacity, which is what allocate_buffer enforces on the way
+  // in and every capacity_ field therefore satisfies on the way out.
+  static mem_size buffer_byte_size(size_type capacity) noexcept {
+    return (static_cast<mem_size>(capacity) + 1) * sizeof(character_type);
+  }
+
+  // Allocates room for |capacity| characters plus the terminator. Every caller
+  // writes that many characters into the result and none of them can report a
+  // refusal, so a capacity that cannot be represented -- or a buffer that was
+  // not handed over -- has to stop here rather than become a short allocation
+  // the caller then overruns.
+  static character_type* allocate_buffer(size_type capacity) {
+    BASE_FATAL_CHECK(capacity <= kMaxCapacity,
+                     "BasicBaseString: capacity exceeds max_size()");
+    auto* data =
+        static_cast<character_type*>(TAllocator::Allocate(buffer_byte_size(capacity)));
+    // DefaultAllocator throws rather than returning null, but TAllocator is a
+    // template parameter and a custom one may report failure by returning it.
+    BASE_FATAL_CHECK(data, "BasicBaseString: allocation failed");
+    return data;
+  }
+
+  // Sum of two lengths. Terminates on wraparound, because a wrapped sum
+  // compares as small enough against the current capacity and the copy that
+  // follows then runs off the end of the buffer.
+  static size_type checked_length_sum(size_type a, size_type b) {
+    BASE_FATAL_CHECK(a <= base::MinMax<size_type>::max() - b,
+                     "BasicBaseString: length sum overflows");
+    return a + b;
+  }
+
   static size_type grow_capacity(size_type required) noexcept {
-    // Geometric growth (1.5x) with an overflow guard.
-    const size_type kMax = base::MinMax<size_type>::max();
-    if (required > kMax - required / 2)
+    // Geometric growth (1.5x), clamped so the result stays representable.
+    // allocate_buffer is what rejects a |required| that is itself too large.
+    if (required >= kMaxCapacity)
       return required;
-    return required + required / 2;
+    const size_type headroom = kMaxCapacity - required;
+    const size_type extra = required / 2;
+    return required + (extra < headroom ? extra : headroom);
   }
 
   // Allocates target_capacity + 1 chars, copies our current contents,
@@ -164,8 +223,7 @@ class BasicBaseString {
   // sources separately (see assign/append).
   void realloc_to(size_type target_capacity) {
     BASE_BUGCHECK(target_capacity >= get_size(), "realloc_to would lose data");
-    character_type* new_data = static_cast<character_type*>(
-        TAllocator::Allocate((target_capacity + 1) * sizeof(character_type)));
+    character_type* new_data = allocate_buffer(target_capacity);
     const size_type cur_size = get_size();
     if (cur_size > 0) {
       memcpy(new_data, get_data(), cur_size * sizeof(character_type));
@@ -189,7 +247,7 @@ class BasicBaseString {
 
   void deallocate_large() {
     if (is_large()) {
-      TAllocator::Free(large_.data_, (get_capacity() + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_, buffer_byte_size(get_capacity()));
     }
   }
 
@@ -315,8 +373,7 @@ class BasicBaseString {
       // Source-aliasing safe: allocate the new buffer first, copy from src
       // (which may point inside our old buffer — still valid), and only then
       // free the old buffer.
-      character_type* new_data = static_cast<character_type*>(
-          TAllocator::Allocate((len + 1) * sizeof(character_type)));
+      character_type* new_data = allocate_buffer(len);
       memcpy(new_data, str, len * sizeof(character_type));
       new_data[len] = character_type{};
       deallocate_large();
@@ -407,6 +464,10 @@ class BasicBaseString {
   size_type capacity() const noexcept { return get_capacity(); }
   bool is_inline() const noexcept { return !is_large(); }
 
+  // The most characters this string can hold. Asking for more terminates:
+  // every growing modifier returns void and has no way to refuse.
+  static constexpr size_type max_size() noexcept { return kMaxCapacity; }
+
   // Reserve exactly `new_capacity` (no geometric padding) — honors the
   // user's intent. Auto-growing modifiers go through grow_to_at_least()
   // instead, which uses 1.5x growth.
@@ -447,11 +508,10 @@ class BasicBaseString {
       memcpy(small_.data_, buf, current_size * sizeof(character_type));
       flag_byte() = static_cast<unsigned char>(current_size & ~kLargeFlag);
       ensure_null_terminated();
-      TAllocator::Free(old_data, (old_capacity + 1) * sizeof(character_type));
+      TAllocator::Free(old_data, buffer_byte_size(old_capacity));
     } else {
       // Shrink the heap buffer to exactly current_size.
-      character_type* new_data = static_cast<character_type*>(
-          TAllocator::Allocate((current_size + 1) * sizeof(character_type)));
+      character_type* new_data = allocate_buffer(current_size);
       memcpy(new_data, large_.data_, current_size * sizeof(character_type));
       new_data[current_size] = character_type{};
       deallocate_large();
@@ -481,13 +541,12 @@ class BasicBaseString {
     if (count == 0)
       return;
     const size_type old_size = get_size();
-    const size_type new_size = old_size + count;
+    const size_type new_size = checked_length_sum(old_size, count);
     if (new_size > get_capacity()) {
       // Source-aliasing safe + geometric growth: allocate new, copy old +
       // src (both still valid), then free old.
       const size_type new_capacity = grow_capacity(new_size);
-      character_type* new_data = static_cast<character_type*>(
-          TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
+      character_type* new_data = allocate_buffer(new_capacity);
       if (old_size > 0) {
         memcpy(new_data, get_data(), old_size * sizeof(character_type));
       }
@@ -517,11 +576,12 @@ class BasicBaseString {
     if (count == 0)
       return;
     const size_type old_size = get_size();
-    grow_to_at_least(old_size + count);
+    const size_type new_size = checked_length_sum(old_size, count);
+    grow_to_at_least(new_size);
     character_type* d = get_data();
     for (size_type i = 0; i < count; ++i)
       d[old_size + i] = c;
-    set_size(old_size + count);
+    set_size(new_size);
     ensure_null_terminated();
   }
 
@@ -540,10 +600,11 @@ class BasicBaseString {
 
   void push_back(character_type c) {
     const size_type old_size = get_size();
+    const size_type new_size = checked_length_sum(old_size, 1);
     if (old_size == get_capacity())
-      grow_to_at_least(old_size + 1);
+      grow_to_at_least(new_size);
     get_data()[old_size] = c;
-    set_size(old_size + 1);
+    set_size(new_size);
     ensure_null_terminated();
   }
 
@@ -552,7 +613,7 @@ class BasicBaseString {
     if (count == 0)
       return;
     const size_type old_size = get_size();
-    const size_type new_size = old_size + count;
+    const size_type new_size = checked_length_sum(old_size, count);
     grow_to_at_least(new_size);
     character_type* d = get_data();
     memmove(d + pos + count, d + pos, (old_size - pos) * sizeof(character_type));

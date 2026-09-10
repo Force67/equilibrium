@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <base/numeric_limits.h>
+
 #include "base_string.h"
 #include "string_ref.h"
 #include "xstring.h"  // base::String, base::StringW, etc.
@@ -769,6 +771,98 @@ TEST(BaseStringRegressions, PushBackIsLinear) {
   for (size_t i = 0; i < kN; ++i) s.push_back('x');
   EXPECT_EQ(s.size(), kN);
   for (size_t i = 0; i < kN; ++i) EXPECT_EQ(s[i], 'x');
+}
+
+// -- Allocation size arithmetic --
+
+TEST(BaseStringOverflow, MaxSizeLeavesRoomForTheTerminatorAndTheFlagBit) {
+  // capacity_ lends its top bit to the is-large flag, so max_size() has to sit
+  // below that bit; and (max_size() + 1) characters have to be an addressable
+  // object size.
+  constexpr auto kTop = base::MinMax<mem_size>::max();
+  EXPECT_LT(base::String::max_size(), kTop / 2);
+  EXPECT_LE((base::String::max_size() + 1) * sizeof(char),
+            static_cast<mem_size>(base::MinMax<pointer_diff>::max()));
+
+  // A wider character type gets a proportionally smaller ceiling.
+  EXPECT_LE((base::StringW::max_size() + 1) * sizeof(wchar_t),
+            static_cast<mem_size>(base::MinMax<pointer_diff>::max()));
+}
+
+TEST(BaseStringOverflow, GrowthNeverReportsLessCapacityThanAskedFor) {
+  // grow_capacity clamps at max_size() rather than wrapping past it, so the
+  // capacity it lands on is never below the length the caller needed room for.
+  base::String s;
+  for (mem_size n = 1; n <= (mem_size(1) << 16); n *= 2) {
+    s.append(n - s.size(), 'x');
+    ASSERT_EQ(s.size(), n);
+    ASSERT_GE(s.capacity(), n);
+  }
+}
+
+TEST(BaseStringOverflowDeathTest, ReserveAboveMaxSizeTerminates) {
+  volatile mem_size capacity = base::String::max_size() + 1;
+  EXPECT_DEATH(
+      {
+        base::String s;
+        s.reserve(capacity);
+      },
+      "capacity exceeds max_size");
+}
+
+TEST(BaseStringOverflowDeathTest, ResizeAboveMaxSizeTerminates) {
+  volatile mem_size size = base::String::max_size() + 1;
+  EXPECT_DEATH(
+      {
+        base::String s;
+        s.resize(size);
+      },
+      "capacity exceeds max_size");
+}
+
+TEST(BaseStringOverflowDeathTest, AppendCountThatOverflowsTheLengthTerminates) {
+  // old_size + count wraps to 1, which used to compare as small enough
+  // against the inline capacity; the fill loop then wrote |count| characters.
+  volatile mem_size count = base::MinMax<mem_size>::max();
+  EXPECT_DEATH(
+      {
+        base::String s("a");
+        s.append(count, 'x');
+      },
+      "length sum overflows");
+}
+
+TEST(BaseStringOverflowDeathTest, AppendBufferThatOverflowsTheLengthTerminates) {
+  volatile mem_size count = base::MinMax<mem_size>::max() - 1;
+  EXPECT_DEATH(
+      {
+        base::String s("ab");
+        // The pointer is never read: the length arithmetic has to fail first.
+        s.append("ignored", count);
+      },
+      "length sum overflows");
+}
+
+TEST(BaseStringOverflowDeathTest, InsertCountThatOverflowsTheLengthTerminates) {
+  volatile mem_size count = base::MinMax<mem_size>::max();
+  EXPECT_DEATH(
+      {
+        base::String s("abc");
+        s.insert(1, count, 'x');
+      },
+      "length sum overflows");
+}
+
+// A wide character type reaches the ceiling at a quarter of the count, so the
+// byte-count limit binds before the flag-bit one.
+TEST(BaseStringOverflowDeathTest, WideStringReserveAboveMaxSizeTerminates) {
+  volatile mem_size capacity = base::StringW::max_size() + 1;
+  EXPECT_DEATH(
+      {
+        base::StringW s;
+        s.reserve(capacity);
+      },
+      "capacity exceeds max_size");
 }
 
 }  // namespace

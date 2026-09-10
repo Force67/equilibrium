@@ -40,8 +40,15 @@ class BasicSmallString {
   using allocator_type = TAllocator;
   static constexpr size_type npos = base::MinMax<size_type>::max();
   static constexpr size_type kInlineCapacity = static_cast<size_type>(N);
-  static_assert(N <= base::MinMax<size_type>::max() - 1,
-                "BasicSmallString N must fit in size_type");
+  // One slot short of the maximum: grow and deallocate both compute
+  // (capacity + 1), and in a u32 size_type that wraps to zero at the very top
+  // -- asking the allocator for nothing, and then filling it.
+  static constexpr size_type kMaxCapacity = base::MinMax<size_type>::max() - 1;
+  static_assert(N <= kMaxCapacity, "BasicSmallString N must fit in size_type");
+
+  // The most characters this string can hold. Asking for more terminates:
+  // every growing modifier returns void and has no way to refuse.
+  static constexpr size_type max_size() noexcept { return kMaxCapacity; }
 
  private:
   struct LargeRep {
@@ -82,6 +89,36 @@ class BasicSmallString {
   }
   void terminate() noexcept { mutable_data()[get_size()] = character_type{}; }
 
+  // Widened before the +1: size_type is u32 here, so a 32-bit (capacity + 1)
+  // can wrap where the byte count itself has room to spare.
+  static mem_size buffer_byte_size(size_type capacity) noexcept {
+    return (static_cast<mem_size>(capacity) + 1) * sizeof(character_type);
+  }
+
+  // Allocates room for |capacity| characters plus the terminator. Every caller
+  // writes that many characters into the result and none of them can report a
+  // refusal, so a capacity that cannot be represented has to stop here rather
+  // than become a short allocation the caller then overruns.
+  static character_type* allocate_buffer(size_type capacity) {
+    BASE_FATAL_CHECK(capacity <= kMaxCapacity,
+                     "BasicSmallString: capacity exceeds max_size()");
+    auto* data =
+        static_cast<character_type*>(TAllocator::Allocate(buffer_byte_size(capacity)));
+    // DefaultAllocator throws rather than returning null, but TAllocator is a
+    // template parameter and a custom one may report failure by returning it.
+    BASE_FATAL_CHECK(data, "BasicSmallString: allocation failed");
+    return data;
+  }
+
+  // Sum of two lengths. Terminates on wraparound, because a wrapped sum
+  // compares as small enough against the current capacity and the copy that
+  // follows then runs off the end of the buffer.
+  static size_type checked_length_sum(size_type a, size_type b) {
+    BASE_FATAL_CHECK(a <= base::MinMax<size_type>::max() - b,
+                     "BasicSmallString: length sum overflows");
+    return a + b;
+  }
+
   void init_empty() noexcept {
     is_large_ = false;
     small_.size_ = 0;
@@ -90,7 +127,7 @@ class BasicSmallString {
 
   void deallocate_large_if_needed() {
     if (is_large_) {
-      TAllocator::Free(large_.data_, (large_.capacity_ + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_, buffer_byte_size(large_.capacity_));
     }
   }
 
@@ -99,10 +136,16 @@ class BasicSmallString {
     if (required <= get_capacity())
       return;
 
-    // Geometric growth: 1.5x rounded up.
-    size_type new_capacity = required + (required / 2);
-    character_type* new_data = static_cast<character_type*>(
-        TAllocator::Allocate((new_capacity + 1) * sizeof(character_type)));
+    // Geometric growth: 1.5x rounded up, clamped so the result stays
+    // representable. `required + required / 2` had no guard at all: for a
+    // large |required| it wrapped to a small capacity that the caller, having
+    // asked for room it believed it got, then overran.
+    BASE_FATAL_CHECK(required <= kMaxCapacity,
+                     "BasicSmallString: capacity exceeds max_size()");
+    const size_type headroom = kMaxCapacity - required;
+    const size_type extra = required / 2;
+    const size_type new_capacity = required + (extra < headroom ? extra : headroom);
+    character_type* new_data = allocate_buffer(new_capacity);
 
     const size_type cur_size = get_size();
     if (cur_size > 0) {
@@ -313,13 +356,12 @@ class BasicSmallString {
       small_.size_ = cur;
       memcpy(small_.data_, old_data, cur * sizeof(character_type));
       small_.data_[cur] = character_type{};
-      TAllocator::Free(old_data, (old_capacity + 1) * sizeof(character_type));
+      TAllocator::Free(old_data, buffer_byte_size(old_capacity));
     } else if (cur < large_.capacity_) {
-      character_type* new_data = static_cast<character_type*>(
-          TAllocator::Allocate((cur + 1) * sizeof(character_type)));
+      character_type* new_data = allocate_buffer(cur);
       memcpy(new_data, large_.data_, cur * sizeof(character_type));
       new_data[cur] = character_type{};
-      TAllocator::Free(large_.data_, (large_.capacity_ + 1) * sizeof(character_type));
+      TAllocator::Free(large_.data_, buffer_byte_size(large_.capacity_));
       large_.data_ = new_data;
       large_.capacity_ = cur;
     }
@@ -344,7 +386,7 @@ class BasicSmallString {
     if (count == 0)
       return;
     const size_type old_size = get_size();
-    const size_type new_size = old_size + count;
+    const size_type new_size = checked_length_sum(old_size, count);
     if (new_size > get_capacity())
       grow_to(new_size);
     memcpy(mutable_data() + old_size, str, count * sizeof(character_type));
@@ -352,15 +394,21 @@ class BasicSmallString {
     terminate();
   }
   void append(const character_type* str) {
-    append(str, static_cast<size_type>(base::CountStringLength(str)));
+    // size_type is narrower than the length CountStringLength reports, and a
+    // truncating cast would silently append a prefix.
+    const mem_size length = base::CountStringLength(str);
+    BASE_FATAL_CHECK(length <= kMaxCapacity,
+                     "BasicSmallString: string longer than max_size()");
+    append(str, static_cast<size_type>(length));
   }
 
   void push_back(character_type c) {
     const size_type old_size = get_size();
-    if (old_size + 1 > get_capacity())
-      grow_to(old_size + 1);
+    const size_type new_size = checked_length_sum(old_size, 1);
+    if (new_size > get_capacity())
+      grow_to(new_size);
     mutable_data()[old_size] = c;
-    set_size(old_size + 1);
+    set_size(new_size);
     terminate();
   }
 
@@ -369,7 +417,7 @@ class BasicSmallString {
     if (count == 0)
       return;
     const size_type old_size = get_size();
-    const size_type new_size = old_size + count;
+    const size_type new_size = checked_length_sum(old_size, count);
     if (new_size > get_capacity())
       grow_to(new_size);
     character_type* d = mutable_data();
