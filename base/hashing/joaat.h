@@ -8,7 +8,7 @@ namespace base {
 inline u32 Joaat(const byte* data, mem_size length) {
   u32 hash = 0;
 
-  for (auto i = 0; i < length; ++i) {
+  for (mem_size i = 0; i < length; ++i) {
     hash += data[i];
     hash += (hash << 10);
     hash ^= (hash >> 6);
@@ -24,7 +24,7 @@ inline u32 Joaat(const byte* data, mem_size length) {
 inline u16 Joaat16(const byte* data, mem_size length) {
   u16 hash = 0;
 
-  for (auto i = 0; i < length; ++i) {
+  for (mem_size i = 0; i < length; ++i) {
     hash += data[i];
     hash += (hash << 5);
     hash ^= (hash >> 3);

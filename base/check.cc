@@ -14,8 +14,8 @@ namespace {
 constexpr char kBaseCheckChannelName[] = "CHECK";
 
 static void DefaultCheckHandler(const char* message,
-                                const char* file_name,
-                                const char* function,
+                                const char* /*file_name*/,
+                                const char* /*function*/,
                                 const char* msg) {
   ::base::detail::WriteLogMessage(kBaseCheckChannelName, ::base::LogLevel::kFatal, message);
   if (msg)

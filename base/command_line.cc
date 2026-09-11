@@ -55,7 +55,7 @@ bool CommandLine::HasItem(const base::StringRefU8 switch_name) {
 }
 
 i32 CommandLine::FindSwitchIndex(const base::StringRefU8 switch_name) {
-  for (i32 i = 0; i < pieces_.size(); i++) {
+  for (mem_size i = 0; i < pieces_.size(); i++) {
     base::StringU8& piece = pieces_[i];
     // yes intentional, easier to debug.
     if (piece.size() < switch_name.size())
@@ -68,7 +68,7 @@ i32 CommandLine::FindSwitchIndex(const base::StringRefU8 switch_name) {
       return piece.compare(offset, switch_name.length(), switch_name.data()) == 0;
     };
     if (matches(1) || matches(2)) {
-      return i;
+      return static_cast<i32>(i);
     }
   }
   return kNotFoundIndex;
@@ -93,8 +93,10 @@ base::StringRefU8 CommandLine::operator[](const mem_size index) BASE_CONST_ND {
 }
 
 base::StringRefU8 CommandLine::at(const mem_size index) {
-  auto cap = pieces_.size();
-  if (index > cap || index == kNotFoundIndex)
+  // `index > cap` let index == cap through and read one element past the end.
+  // The bound also subsumes the old kNotFoundIndex test: that sentinel is -1,
+  // and as a mem_size it is the largest possible index.
+  if (index >= pieces_.size())
     return u8"";
   const auto& piece = pieces_[index];
   return base::StringRefU8(piece.c_str(), piece.length(),
@@ -104,7 +106,7 @@ base::StringRefU8 CommandLine::at(const mem_size index) {
 xsize CommandLine::FindPositionalArgumentsIndex() {
   mem_size positional_index = 1;  // start at one, since the first arg, is the
                                   // program path itself on most platforms
-  for (auto i = 1; i < pieces_.size(); i++) {
+  for (mem_size i = 1; i < pieces_.size(); i++) {
     auto& piece = pieces_[i];
     if ((piece.length() > 1 && piece.data()[0] == u8'-') ||
         (i + 1 < pieces_.size() && pieces_[i + 1].data()[0] == u8'-')) {

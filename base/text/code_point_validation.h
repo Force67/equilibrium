@@ -91,10 +91,14 @@ bool DoIsStringASCII(const Char* characters, mem_size length) {
 
   // Compare the values of CPU word size.
   constexpr mem_size chars_per_word = sizeof(MachineWord) / sizeof(Char);
-  constexpr int batch_count = 16;
-  while (characters <= end - batch_count * chars_per_word) {
+  constexpr mem_size batch_count = 16;
+  constexpr mem_size chars_per_batch = batch_count * chars_per_word;
+  // The bounds are remaining lengths rather than `end - n`: for an input
+  // shorter than n that expression is a pointer outside the array, which is
+  // undefined even though the comparison that follows would reject it.
+  while (static_cast<mem_size>(end - characters) >= chars_per_batch) {
     all_char_bits = 0;
-    for (int i = 0; i < batch_count; ++i) {
+    for (mem_size i = 0; i < batch_count; ++i) {
       all_char_bits |= *(reinterpret_cast<const MachineWord*>(characters));
       characters += chars_per_word;
     }
@@ -104,7 +108,7 @@ bool DoIsStringASCII(const Char* characters, mem_size length) {
 
   // Process the remaining words.
   all_char_bits = 0;
-  while (characters <= end - chars_per_word) {
+  while (static_cast<mem_size>(end - characters) >= chars_per_word) {
     all_char_bits |= *(reinterpret_cast<const MachineWord*>(characters));
     characters += chars_per_word;
   }

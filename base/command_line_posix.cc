@@ -10,7 +10,7 @@
 namespace base {
 void CommandLine::InitializeBuffer(const base::StringRefU8 command_line) {
   base::StringU8 current_arg;
-  for (auto i = 0; i < command_line.length(); i++) {
+  for (mem_size i = 0; i < command_line.length(); i++) {
     const auto c = command_line[i];
     switch (c) {
       case u8' ': {

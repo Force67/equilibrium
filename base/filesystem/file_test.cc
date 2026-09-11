@@ -3,13 +3,36 @@
 
 #include <gtest/gtest.h>
 
-#if 0
 #include <base/filesystem/file.h>
+#include <base/numeric_limits.h>
+
+#if 0
 #include <base/filesystem/file_util.h>
 #include <base/filesystem/scoped_temp_dir.h>
 #endif
 
 namespace {
+
+TEST(FileTests, WriteRefusesASizeItCannotReport) {
+  base::Path path("./file_write_size_guard");
+  base::File file;
+  file.Initialize(path, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE |
+                            base::File::FLAG_READ);
+  ASSERT_TRUE(file.IsValid());
+
+  const char payload[] = "short";
+  constexpr int kPayloadLength = static_cast<int>(sizeof(payload) - 1);
+  ASSERT_EQ(file.Write(0, payload, kPayloadLength), kPayloadLength);
+
+  // The running total and the return value are int. A larger request used to
+  // be truncated -- into WriteAtCurrentPos(const char*, int) on POSIX, into a
+  // DWORD on Windows. The buffer is never read: the size is refused first.
+  const size_t too_large = static_cast<size_t>(base::MinMax<i32>::max()) + 1;
+  EXPECT_EQ(file.Write(0, payload, too_large), -1);
+  EXPECT_EQ(file.GetLength(), kPayloadLength);
+
+  file.Close();
+}
 
 #if 0
 TEST(FileTests, Create) {

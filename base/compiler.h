@@ -171,6 +171,30 @@ constexpr auto kIsLittleEndian = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
 constexpr auto kIsBigEndian = !kIsLittleEndian;
 }  // namespace base
 
+// GCC cannot correlate a small-buffer discriminator with the active member of
+// the union it selects, so around a write through the selected pointer it
+// speculates the inline buffer holding a heap-sized string and reports it as
+// -Wstringop-overflow, -Wstringop-overread or -Warray-bounds, depending on
+// which side of the access it looks at. Those paths are unreachable: the size
+// and the capacity are read through the same discriminator, and no modifier
+// leaves the size above the capacity. Stating the invariant with [[assume]]
+// does not help -- GCC drops the assumption before the pass that warns.
+//
+// Wrap only the individual statement, never a whole function: these two
+// warnings do catch real overflows in this code, and the string types are
+// exactly where that matters.
+#if defined(__GNUC__) && !defined(__clang__)
+#define BASE_SSO_SPECULATION_BEGIN                            \
+  _Pragma("GCC diagnostic push")                              \
+  _Pragma("GCC diagnostic ignored \"-Wstringop-overflow\"")     \
+  _Pragma("GCC diagnostic ignored \"-Wstringop-overread\"")     \
+  _Pragma("GCC diagnostic ignored \"-Warray-bounds\"")
+#define BASE_SSO_SPECULATION_END _Pragma("GCC diagnostic pop")
+#else
+#define BASE_SSO_SPECULATION_BEGIN
+#define BASE_SSO_SPECULATION_END
+#endif
+
 // Portable _countof for C-style arrays.
 #ifndef _countof
 #include <cstddef>

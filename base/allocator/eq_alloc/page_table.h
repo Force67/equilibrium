@@ -77,7 +77,8 @@ class BASE_EXPORT PageTable {
     u32 size;
     pointer_size address;
 
-    PageEntry(pointer_size address, mem_size size) : address(address), size(size) {}
+    PageEntry(pointer_size address, mem_size size)
+        : size(static_cast<u32>(size)), address(address) {}
 
     inline bool Contains(pointer_size block) const {
       return block >= address && block < (address + size);

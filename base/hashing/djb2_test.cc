@@ -16,7 +16,7 @@ struct {
                    {"abcde", 870005970439033},
                    {"abcdef", 28710197024906016},
                    {"abcdefg", 947436501822320552},
-                   {"abcdefgh", 12818660486427452721}};
+                   {"abcdefgh", 12818660486427452721ull}};
 
 TEST(Djb2, Hash64) {
   for (const auto& pair : kTestValues) {

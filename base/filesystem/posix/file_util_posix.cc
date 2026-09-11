@@ -38,7 +38,8 @@ base::Path GetTempTemplate() {
 // Appends |mode_char| to |mode| before the optional character set encoding; see
 // https://www.gnu.org/software/libc/manual/html_node/Opening-Streams.html for
 // details.
-base::StringRef AppendModeCharacter(base::StringRef mode, char mode_char) {
+[[maybe_unused]] base::StringRef AppendModeCharacter(base::StringRef mode,
+                                                    char mode_char) {
   base::String result = mode;
   size_t comma_pos = result.find(',');
   result.insert(comma_pos == base::StringRef::npos ? result.length() : comma_pos, 1,
@@ -184,7 +185,7 @@ bool GetTempDir(Path* path) {
   return true;
 }
 
-bool CreateNewTempDirectory(const Path::BufferType& prefix, Path* new_temp_path) {
+bool CreateNewTempDirectory(const Path::BufferType& /*prefix*/, Path* new_temp_path) {
   Path tmpdir;
   if (!GetTempDir(&tmpdir))
     return false;

@@ -16,7 +16,8 @@
 int main(int argc, char** argv) {
 #ifndef DISABLE_BASE_LOG
   base::SetLogHandler(
-      [](void*, const char* channel, base::LogLevel log_level, const char* msg) { std::puts(msg); },
+      [](void*, const char* /*channel*/, base::LogLevel /*log_level*/,
+         const char* msg) { std::puts(msg); },
       nullptr);
 #endif
 

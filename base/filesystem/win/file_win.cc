@@ -5,6 +5,7 @@
 #include "base/compiler.h"
 #include "base/check.h"
 #include "base/filesystem/file.h"
+#include "base/numeric_limits.h"
 
 #include <io.h>
 #include <stdint.h>
@@ -95,6 +96,12 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
 int File::Write(int64_t offset, const char* data, size_t size) {
   BASE_BUGCHECK(IsValid());
   BASE_BUGCHECK(!async_);
+
+  // The return value is int, and WriteFile takes a DWORD. A larger request
+  // cannot be reported and used to be truncated by the cast below, so it is
+  // refused here instead -- matching the POSIX implementation.
+  if (size > static_cast<size_t>(base::MinMax<i32>::max()))
+    return -1;
 
   LARGE_INTEGER offset_li;
   offset_li.QuadPart = offset;

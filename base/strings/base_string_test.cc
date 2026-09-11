@@ -82,15 +82,17 @@ TYPED_TEST(BaseStringTest, Construction) {
 
 TEST(BaseStringTest, ConstructFromArray) {
   using BaseStringType = base::BasicBaseString<char8_t>;
-  using StdStringType = std::basic_string<char8_t>;
 
   const char8_t kTestSentence8[] = u8"Hello, world!";
   const char8_t kTestSentence8Copy[] = u8"Hello, world!";
-  const char8_t kTestSentence8Copy2[] = u8"Hello, world!";
-  const char8_t kTestSentence8Copy3[] = u8"Hello, world!";
 
+  // The array overload has to deduce the length from the array bound and drop
+  // the trailing null, not keep it as a character.
   const BaseStringType base_str(kTestSentence8);
-  BaseStringType base_str_copy(kTestSentence8Copy);
+  const BaseStringType base_str_copy(kTestSentence8Copy);
+  EXPECT_EQ(base_str.size(), 13u);
+  EXPECT_EQ(base_str_copy.size(), 13u);
+  EXPECT_EQ(base_str, base_str_copy);
 }
 
 TYPED_TEST(BaseStringTest, Assignment) {

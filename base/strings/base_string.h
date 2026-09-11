@@ -8,6 +8,7 @@
 // we try to avoid expensive headers.
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/compiler.h>
 #include <base/numeric_limits.h>
 #include <base/containers/container_traits.h>
 #include <base/meta/traits.h>
@@ -141,9 +142,18 @@ class BasicBaseString {
     }
   }
 
-  void ensure_null_terminated() noexcept { get_data()[get_size()] = character_type{}; }
+  void ensure_null_terminated() noexcept {
+    BASE_SSO_SPECULATION_BEGIN
+    get_data()[get_size()] = character_type{};
+    BASE_SSO_SPECULATION_END
+  }
 
   void init_empty() noexcept {
+    // Written even though small mode never reads it. The compiler cannot
+    // always correlate is_large() with the active union member, and an
+    // unwritten size_ makes every get_size() look like it may read
+    // uninitialized storage. It does not alias flag_byte() or small_.data_[0].
+    large_.size_ = 0;
     flag_byte() = 0;
     small_.data_[0] = character_type{};
   }
@@ -632,8 +642,10 @@ class BasicBaseString {
       return;
 
     character_type* d = get_data();
+    BASE_SSO_SPECULATION_BEGIN
     memmove(d + pos, d + pos + count,
             (current_size - pos - count) * sizeof(character_type));
+    BASE_SSO_SPECULATION_END
     set_size(current_size - count);
     ensure_null_terminated();
   }

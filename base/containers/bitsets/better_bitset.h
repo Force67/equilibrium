@@ -28,12 +28,13 @@ class BetterBitSet {
 
  public:
   constexpr BetterBitSet() noexcept : array_() {}
+  constexpr BetterBitSet(const BetterBitSet&) noexcept = default;
   constexpr BetterBitSet(unsigned long long val) noexcept
       : array_{static_cast<ArrayType>(kNeedsMask ? val & kMask : val)} {}
 
   [[nodiscard]] mem_size CountSetBits() {
     mem_size count = 0;
-    for (auto i = 0; i < kWords; ++i) {
+    for (mem_size i = 0; i < kWords; ++i) {
       count += base::PopCount(array_[i]);
     }
     return count;
@@ -144,14 +145,14 @@ class BetterBitSet {
   BetterBitSet& operator&=(const BetterBitSet& rhs) noexcept
     requires(N <= 64)
   {
-    for (auto i = 0; i < kWords; ++i) {
+    for (mem_size i = 0; i < kWords; ++i) {
       array_[i] &= rhs.array_[i] & kLastMask;
     }
     return *this;
   }
 
   BetterBitSet& operator|=(const BetterBitSet& rhs) noexcept {
-    for (auto i = 0; i < kWords; ++i) {
+    for (mem_size i = 0; i < kWords; ++i) {
       Set(i, this->operator[](i) | rhs[i]);  // we use array access operators (BitSet.[]).
     }
 
@@ -159,7 +160,7 @@ class BetterBitSet {
   }
 
   BetterBitSet& operator^=(const BetterBitSet& rhs) noexcept {
-    for (auto i = 0; i < kWords; ++i) {
+    for (mem_size i = 0; i < kWords; ++i) {
       array_[i] ^= rhs.array_[i];
     }
     return *this;

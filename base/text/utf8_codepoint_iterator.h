@@ -29,7 +29,7 @@ class UTF8CodePointIterator {
   xsize array_pos() const { return array_pos_; }
   xsize char_pos() const { return char_pos_; }
 
-  const character_type current_character() const { return char_; }
+  character_type current_character() const { return char_; }
 
   bool end() const { return array_pos_ == str_.length(); }
   operator bool() const noexcept { return !end(); }
@@ -51,7 +51,7 @@ class UTF8CodePointIterator {
 
   // peek at current location + n characters (in code points).
   // e.g Hi 世界 -> Peek at pos 1 with 3 yields 界
-  const character_type PeekCharacter(const xsize number_of_code_points) {
+  character_type PeekCharacter(const xsize number_of_code_points) {
     character_type the_char = 0;
     xsize the_pos = array_pos_;
     if (the_pos >= str_.length())

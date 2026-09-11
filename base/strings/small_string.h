@@ -17,6 +17,7 @@
 
 #include <base/arch.h>
 #include <base/check.h>
+#include <base/compiler.h>
 #include <base/numeric_limits.h>
 #include <base/containers/container_traits.h>
 #include <base/math/value_bounds.h>
@@ -87,7 +88,11 @@ class BasicSmallString {
       small_.size_ = new_size;
     }
   }
-  void terminate() noexcept { mutable_data()[get_size()] = character_type{}; }
+  void terminate() noexcept {
+    BASE_SSO_SPECULATION_BEGIN
+    mutable_data()[get_size()] = character_type{};
+    BASE_SSO_SPECULATION_END
+  }
 
   // Widened before the +1: size_type is u32 here, so a 32-bit (capacity + 1)
   // can wrap where the byte count itself has room to spare.

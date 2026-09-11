@@ -89,6 +89,21 @@ TEST(CommandLine, ParseFromStringUTF8CharsTest) {
   EXPECT_EQ(line[3].length(), 6);
 }
 
+TEST(CommandLine, AtRejectsTheIndexPastTheEnd) {
+  base::CommandLine line;
+  line.ParseFromString(u8"test.exe -a -b");
+  const auto count = line.parameter_count();
+  ASSERT_GT(count, 0u);
+
+  // The last valid index still yields a piece.
+  EXPECT_GT(line.at(count - 1).length(), 0u);
+
+  // `index > cap` let index == cap through and indexed one element past the
+  // end of the piece list.
+  EXPECT_EQ(line.at(count).length(), 0u);
+  EXPECT_EQ(line.at(count + 100).length(), 0u);
+}
+
 TEST(CommandLine, ParseFromStringUTF8OnlyCharsTest) {
   // base::CommandLine line;
 #if 0

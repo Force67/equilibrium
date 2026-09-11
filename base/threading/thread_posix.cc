@@ -78,19 +78,18 @@ void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
   ::pthread_setschedparam(HandleToPthread(handle.pthread_), SCHED_RR, &param);
 }
 
-const i32 GetNativeThreadPriority(Thread::Handle handle) {
+i32 GetNativeThreadPriority(Thread::Handle handle) {
   sched_param param;
-  i32 priority;
   i32 policy;
 
   /* scheduling parameters of target thread */
   if (::pthread_getschedparam(HandleToPthread(handle.pthread_), &policy, &param) != 0)
-    return UINT_MAX;  // invalid cast to i32
+    return -1;  // no priority to report
 
   return param.sched_priority;
 }
 
-const Thread::Priority GetThreadPriority(Thread::Handle handle) {
+Thread::Priority GetThreadPriority(Thread::Handle handle) {
   sched_param param{};
   i32 policy = SCHED_OTHER;
   if (::pthread_getschedparam(HandleToPthread(handle.pthread_), &policy,

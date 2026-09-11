@@ -14,10 +14,12 @@ struct BASE_EXPORT Feature : InitChain<Feature> {
     kHidden = 1 << 1,  //< If this flag isn't set, assume public.
   };
 
-  constexpr STRONG_INLINE Feature(const char* name,
-                                  bool enabled = true,
-                                  Flags f = Flags::kNone)
-      : InitChain(this), name(name), flags(f), enabled(enabled) {}
+  STRONG_INLINE Feature(const char* name,
+                        bool enabled = true,
+                        Flags f = Flags::kNone)
+      : name(name), flags(f), enabled(enabled) {
+    Register(this);
+  }
 
   inline operator bool() const { return enabled; }
 

@@ -13,10 +13,25 @@ inline constexpr mem_size CountStringLength(const T* p,
                                             mem_size limit = MinMax<mem_size>::max()) {
   // DCHECK(p);
 
-  const auto* s = p;
-  while (*s && limit--)
-    s++;
-  return static_cast<mem_size>(s - p);
+  // For unlimited single-byte scans, hand the work to the builtin. It folds a
+  // string literal to a constant, which the hand-rolled loop below does not
+  // reliably do through an inlining chain -- and a caller that then copies
+  // `CountStringLength(literal)` bytes out of that literal looks to the
+  // compiler like it may read past the end. It also lowers to the tuned libc
+  // routine instead of a byte loop.
+  if constexpr (sizeof(T) == 1) {
+    if (!__builtin_is_constant_evaluated() && limit == MinMax<mem_size>::max())
+      return __builtin_strlen(reinterpret_cast<const char*>(p));
+  }
+
+  // Indexed rather than a pointer walk with a `limit--` side effect in the
+  // condition: the same scan, but one the optimizer can evaluate for a known
+  // literal, which is what keeps a caller copying CountStringLength(literal)
+  // characters out of it from looking like an over-read.
+  mem_size n = 0;
+  while (n != limit && p[n])
+    ++n;
+  return n;
 }
 
 template <typename T>

@@ -16,6 +16,7 @@
 #include <base/filesystem/file.h>
 #include <base/filesystem/posix/eintr_wrapper.h>
 #include <base/memory/move.h>
+#include <base/numeric_limits.h>
 
 #include <base/text/code_convert.h>
 #include <base/text/code_point_validation.h>
@@ -49,7 +50,7 @@ int CallFtruncate(PlatformFile file, int64_t length) {
 #endif
 }
 
-int CallFutimes(PlatformFile file, const struct timeval times[2]) {
+[[maybe_unused]] int CallFutimes(PlatformFile file, const struct timeval times[2]) {
 #if defined(__USE_XOPEN2K8) || defined(BASE_MUSL_STATIC)
   // futimens should be available, but futimes might not be
   // http://pubs.opengroup.org/onlinepubs/9699919799/
@@ -92,7 +93,7 @@ File::Error CallFcntlFlock(PlatformFile file, File::LockMode* mode) {
 
 }  // namespace
 
-void File::Info::FromStat(const stat_wrapper_t& stat_info) {
+void File::Info::FromStat(const stat_wrapper_t& /*stat_info*/) {
   BASE_IMPOSSIBLE;
 }
 
@@ -182,23 +183,30 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
 int File::Write(int64_t offset, const char* data, size_t size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
 
+  // The running total and the return value are both int, so a request larger
+  // than one can report is refused here. It used to reach
+  // WriteAtCurrentPos(const char*, int) as a silent truncation, and the old
+  // `size < 0` guard could never fire on an unsigned size.
+  if (size > static_cast<size_t>(base::MinMax<i32>::max()))
+    return -1;
+  const int total = static_cast<int>(size);
+
   if (IsOpenAppend(file_.get()))
-    return WriteAtCurrentPos(data, size);
+    return WriteAtCurrentPos(data, total);
 
   BASE_DCHECK(IsValid());
-  if (size < 0)
-    return -1;
 
   int bytes_written = 0;
   int rv;
   do {
-    rv = HANDLE_EINTR(pwrite(file_.get(), data + bytes_written, size - bytes_written,
+    rv = HANDLE_EINTR(pwrite(file_.get(), data + bytes_written,
+                             static_cast<size_t>(total - bytes_written),
                              offset + bytes_written));
     if (rv <= 0)
       break;
 
     bytes_written += rv;
-  } while (bytes_written < size);
+  } while (bytes_written < total);
 
   return bytes_written ? bytes_written : rv;
 }

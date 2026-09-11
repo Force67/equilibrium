@@ -15,15 +15,16 @@ namespace {
 // attempts to own a higher FD is that we don't track it.
 const int kMaxTrackedFds = 4096;
 
-NOINLINE void CrashOnFdOwnershipViolation() {
+[[maybe_unused]] NOINLINE void CrashOnFdOwnershipViolation() {
   DEBUG_TRAP;
 }
 
-bool CanTrack(int fd) {
+[[maybe_unused]] bool CanTrack(int fd) {
   return fd >= 0 && fd < kMaxTrackedFds;
 }
 
-void UpdateAndCheckFdOwnership(int fd, bool owned) {
+[[maybe_unused]] void UpdateAndCheckFdOwnership([[maybe_unused]] int fd,
+                                                [[maybe_unused]] bool owned) {
 #if 0
   if (CanTrack(fd) && g_is_fd_owned[fd].exchange(owned) == owned &&
       g_is_ownership_enforced) {
@@ -39,13 +40,13 @@ namespace base {
 namespace internal {
 
 // static
-void ScopedFDCloseTraits::Acquire(const ScopedFD& owner, int fd) {
+void ScopedFDCloseTraits::Acquire(const ScopedFD& /*owner*/, int /*fd*/) {
   // UpdateAndCheckFdOwnership(fd, /*owned=*/true);
   //  TBP
 }
 
 // static
-void ScopedFDCloseTraits::Release(const ScopedFD& owner, int fd) {
+void ScopedFDCloseTraits::Release(const ScopedFD& /*owner*/, int /*fd*/) {
   // UpdateAndCheckFdOwnership(fd, /*owned=*/false);
 }
 

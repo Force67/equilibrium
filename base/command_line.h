@@ -119,7 +119,7 @@ class BASE_EXPORT CommandLine {
   // optional arguments
   xsize FindPositionalArgumentsIndex();
 
-  const xsize parameter_count() const { return pieces_.size(); }
+  xsize parameter_count() const { return pieces_.size(); }
 
   // cxx iterator
   auto begin() { return pieces_.begin(); }

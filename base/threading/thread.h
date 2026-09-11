@@ -60,6 +60,6 @@ inline bool SetCurrentThreadName(const char* name) {
 }
 
 BASE_EXPORT void SetThreadPriority(Thread::Handle, Thread::Priority new_priority);
-BASE_EXPORT const Thread::Priority GetThreadPriority(Thread::Handle);
-BASE_EXPORT const i32 GetNativeThreadPriority(Thread::Handle);
+BASE_EXPORT Thread::Priority GetThreadPriority(Thread::Handle);
+BASE_EXPORT i32 GetNativeThreadPriority(Thread::Handle);
 }  // namespace base

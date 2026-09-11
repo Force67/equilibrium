@@ -32,12 +32,12 @@ class Expected {
   template <typename U = TExpected>
   inline Expected(U value)
     requires(!base::ISSame<U, TError>)
-      : has_error_(false), expected_value_(base::move(value)) {}
+      : expected_value_(base::move(value)), has_error_(false) {}
 
   template <typename U = TError>
   inline Expected(U error)
     requires(!base::ISSame<U, TExpected>)
-      : has_error_(true), error_value_(base::move(error)) {}
+      : error_value_(base::move(error)), has_error_(true) {}
 
   template <typename T>
   constexpr Expected(T value, const bool is_error)

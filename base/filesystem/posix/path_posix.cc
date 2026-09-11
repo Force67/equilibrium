@@ -40,10 +40,14 @@ base::String Path::ToAsciiString() const {
 bool Path::AppendExtension(const char* ascii_only, const bool ensure_dot) {
   BASE_DCHECK(base::DoIsStringASCII(ascii_only, base::CountStringLength(ascii_only)),
          "Extension must be ASCII only");
+  if (ascii_only[0] == '\0') {
+    return false;
+  }
   if (ascii_only[0] != '.' && ensure_dot) {
     path_buf_ += '.';
   }
   path_buf_ += base::StringU8((const char8_t*)ascii_only);
+  return true;
 }
 
 void Path::Normalize(BufferType& buffer) {

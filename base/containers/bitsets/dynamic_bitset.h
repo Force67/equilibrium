@@ -46,7 +46,7 @@ class DynamicBitSet {
 
   [[nodiscard]] mem_size CountSetBits() {
     mem_size count = 0;
-    for (auto i = 0; i < storage_size(); ++i) {
+    for (mem_size i = 0; i < storage_size(); ++i) {
       count += base::PopCount(vector_[i]);
     }
     return count;
@@ -136,8 +136,8 @@ class DynamicBitSet {
   DynamicBitSet& operator&=(const DynamicBitSet& rhs) noexcept {
     BASE_DCHECK(bit_count_ <= 64);
 
-    for (auto i = 0; i < storage_size(); ++i) {
-      for (auto j = 0; j < rhs.storage_size(); ++j) {
+    for (mem_size i = 0; i < storage_size(); ++i) {
+      for (mem_size j = 0; j < rhs.storage_size(); ++j) {
         if (i < j)
           break;
         vector_[i] &= rhs.vector_[j] & last_mask_;
@@ -147,8 +147,8 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& operator|=(const DynamicBitSet& rhs) noexcept {
-    for (auto i = 0; i < storage_size(); ++i) {
-      for (auto j = 0; j < rhs.storage_size(); ++j) {
+    for (mem_size i = 0; i < storage_size(); ++i) {
+      for (mem_size j = 0; j < rhs.storage_size(); ++j) {
         if (i < j)
           break;
         Set(i,
@@ -159,8 +159,8 @@ class DynamicBitSet {
   }
 
   DynamicBitSet& operator^=(const DynamicBitSet& rhs) noexcept {
-    for (auto i = 0; i < storage_size(); ++i) {
-      for (auto j = 0; j < rhs.storage_size(); ++j) {
+    for (mem_size i = 0; i < storage_size(); ++i) {
+      for (mem_size j = 0; j < rhs.storage_size(); ++j) {
         if (i < j)
           break;
         vector_[i] ^= rhs.vector_[j];

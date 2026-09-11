@@ -56,6 +56,7 @@ class BASE_EXPORT Path {
   explicit Path(const BufferType& path);
   // from other.
   /*implicit*/ Path(const Path& other);
+  Path& operator=(const Path& other) = default;
   // from base::String (delegates to const char*)
   /*implicit*/ Path(const base::String& str) : Path(str.c_str()) {}
 

@@ -46,7 +46,7 @@ struct Location {};
 
 class BASE_EXPORT ScopedBlockingCall {
  public:
-  ScopedBlockingCall(const Location& from_here, BlockingType blocking_type) {}
+  ScopedBlockingCall(const Location& /*from_here*/, BlockingType /*blocking_type*/) {}
   ~ScopedBlockingCall() {}
 };
 }  // namespace base

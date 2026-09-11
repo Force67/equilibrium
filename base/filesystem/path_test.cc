@@ -26,6 +26,29 @@ TEST(PathTests, Append) {
 #endif
 }
 
+TEST(PathTests, AppendExtensionReportsWhetherItAppended) {
+  // The POSIX definition used to run off the end of a bool function, so the
+  // caller read whatever happened to be in the return register.
+  base::Path plain("archive");
+  EXPECT_TRUE(plain.AppendExtension("tar"));
+  EXPECT_EQ(plain, base::Path("archive.tar"));
+
+  // An extension that already carries the dot does not get a second one.
+  base::Path dotted("archive");
+  EXPECT_TRUE(dotted.AppendExtension(".tar"));
+  EXPECT_EQ(dotted, base::Path("archive.tar"));
+
+  // Without ensure_dot the extension is appended verbatim.
+  base::Path undotted("archive");
+  EXPECT_TRUE(undotted.AppendExtension("tar", /*ensure_dot=*/false));
+  EXPECT_EQ(undotted, base::Path("archivetar"));
+
+  // Nothing to append, and nothing appended.
+  base::Path empty("archive");
+  EXPECT_FALSE(empty.AppendExtension(""));
+  EXPECT_EQ(empty, base::Path("archive"));
+}
+
 TEST(PathTests, Compare) {
   base::Path a("c://abc");
   base::Path b("c://def");

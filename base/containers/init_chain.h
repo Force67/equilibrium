@@ -13,11 +13,18 @@ class InitChain {
  public:
   constexpr InitChain() noexcept = default;
 
-  // Construct from data
-  STRONG_INLINE constexpr InitChain(const TItem* owner) noexcept
-      : InitChain(root(), owner) {}
-  STRONG_INLINE constexpr InitChain(InitChain*& parent, const TItem* data) noexcept
-      : owner_(data), next_(parent) {
+  // Puts |owner| on the chain. Call this from the derived constructor's *body*
+  // rather than a mem-initializer: the chain is globally reachable, and until
+  // the derived constructor finishes there is nothing complete for a VisitAll
+  // to hand to its functor. Taking `this` in a base-class mem-initializer also
+  // hands a pointer-to-uninitialized-object across a function boundary, which
+  // is what -Wmaybe-uninitialized reports.
+  STRONG_INLINE void Register(const TItem* owner) noexcept {
+    Register(root(), owner);
+  }
+  STRONG_INLINE void Register(InitChain*& parent, const TItem* owner) noexcept {
+    owner_ = owner;
+    next_ = parent;
     parent = this;
   }
 

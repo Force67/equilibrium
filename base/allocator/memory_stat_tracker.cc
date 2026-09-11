@@ -42,10 +42,11 @@ MemoryCategory AddMemoryCategory(const char* name) {
   }
   const MemoryCategory index = FindFreeTokenIndex(tracker_instance);
 
-  if (index < kInvalidCategory)
+  if (index < kInvalidCategory) {
     tracker_instance.name_bucket[index] = name;
-  else
+  } else {
     BASE_BUGCHECK(false, "Invalid category");
+  }
 
   return index;
 }
@@ -60,8 +61,9 @@ void RemoveMemoryCategory(MemoryCategory id) {
       if (token_entry < kInvalidCategory) {
         tracker_instance.name_bucket[token_entry] = nullptr;
         tracker_instance.memory_sizes[token_entry] = 0u;
-      } else
-        BASE_BUGCHECK(false);
+      } else {
+        BASE_BUGCHECK(false, "Category token out of range");
+      }
 
       token_entry = kInvalidCategory;
       break;
@@ -89,7 +91,7 @@ MemoryCategory current_memory_category() {
 }
 
 MemoryCategoryScope::MemoryCategoryScope(MemoryCategory token)
-    : cur_(token), prev_(current_token) {
+    : prev_(current_token), cur_(token) {
   if (token != current_token)
     current_token = token;
 }

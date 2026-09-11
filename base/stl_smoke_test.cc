@@ -5,12 +5,12 @@
 // / move+forward+swap / Time / Random. Uses its own tiny EXPECT macros so we
 // don't have to wire googletest into the standalone build path.
 //
-// Build on a posix host:
+// Build on a posix host (one line; broken up here for reading):
 //
-//   g++ -std=c++23 -DBASE_STL_SMOKE_STANDALONE -O2 \
-//       -I<project-root> \
-//       base/stl_smoke_test.cc base/threading/spinning_mutex.cc \
-//       base/time/time_posix.cc base/random/random.cc base/random/random_posix.cc \
+//   g++ -std=c++23 -DBASE_STL_SMOKE_STANDALONE -O2
+//       -I<project-root>
+//       base/stl_smoke_test.cc base/threading/spinning_mutex.cc
+//       base/time/time_posix.cc base/random/random.cc base/random/random_posix.cc
 //       -pthread -o stl_smoke_test
 //
 // Without BASE_STL_SMOKE_STANDALONE the file is empty, so it is safe to leave

@@ -72,7 +72,9 @@ inline bool ParseOption(const char* text, T& out) {
 class BASE_EXPORT OptionBase : public InitChain<OptionBase> {
  public:
   OptionBase(const char* opt_name, const char* env_var, const char* description)
-      : InitChain(this), name_(opt_name), env_(env_var), desc_(description) {}
+      : name_(opt_name), env_(env_var), desc_(description) {
+    Register(this);
+  }
 
   OptionBase(const OptionBase&) = delete;
   OptionBase& operator=(const OptionBase&) = delete;

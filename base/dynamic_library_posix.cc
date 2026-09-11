@@ -72,7 +72,8 @@ bool DynamicLibrary::LoadExisting(const base::Path& path) {
     const base::Path::BufferType& path_ref;
   } context{nullptr, path.path()};
 
-  static auto callback = [](struct dl_phdr_info* info, size_t size, void* user_pointer) {
+  static auto callback = [](struct dl_phdr_info* info, size_t /*size*/,
+                            void* user_pointer) {
     // the first entry may point to a string entry that is empty, but the
     // pointer to the empty string still may be valid, so we consider this in
     // the check here
