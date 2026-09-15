@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/meta/traits.h>
 #include <base/numeric_limits.h>
 
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -52,7 +53,12 @@ template <typename T>
 // builtins are undefined for zero, so that case is answered from the width.
 template <typename T>
 [[nodiscard]] constexpr int CountLeftZero(const T value) noexcept {
-  constexpr int kDigits = static_cast<int>(base::MinMax<T>::digits());
+  // Width from sizeof, not MinMax<T>::digits(): digits() follows
+  // std::numeric_limits and drops the sign bit, which is one short of the
+  // bit count these builtins actually operate on.
+  static_assert(base::is_integral_v<T> && !base::is_signed_v<T>,
+                "bit counting is defined for unsigned integers only");
+  constexpr int kDigits = static_cast<int>(sizeof(T) * 8);
   if (value == 0)
     return kDigits;
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -78,7 +84,12 @@ template <typename T>
 // Count of trailing zero bits in |value|, as std::countr_zero would give.
 template <typename T>
 [[nodiscard]] constexpr int CountRightZero(const T value) noexcept {
-  constexpr int kDigits = static_cast<int>(base::MinMax<T>::digits());
+  // Width from sizeof, not MinMax<T>::digits(): digits() follows
+  // std::numeric_limits and drops the sign bit, which is one short of the
+  // bit count these builtins actually operate on.
+  static_assert(base::is_integral_v<T> && !base::is_signed_v<T>,
+                "bit counting is defined for unsigned integers only");
+  constexpr int kDigits = static_cast<int>(sizeof(T) * 8);
   if (value == 0)
     return kDigits;
 #if defined(_MSC_VER) && !defined(__clang__)

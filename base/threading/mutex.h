@@ -5,15 +5,12 @@
 // base::SharedMutex wraps pthread_rwlock_t on POSIX and SRWLOCK on Windows.
 // Acquire via base::LockGuard / UniqueLock / SharedLockGuard.
 //
-// BASE_USE_STD_MUTEX switches both to <mutex>/<shared_mutex>. Auto on MSVC.
+// Both are native on every supported platform: the Windows path is SRWLOCK,
+// which MSVC and clang-cl reach identically, so nothing here needs the STL.
+// BASE_USE_STD_MUTEX is left as an escape hatch for a platform that grows one
+// of these before base does, but no configuration defines it by default.
 
 #pragma once
-
-#if !defined(BASE_USE_STD_MUTEX)
-#  if defined(_MSC_VER) && !defined(__clang__)
-#    define BASE_USE_STD_MUTEX 1
-#  endif
-#endif
 
 #if defined(BASE_USE_STD_MUTEX) && BASE_USE_STD_MUTEX
 
