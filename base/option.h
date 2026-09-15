@@ -6,14 +6,15 @@
 // can find and populate every option without each site hand-rolling getenv.
 #pragma once
 
-#include <cstdlib>
-#include <cstring>
-#include <type_traits>
 
+#include <base/strings/string_compare.h>
 #include <base/arch.h>
 #include <base/containers/init_chain.h>
+#include <base/environment_variables.h>
 #include <base/export.h>
+#include <base/meta/traits.h>
 #include <base/strings/format.h>
+#include <base/strings/number_parse.h>
 
 namespace base {
 namespace detail {
@@ -23,39 +24,37 @@ namespace detail {
 // types, and const char* (which is bound to the source string, not copied).
 template <typename T>
 inline bool ParseOption(const char* text, T& out) {
-  if constexpr (std::is_same_v<T, bool>) {
-    if (!std::strcmp(text, "1") || !std::strcmp(text, "true") ||
-        !std::strcmp(text, "on") || !std::strcmp(text, "yes")) {
+  if constexpr (base::is_same_v<T, bool>) {
+    if (base::StrEqual(text, "1") || base::StrEqual(text, "true") ||
+        base::StrEqual(text, "on") || base::StrEqual(text, "yes")) {
       out = true;
       return true;
     }
-    if (!*text || !std::strcmp(text, "0") || !std::strcmp(text, "false") ||
-        !std::strcmp(text, "off") || !std::strcmp(text, "no")) {
+    if (!*text || base::StrEqual(text, "0") || base::StrEqual(text, "false") ||
+        base::StrEqual(text, "off") || base::StrEqual(text, "no")) {
       out = false;
       return true;
     }
     // Any other number counts: a knob set to 2 means on, as it would in a shell
     // test, not "unparsable".
-    char* end = nullptr;
-    const long long v = std::strtoll(text, &end, 0);
-    if (end != text && !*end) {
+    i64 v = 0;
+    const char* end = nullptr;
+    if (base::ParseInteger(text, v, /*base_radix=*/0, &end) && !*end) {
       out = v != 0;
       return true;
     }
     return false;
-  } else if constexpr (std::is_same_v<T, const char*>) {
+  } else if constexpr (base::is_same_v<T, const char*>) {
     out = text;
     return true;
-  } else if constexpr (std::is_integral_v<T>) {
-    char* end = nullptr;
-    const long long v = std::strtoll(text, &end, 0);
-    if (end == text) return false;
+  } else if constexpr (base::is_integral_v<T>) {
+    i64 v = 0;
+    if (!base::ParseInteger(text, v, /*base_radix=*/0)) return false;
     out = static_cast<T>(v);
     return true;
-  } else if constexpr (std::is_floating_point_v<T>) {
-    char* end = nullptr;
-    const double v = std::strtod(text, &end);
-    if (end == text) return false;
+  } else if constexpr (base::is_floating_point_v<T>) {
+    f64 v = 0;
+    if (!base::ParseFloat(text, v)) return false;
     out = static_cast<T>(v);
     return true;
   } else {
@@ -139,7 +138,7 @@ class Option : public OptionBase {
   void set(T v) { value_ = v; }
 
   mem_size FormatValue(char* buffer, mem_size buffer_size) const override {
-    if constexpr (std::is_same_v<T, const char*>) {
+    if constexpr (base::is_same_v<T, const char*>) {
       if (!value_) {
         if (buffer_size) *buffer = '\0';
         return 0;
@@ -172,8 +171,11 @@ inline mem_size InitOptionsFromEnv() {
     auto* option = const_cast<OptionBase*>(registered);
     const char* env = option->env();
     if (!env) return;
-    if (const char* value = std::getenv(env))
-      if (option->SetFromString(value)) ++overridden;
+    base::StringU8 value;
+    if (base::GetEnvironmentVariable(
+            reinterpret_cast<const char8_t*>(env), value))
+      if (option->SetFromString(reinterpret_cast<const char*>(value.c_str())))
+        ++overridden;
   });
   return overridden;
 }

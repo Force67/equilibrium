@@ -5,6 +5,7 @@
 // Covers every code path: PageTable, BucketAllocator, HeapAllocator,
 // PageAllocator, VirtualMemory, MemoryTracker.
 
+#include <base/memory/mem_ops.h>
 #include <base/check.h>
 
 #define BASE_MAY_USE_MEMORY_COORDINATOR
@@ -18,9 +19,17 @@
 
 #include <base/atomic.h>
 
-#include <cstdio>
-#include <cstring>
-#include <thread>
+#include <stdio.h>
+
+// This target links the allocator sources and nothing else, so it spawns
+// threads through the platform API rather than pulling base::Thread (and with
+// it base::String and base::Function) into the link.
+#if defined(OS_WIN)
+#include <base/win/minwin.h>
+#else
+#include <pthread.h>
+#endif
+
 
 using namespace base;
 
@@ -109,7 +118,7 @@ void PageTable_RequestSinglePage() {
   EXPECT(page != nullptr);
   EXPECT(size_out == 0x10000);
   // write to the page to prove it's committed
-  ::memset(page, 0xBB, 0x10000);
+  ::base::MemSet(page, 0xBB, 0x10000);
   EXPECT(table.ReleasePage(page) == 0x10000);
   TEST_PASS();
 }
@@ -154,7 +163,7 @@ void PageTable_RequestMultipleContiguous() {
   EXPECT(span != nullptr);
   EXPECT(size_out == 0x10000 * 4);
   // write across the entire span to prove contiguity
-  ::memset(span, 0xAA, 0x10000 * 4);
+  ::base::MemSet(span, 0xAA, 0x10000 * 4);
   EXPECT(table.ReleasePages(span, 4) == 0x10000 * 4);
   TEST_PASS();
 }
@@ -234,7 +243,7 @@ void PageAllocator_AllocateAndFree() {
   PageAllocator alloc(pt);
   void* block = alloc.Allocate(1024);
   EXPECT(block != nullptr);
-  ::memset(block, 0xCC, 1024);
+  ::base::MemSet(block, 0xCC, 1024);
   EXPECT(alloc.QueryAllocationSize(block) == eq_allocation_constants::kPageSize);
   EXPECT(alloc.Free(block) == 0x10000);
   TEST_PASS();
@@ -276,7 +285,7 @@ void Bucket_BasicAllocFree() {
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(64, 8);
   EXPECT(block != nullptr);
-  ::memset(block, 0xDE, 64);
+  ::base::MemSet(block, 0xDE, 64);
   EXPECT(alloc.QueryAllocationSize(block) >= 64);
   EXPECT(alloc.Free(block) >= 64);
   TEST_PASS();
@@ -291,7 +300,7 @@ void Bucket_VariousSizes() {
   for (int i = 0; i < 11; i++) {
     blocks[i] = alloc.Allocate(sizes[i], 8);
     EXPECT(blocks[i] != nullptr);
-    ::memset(blocks[i], static_cast<byte>(i), sizes[i]);
+    ::base::MemSet(blocks[i], static_cast<byte>(i), sizes[i]);
     EXPECT(alloc.QueryAllocationSize(blocks[i]) >= sizes[i]);
   }
   for (int i = 0; i < 11; i++) {
@@ -365,7 +374,7 @@ void Bucket_ReAllocateShrink() {
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(128, 8);
   EXPECT(block != nullptr);
-  ::memset(block, 0xEE, 128);
+  ::base::MemSet(block, 0xEE, 128);
   // shrink should return same pointer
   void* shrunk = alloc.ReAllocate(block, 32, 8);
   EXPECT(shrunk == block);
@@ -382,7 +391,7 @@ void Bucket_ReAllocateGrow() {
   BucketAllocator alloc(pt);
   void* block = alloc.Allocate(16, 8);
   EXPECT(block != nullptr);
-  ::memset(block, 0xAA, 16);
+  ::base::MemSet(block, 0xAA, 16);
   void* grown = alloc.ReAllocate(block, 64, 8);
   EXPECT(grown != nullptr);
   EXPECT(alloc.QueryAllocationSize(grown) >= 64);
@@ -402,7 +411,7 @@ void Bucket_DataIntegrity() {
   for (int i = 0; i < kCount; i++) {
     blocks[i] = alloc.Allocate(64, 8);
     EXPECT(blocks[i] != nullptr);
-    ::memset(blocks[i], static_cast<byte>(i + 1), 64);
+    ::base::MemSet(blocks[i], static_cast<byte>(i + 1), 64);
   }
   // verify patterns are intact (no block stomped another)
   for (int i = 0; i < kCount; i++) {
@@ -449,7 +458,7 @@ void Bucket_ConcurrentCrossThreadFree() {
         failures.fetch_add(1);
         return;
       }
-      ::memset(block, static_cast<byte>(id + 1), kSize);
+      ::base::MemSet(block, static_cast<byte>(id + 1), kSize);
       produced[id][i] = block;
       handoff[id][i].store(block);
 
@@ -472,11 +481,39 @@ void Bucket_ConcurrentCrossThreadFree() {
     }
   };
 
-  std::thread threads[kThreads];
+  struct WorkerArgs {
+    decltype(&worker) run;
+    int id;
+  };
+  WorkerArgs args[kThreads];
   for (int t = 0; t < kThreads; t++)
-    threads[t] = std::thread(worker, t);
-  for (auto& thread : threads)
-    thread.join();
+    args[t] = {&worker, t};
+
+#if defined(OS_WIN)
+  HANDLE threads[kThreads];
+  const auto entry = [](void* p) -> DWORD {
+    auto* a = static_cast<WorkerArgs*>(p);
+    (*a->run)(a->id);
+    return 0;
+  };
+  for (int t = 0; t < kThreads; t++)
+    threads[t] = ::CreateThread(nullptr, 0, entry, &args[t], 0, nullptr);
+  for (int t = 0; t < kThreads; t++) {
+    ::WaitForSingleObject(threads[t], INFINITE);
+    ::CloseHandle(threads[t]);
+  }
+#else
+  pthread_t threads[kThreads];
+  const auto entry = [](void* p) -> void* {
+    auto* a = static_cast<WorkerArgs*>(p);
+    (*a->run)(a->id);
+    return nullptr;
+  };
+  for (int t = 0; t < kThreads; t++)
+    ::pthread_create(&threads[t], nullptr, entry, &args[t]);
+  for (int t = 0; t < kThreads; t++)
+    ::pthread_join(threads[t], nullptr);
+#endif
 
   EXPECT(failures.load() == 0);
 
@@ -510,7 +547,7 @@ void Heap_BasicAllocFree() {
   void* block = alloc.Allocate(70000);
   EXPECT(block != nullptr);
   EXPECT(alloc.QueryAllocationSize(block) == 70000);
-  ::memset(block, 0xAB, 70000);
+  ::base::MemSet(block, 0xAB, 70000);
   EXPECT(alloc.Free(block) == 70000);
   TEST_PASS();
 }
@@ -549,7 +586,7 @@ void Heap_MultipleAllocations() {
     blocks[i] = alloc.Allocate(sizes[i]);
     EXPECT(blocks[i] != nullptr);
     EXPECT(alloc.QueryAllocationSize(blocks[i]) == sizes[i]);
-    ::memset(blocks[i], static_cast<byte>(i + 1), sizes[i]);
+    ::base::MemSet(blocks[i], static_cast<byte>(i + 1), sizes[i]);
   }
   // verify data integrity
   for (int i = 0; i < 5; i++) {
@@ -638,7 +675,7 @@ void Heap_ReAllocateShrink() {
   HeapAllocator alloc(pt);
   void* block = alloc.Allocate(200000);
   EXPECT(block != nullptr);
-  ::memset(block, 0xBB, 200000);
+  ::base::MemSet(block, 0xBB, 200000);
   void* shrunk = alloc.ReAllocate(block, 70000);
   // shrink within same page span should return same pointer
   EXPECT(shrunk == block);
@@ -654,7 +691,7 @@ void Heap_ReAllocateGrow() {
   HeapAllocator alloc(pt);
   void* block = alloc.Allocate(70000);
   EXPECT(block != nullptr);
-  ::memset(block, 0xCD, 70000);
+  ::base::MemSet(block, 0xCD, 70000);
 
   void* grown = alloc.ReAllocate(block, 300000);
   EXPECT(grown != nullptr);
@@ -698,7 +735,7 @@ void Heap_DataIntegrity_UnderStress() {
   for (int i = 0; i < kCount; i++) {
     blocks[i] = alloc.Allocate(kSize);
     EXPECT(blocks[i] != nullptr);
-    ::memset(blocks[i], static_cast<byte>(0x10 + i), kSize);
+    ::base::MemSet(blocks[i], static_cast<byte>(0x10 + i), kSize);
   }
   // free even indices
   for (int i = 0; i < kCount; i += 2)
@@ -707,7 +744,7 @@ void Heap_DataIntegrity_UnderStress() {
   for (int i = 0; i < kCount; i += 2) {
     blocks[i] = alloc.Allocate(kSize);
     EXPECT(blocks[i] != nullptr);
-    ::memset(blocks[i], static_cast<byte>(0xA0 + i), kSize);
+    ::base::MemSet(blocks[i], static_cast<byte>(0xA0 + i), kSize);
   }
   // verify ALL blocks have correct data
   for (int i = 0; i < kCount; i++) {
@@ -732,13 +769,13 @@ void Heap_ExactPageBoundary() {
   void* block = alloc.Allocate(kExact);
   EXPECT(block != nullptr);
   EXPECT(alloc.QueryAllocationSize(block) == kExact);
-  ::memset(block, 0xFF, kExact);
+  ::base::MemSet(block, 0xFF, kExact);
   alloc.Free(block);
 
   // one byte more should push to 2 pages
   void* block2 = alloc.Allocate(kExact + 1);
   EXPECT(block2 != nullptr);
-  ::memset(block2, 0xEE, kExact + 1);
+  ::base::MemSet(block2, 0xEE, kExact + 1);
   alloc.Free(block2);
   TEST_PASS();
 }

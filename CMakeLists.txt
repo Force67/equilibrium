@@ -114,6 +114,9 @@ if(EQ_BUILD_TESTS)
 
   file(GLOB_RECURSE EQ_BASE_TEST_SOURCES "${EQ_ROOT}/base/*_test.cc")
   list(FILTER EQ_BASE_TEST_SOURCES EXCLUDE REGEX "/allocator/")
+  # Forces base::Atomic onto its MSVC backend, so it cannot share a link
+  # with the rest of base. Built as its own target below.
+  list(FILTER EQ_BASE_TEST_SOURCES EXCLUDE REGEX "atomic_msvc_backend_test\\.cc$")
   foreach(platform ${eq_excluded_platforms})
     list(FILTER EQ_BASE_TEST_SOURCES EXCLUDE REGEX "_${platform}_test\\.cc$")
     list(FILTER EQ_BASE_TEST_SOURCES EXCLUDE REGEX "/${platform}/")
@@ -126,6 +129,45 @@ if(EQ_BUILD_TESTS)
   target_compile_options(base_unittests PRIVATE ${eq_arch_options})
   target_link_libraries(base_unittests PRIVATE eq_base gtest gmock)
   add_test(NAME base_unittests COMMAND base_unittests)
+
+  # base::Atomic's MSVC _Interlocked* backend, run on this host with its
+  # intrinsics standing on the __atomic_* builtins. Header-only, so it needs
+  # no base sources, and it must not link any, since it defines a second,
+  # different base::Atomic.
+  add_executable(base_atomic_msvc_backend_test
+    "${EQ_ROOT}/base/atomic_msvc_backend_test.cc")
+  target_include_directories(base_atomic_msvc_backend_test PRIVATE
+    "${EQ_ROOT}" "${EQ_ROOT}/base")
+  target_compile_definitions(base_atomic_msvc_backend_test PRIVATE
+    "PROJECT_NAME=\"base\"")
+  if(NOT WIN32)
+    target_link_libraries(base_atomic_msvc_backend_test PRIVATE Threads::Threads)
+  endif()
+  add_test(NAME base_atomic_msvc_backend_test
+           COMMAND base_atomic_msvc_backend_test)
+
+  # Same test again with _M_IX86 asserted, which selects the compare-exchange
+  # loops the backend substitutes for the 64-bit read-modify-writes that
+  # 32-bit x86 has no intrinsic for. Nothing else reaches that path.
+  #
+  # Not on MSVC: there _M_IX86 is the compiler's own architecture macro, and
+  # asserting it on an x64 build contradicts _M_X64 and misleads the SDK
+  # headers. The path is architecture-independent C++, so covering it on one
+  # host covers it everywhere.
+  if(NOT MSVC)
+    add_executable(base_atomic_msvc_backend_x86_test
+      "${EQ_ROOT}/base/atomic_msvc_backend_test.cc")
+    target_include_directories(base_atomic_msvc_backend_x86_test PRIVATE
+      "${EQ_ROOT}" "${EQ_ROOT}/base")
+    target_compile_definitions(base_atomic_msvc_backend_x86_test PRIVATE
+      _M_IX86=600
+      "PROJECT_NAME=\"base\"")
+    if(NOT WIN32)
+      target_link_libraries(base_atomic_msvc_backend_x86_test PRIVATE Threads::Threads)
+    endif()
+    add_test(NAME base_atomic_msvc_backend_x86_test
+             COMMAND base_atomic_msvc_backend_x86_test)
+  endif()
 
   # The allocator suite compiles the memory subsystem standalone with extra
   # debug verification, driven by its own harness instead of gtest.

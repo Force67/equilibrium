@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include <base/memory/mem_ops.h>
 #include <base/arch.h>
 #include <base/containers/vector.h>
 #include <base/containers/unordered_map.h>
@@ -23,7 +24,6 @@
 #include <base/strings/string_ref.h>
 
 #include <string>
-#include <cstring>
 #include <thread>
 #include <atomic>
 
@@ -924,7 +924,7 @@ TEST_F(StringBugBashTest, AppendTriggerRealloc) {
   std::string to_append(200, 'x');
   s.append(to_append.c_str(), to_append.size());
   EXPECT_EQ(s.size(), 5 + 200);
-  EXPECT_EQ(memcmp(s.c_str(), "short", 5), 0);
+  EXPECT_EQ(base::MemCompare(s.c_str(), "short", 5), 0);
   EXPECT_EQ(s.c_str()[5], 'x');
 }
 
@@ -1128,7 +1128,7 @@ TEST_F(StringBugBashTest, ResizeGrow) {
   String s("hello");
   s.resize(10);
   EXPECT_EQ(s.size(), 10u);
-  EXPECT_EQ(memcmp(s.c_str(), "hello", 5), 0);
+  EXPECT_EQ(base::MemCompare(s.c_str(), "hello", 5), 0);
   for (mem_size i = 5; i < 10; ++i) {
     EXPECT_EQ(s[i], '\0');
   }
@@ -1162,7 +1162,7 @@ TEST_F(StringBugBashTest, ShrinkToFitLargeToSmall) {
   s.erase(5);  // now 5 chars, fits in SSO
   s.shrink_to_fit();
   EXPECT_EQ(s.size(), 5u);
-  EXPECT_EQ(memcmp(s.c_str(), "aaaaa", 5), 0);
+  EXPECT_EQ(base::MemCompare(s.c_str(), "aaaaa", 5), 0);
 }
 
 TEST_F(StringBugBashTest, ShrinkToFitLargeToLarger) {

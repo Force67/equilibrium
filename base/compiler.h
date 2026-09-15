@@ -67,6 +67,15 @@
 #define DEBUG_TRAP
 #endif
 
+// Tells the optimizer a point cannot be reached. MSVC has no
+// __builtin_unreachable; __assume(0) is its spelling.
+#if defined(_MSC_VER) && !defined(__clang__)
+#define BASE_UNREACHABLE() __assume(0)
+#else
+#define BASE_UNREACHABLE() __builtin_unreachable()
+#endif
+
+
 #if defined(CONFIG_DEBUG)
 #define CHECK_BREAK DEBUG_TRAP
 #else
@@ -195,12 +204,12 @@ constexpr auto kIsBigEndian = !kIsLittleEndian;
 #define BASE_SSO_SPECULATION_END
 #endif
 
-// Portable _countof for C-style arrays.
+// Portable _countof for C-style arrays. decltype(sizeof(0)) is size_t by
+// definition, so this needs no header at all.
 #ifndef _countof
-#include <cstddef>
 namespace detail {
-template <typename T, std::size_t N>
-constexpr std::size_t countof_impl(const T (&)[N]) noexcept {
+template <typename T, decltype(sizeof(0)) N>
+constexpr decltype(sizeof(0)) countof_impl(const T (&)[N]) noexcept {
   return N;
 }
 }  // namespace detail

@@ -5,7 +5,7 @@
 #include <base/compiler.h>
 #include <base/export.h>
 
-#include <cstdint>
+#include <stdint.h>
 
 #if defined(__linux__) || defined(OS_LINUX) || defined(__APPLE__) || defined(OS_MAC)
 #include <errno.h>

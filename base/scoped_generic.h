@@ -5,8 +5,8 @@
 #ifndef BASE_SCOPED_GENERIC_H_
 #define BASE_SCOPED_GENERIC_H_
 
-#include <stdlib.h>
 
+#include <base/standard_streams.h>
 #include "base/check.h"
 #include "base/memory/move.h"
 #include "base/meta/traits.h"
@@ -75,7 +75,7 @@ class ScopedGeneric {
   // new value. Self-reset is not allowed.
   void reset(const element_type& value = traits_type::InvalidValue()) {
     if (data_.generic != traits_type::InvalidValue() && data_.generic == value)
-      abort();
+      base::TerminateAbnormally();
     FreeIfNecessary();
     data_.generic = value;
     TrackAcquire(value);

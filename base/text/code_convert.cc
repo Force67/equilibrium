@@ -3,7 +3,7 @@
 
 #include <base/text/code_convert.h>
 
-#include <cstdint>
+#include <stdint.h>
 #include <limits.h>
 
 #include <base/check.h>

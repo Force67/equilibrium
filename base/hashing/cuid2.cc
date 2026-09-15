@@ -4,9 +4,8 @@
 #include "cuid2.h"
 #include "sha256.h"
 
-#include <cstdio>
-#include <cstring>
 
+#include <base/strings/format.h>
 #include <base/atomic.h>
 #include <base/random/random.h>
 #include <base/time/time.h>
@@ -70,14 +69,14 @@ void GenerateCuid2(char* out) {
 
   // 2. Build entropy string.
   char entropy[256];
-  int len =
-      ::snprintf(entropy, sizeof(entropy), "%llu_%llu_%llu_%llu_%llu",
-                 (unsigned long long)ms, (unsigned long long)count,
-                 (unsigned long long)rand_a, (unsigned long long)rand_b,
-                 (unsigned long long)pid);
+  const mem_size len =
+      base::FormatTo(entropy, sizeof(entropy), "{}_{}_{}_{}_{}",
+                     static_cast<u64>(ms), static_cast<u64>(count),
+                     static_cast<u64>(rand_a), static_cast<u64>(rand_b),
+                     static_cast<u64>(pid));
 
   // 3. Hash with SHA-256.
-  Sha256Hash hash = Sha256(entropy, mem_size(len));
+  Sha256Hash hash = Sha256(entropy, len);
 
   // 4. Encode as base36.
   EncodeBase36(hash.bytes, 32, out, kCuid2Length);

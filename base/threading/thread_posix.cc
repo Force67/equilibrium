@@ -1,10 +1,13 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <climits>
+#include <limits.h>
 
+#include <errno.h>
 #include <pthread.h>
 #include <sys/syscall.h>
+#include <sched.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <base/check.h>
@@ -122,6 +125,30 @@ u32 GetCurrentThreadIndex() {
 #else
   return ::syscall(__NR_gettid);
 #endif
+}
+
+bool Thread::Join() {
+  if (!good())
+    return false;
+  const int ec = ::pthread_join(HandleToPthread(handle_data_.pthread_), nullptr);
+  if (ec != 0)
+    return false;
+  handle_data_ = {};
+  return true;
+}
+
+void SleepForMicroseconds(u64 microseconds) {
+  timespec requested{};
+  requested.tv_sec = static_cast<time_t>(microseconds / 1000000u);
+  requested.tv_nsec = static_cast<long>((microseconds % 1000000u) * 1000u);
+  // A signal can cut the sleep short, so carry the remainder back in.
+  timespec remaining{};
+  while (::nanosleep(&requested, &remaining) != 0 && errno == EINTR)
+    requested = remaining;
+}
+
+void YieldCurrentThread() {
+  ::sched_yield();
 }
 
 Thread::Handle GetCurrentThreadHandle() {

@@ -66,7 +66,7 @@ void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
   ::SetThreadPriority(handle.handle_, windows_priority);
 }
 
-const Thread::Priority GetThreadPriority(Thread::Handle handle) {
+Thread::Priority GetThreadPriority(Thread::Handle handle) {
   switch (::GetThreadPriority(handle.handle_)) {
     default:
     case THREAD_PRIORITY_BELOW_NORMAL:
@@ -80,7 +80,7 @@ const Thread::Priority GetThreadPriority(Thread::Handle handle) {
   }
 }
 
-const i32 GetNativeThreadPriority(Thread::Handle handle) {
+i32 GetNativeThreadPriority(Thread::Handle handle) {
   return ::GetThreadPriority(handle.handle_);
 }
 
@@ -96,6 +96,29 @@ bool SetThreadName(Thread::Handle handle, const char* name) {
 
   auto wide = base::ASCIIToWide(name);
   return SUCCEEDED(set_thread_desc(handle.handle_, wide.c_str()));
+}
+
+bool Thread::Join() {
+  if (!good())
+    return false;
+  if (::WaitForSingleObject(handle_data_.handle_, INFINITE) != WAIT_OBJECT_0)
+    return false;
+  // CreateThread handed back an owning handle; the wait is the last use of it.
+  ::CloseHandle(handle_data_.handle_);
+  handle_data_ = {};
+  return true;
+}
+
+void SleepForMicroseconds(u64 microseconds) {
+  // ::Sleep only has millisecond resolution. Round a sub-millisecond request
+  // up to 1 ms rather than down to a busy spin. The callers here are idle
+  // naps, where over-sleeping costs nothing and spinning costs a core.
+  const u64 milliseconds = (microseconds + 999u) / 1000u;
+  ::Sleep(static_cast<DWORD>(milliseconds));
+}
+
+void YieldCurrentThread() {
+  ::SwitchToThread();
 }
 
 u32 GetCurrentThreadIndex() {

@@ -1,11 +1,13 @@
 // Copyright (C) 2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <base/strings/string_compare.h>
+#include <base/strings/char_algorithms.h>
 #include "debugging.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <base/strings/number_parse.h>
+
+#include <stdlib.h>  // for free(), which __cxa_demangle's result requires
 
 // Neither musl nor Android's bionic ship <execinfo.h>/backtrace(); when
 // building in the fully-static musl mode (see build/musl_static.lua) or for
@@ -21,6 +23,10 @@
 #include <cxxabi.h>
 #endif
 
+#if !defined(_WIN32)
+#include <base/filesystem/posix/small_file_posix.h>
+#endif
+
 #if defined(_WIN32)
 extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent(void);
 #endif
@@ -31,17 +37,21 @@ bool IsDebuggerAttached() {
 #if defined(_WIN32)
   return ::IsDebuggerPresent() != 0;
 #else
-  FILE* f = ::fopen("/proc/self/status", "r");
-  if (!f) return false;
+  // /proc/self/status is a few kilobytes and TracerPid sits near the top.
+  char status[4096];
+  if (ReadSmallFile("/proc/self/status", status, sizeof(status)) < 0)
+    return false;
 
-  char line[256];
-  while (::fgets(line, sizeof(line), f)) {
-    if (::strncmp(line, "TracerPid:\t", 11) == 0) {
-      ::fclose(f);
-      return ::atoi(line + 11) != 0;
+  for (const char* line = status; *line;) {
+    if (base::Strncmp(line, "TracerPid:\t", 11) == 0) {
+      i64 pid = 0;
+      return base::ParseInteger(line + 11, pid) && pid != 0;
     }
+    const char* newline = base::FindChar(line, '\n');
+    if (!newline)
+      break;
+    line = newline + 1;
   }
-  ::fclose(f);
   return false;
 #endif
 }
@@ -51,8 +61,8 @@ bool IsDebuggerAttached() {
 // Input looks like: "./build/voxel_beta(_ZN7physics...+0x1a) [0x55...]"
 // We extract the mangled name between '(' and '+' and demangle it.
 static base::String DemangleFrame(const char* raw) {
-  const char* lparen = ::strchr(raw, '(');
-  const char* plus = lparen ? ::strchr(lparen, '+') : nullptr;
+  const char* lparen = base::FindChar(raw, '(');
+  const char* plus = lparen ? base::FindChar(lparen, '+') : nullptr;
 
   if (!lparen || !plus || plus <= lparen + 1) {
     return base::String(raw);
@@ -76,7 +86,7 @@ static base::String DemangleFrame(const char* raw) {
 
   // Build a clean string: "demangled+offset"
   base::String result(demangled);
-  result += base::String(plus, static_cast<i32>(::strlen(plus)));
+  result += base::String(plus, static_cast<i32>(base::CountStringLength(plus)));
   ::free(demangled);
 
   return result;

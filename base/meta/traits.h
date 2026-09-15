@@ -67,6 +67,49 @@ template <class T>
 inline constexpr bool is_integral_v = is_integral<T>::value;
 
 template <class T>
+struct is_floating_point {
+  static constexpr bool value = false;
+};
+#define BASE_MARK_FLOATING(TYPE)                 \
+  template <>                                    \
+  struct is_floating_point<TYPE> {               \
+    static constexpr bool value = true;          \
+  };                                             \
+  template <>                                    \
+  struct is_floating_point<const TYPE> {         \
+    static constexpr bool value = true;          \
+  };                                             \
+  template <>                                    \
+  struct is_floating_point<volatile TYPE> {      \
+    static constexpr bool value = true;          \
+  };                                             \
+  template <>                                    \
+  struct is_floating_point<const volatile TYPE> {\
+    static constexpr bool value = true;          \
+  };
+BASE_MARK_FLOATING(float)
+BASE_MARK_FLOATING(double)
+BASE_MARK_FLOATING(long double)
+#undef BASE_MARK_FLOATING
+
+template <class T>
+inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
+
+template <class T>
+inline constexpr bool is_arithmetic_v = is_integral_v<T> || is_floating_point_v<T>;
+
+// MSVC spells this one __is_convertible_to; GCC only has __is_convertible.
+template <class From, class To>
+#if defined(_MSC_VER) && !defined(__clang__)
+inline constexpr bool is_convertible_v = __is_convertible_to(From, To);
+#else
+inline constexpr bool is_convertible_v = __is_convertible(From, To);
+#endif
+
+template <class From, class To>
+concept ConvertibleTo = is_convertible_v<From, To>;
+
+template <class T>
 inline constexpr bool is_enum_v = __is_enum(T);
 
 template <class T>
@@ -78,6 +121,30 @@ struct is_signed {
 };
 template <class T>
 inline constexpr bool is_signed_v = is_signed<T>::value;
+
+// The unsigned integer of the same width as T. Character comparison goes
+// through this so it does not depend on whether plain char is signed, which
+// differs between x86 and ARM.
+template <class T>
+struct make_unsigned {
+  using type = T;
+};
+#define BASE_MAP_UNSIGNED(FROM, TO)    \
+  template <>                          \
+  struct make_unsigned<FROM> {         \
+    using type = TO;                   \
+  };
+BASE_MAP_UNSIGNED(char, unsigned char)
+BASE_MAP_UNSIGNED(signed char, unsigned char)
+BASE_MAP_UNSIGNED(short, unsigned short)
+BASE_MAP_UNSIGNED(int, unsigned int)
+BASE_MAP_UNSIGNED(long, unsigned long)
+BASE_MAP_UNSIGNED(long long, unsigned long long)
+BASE_MAP_UNSIGNED(wchar_t, unsigned int)
+#undef BASE_MAP_UNSIGNED
+
+template <class T>
+using make_unsigned_t = typename make_unsigned<T>::type;
 
 template <class Base, class Derived>
 inline constexpr bool is_base_of_v = __is_base_of(Base, Derived);

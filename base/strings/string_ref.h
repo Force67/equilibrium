@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstring>  // for memcmp
+#include <base/memory/mem_ops.h>
 #include <base/check.h>
 #include <base/enum_traits.h>
 #include <base/numeric_limits.h>
@@ -128,13 +128,13 @@ class BasicStringRef {
   }
 
   bool compare(const TChar* rhs, mem_size character_count) const {
-    return memcmp(data_, rhs, character_count * sizeof(TChar)) == 0;
+    return base::MemCompare(data_, rhs, character_count * sizeof(TChar)) == 0;
   }
 
   bool compare_at(const mem_size self_offset_in_bytes,
                   const TChar* rhs,
                   mem_size character_count) const {
-    return memcmp(data_ + self_offset_in_bytes, rhs, character_count * sizeof(TChar)) ==
+    return base::MemCompare(data_ + self_offset_in_bytes, rhs, character_count * sizeof(TChar)) ==
            0;
   }
 
@@ -144,7 +144,7 @@ class BasicStringRef {
     if (lhs.length_ != rhs.length_) {
       return false;
     }
-    return memcmp(lhs.data_, rhs.data_, lhs.length_ * sizeof(TChar)) == 0;
+    return base::MemCompare(lhs.data_, rhs.data_, lhs.length_ * sizeof(TChar)) == 0;
   }
 
   friend bool operator!=(const BasicStringRef<TChar>& lhs,
@@ -155,7 +155,7 @@ class BasicStringRef {
   friend bool operator<(const BasicStringRef<TChar>& lhs,
                         const BasicStringRef<TChar>& rhs) {
     const mem_size min_len = lhs.length_ < rhs.length_ ? lhs.length_ : rhs.length_;
-    int result = memcmp(lhs.data_, rhs.data_, min_len * sizeof(TChar));
+    int result = base::MemCompare(lhs.data_, rhs.data_, min_len * sizeof(TChar));
     if (result != 0)
       return result < 0;
     return lhs.length_ < rhs.length_;
@@ -283,7 +283,7 @@ class BasicStringRef {
       return npos;
     mem_size i = (pos == npos || pos > length_ - s_len) ? length_ - s_len : pos;
     for (;; --i) {
-      if (memcmp(data_ + i, s, s_len * sizeof(TChar)) == 0)
+      if (base::MemCompare(data_ + i, s, s_len * sizeof(TChar)) == 0)
         return i;
       if (i == 0)
         return npos;
@@ -330,7 +330,7 @@ class BasicStringRef {
   int compare_to(const BasicStringRef& other) const {
     const mem_size shortest = length_ < other.length_ ? length_ : other.length_;
     if (shortest > 0) {
-      const int diff = memcmp(data_, other.data_, shortest * sizeof(TChar));
+      const int diff = base::MemCompare(data_, other.data_, shortest * sizeof(TChar));
       if (diff != 0)
         return diff;
     }
@@ -347,13 +347,13 @@ class BasicStringRef {
     const mem_size s_len = base::CountStringLength(s);
     if (s_len > length_)
       return false;
-    return memcmp(data_, s, s_len * sizeof(TChar)) == 0;
+    return base::MemCompare(data_, s, s_len * sizeof(TChar)) == 0;
   }
 
   bool starts_with(const BasicStringRef& s) const {
     if (s.size() > length_)
       return false;
-    return memcmp(data_, s.data(), s.size() * sizeof(TChar)) == 0;
+    return base::MemCompare(data_, s.data(), s.size() * sizeof(TChar)) == 0;
   }
 
   bool ends_with(TChar c) const { return length_ > 0 && data_[length_ - 1] == c; }
@@ -364,13 +364,13 @@ class BasicStringRef {
     const mem_size s_len = base::CountStringLength(s);
     if (s_len > length_)
       return false;
-    return memcmp(data_ + (length_ - s_len), s, s_len * sizeof(TChar)) == 0;
+    return base::MemCompare(data_ + (length_ - s_len), s, s_len * sizeof(TChar)) == 0;
   }
 
   bool ends_with(const BasicStringRef& s) const {
     if (s.size() > length_)
       return false;
-    return memcmp(data_ + (length_ - s.size()), s.data(), s.size() * sizeof(TChar)) == 0;
+    return base::MemCompare(data_ + (length_ - s.size()), s.data(), s.size() * sizeof(TChar)) == 0;
   }
 
   constexpr mem_size find_first_not_of(const TChar* s,

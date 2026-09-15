@@ -3,12 +3,12 @@
 // Simple BitSet class.
 #pragma once
 
+#include <base/memory/mem_ops.h>
 #include <base/arch.h>
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/builtins_bit.h>
-#include <climits>
-#include <cstring>
+#include <limits.h>
 
 namespace base {
 // construct a collection of N size. E.g sizeof(BitSet) for 64 bits would be 8
@@ -25,7 +25,7 @@ class BitSet {
   constexpr BitSet(unsigned long long _Val) noexcept
       : array_{static_cast<ArrayType>(kNeedsMask ? _Val & kMask : _Val)} {}
 
-  void Reset() { memset(array_, 0, sizeof(array_)); }
+  void Reset() { base::MemSet(array_, 0, sizeof(array_)); }
 
   void Set(const mem_size pos, bool toggle = true) {
     BASE_DCHECK(N > pos, "BitSet::Set(): Invalid bit positional offset");
@@ -151,11 +151,11 @@ class BitSet {
   }
 
   [[nodiscard]] bool operator==(const BitSet& rhs) const noexcept {
-    return memcmp(&array_[0], &rhs.array_[0], sizeof(array_)) == 0;
+    return base::MemCompare(&array_[0], &rhs.array_[0], sizeof(array_)) == 0;
   }
 
   [[nodiscard]] bool operator!=(const BitSet& rhs) const noexcept {
-    return memcmp(&array_[0], &rhs.array_[0], sizeof(array_)) != 0;
+    return base::MemCompare(&array_[0], &rhs.array_[0], sizeof(array_)) != 0;
   }
 
   [[nodiscard]] constexpr auto size() const noexcept { return N; }

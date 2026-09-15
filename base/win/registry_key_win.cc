@@ -252,11 +252,18 @@ LONG RegistryKey::ReadValue(const wchar_t* name, base::StringW& out_value) const
   constexpr DWORD kMaxStringLength = 1024;  // This is after expansion.
   // Use the one of the other forms of ReadValue if 1024 is too small for you.
   //
-  // The arrays hold one wchar_t more than the API is allowed to fill. A REG_SZ
-  // value that exactly fills the buffer comes back without a terminator, so
-  // the spare slot is where this function writes one.
+  // The arrays hold one wchar_t more than kMaxStringLength, and the whole
+  // array is offered to the API. Offering only kMaxStringLength of it lost a
+  // value of exactly that many characters: RegSetValueExW appends the
+  // terminator a REG_SZ was stored without, so reading one back needs the
+  // spare slot, and asking for less returned ERROR_MORE_DATA instead.
+  //
+  // The bound that keeps this safe is the clamp below, not the size passed
+  // in: |written| is capped at kMaxStringLength before anything indexes the
+  // array, so the terminator this function writes lands on the spare slot at
+  // worst and never past it.
   wchar_t raw_value[kMaxStringLength + 1];
-  DWORD type = REG_SZ, size = sizeof(wchar_t) * kMaxStringLength;
+  DWORD type = REG_SZ, size = sizeof(raw_value);
   LONG result = ReadValue(name, raw_value, size, type);
   if (result != ERROR_SUCCESS)
     return result;

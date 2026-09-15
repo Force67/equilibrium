@@ -17,9 +17,8 @@
 
 #include <mimalloc.h>
 
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <thread>
 
 using namespace base;

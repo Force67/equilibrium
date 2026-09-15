@@ -19,10 +19,13 @@ inline constexpr mem_size CountStringLength(const T* p,
   // `CountStringLength(literal)` bytes out of that literal looks to the
   // compiler like it may read past the end. It also lowers to the tuned libc
   // routine instead of a byte loop.
+  // MSVC has no __builtin_strlen, so there the loop below does the work.
+#if !defined(_MSC_VER) || defined(__clang__)
   if constexpr (sizeof(T) == 1) {
     if (!__builtin_is_constant_evaluated() && limit == MinMax<mem_size>::max())
       return __builtin_strlen(reinterpret_cast<const char*>(p));
   }
+#endif
 
   // Indexed rather than a pointer walk with a `limit--` side effect in the
   // condition: the same scan, but one the optimizer can evaluate for a known
@@ -32,6 +35,31 @@ inline constexpr mem_size CountStringLength(const T* p,
   while (n != limit && p[n])
     ++n;
   return n;
+}
+
+// The first occurrence of |needle| in the null-terminated |haystack|, or
+// nullptr. Searching for '\0' finds the terminator, as strchr does.
+template <typename T>
+inline constexpr const T* FindChar(const T* haystack, T needle) {
+  for (;; ++haystack) {
+    if (*haystack == needle)
+      return haystack;
+    if (*haystack == 0)
+      return nullptr;
+  }
+}
+
+// The last occurrence of |needle|, or nullptr. As strrchr, searching for
+// '\0' finds the terminator.
+template <typename T>
+inline constexpr const T* FindLastChar(const T* haystack, T needle) {
+  const T* found = nullptr;
+  for (;; ++haystack) {
+    if (*haystack == needle)
+      found = haystack;
+    if (*haystack == 0)
+      return found;
+  }
 }
 
 template <typename T>

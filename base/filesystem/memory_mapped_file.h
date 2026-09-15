@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/memory/mem_ops.h>
 #include <base/memory/move.h>
 #include <base/filesystem/file.h>
 
@@ -42,7 +43,7 @@ class MemoryMappedFile {
       return {};
     base::Vector<byte> data;
     data.resize(size);
-    memcpy(data.data(), source, size);
+    base::MemCopy(data.data(), source, size);
     return data;
   }
 
@@ -52,7 +53,7 @@ class MemoryMappedFile {
     byte* target = AddressFor(offset, data.size());
     if (!target)
       return false;
-    memcpy(target, data.data(), data.size());
+    base::MemCopy(target, data.data(), data.size());
     return true;
   }
 

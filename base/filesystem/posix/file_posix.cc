@@ -10,7 +10,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <string.h>
 
 #include <base/check.h>
 #include <base/filesystem/file.h>

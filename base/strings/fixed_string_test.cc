@@ -1,5 +1,6 @@
 // Copyright (C) 2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
+#include <base/memory/mem_ops.h>
 #include <gtest/gtest.h>
 
 #include <type_traits>
@@ -85,7 +86,7 @@ TEST(FixedStringTest, MemcpyableSemantics) {
   // Trivially copyable: round-trip via raw memory should be valid.
   FS16 a("hello");
   FS16 b;
-  memcpy(&b, &a, sizeof(a));
+  base::MemCopy(&b, &a, sizeof(a));
   EXPECT_EQ(a, b);
   EXPECT_STREQ(b.c_str(), "hello");
 }

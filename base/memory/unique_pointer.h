@@ -74,7 +74,7 @@ class UniquePointer {
 #if 0
   template <typename U>
   inline UniquePointer<U>& operator=(UniquePointer&& rhs) noexcept
-      requires(std::convertible_to<T, U>)
+      requires(base::ConvertibleTo<T, U>)
   /*TODO: requires(is_move_assignable_v<T>)*/ {
     if (this != base::AddressOf(rhs)) {
       // steal & invalidate right side.

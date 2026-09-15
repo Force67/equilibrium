@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
 #include <base/arch.h>
 #include <base/external/icu/icu_utf.h>
 

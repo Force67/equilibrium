@@ -27,6 +27,11 @@ class BASE_EXPORT Thread {
 
   bool Start(const Priority);
 
+  // Block until the thread has run to completion. Returns false when there
+  // is no thread to wait for, or when the wait itself failed. A thread may
+  // only be joined once; the handle is cleared on success.
+  bool Join();
+
   virtual u32 Run();
 
   // since both are same size anyway, we can use the same type
@@ -58,6 +63,17 @@ BASE_EXPORT bool SetThreadName(Thread::Handle, const char* name);
 inline bool SetCurrentThreadName(const char* name) {
   return SetThreadName(GetCurrentThreadHandle(), name);
 }
+
+// Suspend the calling thread for at least |microseconds|. base's own
+// replacement for std::this_thread::sleep_for, so <thread> and <chrono>
+// stay out of the build.
+BASE_EXPORT void SleepForMicroseconds(u64 microseconds);
+inline void SleepForMilliseconds(u64 milliseconds) {
+  SleepForMicroseconds(milliseconds * 1000u);
+}
+
+// Offer the rest of this thread's time slice to the scheduler.
+BASE_EXPORT void YieldCurrentThread();
 
 BASE_EXPORT void SetThreadPriority(Thread::Handle, Thread::Priority new_priority);
 BASE_EXPORT Thread::Priority GetThreadPriority(Thread::Handle);

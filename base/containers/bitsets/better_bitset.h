@@ -3,12 +3,13 @@
 // Source: https://github.com/MrElectrify/better_bitset
 #pragma once
 
+#include <base/memory/mem_ops.h>
 #include <base/check.h>
 #include <base/numeric_limits.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/builtins_bit.h>
 
-#include <climits>
+#include <limits.h>
 
 namespace base {
 template <mem_size N>
@@ -124,7 +125,7 @@ class BetterBitSet {
 
   // Copy the full storage; no guard is required.
   BetterBitSet& operator=(const BetterBitSet& rhs) noexcept {
-    memcpy(&array_[0], &rhs.array_[0], sizeof(Storage));
+    base::MemCopy(&array_[0], &rhs.array_[0], sizeof(Storage));
     return *this;
   }
 
@@ -139,7 +140,7 @@ class BetterBitSet {
   }
 
   constexpr bool operator==(const BetterBitSet<N>& rhs) const noexcept {
-    return memcmp(&array_[0], &rhs.array_[0], sizeof(array_)) == 0;
+    return base::MemCompare(&array_[0], &rhs.array_[0], sizeof(array_)) == 0;
   }
 
   BetterBitSet& operator&=(const BetterBitSet& rhs) noexcept

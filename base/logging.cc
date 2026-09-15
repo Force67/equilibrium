@@ -1,9 +1,10 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <base/strings/string_compare.h>
 #include <base/logging.h>
-#include <cstdio>
-#include <cstring>
+#include <base/standard_streams.h>
+#include <base/strings/format.h>
 
 namespace base {
 
@@ -18,8 +19,14 @@ void DefaultLogHandler(void* /*user_pointer*/,
                        const char* channel_name,
                        LogLevel ll,
                        const char* msg) {
-  std::fprintf(stderr, "[%s] %s: %s\n", channel_name ? channel_name : "?",
-               LogLevelToName(ll), msg ? msg : "");
+  // One write, not three: a second thread logging concurrently can interleave
+  // between writes but not inside one.
+  char line[1024];
+  const mem_size length =
+      base::FormatTo(line, sizeof(line), "[{}] {}: {}\n",
+                     channel_name ? channel_name : "?", LogLevelToName(ll),
+                     msg ? msg : "");
+  base::WriteStandardError(line, length < sizeof(line) ? length : sizeof(line));
 }
 
 constinit struct {
@@ -57,7 +64,7 @@ void SetChannelMinLevel(const char* channel_name,
                         LogLevel min_level) noexcept {
   // Update existing entry if present.
   for (int i = 0; i < channel_count; ++i) {
-    if (std::strcmp(channel_table[i].name, channel_name) == 0) {
+    if (base::StrEqual(channel_table[i].name, channel_name)) {
       channel_table[i].min_level = min_level;
       return;
     }
@@ -77,7 +84,7 @@ bool ShouldLog(const char* channel_name, LogLevel level) noexcept {
     return false;
   if (channel_name) {
     for (int i = 0; i < channel_count; ++i) {
-      if (std::strcmp(channel_table[i].name, channel_name) == 0) {
+      if (base::StrEqual(channel_table[i].name, channel_name)) {
         return static_cast<int>(level) >=
                static_cast<int>(channel_table[i].min_level);
       }

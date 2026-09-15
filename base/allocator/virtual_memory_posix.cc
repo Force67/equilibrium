@@ -2,8 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <sys/mman.h>
-#include <cstdint>   // for uint32_t
-#include <cstring>   // for memset
+#include <stdint.h>   // for uint32_t
 #include <unistd.h>  // for sysconf
 #include "virtual_memory.h"
 

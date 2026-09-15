@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <cstddef>
+#include <stddef.h>
 
 #include <base/atomic.h>
 #include <base/containers/pair.h>

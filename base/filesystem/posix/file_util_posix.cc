@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <base/environment_variables.h>
 #include <base/filesystem/file_util.h>
 
-#include <cerrno>
+#include <errno.h>
 #include <dirent.h>
 #include <fcntl.h>  // for O_NONBLOCK etc
 
@@ -176,9 +177,9 @@ static bool CreateTemporaryDirInDirImpl(const Path& base_dir,
 }
 
 bool GetTempDir(Path* path) {
-  const char* tmp = getenv("TMPDIR");
-  if (tmp) {
-    *path = Path(tmp);
+  base::StringU8 tmp;
+  if (base::GetEnvironmentVariable(u8"TMPDIR", tmp) && !tmp.empty()) {
+    *path = Path(reinterpret_cast<const char*>(tmp.c_str()));
     return true;
   }
   *path = Path("/tmp");

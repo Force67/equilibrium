@@ -36,6 +36,12 @@ typedef unsigned int UINT;
 typedef unsigned int* PUINT;
 typedef unsigned __int64 UINT64;
 typedef void* LPVOID;
+typedef const void* LPCVOID;
+typedef DWORD* LPDWORD;
+// Spelled as the SDK spells it, so a translation unit that also pulls in the
+// real <windows.h> sees the same declaration rather than a conflicting one.
+struct _OVERLAPPED;
+typedef struct _OVERLAPPED* LPOVERLAPPED;
 typedef void* PVOID;
 typedef void* HANDLE;
 typedef int BOOL;
@@ -192,6 +198,26 @@ struct CHROME_MSG {
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
 #endif
 #define TLS_OUT_OF_INDEXES ((DWORD)0xFFFFFFFF)
+
+// The nStdHandle values GetStdHandle takes. Guarded because a translation
+// unit may reach the real <windows.h> as well, and the SDK spells some of
+// these differently (WAIT_OBJECT_0 through STATUS_WAIT_0), which a bare
+// redefinition would warn on.
+#ifndef STD_INPUT_HANDLE
+#define STD_INPUT_HANDLE ((DWORD)-10)
+#endif
+#ifndef STD_OUTPUT_HANDLE
+#define STD_OUTPUT_HANDLE ((DWORD)-11)
+#endif
+#ifndef STD_ERROR_HANDLE
+#define STD_ERROR_HANDLE ((DWORD)-12)
+#endif
+#ifndef INFINITE
+#define INFINITE 0xFFFFFFFF
+#endif
+#ifndef WAIT_OBJECT_0
+#define WAIT_OBJECT_0 ((DWORD)0x00000000L)
+#endif
 #define HTNOWHERE 0
 #define MAX_PATH 260
 #define CS_GLOBALCLASS 0x4000
@@ -304,6 +330,37 @@ WINBASEAPI BOOL WINAPI TerminateProcess(HANDLE hProcess, UINT uExitCode);
 
 // Support for a deleter for LocalAlloc memory.
 WINBASEAPI HLOCAL WINAPI LocalFree(HLOCAL hMem);
+
+// Needed for standard_streams.h: base writes diagnostics straight to the
+// stream handles rather than through stdio.
+WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle);
+
+WINBASEAPI BOOL WINAPI WriteFile(HANDLE hFile,
+                                 LPCVOID lpBuffer,
+                                 DWORD nNumberOfBytesToWrite,
+                                 LPDWORD lpNumberOfBytesWritten,
+                                 LPOVERLAPPED lpOverlapped);
+
+WINBASEAPI HANDLE WINAPI GetCurrentProcess(VOID);
+
+// Needed by the allocator and atomic test harnesses, which spawn threads
+// through the platform API rather than link base::Thread.
+typedef DWORD(WINAPI* PTHREAD_START_ROUTINE)(LPVOID lpThreadParameter);
+typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;
+struct _SECURITY_ATTRIBUTES;
+typedef struct _SECURITY_ATTRIBUTES* LPSECURITY_ATTRIBUTES;
+
+WINBASEAPI HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES lpThreadAttributes,
+                                      SIZE_T dwStackSize,
+                                      LPTHREAD_START_ROUTINE lpStartAddress,
+                                      LPVOID lpParameter,
+                                      DWORD dwCreationFlags,
+                                      LPDWORD lpThreadId);
+
+WINBASEAPI DWORD WINAPI WaitForSingleObject(HANDLE hHandle,
+                                            DWORD dwMilliseconds);
+
+WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject);
 
 #ifdef __cplusplus
 }

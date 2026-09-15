@@ -3,7 +3,7 @@
 // Time implementation for posix.
 
 #include <base/time/time.h>
-#include <ctime>
+#include <time.h>
 #include <sys/time.h>
 
 namespace base {
