@@ -11,13 +11,13 @@
 // Layout: TChar data_[N + 1] (always null-terminated) + u32 size_.
 #pragma once
 
+#include <base/memory/mem_ops.h>
 #include <base/arch.h>
 #include <base/check.h>
 #include <base/meta/traits.h>
 #include <base/numeric_limits.h>
 #include <base/strings/char_algorithms.h>
 
-#include <string.h>
 
 namespace base {
 
@@ -75,7 +75,7 @@ class BasicFixedString {
   void assign(const character_type* str, size_type len) {
     BASE_BUGCHECK(len <= kCapacity, "FixedString overflow in assign");
     if (str && len > 0) {
-      memcpy(data_, str, len * sizeof(character_type));
+      base::MemCopy(data_, str, len * sizeof(character_type));
     }
     size_ = len;
     data_[size_] = character_type{};
@@ -135,7 +135,7 @@ class BasicFixedString {
   void resize(size_type new_size) {
     BASE_BUGCHECK(new_size <= kCapacity, "FixedString overflow in resize");
     if (new_size > size_) {
-      memset(data_ + size_, 0, (new_size - size_) * sizeof(character_type));
+      base::MemSet(data_ + size_, 0, (new_size - size_) * sizeof(character_type));
     }
     size_ = new_size;
     data_[size_] = character_type{};
@@ -160,7 +160,7 @@ class BasicFixedString {
     BASE_BUGCHECK(size_ + count <= kCapacity,
                   "FixedString overflow in append");
     if (count > 0) {
-      memcpy(data_ + size_, str, count * sizeof(character_type));
+      base::MemCopy(data_ + size_, str, count * sizeof(character_type));
       size_ += count;
       data_[size_] = character_type{};
     }
@@ -185,7 +185,7 @@ class BasicFixedString {
     const mem_size full = base::CountStringLength(str);
     const size_type to_copy =
         full > kCapacity ? kCapacity : static_cast<size_type>(full);
-    memcpy(data_, str, to_copy * sizeof(character_type));
+    base::MemCopy(data_, str, to_copy * sizeof(character_type));
     size_ = to_copy;
     data_[size_] = character_type{};
     return full <= kCapacity;
@@ -201,7 +201,7 @@ class BasicFixedString {
   }
   int compare(const character_type* str, size_type count) const noexcept {
     const size_type m = size_ < count ? size_ : count;
-    int r = memcmp(data_, str, m * sizeof(character_type));
+    int r = base::MemCompare(data_, str, m * sizeof(character_type));
     if (r != 0) return r;
     if (size_ < count) return -1;
     if (size_ > count) return 1;
@@ -232,14 +232,14 @@ template <mem_size N, typename TChar>
 bool operator==(const BasicFixedString<N, TChar>& lhs,
                 const BasicFixedString<N, TChar>& rhs) {
   if (lhs.size() != rhs.size()) return false;
-  return memcmp(lhs.data(), rhs.data(), lhs.byte_size()) == 0;
+  return base::MemCompare(lhs.data(), rhs.data(), lhs.byte_size()) == 0;
 }
 
 template <mem_size N, typename TChar>
 bool operator==(const BasicFixedString<N, TChar>& lhs, const TChar* rhs) {
   if (rhs == nullptr) return lhs.empty();
   if (base::CountStringLength(rhs) != lhs.size()) return false;
-  return memcmp(lhs.data(), rhs, lhs.byte_size()) == 0;
+  return base::MemCompare(lhs.data(), rhs, lhs.byte_size()) == 0;
 }
 
 template <mem_size N, typename TChar>

@@ -3,7 +3,7 @@
 #pragma once
 
 #include <stdlib.h>
-#include <string.h>
+#include <base/memory/mem_ops.h>
 #include <base/arch.h>
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__) || defined(OS_POSIX)
@@ -51,7 +51,7 @@ class DefaultCRTRouter {
     if (former_size >= new_size) return former_block;
     void* new_block = ::aligned_alloc(alignment, new_size);
     if (new_block && former_block) {
-      memcpy(new_block, former_block, former_size);
+      base::MemCopy(new_block, former_block, former_size);
       free(former_block);
     }
     return new_block;

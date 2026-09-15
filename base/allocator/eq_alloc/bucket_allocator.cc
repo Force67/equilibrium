@@ -1,7 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <string.h>
+#include <base/memory/mem_ops.h>
 #include <base/check.h>
 #include <base/allocator/eq_alloc/page_table.h>
 #include <base/allocator/eq_alloc/bucket_allocator.h>
@@ -126,7 +126,7 @@ void* BucketAllocator::ReAllocate(void* former_block,
   void* new_block = Allocate(new_size, user_alignment);
   if (!new_block)
     return nullptr;
-  ::memcpy(new_block, former_block, slab->slot_size);
+  ::base::MemCopy(new_block, former_block, slab->slot_size);
   Free(former_block);
   return new_block;
 }

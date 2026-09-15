@@ -3,9 +3,10 @@
 // SHA-256 implementation based on the reference from FIPS 180-4.
 // Public domain.
 
+#include <base/strings/char_algorithms.h>
+#include <base/memory/mem_ops.h>
 #include "sha256.h"
 
-#include <string.h>
 
 namespace {
 
@@ -111,11 +112,11 @@ struct Sha256Ctx {
     if (index) {
       mem_size part = 64 - index;
       if (len >= part) {
-        ::memcpy(buffer + index, data, part);
+        ::base::MemCopy(buffer + index, data, part);
         Transform(buffer);
         i = part;
       } else {
-        ::memcpy(buffer + index, data, len);
+        ::base::MemCopy(buffer + index, data, len);
         return;
       }
     }
@@ -125,7 +126,7 @@ struct Sha256Ctx {
     }
 
     if (i < len) {
-      ::memcpy(buffer, data + i, len - i);
+      ::base::MemCopy(buffer, data + i, len - i);
     }
   }
 
@@ -164,7 +165,7 @@ Sha256Hash Sha256(const void* data, mem_size size) {
 }
 
 Sha256Hash Sha256(const char* str) {
-  return Sha256(str, ::strlen(str));
+  return Sha256(str, base::CountStringLength(str));
 }
 
 }  // namespace base

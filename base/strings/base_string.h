@@ -6,6 +6,7 @@
 #pragma once
 
 // we try to avoid expensive headers.
+#include <base/memory/mem_ops.h>
 #include <base/arch.h>
 #include <base/check.h>
 #include <base/compiler.h>
@@ -14,7 +15,6 @@
 #include <base/meta/traits.h>
 #include <base/strings/char_algorithms.h>
 
-#include <string.h>
 #include <base/math/value_bounds.h>
 
 #define HAS_BASE_STRING_TRAITS 1
@@ -236,7 +236,7 @@ class BasicBaseString {
     character_type* new_data = allocate_buffer(target_capacity);
     const size_type cur_size = get_size();
     if (cur_size > 0) {
-      memcpy(new_data, get_data(), cur_size * sizeof(character_type));
+      base::MemCopy(new_data, get_data(), cur_size * sizeof(character_type));
     }
     new_data[cur_size] = character_type{};
 
@@ -312,7 +312,7 @@ class BasicBaseString {
       assign(other.large_.data_, other.large_.size_);
     } else {
       // Trivial bytewise copy is sound: union members are trivial.
-      memcpy(this, &other, sizeof(other));
+      base::MemCopy(this, &other, sizeof(other));
     }
   }
 
@@ -345,7 +345,7 @@ class BasicBaseString {
   }
 
   BasicBaseString(BasicBaseString&& other) noexcept {
-    memcpy(this, &other, sizeof(*this));
+    base::MemCopy(this, &other, sizeof(*this));
     other.init_empty();
   }
 
@@ -368,7 +368,7 @@ class BasicBaseString {
   BasicBaseString& operator=(BasicBaseString&& other) noexcept {
     if (this != &other) {
       deallocate_large();
-      memcpy(this, &other, sizeof(*this));
+      base::MemCopy(this, &other, sizeof(*this));
       other.init_empty();
     }
     return *this;
@@ -384,7 +384,7 @@ class BasicBaseString {
       // (which may point inside our old buffer — still valid), and only then
       // free the old buffer.
       character_type* new_data = allocate_buffer(len);
-      memcpy(new_data, str, len * sizeof(character_type));
+      base::MemCopy(new_data, str, len * sizeof(character_type));
       new_data[len] = character_type{};
       deallocate_large();
       large_.data_ = new_data;
@@ -395,7 +395,7 @@ class BasicBaseString {
     }
     // No reallocation; src may overlap our buffer (e.g. assign(c_str()+5, 10))
     // so use memmove rather than memcpy.
-    memmove(get_data(), str, len * sizeof(character_type));
+    base::MemMove(get_data(), str, len * sizeof(character_type));
     set_size(len);
     ensure_null_terminated();
   }
@@ -490,7 +490,7 @@ class BasicBaseString {
     const size_type old_size = get_size();
     if (new_size > old_size) {
       grow_to_at_least(new_size);
-      memset(get_data() + old_size, 0, (new_size - old_size) * sizeof(character_type));
+      base::MemSet(get_data() + old_size, 0, (new_size - old_size) * sizeof(character_type));
     }
     set_size(new_size);
     ensure_null_terminated();
@@ -512,17 +512,17 @@ class BasicBaseString {
       character_type* old_data = large_.data_;
       const size_type old_capacity = get_capacity();
       if (current_size > 0) {
-        memcpy(buf, old_data, current_size * sizeof(character_type));
+        base::MemCopy(buf, old_data, current_size * sizeof(character_type));
       }
       init_empty();
-      memcpy(small_.data_, buf, current_size * sizeof(character_type));
+      base::MemCopy(small_.data_, buf, current_size * sizeof(character_type));
       flag_byte() = static_cast<unsigned char>(current_size & ~kLargeFlag);
       ensure_null_terminated();
       TAllocator::Free(old_data, buffer_byte_size(old_capacity));
     } else {
       // Shrink the heap buffer to exactly current_size.
       character_type* new_data = allocate_buffer(current_size);
-      memcpy(new_data, large_.data_, current_size * sizeof(character_type));
+      base::MemCopy(new_data, large_.data_, current_size * sizeof(character_type));
       new_data[current_size] = character_type{};
       deallocate_large();
       large_.data_ = new_data;
@@ -558,9 +558,9 @@ class BasicBaseString {
       const size_type new_capacity = grow_capacity(new_size);
       character_type* new_data = allocate_buffer(new_capacity);
       if (old_size > 0) {
-        memcpy(new_data, get_data(), old_size * sizeof(character_type));
+        base::MemCopy(new_data, get_data(), old_size * sizeof(character_type));
       }
-      memcpy(new_data + old_size, str, count * sizeof(character_type));
+      base::MemCopy(new_data + old_size, str, count * sizeof(character_type));
       new_data[new_size] = character_type{};
       deallocate_large();
       large_.data_ = new_data;
@@ -571,7 +571,7 @@ class BasicBaseString {
     }
     // No realloc — dest range is past old_size so it can't overlap any
     // in-buffer src range, plain memcpy is fine.
-    memcpy(get_data() + old_size, str, count * sizeof(character_type));
+    base::MemCopy(get_data() + old_size, str, count * sizeof(character_type));
     set_size(new_size);
     ensure_null_terminated();
   }
@@ -626,7 +626,7 @@ class BasicBaseString {
     const size_type new_size = checked_length_sum(old_size, count);
     grow_to_at_least(new_size);
     character_type* d = get_data();
-    memmove(d + pos + count, d + pos, (old_size - pos) * sizeof(character_type));
+    base::MemMove(d + pos + count, d + pos, (old_size - pos) * sizeof(character_type));
     // Scalar loop — memset would only write the low byte of c.
     for (size_type i = 0; i < count; ++i)
       d[pos + i] = c;
@@ -643,7 +643,7 @@ class BasicBaseString {
 
     character_type* d = get_data();
     BASE_SSO_SPECULATION_BEGIN
-    memmove(d + pos, d + pos + count,
+    base::MemMove(d + pos, d + pos + count,
             (current_size - pos - count) * sizeof(character_type));
     BASE_SSO_SPECULATION_END
     set_size(current_size - count);
@@ -681,7 +681,7 @@ class BasicBaseString {
     const size_type left_size = get_size();
     const size_type right_size = other.get_size();
     const size_type min_size = base::Min(left_size, right_size);
-    int result = memcmp(get_data(), other.get_data(), min_size * sizeof(character_type));
+    int result = base::MemCompare(get_data(), other.get_data(), min_size * sizeof(character_type));
     if (result != 0)
       return result;
     if (left_size < right_size)
@@ -695,7 +695,7 @@ class BasicBaseString {
     const size_type left_size = get_size();
     const size_type right_size = base::CountStringLength(str);
     const size_type min_size = base::Min(left_size, right_size);
-    int result = memcmp(get_data(), str, min_size * sizeof(character_type));
+    int result = base::MemCompare(get_data(), str, min_size * sizeof(character_type));
     if (result != 0)
       return result;
     if (left_size < right_size)
@@ -708,7 +708,7 @@ class BasicBaseString {
   int compare(const character_type* str, size_type count) const noexcept {
     const size_type left_size = get_size();
     const size_type min_size = base::Min(left_size, count);
-    int result = memcmp(get_data(), str, min_size * sizeof(character_type));
+    int result = base::MemCompare(get_data(), str, min_size * sizeof(character_type));
     if (result != 0)
       return result;
     if (left_size < count)
@@ -729,7 +729,7 @@ class BasicBaseString {
     BASE_BUGCHECK(offset <= get_size(), "Offset out of bounds");
     const size_type left_size = get_size() - offset;
     const size_type min_size = base::Min(left_size, count);
-    int result = memcmp(get_data() + offset, str, min_size * sizeof(character_type));
+    int result = base::MemCompare(get_data() + offset, str, min_size * sizeof(character_type));
     if (result != 0)
       return result;
     if (left_size < count)
@@ -745,7 +745,7 @@ class BasicBaseString {
     const size_type min_len = base::Min(rlen, other_len);
 
     int result =
-        memcmp(get_data() + pos, str.get_data(), min_len * sizeof(character_type));
+        base::MemCompare(get_data() + pos, str.get_data(), min_len * sizeof(character_type));
 
     if (result != 0) {
       return result;
@@ -782,7 +782,7 @@ class BasicBaseString {
       return npos;
     const character_type* d = get_data();
     for (size_type i = pos; i <= cur - s_len; ++i) {
-      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0)
+      if (base::MemCompare(d + i, s, s_len * sizeof(character_type)) == 0)
         return i;
     }
     return npos;
@@ -860,13 +860,13 @@ class BasicBaseString {
     const size_type s_len = base::CountStringLength(s);
     if (s_len > get_size())
       return false;
-    return memcmp(get_data(), s, s_len * sizeof(character_type)) == 0;
+    return base::MemCompare(get_data(), s, s_len * sizeof(character_type)) == 0;
   }
 
   bool starts_with(const BasicBaseString& s) const {
     if (s.size() > get_size())
       return false;
-    return memcmp(get_data(), s.data(), s.byte_size()) == 0;
+    return base::MemCompare(get_data(), s.data(), s.byte_size()) == 0;
   }
 
   bool ends_with(character_type c) const { return !empty() && back() == c; }
@@ -877,14 +877,14 @@ class BasicBaseString {
     const size_type s_len = base::CountStringLength(s);
     if (s_len > get_size())
       return false;
-    return memcmp(get_data() + (get_size() - s_len), s, s_len * sizeof(character_type)) ==
+    return base::MemCompare(get_data() + (get_size() - s_len), s, s_len * sizeof(character_type)) ==
            0;
   }
 
   bool ends_with(const BasicBaseString& s) const {
     if (s.size() > get_size())
       return false;
-    return memcmp(get_data() + (get_size() - s.size()), s.data(), s.byte_size()) == 0;
+    return base::MemCompare(get_data() + (get_size() - s.size()), s.data(), s.byte_size()) == 0;
   }
 
   // Last occurrence at or before `pos`, mirroring find()'s substring search.
@@ -904,7 +904,7 @@ class BasicBaseString {
     size_type i = (pos == npos || pos > cur - s_len) ? cur - s_len : pos;
     const character_type* d = get_data();
     for (;; --i) {
-      if (memcmp(d + i, s, s_len * sizeof(character_type)) == 0)
+      if (base::MemCompare(d + i, s, s_len * sizeof(character_type)) == 0)
         return i;
       if (i == 0)
         return npos;
@@ -968,7 +968,7 @@ bool operator==(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
                 const BasicBaseString<CharT, TSizeType, TAllocator>& rhs) {
   if (lhs.size() != rhs.size())
     return false;
-  return memcmp(lhs.data(), rhs.data(), lhs.byte_size()) == 0;
+  return base::MemCompare(lhs.data(), rhs.data(), lhs.byte_size()) == 0;
 }
 
 template <typename CharT, typename TSizeType, class TAllocator>
@@ -978,7 +978,7 @@ bool operator==(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
     return true;
   if (rhs == nullptr || base::CountStringLength(rhs) != lhs.size())
     return false;
-  return memcmp(lhs.data(), rhs, lhs.byte_size()) == 0;
+  return base::MemCompare(lhs.data(), rhs, lhs.byte_size()) == 0;
 }
 
 template <typename CharT, typename TSizeType, class TAllocator, typename TOtherString>
@@ -997,7 +997,7 @@ bool operator==(const BasicBaseString<CharT, TSizeType, TAllocator>& lhs,
     return true;
   }
 
-  return memcmp(lhs.data(), rhs.data(), lhs_size * sizeof(CharT)) == 0;
+  return base::MemCompare(lhs.data(), rhs.data(), lhs_size * sizeof(CharT)) == 0;
 }
 
 template <typename CharT, typename TSizeType, class TAllocator>

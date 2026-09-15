@@ -3,12 +3,12 @@
 // This defines the memory routing stategy used by eq_alloc
 #pragma once
 
+#include <base/memory/mem_ops.h>
 #include <base/atomic.h>
 #include <base/compiler.h>
 #include <base/export.h>
 #include <base/numeric_limits.h>
 
-#include <string.h>
 
 #include <base/allocator/memory_context.h>
 #include <base/allocator/eq_alloc/allocator.h>
@@ -121,7 +121,7 @@ struct BASE_EXPORT EQMemoryRouter {
       return nullptr;
 
     mem_size copy_size = former_size < new_size ? former_size : new_size;
-    ::memcpy(new_block, former_block, copy_size);
+    ::base::MemCopy(new_block, former_block, copy_size);
 
     // recover the raw (pre-alignment) pointer and free it
     mem_size adjustment = reinterpret_cast<mem_size*>(former_block)[-1];

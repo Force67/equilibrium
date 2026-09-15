@@ -1,9 +1,9 @@
 // Copyright (C) Force67 <github.com/Force67>.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <base/strings/string_compare.h>
 #include <base/logging.h>
 #include <stdio.h>
-#include <string.h>
 
 namespace base {
 
@@ -57,7 +57,7 @@ void SetChannelMinLevel(const char* channel_name,
                         LogLevel min_level) noexcept {
   // Update existing entry if present.
   for (int i = 0; i < channel_count; ++i) {
-    if (::strcmp(channel_table[i].name, channel_name) == 0) {
+    if (base::StrEqual(channel_table[i].name, channel_name)) {
       channel_table[i].min_level = min_level;
       return;
     }
@@ -77,7 +77,7 @@ bool ShouldLog(const char* channel_name, LogLevel level) noexcept {
     return false;
   if (channel_name) {
     for (int i = 0; i < channel_count; ++i) {
-      if (::strcmp(channel_table[i].name, channel_name) == 0) {
+      if (base::StrEqual(channel_table[i].name, channel_name)) {
         return static_cast<int>(level) >=
                static_cast<int>(channel_table[i].min_level);
       }

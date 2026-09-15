@@ -2,12 +2,12 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/memory/mem_ops.h>
 #include <base/memory/move.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/check.h>
 #include <base/containers/container_traits.h>
 #include <new>
-#include <string.h>
 #include <stddef.h>  // max_align_t
 
 namespace base {
@@ -187,7 +187,7 @@ struct Function<R(Args...)> {
   }
 
  public:
-  Function() { memset(storage_, 0, sizeof(storage_)); }
+  Function() { base::MemSet(storage_, 0, sizeof(storage_)); }
 
   // Nullptr construction / assignment / comparison
   Function(decltype(nullptr)) : Function() {}
@@ -205,7 +205,7 @@ struct Function<R(Args...)> {
   template <typename T>
     requires(IsCallable<T>)
   Function(T&& target) {
-    memset(storage_, 0, sizeof(storage_));
+    base::MemSet(storage_, 0, sizeof(storage_));
     using Decayed = typename FnDecay<T>::type;
     Emplace<Decayed>(base::forward<T>(target));
   }
@@ -224,7 +224,7 @@ struct Function<R(Args...)> {
   template <typename C, typename MF>
   Function(C* object, MF member_func) {
     using Holder = MemberFuncHolder<C, MF>;
-    memset(storage_, 0, sizeof(storage_));
+    base::MemSet(storage_, 0, sizeof(storage_));
 
     // Set vtable manually — invoke uses MemberInvokeImpl, rest uses Holder
     invoke_ = reinterpret_cast<InvokeFn>(&MemberInvokeImpl<C, MF>);
@@ -245,7 +245,7 @@ struct Function<R(Args...)> {
 
   // Copy constructor
   Function(const Function& other) {
-    memset(storage_, 0, sizeof(storage_));
+    base::MemSet(storage_, 0, sizeof(storage_));
     CopyFrom(other);
   }
 
@@ -253,7 +253,7 @@ struct Function<R(Args...)> {
   Function& operator=(const Function& other) {
     if (this != &other) {
       Cleanup();
-      memset(storage_, 0, sizeof(storage_));
+      base::MemSet(storage_, 0, sizeof(storage_));
       CopyFrom(other);
     }
     return *this;
@@ -261,7 +261,7 @@ struct Function<R(Args...)> {
 
   // Move constructor
   Function(Function&& other) noexcept {
-    memset(storage_, 0, sizeof(storage_));
+    base::MemSet(storage_, 0, sizeof(storage_));
     MoveFrom(other);
   }
 
@@ -269,7 +269,7 @@ struct Function<R(Args...)> {
   Function& operator=(Function&& other) noexcept {
     if (this != &other) {
       Cleanup();
-      memset(storage_, 0, sizeof(storage_));
+      base::MemSet(storage_, 0, sizeof(storage_));
       MoveFrom(other);
     }
     return *this;

@@ -7,7 +7,6 @@
 #include <base/allocator/memory_coordinator.h>
 #include <base/allocator/memory_stat_tracker.h>
 
-#include <string.h>
 
 #include <base/threading/lock_guard.h>
 #include <base/threading/mutex.h>

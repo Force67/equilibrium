@@ -3,6 +3,7 @@
 // A child of better bitset
 #pragma once
 
+#include <base/memory/mem_ops.h>
 #include <base/check.h>
 #include <base/numeric_limits.h>
 #include <base/memory/cxx_lifetime.h>
@@ -130,7 +131,7 @@ class DynamicBitSet {
   bool operator==(const DynamicBitSet& rhs) const noexcept {
     if (rhs.size() != size())
       return false;
-    return memcmp(vector_.data(), rhs.vector_.data(), storage_size() * sizeof(ArrayType)) == 0;
+    return base::MemCompare(vector_.data(), rhs.vector_.data(), storage_size() * sizeof(ArrayType)) == 0;
   }
 
   DynamicBitSet& operator&=(const DynamicBitSet& rhs) noexcept {

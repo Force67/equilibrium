@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <string.h>
 
+#include <base/memory/mem_ops.h>
 #include <base/arch.h>
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
@@ -81,9 +81,9 @@ class StaticFunction<R(Args...), MaxSize> {
     // Storage holds trivially copyable state; invoker_/manager_ know how to
     // operate on the bytes on either side.
     alignas(kStorageAlign) unsigned char tmp[kStorageSize];
-    ::memcpy(tmp, &data_, kStorageSize);
-    ::memcpy(&data_, &other.data_, kStorageSize);
-    ::memcpy(&other.data_, tmp, kStorageSize);
+    ::base::MemCopy(tmp, &data_, kStorageSize);
+    ::base::MemCopy(&data_, &other.data_, kStorageSize);
+    ::base::MemCopy(&other.data_, tmp, kStorageSize);
     base::swap(manager_, other.manager_);
     base::swap(invoker_, other.invoker_);
   }

@@ -122,6 +122,30 @@ struct is_signed {
 template <class T>
 inline constexpr bool is_signed_v = is_signed<T>::value;
 
+// The unsigned integer of the same width as T. Character comparison goes
+// through this so it does not depend on whether plain char is signed, which
+// differs between x86 and ARM.
+template <class T>
+struct make_unsigned {
+  using type = T;
+};
+#define BASE_MAP_UNSIGNED(FROM, TO)    \
+  template <>                          \
+  struct make_unsigned<FROM> {         \
+    using type = TO;                   \
+  };
+BASE_MAP_UNSIGNED(char, unsigned char)
+BASE_MAP_UNSIGNED(signed char, unsigned char)
+BASE_MAP_UNSIGNED(short, unsigned short)
+BASE_MAP_UNSIGNED(int, unsigned int)
+BASE_MAP_UNSIGNED(long, unsigned long)
+BASE_MAP_UNSIGNED(long long, unsigned long long)
+BASE_MAP_UNSIGNED(wchar_t, unsigned int)
+#undef BASE_MAP_UNSIGNED
+
+template <class T>
+using make_unsigned_t = typename make_unsigned<T>::type;
+
 template <class Base, class Derived>
 inline constexpr bool is_base_of_v = __is_base_of(Base, Derived);
 

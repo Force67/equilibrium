@@ -12,13 +12,14 @@
 #define TRACY_HAS_CALLSTACK
 #endif
 
+#include <base/strings/char_algorithms.h>
 #include <external/tracy/Tracy.hpp>
 
 #define BASE_PROFILE(name) ZoneScopedN(name)
 #define BASE_PROFILE_NAMED ZoneScopedN(__FUNCTION__)
 
 #define BASE_PROFILE_FRAME(x) FrameMarkNamed(x)
-#define BASE_PROFILE_TAG(y, x) ZoneText(x, strlen(x))
+#define BASE_PROFILE_TAG(y, x) ZoneText(x, base::CountStringLength(x))
 #define BASE_PROFILE_LOG(text, size) TracyMessage(text, size)
 #define BASE_PROFILE_VALUE(text, value) TracyPlot(text, value)
 #define BASE_PROFILE_ALLOCATION(p, size) TracyAllocS(p, size, 12)

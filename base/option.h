@@ -7,8 +7,8 @@
 #pragma once
 
 #include <stdlib.h>
-#include <string.h>
 
+#include <base/strings/string_compare.h>
 #include <base/arch.h>
 #include <base/containers/init_chain.h>
 #include <base/export.h>
@@ -24,13 +24,13 @@ namespace detail {
 template <typename T>
 inline bool ParseOption(const char* text, T& out) {
   if constexpr (base::is_same_v<T, bool>) {
-    if (!::strcmp(text, "1") || !::strcmp(text, "true") ||
-        !::strcmp(text, "on") || !::strcmp(text, "yes")) {
+    if (base::StrEqual(text, "1") || base::StrEqual(text, "true") ||
+        base::StrEqual(text, "on") || base::StrEqual(text, "yes")) {
       out = true;
       return true;
     }
-    if (!*text || !::strcmp(text, "0") || !::strcmp(text, "false") ||
-        !::strcmp(text, "off") || !::strcmp(text, "no")) {
+    if (!*text || base::StrEqual(text, "0") || base::StrEqual(text, "false") ||
+        base::StrEqual(text, "off") || base::StrEqual(text, "no")) {
       out = false;
       return true;
     }

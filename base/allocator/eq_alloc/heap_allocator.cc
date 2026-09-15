@@ -1,13 +1,13 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <base/memory/mem_ops.h>
 #include <base/check.h>
 #include <base/allocator/eq_alloc/heap_allocator.h>
 #include <base/allocator/eq_alloc/page_table.h>
 #include <base/allocator/eq_alloc/eq_allocation_constants.h>
 #include <base/threading/lock_guard.h>
 
-#include <string.h>
 
 namespace base {
 
@@ -173,7 +173,7 @@ void* HeapAllocator::ReAllocate(void* former_block,
     return nullptr;
 
   const mem_size copy_size = old_user_size < new_size ? old_user_size : new_size;
-  ::memcpy(new_block, former_block, copy_size);
+  ::base::MemCopy(new_block, former_block, copy_size);
   Free(former_block);
   return new_block;
 }

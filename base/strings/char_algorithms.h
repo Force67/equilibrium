@@ -34,6 +34,31 @@ inline constexpr mem_size CountStringLength(const T* p,
   return n;
 }
 
+// The first occurrence of |needle| in the null-terminated |haystack|, or
+// nullptr. Searching for '\0' finds the terminator, as strchr does.
+template <typename T>
+inline constexpr const T* FindChar(const T* haystack, T needle) {
+  for (;; ++haystack) {
+    if (*haystack == needle)
+      return haystack;
+    if (*haystack == 0)
+      return nullptr;
+  }
+}
+
+// The last occurrence of |needle|, or nullptr. As strrchr, searching for
+// '\0' finds the terminator.
+template <typename T>
+inline constexpr const T* FindLastChar(const T* haystack, T needle) {
+  const T* found = nullptr;
+  for (;; ++haystack) {
+    if (*haystack == needle)
+      found = haystack;
+    if (*haystack == 0)
+      return found;
+  }
+}
+
 template <typename T>
 inline constexpr mem_size FindNullTerminator(const T* p, mem_size n /*max_size*/) {
   // DCHECK(p);

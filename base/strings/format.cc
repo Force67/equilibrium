@@ -1,10 +1,10 @@
 // Copyright (C) 2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <base/strings/char_algorithms.h>
 #include <base/strings/format.h>
 
 #include <stdio.h>
-#include <string.h>
 
 namespace base::fmt_detail {
 namespace {
@@ -354,7 +354,7 @@ void FormatArgValue(Sink& sink, const Arg& arg, const Spec& spec) noexcept {
       return;
     case Arg::Tag::kCStr: {
       const char* s = arg.cstr ? arg.cstr : "(null)";
-      FormatString(sink, s, ::strlen(s), spec);
+      FormatString(sink, s, base::CountStringLength(s), spec);
       return;
     }
     case Arg::Tag::kStrSpan:

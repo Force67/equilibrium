@@ -5,7 +5,6 @@
 #include "sha256.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #include <base/atomic.h>
 #include <base/random/random.h>

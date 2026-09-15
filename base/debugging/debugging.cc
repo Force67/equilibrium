@@ -1,11 +1,12 @@
 // Copyright (C) 2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
+#include <base/strings/string_compare.h>
+#include <base/strings/char_algorithms.h>
 #include "debugging.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 // Neither musl nor Android's bionic ship <execinfo.h>/backtrace(); when
 // building in the fully-static musl mode (see build/musl_static.lua) or for
@@ -36,7 +37,7 @@ bool IsDebuggerAttached() {
 
   char line[256];
   while (::fgets(line, sizeof(line), f)) {
-    if (::strncmp(line, "TracerPid:\t", 11) == 0) {
+    if (base::Strncmp(line, "TracerPid:\t", 11) == 0) {
       ::fclose(f);
       return ::atoi(line + 11) != 0;
     }
@@ -51,8 +52,8 @@ bool IsDebuggerAttached() {
 // Input looks like: "./build/voxel_beta(_ZN7physics...+0x1a) [0x55...]"
 // We extract the mangled name between '(' and '+' and demangle it.
 static base::String DemangleFrame(const char* raw) {
-  const char* lparen = ::strchr(raw, '(');
-  const char* plus = lparen ? ::strchr(lparen, '+') : nullptr;
+  const char* lparen = base::FindChar(raw, '(');
+  const char* plus = lparen ? base::FindChar(lparen, '+') : nullptr;
 
   if (!lparen || !plus || plus <= lparen + 1) {
     return base::String(raw);
@@ -76,7 +77,7 @@ static base::String DemangleFrame(const char* raw) {
 
   // Build a clean string: "demangled+offset"
   base::String result(demangled);
-  result += base::String(plus, static_cast<i32>(::strlen(plus)));
+  result += base::String(plus, static_cast<i32>(base::CountStringLength(plus)));
   ::free(demangled);
 
   return result;
