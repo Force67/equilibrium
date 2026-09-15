@@ -23,9 +23,14 @@
 #endif
 
 #define _ReadWriteBarrier() __atomic_signal_fence(__ATOMIC_SEQ_CST)
-// The full fence the seq_cst path takes. On the real thing this is the
-// mfence instruction; here the builtin gives the same ordering.
+// The full fence the seq_cst path takes. On x86 the host compiler already
+// has the real _mm_mfence and defining it again is an error, so take its
+// header; elsewhere stand it on the builtin, which orders the same way.
+#if defined(__x86_64__) || defined(__i386__)
+#include <emmintrin.h>
+#else
 inline void _mm_mfence() { __atomic_thread_fence(__ATOMIC_SEQ_CST); }
+#endif
 
 // __iso_volatile_*: an access of that width with no implied ordering. On the
 // real thing single-copy atomicity comes from the hardware for an aligned
