@@ -62,7 +62,7 @@ buffers `__cxa_demangle` and `backtrace_symbols` hand back, which their
 contracts require; `setenv`/`unsetenv`, which own the storage they allocate;
 and the Windows entry-point shim, whose whole job is CRT integration.
 
-The C library under its C++ spelling -- `<cstring>`, `<cstdio>` -- is worse
+The C library under its C++ spelling (`<cstring>`, `<cstdio>`) is worse
 than either: it only promises the `std::` overloads, so the bare `memcpy` a
 call site writes compiles by a standard library's courtesy rather than by
 guarantee. Those headers are gone from base entirely.

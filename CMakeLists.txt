@@ -132,7 +132,7 @@ if(EQ_BUILD_TESTS)
 
   # base::Atomic's MSVC _Interlocked* backend, run on this host with its
   # intrinsics standing on the __atomic_* builtins. Header-only, so it needs
-  # no base sources -- and it must not link any, since it defines a second,
+  # no base sources, and it must not link any, since it defines a second,
   # different base::Atomic.
   add_executable(base_atomic_msvc_backend_test
     "${EQ_ROOT}/base/atomic_msvc_backend_test.cc")

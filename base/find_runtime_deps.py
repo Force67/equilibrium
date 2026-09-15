@@ -52,7 +52,7 @@ MANDATED_HEADERS = {
     'format',            # opt-out interop
 }
 
-# Headers that are types and limits only -- no runtime behind them.
+# Headers that are types and limits only, with no runtime behind them.
 FREESTANDING_C_HEADERS = {'stdint.h', 'stddef.h', 'limits.h', 'float.h',
                           'stdbool.h', 'stdarg.h', 'iso646.h'}
 
@@ -94,7 +94,7 @@ def scan(path, stats, findings, mandated):
             name = header.group(1)
             if '.' in name:
                 # Anything with an extension is a C or platform header, not an
-                # STL one -- including the .inl the Windows entry shim pulls in.
+                # STL one, including the .inl the Windows entry shim pulls in.
                 if name in FREESTANDING_C_HEADERS:
                     continue
                 if name not in RUNTIME_C_HEADERS:

@@ -62,7 +62,7 @@ namespace base {
 
 #if BASE_ATOMIC_MSVC_INTRINSICS
 // MSVC has no __ATOMIC_* macros. The values are the standard ones, which is
-// all the MSVC backend needs -- it dispatches on them, it does not forward
+// all the MSVC backend needs: it dispatches on them and does not forward
 // them to a builtin.
 enum memory_order : int {
   memory_order_relaxed = 0,
@@ -200,7 +200,7 @@ STRONG_INLINE void ThreadFence(memory_order mo) noexcept {
 //
 //   - Read-modify-write always uses the plain (unsuffixed) intrinsic, which
 //     is a full barrier on every target. That is stronger than a relaxed or
-//     acquire request asks for, never weaker, so it is always correct -- and
+//     acquire request asks for, never weaker, so it is always correct, and
 //     on x86/x64 it is exactly what the weaker orders would have compiled to
 //     anyway, since every lock-prefixed instruction is already seq_cst.
 //

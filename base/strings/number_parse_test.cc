@@ -93,7 +93,7 @@ testing::AssertionResult MatchesStrtod(const char* text) {
   // A NaN's payload is unspecified, and the two libraries pick different
   // ones: glibc returns a bare quiet NaN for "nan" where the Microsoft CRT
   // sets every payload bit. Both are correct, so only the sign is compared
-  // here -- strtod does carry that through from "-nan".
+  // here, since strtod does carry that through from "-nan".
   const bool both_nan = expected != expected && actual != actual;
   if (both_nan) {
     if ((expected_bits >> 63) != (actual_bits >> 63)) {

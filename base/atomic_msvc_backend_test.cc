@@ -42,7 +42,7 @@ static int g_fail = 0;
 
 template <class T>
 static void ExerciseInteger(const char* name) {
-  printf("  -- %s (%zu bytes)\n", name, sizeof(T));
+  printf("  - %s (%zu bytes)\n", name, sizeof(T));
   base::Atomic<T> a{};
   CHECK(a.load() == T{0});
 
@@ -164,14 +164,14 @@ int main() {
   ExerciseInteger<u64>("u64");
   ExerciseInteger<i64>("i64");
 
-  printf("  -- bool\n");
+  printf("  - bool\n");
   base::Atomic<bool> flag{false};
   CHECK(flag.load() == false);
   flag.store(true);
   CHECK(flag.load() == true);
   CHECK(flag.exchange(false) == true);
 
-  printf("  -- pointers\n");
+  printf("  - pointers\n");
   int values[8] = {0, 1, 2, 3, 4, 5, 6, 7};
   base::Atomic<int*> p{&values[0]};
   CHECK(p.load() == &values[0]);
@@ -188,7 +188,7 @@ int main() {
   CHECK(!p.compare_exchange_strong(expected_p, &values[2]));
   CHECK(expected_p == &values[0]);
 
-  printf("  -- non-integer payload\n");
+  printf("  - non-integer payload\n");
   struct Pair { short a; short b; };
   base::Atomic<Pair> pair{Pair{1, 2}};
   CHECK(pair.load().a == 1 && pair.load().b == 2);
@@ -198,7 +198,7 @@ int main() {
   CHECK(pair.compare_exchange_strong(expected_pair, Pair{5, 6}));
   CHECK(pair.load().a == 5 && pair.load().b == 6);
 
-  printf("  -- contention\n");
+  printf("  - contention\n");
   {
     // Single-threaded checks cannot tell an atomic increment from a plain
     // one. This can: four threads racing on one counter and one CAS-guarded

@@ -81,7 +81,7 @@ TEST(BuiltinsBit, RoundUpToPowerOfTwoShapeUsedBySizeClasses) {
 // The width comes from sizeof, not MinMax<T>::digits(), which follows
 // std::numeric_limits and reports one bit fewer for signed types. Deriving it
 // from digits() made every u8/u16 answer off by nothing but would have made a
-// signed one off by one, so the counters take unsigned only -- and the widths
+// signed one off by one, so the counters take unsigned only. The widths
 // below are what proves the right source was used.
 TEST(BuiltinsBit, WidthComesFromSizeofNotNumericLimitsDigits) {
   static_assert(base::MinMax<u8>::digits() == 8);

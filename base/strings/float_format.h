@@ -18,7 +18,7 @@ namespace base {
 
 // Writes |value| in printf's style into |out|, never writing more than
 // |capacity| bytes and never null-terminating. Returns the length the
-// conversion needs, which may exceed |capacity| -- the caller checks, as it
+// conversion needs, which may exceed |capacity|. The caller checks, as it
 // would with snprintf.
 //
 //   type       'f', 'e' or 'g', or uppercase for INF/NAN and a capital E

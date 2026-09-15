@@ -35,7 +35,7 @@ inline void _mm_mfence() { __atomic_thread_fence(__ATOMIC_SEQ_CST); }
 // __iso_volatile_*: an access of that width with no implied ordering. On the
 // real thing single-copy atomicity comes from the hardware for an aligned
 // access of these widths, and only the ordering is left to the caller's
-// barrier -- so a relaxed atomic is the faithful stand-in. A plain *p would
+// barrier, so a relaxed atomic is the faithful stand-in. A plain *p would
 // read the same value but is a race under the C++ memory model, which
 // ThreadSanitizer reports and which would bury a genuine finding in noise.
 #define SHIM_ISO(BITS, TYPE)                                                 \

@@ -4,7 +4,7 @@
 // getenv and setenv reach the same `environ` array this walks directly; going
 // through it keeps <stdlib.h> out and costs nothing, since getenv is itself a
 // linear scan. Writes still go through setenv/unsetenv, which own the storage
-// they allocate for entries they added -- taking that over would mean
+// they allocate for entries they added. Taking that over would mean
 // duplicating an allocator libc already has.
 
 #include <base/environment_variables.h>

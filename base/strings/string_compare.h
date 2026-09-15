@@ -13,7 +13,7 @@ namespace base {
 // first, zero if equal, positive if rhs sorts first.
 //
 // The result is int, not mem_size. An unsigned return cannot express "sorts
-// first" at all -- every negative result wraps to a huge positive one, so
+// first" at all: every negative result wraps to a huge positive one, so
 // `Strcmp(a, b) < 0` is false whatever the strings are.
 //
 // Comparison is by unsigned character value, as the C function is, so it does

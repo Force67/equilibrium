@@ -9,7 +9,7 @@
 
 namespace base {
 
-// The symbolic name of |error| -- "ENOENT", "EACCES" -- or "E<number>" for a
+// The symbolic name of |error| ("ENOENT", "EACCES"), or "E<number>" for a
 // code this does not know.
 //
 // Deliberately not strerror's prose. That is translated, so the same failure

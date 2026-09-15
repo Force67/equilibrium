@@ -4,8 +4,8 @@
 // Text-to-number conversion, so base does not need strtoll or strtod.
 //
 // These follow the C functions closely enough to be drop-in for base's own
-// callers -- leading whitespace, an optional sign, the 0x and 0 prefixes for
-// base detection -- and number_parse_test.cc checks them against those
+// callers: leading whitespace, an optional sign, the 0x and 0 prefixes for
+// base detection. number_parse_test.cc checks them against those
 // functions rather than against a reading of the standard. What they do not
 // do is set errno or honour a locale: the decimal point is always '.'.
 #pragma once

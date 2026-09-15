@@ -279,7 +279,7 @@ void FormatFloat(Sink& sink, f64 v, const Spec& spec) noexcept {
 
   // %f of a value near DBL_MAX runs to over 300 characters before the point,
   // and an explicit precision adds to that, so the inline buffer is sized for
-  // the common case and spills to the heap rather than truncating -- which is
+  // the common case and spills to the heap rather than truncating, which is
   // what the snprintf this replaced silently did past 64 characters.
   char inline_buf[base::kFloatFormatBufferSize];
   mem_size needed = base::FormatFloatTo(inline_buf, sizeof(inline_buf), v, type,

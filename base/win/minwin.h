@@ -201,7 +201,7 @@ struct CHROME_MSG {
 
 // The nStdHandle values GetStdHandle takes. Guarded because a translation
 // unit may reach the real <windows.h> as well, and the SDK spells some of
-// these differently -- WAIT_OBJECT_0 through STATUS_WAIT_0 -- which a bare
+// these differently (WAIT_OBJECT_0 through STATUS_WAIT_0), which a bare
 // redefinition would warn on.
 #ifndef STD_INPUT_HANDLE
 #define STD_INPUT_HANDLE ((DWORD)-10)

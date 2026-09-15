@@ -111,7 +111,7 @@ bool Thread::Join() {
 
 void SleepForMicroseconds(u64 microseconds) {
   // ::Sleep only has millisecond resolution. Round a sub-millisecond request
-  // up to 1 ms rather than down to a busy spin -- the callers here are idle
+  // up to 1 ms rather than down to a busy spin. The callers here are idle
   // naps, where over-sleeping costs nothing and spinning costs a core.
   const u64 milliseconds = (microseconds + 999u) / 1000u;
   ::Sleep(static_cast<DWORD>(milliseconds));

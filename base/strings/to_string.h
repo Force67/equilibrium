@@ -1,7 +1,7 @@
 // Copyright (C) 2024 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// STL-free number-to-string conversions, over base::FormatTo -- which
+// STL-free number-to-string conversions, over base::FormatTo, which
 // formats integers itself, so none of this reaches snprintf.
 #pragma once
 

@@ -3,7 +3,7 @@
 //
 // Internal to base's number conversions: the fixed-capacity big integer that
 // exact binary-to-decimal (float_format.cc) and decimal-to-binary
-// (number_parse.cc) both need. Not a general bignum and not public -- it
+// (number_parse.cc) both need. Not a general bignum and not public: it
 // carries exactly the operations those two use and no more.
 #pragma once
 
@@ -13,7 +13,7 @@ namespace base {
 namespace numeric_detail {
 
 // Limbs are 32 bits so every multiply lands in a u64 and every divide is a
-// u64 by u32, with no 128-bit type -- which MSVC spells differently.
+// u64 by u32, with no 128-bit type, which MSVC spells differently.
 constexpr int kLimbBits = 32;
 
 // Sized for the widest intermediate either direction produces. Formatting

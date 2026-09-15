@@ -156,7 +156,7 @@ f64 AssembleDouble(const BigUInt& mantissa, int exponent2, bool sticky,
       return from_bits(sign_bit | (above_half ? 1ull : 0ull));
     }
     // A carry here can reach 2^52, which written into the fraction field
-    // overflows into an exponent of 1 -- exactly the smallest normal, and the
+    // overflows into an exponent of 1, exactly the smallest normal, and the
     // right answer assembled for free.
     return from_bits(sign_bit | round_at(-1074, keep));
   }
@@ -204,7 +204,7 @@ f64 DecimalToDouble(const BigUInt& digits, int decimal_exponent, bool sticky,
 
   // value / 10^power. Scale up first so the quotient still carries 54
   // significant bits, then divide, folding every remainder into the sticky
-  // bit -- which is all the discarded part can contribute to the rounding.
+  // bit, which is all the discarded part can contribute to the rounding.
   const int power = -decimal_exponent;
   // log2(10) is a little over 3.32; the slack plus 64 guard bits is ample.
   const int shift = static_cast<int>(power * 3.3219280948873626) + 64;

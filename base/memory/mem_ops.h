@@ -11,7 +11,7 @@
 // On GCC and Clang the __builtin_ forms need no declaration at all, constant
 // fold, and inline for a known size. MSVC has no __builtin_memcpy, but does
 // treat these four as intrinsics once declared, which is what the pragma
-// below asks for -- so both paths inline, and neither includes a CRT header.
+// below asks for, so both paths inline and neither includes a CRT header.
 
 #pragma once
 
@@ -72,7 +72,7 @@ STRONG_INLINE void* MemZero(void* destination, mem_size count) noexcept {
 }
 
 // Ordering comparison over |count| bytes: negative, zero or positive. Note
-// this compares bytes, not objects -- padding counts.
+// this compares bytes, not objects: padding counts.
 STRONG_INLINE int MemCompare(const void* lhs, const void* rhs,
                              mem_size count) noexcept {
 #if defined(_MSC_VER) && !defined(__clang__)
