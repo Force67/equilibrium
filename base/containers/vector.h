@@ -13,7 +13,6 @@
 #include <base/containers/container_traits.h>
 
 #include <new>      // < for placement new
-#include <string.h>  // < linux memory stuff
 #include <initializer_list>
 
 namespace base {

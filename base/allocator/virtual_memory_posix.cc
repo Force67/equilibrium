@@ -3,7 +3,6 @@
 
 #include <sys/mman.h>
 #include <stdint.h>   // for uint32_t
-#include <string.h>   // for memset
 #include <unistd.h>  // for sysconf
 #include "virtual_memory.h"
 

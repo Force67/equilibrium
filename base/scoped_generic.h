@@ -5,7 +5,6 @@
 #ifndef BASE_SCOPED_GENERIC_H_
 #define BASE_SCOPED_GENERIC_H_
 
-#include <stdlib.h>
 
 #include <base/standard_streams.h>
 #include "base/check.h"

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 #pragma once
 
-#include <stdio.h>
 
 #include "base/export.h"
 #include "base/scoped_generic.h"

@@ -10,10 +10,12 @@ Base covers the basic needs of a cxx application in a portable, uniform way.
 
 Every class should have a unit test file. Files that do are safe to use in production.
 
-## No STL
+## No STL, and as little CRT as possible
 
-base does not use the STL. `find_stl.py` reports what is left and separates
-what could be removed from what cannot:
+`find_runtime_deps.py` reports what is left of both and separates what could
+be removed from what cannot.
+
+### STL
 
 - **Core language, not library.** `<new>` for placement new, and
   `<initializer_list>` for the brace-init constructors that the language
@@ -29,7 +31,38 @@ what could be removed from what cannot:
   `<atomic>` and `<mutex>`. Nothing sets either; they are there for a compiler
   neither native backend covers.
 
-The C library is not the STL, but `<cstring>` and friends are: they only
-promise the `std::` overloads, so the bare `memcpy` base spells everywhere
-compiles by a standard library's courtesy rather than by guarantee. Include
-`<string.h>`, `<stdio.h>` and the rest under their C names.
+### C runtime
+
+The line is drawn at the runtime, not the operating system. `write`, `open`,
+`mmap` and `pthread_*` are how a process talks to the kernel and base uses
+them freely. Buffered stdio, the printf family, `malloc` and the locale
+machinery are a library that happens to ship alongside, and base does not.
+
+| Instead of | Use |
+| --- | --- |
+| `<string.h>` mem functions | `base/memory/mem_ops.h` |
+| `strlen`, `strchr`, `strrchr` | `base/strings/char_algorithms.h` |
+| `strcmp`, `strncmp` | `base/strings/string_compare.h` |
+| `snprintf` | `base::FormatTo`, `base/strings/format.h` |
+| `strtoll`, `strtod` | `base/strings/number_parse.h` |
+| number to text | `base::ToString`, `base/strings/to_string.h` |
+| `fprintf(stderr, ...)`, `abort` | `base/standard_streams.h` |
+| `getenv`, `setenv` | `base/environment_variables.h` |
+| `strerror` | `base::ErrnoName`, `base/system_error.h` |
+| `fopen` + `fgets` over `/proc` | `base::ReadSmallFile` |
+
+Number conversion is exact in both directions rather than approximate, and
+both are checked against the C functions over millions of values rather than
+against a reading of the standard. `BASE_FLOAT_FUZZ_ITERATIONS` and
+`BASE_NUMBER_FUZZ_ITERATIONS` raise the sweep counts for a deep run.
+
+What stays: `allocator/default_crt_alloc.h`, which is the CRT allocator
+router and exists to call `malloc`; the `free()` in `debugging.cc` for the
+buffers `__cxa_demangle` and `backtrace_symbols` hand back, which their
+contracts require; `setenv`/`unsetenv`, which own the storage they allocate;
+and the Windows entry-point shim, whose whole job is CRT integration.
+
+The C library under its C++ spelling -- `<cstring>`, `<cstdio>` -- is worse
+than either: it only promises the `std::` overloads, so the bare `memcpy` a
+call site writes compiles by a standard library's courtesy rather than by
+guarantee. Those headers are gone from base entirely.

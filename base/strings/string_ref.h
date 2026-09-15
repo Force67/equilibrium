@@ -2,7 +2,6 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <string.h>  // for memcmp
 #include <base/memory/mem_ops.h>
 #include <base/check.h>
 #include <base/enum_traits.h>
