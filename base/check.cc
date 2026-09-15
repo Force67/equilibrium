@@ -4,9 +4,9 @@
 #include <base/export.h>
 #include <base/check.h>
 #include <base/logging.h>
+#include <base/standard_streams.h>
+#include <base/strings/format.h>
 
-#include <stdio.h>
-#include <stdlib.h>
 
 namespace base {
 
@@ -38,8 +38,12 @@ void FatalCheckFailure(const char* file, int line, const char* message) {
   // stderr first and unconditionally. The log path runs through a channel
   // filter and an installable callback, either of which can drop the message,
   // and the one thing that must survive a fatal check is the reason for it.
-  ::fprintf(stderr, "fatal check: %s:%d %s\n", file, line,
-               message ? message : "");
+  char reason[640];
+  const mem_size length = base::FormatTo(reason, sizeof(reason),
+                                         "fatal check: {}:{} {}\n", file, line,
+                                         message ? message : "");
+  base::WriteStandardError(reason,
+                           length < sizeof(reason) ? length : sizeof(reason));
 
   // The handler and its log sink may allocate, and the most common fatal check
   // is an allocation one, so a second failure while reporting the first would
@@ -48,11 +52,11 @@ void FatalCheckFailure(const char* file, int line, const char* message) {
   if (!reporting) {
     reporting = true;
     char location[512];
-    ::snprintf(location, sizeof(location), "fatal check: %s:%d", file, line);
+    base::FormatTo(location, sizeof(location), "fatal check: {}:{}", file, line);
     assert_handler(location, file, "", message);
     reporting = false;
   }
-  ::abort();
+  base::TerminateAbnormally();
 }
 }  // namespace detail
 

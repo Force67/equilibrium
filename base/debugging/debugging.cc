@@ -5,8 +5,9 @@
 #include <base/strings/char_algorithms.h>
 #include "debugging.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <base/strings/number_parse.h>
+
+#include <stdlib.h>  // for free(), which __cxa_demangle's result requires
 
 // Neither musl nor Android's bionic ship <execinfo.h>/backtrace(); when
 // building in the fully-static musl mode (see build/musl_static.lua) or for
@@ -22,6 +23,10 @@
 #include <cxxabi.h>
 #endif
 
+#if !defined(_WIN32)
+#include <base/filesystem/posix/small_file_posix.h>
+#endif
+
 #if defined(_WIN32)
 extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent(void);
 #endif
@@ -32,17 +37,21 @@ bool IsDebuggerAttached() {
 #if defined(_WIN32)
   return ::IsDebuggerPresent() != 0;
 #else
-  FILE* f = ::fopen("/proc/self/status", "r");
-  if (!f) return false;
+  // /proc/self/status is a few kilobytes and TracerPid sits near the top.
+  char status[4096];
+  if (ReadSmallFile("/proc/self/status", status, sizeof(status)) < 0)
+    return false;
 
-  char line[256];
-  while (::fgets(line, sizeof(line), f)) {
+  for (const char* line = status; *line;) {
     if (base::Strncmp(line, "TracerPid:\t", 11) == 0) {
-      ::fclose(f);
-      return ::atoi(line + 11) != 0;
+      i64 pid = 0;
+      return base::ParseInteger(line + 11, pid) && pid != 0;
     }
+    const char* newline = base::FindChar(line, '\n');
+    if (!newline)
+      break;
+    line = newline + 1;
   }
-  ::fclose(f);
   return false;
 #endif
 }

@@ -5,10 +5,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <base/system_error.h>
 #include <base/filesystem/memory_mapped_file.h>
 #include <base/logging.h>
 #include <errno.h>
-#include <string.h>
 #include "logging.h"
 
 namespace base {
@@ -16,13 +16,13 @@ bool MemoryMappedFile::Map() {
   // Example assumes parent_file_ provides a method to get the file path
   fd_ = open((char*)parent_file_.path().c_str(), O_RDWR);
   if (fd_ == -1) {
-    BASE_LOG_ERROR("Error opening file: {}", strerror(errno));
+    BASE_LOG_ERROR("Error opening file: {}", base::ErrnoName(errno));
     return false;
   }
 
   struct stat st;
   if (fstat(fd_, &st) == -1) {
-    BASE_LOG_ERROR("Error getting file size: {}", strerror(errno));
+    BASE_LOG_ERROR("Error getting file size: {}", base::ErrnoName(errno));
     return false;
   }
   file_size_ = st.st_size;
@@ -30,7 +30,7 @@ bool MemoryMappedFile::Map() {
   if (file_size_ == 0) {
     // Ensure the file has a non-zero size as in the original example
     if (write(fd_, "", 1) != 1) {
-      BASE_LOG_ERROR("Error writing to file: {}", strerror(errno));
+      BASE_LOG_ERROR("Error writing to file: {}", base::ErrnoName(errno));
       return false;
     }
     file_size_ = 1;
@@ -39,7 +39,7 @@ bool MemoryMappedFile::Map() {
   memory_view_address_ =
       mmap(nullptr, file_size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, 0);
   if (memory_view_address_ == MAP_FAILED) {
-    BASE_LOG_ERROR("Error remapping file: {}", strerror(errno));
+    BASE_LOG_ERROR("Error remapping file: {}", base::ErrnoName(errno));
     memory_view_address_ = nullptr;
     return false;
   }
@@ -77,7 +77,7 @@ bool MemoryMappedFile::ReMap(u64 offset, mem_size mapped_bytes) {
   memory_view_address_ = mmap(nullptr, mapped_bytes, PROT_READ | PROT_WRITE,
                               MAP_SHARED, fd_, static_cast<off_t>(offset));
   if (memory_view_address_ == MAP_FAILED) {
-    BASE_LOG_ERROR("Error remapping file: {}", strerror(errno));
+    BASE_LOG_ERROR("Error remapping file: {}", base::ErrnoName(errno));
     memory_view_address_ = nullptr;
     return false;
   }

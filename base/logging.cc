@@ -3,7 +3,8 @@
 
 #include <base/strings/string_compare.h>
 #include <base/logging.h>
-#include <stdio.h>
+#include <base/standard_streams.h>
+#include <base/strings/format.h>
 
 namespace base {
 
@@ -18,8 +19,14 @@ void DefaultLogHandler(void* /*user_pointer*/,
                        const char* channel_name,
                        LogLevel ll,
                        const char* msg) {
-  ::fprintf(stderr, "[%s] %s: %s\n", channel_name ? channel_name : "?",
-               LogLevelToName(ll), msg ? msg : "");
+  // One write, not three: a second thread logging concurrently can interleave
+  // between writes but not inside one.
+  char line[1024];
+  const mem_size length =
+      base::FormatTo(line, sizeof(line), "[{}] {}: {}\n",
+                     channel_name ? channel_name : "?", LogLevelToName(ll),
+                     msg ? msg : "");
+  base::WriteStandardError(line, length < sizeof(line) ? length : sizeof(line));
 }
 
 constinit struct {

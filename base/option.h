@@ -10,6 +10,7 @@
 #include <base/strings/string_compare.h>
 #include <base/arch.h>
 #include <base/containers/init_chain.h>
+#include <base/environment_variables.h>
 #include <base/export.h>
 #include <base/meta/traits.h>
 #include <base/strings/format.h>
@@ -170,8 +171,11 @@ inline mem_size InitOptionsFromEnv() {
     auto* option = const_cast<OptionBase*>(registered);
     const char* env = option->env();
     if (!env) return;
-    if (const char* value = ::getenv(env))
-      if (option->SetFromString(value)) ++overridden;
+    base::StringU8 value;
+    if (base::GetEnvironmentVariable(
+            reinterpret_cast<const char8_t*>(env), value))
+      if (option->SetFromString(reinterpret_cast<const char*>(value.c_str())))
+        ++overridden;
   });
   return overridden;
 }
