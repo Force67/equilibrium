@@ -1,61 +1,64 @@
 // Copyright (C) 2024 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 //
-// STL-free number-to-string conversions.
+// STL-free number-to-string conversions, over base::FormatTo -- which
+// formats integers itself, so none of this reaches snprintf.
 #pragma once
 
 #include <base/arch.h>
+#include <base/strings/format.h>
 #include <base/strings/xstring.h>
-#include <stdio.h>
 
 namespace base {
+namespace detail {
+
+// One buffer size for every integer: 20 digits for u64, a sign, and a
+// terminator, rounded up.
+template <typename T>
+inline String IntegerToString(T value) {
+  char buffer[24];
+  const mem_size length = FormatTo(buffer, sizeof(buffer), "{}", value);
+  return String(buffer, length);
+}
+
+}  // namespace detail
 
 inline String ToString(int value) {
-  char buf[32];
-  int len = snprintf(buf, sizeof(buf), "%d", value);
-  return String(buf, static_cast<mem_size>(len));
+  return detail::IntegerToString(value);
 }
 
 inline String ToString(unsigned int value) {
-  char buf[32];
-  int len = snprintf(buf, sizeof(buf), "%u", value);
-  return String(buf, static_cast<mem_size>(len));
+  return detail::IntegerToString(value);
 }
 
 inline String ToString(long value) {
-  char buf[32];
-  int len = snprintf(buf, sizeof(buf), "%ld", value);
-  return String(buf, static_cast<mem_size>(len));
+  return detail::IntegerToString(value);
 }
 
 inline String ToString(unsigned long value) {
-  char buf[32];
-  int len = snprintf(buf, sizeof(buf), "%lu", value);
-  return String(buf, static_cast<mem_size>(len));
+  return detail::IntegerToString(value);
 }
 
 inline String ToString(long long value) {
-  char buf[32];
-  int len = snprintf(buf, sizeof(buf), "%lld", value);
-  return String(buf, static_cast<mem_size>(len));
+  return detail::IntegerToString(value);
 }
 
 inline String ToString(unsigned long long value) {
-  char buf[32];
-  int len = snprintf(buf, sizeof(buf), "%llu", value);
-  return String(buf, static_cast<mem_size>(len));
+  return detail::IntegerToString(value);
 }
 
+// The float overloads keep their historical precision: one decimal for
+// float, two for double.
 inline String ToString(float value) {
-  char buf[64];
-  int len = snprintf(buf, sizeof(buf), "%.1f", value);
-  return String(buf, static_cast<mem_size>(len));
+  char buffer[64];
+  const mem_size length = FormatTo(buffer, sizeof(buffer), "{:.1f}", value);
+  return String(buffer, length);
 }
 
 inline String ToString(double value) {
-  char buf[64];
-  int len = snprintf(buf, sizeof(buf), "%.2f", value);
-  return String(buf, static_cast<mem_size>(len));
+  char buffer[64];
+  const mem_size length = FormatTo(buffer, sizeof(buffer), "{:.2f}", value);
+  return String(buffer, length);
 }
 
 }  // namespace base
