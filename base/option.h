@@ -6,7 +6,6 @@
 // can find and populate every option without each site hand-rolling getenv.
 #pragma once
 
-#include <stdlib.h>
 
 #include <base/strings/string_compare.h>
 #include <base/arch.h>
@@ -14,6 +13,7 @@
 #include <base/export.h>
 #include <base/meta/traits.h>
 #include <base/strings/format.h>
+#include <base/strings/number_parse.h>
 
 namespace base {
 namespace detail {
@@ -36,9 +36,9 @@ inline bool ParseOption(const char* text, T& out) {
     }
     // Any other number counts: a knob set to 2 means on, as it would in a shell
     // test, not "unparsable".
-    char* end = nullptr;
-    const long long v = ::strtoll(text, &end, 0);
-    if (end != text && !*end) {
+    i64 v = 0;
+    const char* end = nullptr;
+    if (base::ParseInteger(text, v, /*base_radix=*/0, &end) && !*end) {
       out = v != 0;
       return true;
     }
@@ -47,15 +47,13 @@ inline bool ParseOption(const char* text, T& out) {
     out = text;
     return true;
   } else if constexpr (base::is_integral_v<T>) {
-    char* end = nullptr;
-    const long long v = ::strtoll(text, &end, 0);
-    if (end == text) return false;
+    i64 v = 0;
+    if (!base::ParseInteger(text, v, /*base_radix=*/0)) return false;
     out = static_cast<T>(v);
     return true;
   } else if constexpr (base::is_floating_point_v<T>) {
-    char* end = nullptr;
-    const double v = ::strtod(text, &end);
-    if (end == text) return false;
+    f64 v = 0;
+    if (!base::ParseFloat(text, v)) return false;
     out = static_cast<T>(v);
     return true;
   } else {

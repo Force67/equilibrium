@@ -4,9 +4,12 @@
 #include <base/strings/float_format.h>
 
 #include <base/memory/mem_ops.h>
+#include <base/strings/decimal_bignum.h>
 
 namespace base {
 namespace {
+
+using numeric_detail::BigUInt;
 
 // ── Exact decimal expansion ────────────────────────────────────────
 //
@@ -19,79 +22,6 @@ namespace {
 // so the exact decimal digits are those of the integer m * 5^-e, with -e of
 // them falling after the point. No approximation is involved, which is why
 // the rounding below can be a single exact decision.
-
-// The widest intermediate is the smallest denormal: m * 5^1074 needs
-// 53 + ceil(1074 * log2(5)) = 2548 bits. Limbs are 32 bits so that every
-// multiply and divide fits in a u64 and needs no 128-bit type.
-constexpr int kLimbBits = 32;
-constexpr int kMaxLimbs = 88;  // 2816 bits
-
-class BigUInt {
- public:
-  void SetU64(u64 value) noexcept {
-    used_ = 0;
-    while (value) {
-      limb_[used_++] = static_cast<u32>(value & 0xFFFFFFFFu);
-      value >>= 32;
-    }
-  }
-
-  bool IsZero() const noexcept { return used_ == 0; }
-
-  void MulSmall(u32 multiplier) noexcept {
-    u64 carry = 0;
-    for (int i = 0; i < used_; i++) {
-      const u64 product = static_cast<u64>(limb_[i]) * multiplier + carry;
-      limb_[i] = static_cast<u32>(product & 0xFFFFFFFFu);
-      carry = product >> 32;
-    }
-    while (carry) {
-      limb_[used_++] = static_cast<u32>(carry & 0xFFFFFFFFu);
-      carry >>= 32;
-    }
-  }
-
-  void ShiftLeft(int bits) noexcept {
-    if (IsZero() || bits <= 0)
-      return;
-    const int whole = bits / kLimbBits;
-    const int part = bits % kLimbBits;
-    if (part) {
-      u32 carry = 0;
-      for (int i = 0; i < used_; i++) {
-        const u32 next = limb_[i] >> (kLimbBits - part);
-        limb_[i] = (limb_[i] << part) | carry;
-        carry = next;
-      }
-      if (carry)
-        limb_[used_++] = carry;
-    }
-    if (whole) {
-      for (int i = used_ - 1; i >= 0; i--)
-        limb_[i + whole] = limb_[i];
-      for (int i = 0; i < whole; i++)
-        limb_[i] = 0;
-      used_ += whole;
-    }
-  }
-
-  // Divides in place and returns the remainder.
-  u32 DivModSmall(u32 divisor) noexcept {
-    u64 remainder = 0;
-    for (int i = used_ - 1; i >= 0; i--) {
-      const u64 current = (remainder << 32) | limb_[i];
-      limb_[i] = static_cast<u32>(current / divisor);
-      remainder = current % divisor;
-    }
-    while (used_ > 0 && limb_[used_ - 1] == 0)
-      used_--;
-    return static_cast<u32>(remainder);
-  }
-
- private:
-  u32 limb_[kMaxLimbs] = {};
-  int used_ = 0;
-};
 
 // 5^13 is the largest power of five that fits a u32, so the multiply below
 // runs in as few steps as a 32-bit limb allows.
