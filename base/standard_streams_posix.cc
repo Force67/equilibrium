@@ -43,7 +43,7 @@ void TerminateAbnormally() noexcept {
   // Reached only where the trap is compiled out. _exit is the raw syscall, so
   // it skips the atexit handlers and stream flushes abort() would run.
   ::_exit(3);
-  __builtin_unreachable();
+  BASE_UNREACHABLE();
 }
 
 }  // namespace base

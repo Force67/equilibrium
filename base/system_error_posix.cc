@@ -11,6 +11,9 @@ namespace base {
 
 const char* ErrnoName(int error) noexcept {
   switch (error) {
+// The optional names are wrapped: EBADFD is Linux-only, and the socket
+// errors are absent on some targets. A name the platform does not define
+// simply drops out of the table instead of failing the build.
 #define BASE_ERRNO_CASE(NAME) \
   case NAME:                  \
     return #NAME;
@@ -38,7 +41,9 @@ const char* ErrnoName(int error) noexcept {
     BASE_ERRNO_CASE(ENFILE)
     BASE_ERRNO_CASE(EMFILE)
     BASE_ERRNO_CASE(ENOTTY)
+#ifdef ETXTBSY
     BASE_ERRNO_CASE(ETXTBSY)
+#endif
     BASE_ERRNO_CASE(EFBIG)
     BASE_ERRNO_CASE(ENOSPC)
     BASE_ERRNO_CASE(ESPIPE)
@@ -47,28 +52,72 @@ const char* ErrnoName(int error) noexcept {
     BASE_ERRNO_CASE(EPIPE)
     BASE_ERRNO_CASE(EDOM)
     BASE_ERRNO_CASE(ERANGE)
+#ifdef EDEADLK
     BASE_ERRNO_CASE(EDEADLK)
+#endif
+#ifdef ENAMETOOLONG
     BASE_ERRNO_CASE(ENAMETOOLONG)
+#endif
+#ifdef ENOLCK
     BASE_ERRNO_CASE(ENOLCK)
+#endif
+#ifdef ENOSYS
     BASE_ERRNO_CASE(ENOSYS)
+#endif
+#ifdef ENOTEMPTY
     BASE_ERRNO_CASE(ENOTEMPTY)
+#endif
+#ifdef ELOOP
     BASE_ERRNO_CASE(ELOOP)
+#endif
+#ifdef ENOMSG
     BASE_ERRNO_CASE(ENOMSG)
+#endif
+#ifdef EOVERFLOW
     BASE_ERRNO_CASE(EOVERFLOW)
+#endif
+#ifdef EBADFD
     BASE_ERRNO_CASE(EBADFD)
+#endif
+#ifdef ENOTSOCK
     BASE_ERRNO_CASE(ENOTSOCK)
+#endif
+#ifdef EADDRINUSE
     BASE_ERRNO_CASE(EADDRINUSE)
+#endif
+#ifdef EADDRNOTAVAIL
     BASE_ERRNO_CASE(EADDRNOTAVAIL)
+#endif
+#ifdef ENETDOWN
     BASE_ERRNO_CASE(ENETDOWN)
+#endif
+#ifdef ENETUNREACH
     BASE_ERRNO_CASE(ENETUNREACH)
+#endif
+#ifdef ECONNABORTED
     BASE_ERRNO_CASE(ECONNABORTED)
+#endif
+#ifdef ECONNRESET
     BASE_ERRNO_CASE(ECONNRESET)
+#endif
+#ifdef ENOBUFS
     BASE_ERRNO_CASE(ENOBUFS)
+#endif
+#ifdef ETIMEDOUT
     BASE_ERRNO_CASE(ETIMEDOUT)
+#endif
+#ifdef ECONNREFUSED
     BASE_ERRNO_CASE(ECONNREFUSED)
+#endif
+#ifdef EHOSTDOWN
     BASE_ERRNO_CASE(EHOSTDOWN)
+#endif
+#ifdef EHOSTUNREACH
     BASE_ERRNO_CASE(EHOSTUNREACH)
+#endif
+#ifdef ECANCELED
     BASE_ERRNO_CASE(ECANCELED)
+#endif
 #undef BASE_ERRNO_CASE
     default:
       break;

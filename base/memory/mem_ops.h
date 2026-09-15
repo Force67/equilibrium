@@ -19,11 +19,15 @@
 #include <base/compiler.h>
 
 #if defined(_MSC_VER) && !defined(__clang__)
+// Declared exactly as <string.h> declares them, including the calling
+// convention, so the redeclaration matches. decltype(sizeof(0)) is size_t by
+// definition, which matters because base/arch.h deliberately includes nothing
+// and so never defines the name.
 extern "C" {
-void* memcpy(void* destination, const void* source, size_t count);
-void* memmove(void* destination, const void* source, size_t count);
-void* memset(void* destination, int value, size_t count);
-int memcmp(const void* lhs, const void* rhs, size_t count);
+void* __cdecl memcpy(void* destination, const void* source, decltype(sizeof(0)) count);
+void* __cdecl memmove(void* destination, const void* source, decltype(sizeof(0)) count);
+void* __cdecl memset(void* destination, int value, decltype(sizeof(0)) count);
+int __cdecl memcmp(const void* lhs, const void* rhs, decltype(sizeof(0)) count);
 }
 #pragma intrinsic(memcpy, memset, memcmp)
 #endif

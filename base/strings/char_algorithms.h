@@ -19,10 +19,13 @@ inline constexpr mem_size CountStringLength(const T* p,
   // `CountStringLength(literal)` bytes out of that literal looks to the
   // compiler like it may read past the end. It also lowers to the tuned libc
   // routine instead of a byte loop.
+  // MSVC has no __builtin_strlen, so there the loop below does the work.
+#if !defined(_MSC_VER) || defined(__clang__)
   if constexpr (sizeof(T) == 1) {
     if (!__builtin_is_constant_evaluated() && limit == MinMax<mem_size>::max())
       return __builtin_strlen(reinterpret_cast<const char*>(p));
   }
+#endif
 
   // Indexed rather than a pointer walk with a `limit--` side effect in the
   // condition: the same scan, but one the optimizer can evaluate for a known

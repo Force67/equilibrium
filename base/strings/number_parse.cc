@@ -3,6 +3,7 @@
 
 #include <base/strings/number_parse.h>
 
+#include <base/memory/mem_ops.h>
 #include <base/numeric_limits.h>
 #include <base/strings/decimal_bignum.h>
 
@@ -109,7 +110,7 @@ f64 AssembleDouble(const BigUInt& mantissa, int exponent2, bool sticky,
   const u64 sign_bit = negative ? (1ull << 63) : 0;
   auto from_bits = [](u64 bits) {
     f64 result;
-    __builtin_memcpy(&result, &bits, sizeof(result));
+    MemCopy(&result, &bits, sizeof(result));
     return result;
   };
 
@@ -297,7 +298,7 @@ bool ParseFloat(const char* text, f64& out, const char** end) noexcept {
     if (end)
       *end = p;
     const u64 bits = (prefix.negative ? (1ull << 63) : 0) | (0x7FFull << 52);
-    __builtin_memcpy(&out, &bits, sizeof(out));
+    MemCopy(&out, &bits, sizeof(out));
     return true;
   }
   if (MatchWord(p, "nan")) {
@@ -305,7 +306,7 @@ bool ParseFloat(const char* text, f64& out, const char** end) noexcept {
       *end = p;
     const u64 bits = (prefix.negative ? (1ull << 63) : 0) | (0x7FFull << 52) |
                      (1ull << 51);
-    __builtin_memcpy(&out, &bits, sizeof(out));
+    MemCopy(&out, &bits, sizeof(out));
     return true;
   }
 
@@ -381,12 +382,12 @@ bool ParseFloat(const char* text, f64& out, const char** end) noexcept {
   const int magnitude_estimate = significant + exponent;
   if (digits.IsZero() || magnitude_estimate < -400) {
     const u64 bits = prefix.negative ? (1ull << 63) : 0;
-    __builtin_memcpy(&out, &bits, sizeof(out));
+    MemCopy(&out, &bits, sizeof(out));
     return true;
   }
   if (magnitude_estimate > 350) {
     const u64 bits = (prefix.negative ? (1ull << 63) : 0) | (0x7FFull << 52);
-    __builtin_memcpy(&out, &bits, sizeof(out));
+    MemCopy(&out, &bits, sizeof(out));
     return true;
   }
 

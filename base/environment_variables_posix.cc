@@ -14,8 +14,18 @@
 #include <base/strings/string_compare.h>
 #include <base/text/code_convert.h>
 
+// Apple does not export `environ` to a shared library, so a dylib that reads
+// the symbol directly links but finds nothing. _NSGetEnviron() is the
+// documented way in (see environ(7)).
+#if defined(__APPLE__)
+#include <crt_externs.h>
+#define BASE_ENVIRON (*::_NSGetEnviron())
+#else
+extern "C" char** environ;
+#define BASE_ENVIRON (::environ)
+#endif
+
 extern "C" {
-extern char** environ;
 int setenv(const char* name, const char* value, int overwrite);
 int unsetenv(const char* name);
 }
@@ -26,7 +36,7 @@ namespace {
 // The entry for |name|, positioned just past its '=', or nullptr.
 const char* FindInEnvironment(const char* name) noexcept {
   const mem_size length = CountStringLength(name);
-  for (char** entry = environ; entry && *entry; ++entry) {
+  for (char** entry = BASE_ENVIRON; entry && *entry; ++entry) {
     if (Strncmp(*entry, name, length) == 0 && (*entry)[length] == '=')
       return *entry + length + 1;
   }

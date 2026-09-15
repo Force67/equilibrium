@@ -67,6 +67,15 @@
 #define DEBUG_TRAP
 #endif
 
+// Tells the optimizer a point cannot be reached. MSVC has no
+// __builtin_unreachable; __assume(0) is its spelling.
+#if defined(_MSC_VER) && !defined(__clang__)
+#define BASE_UNREACHABLE() __assume(0)
+#else
+#define BASE_UNREACHABLE() __builtin_unreachable()
+#endif
+
+
 #if defined(CONFIG_DEBUG)
 #define CHECK_BREAK DEBUG_TRAP
 #else

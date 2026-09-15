@@ -40,7 +40,7 @@ void TerminateAbnormally() noexcept {
   // Reached only where the trap is compiled out. TerminateProcess skips the
   // orderly CRT shutdown that abort() would run.
   ::TerminateProcess(::GetCurrentProcess(), 3);
-  __builtin_unreachable();
+  BASE_UNREACHABLE();
 }
 
 }  // namespace base

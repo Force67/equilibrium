@@ -46,12 +46,24 @@ const char* ErrnoName(int error) noexcept {
     BASE_ERRNO_CASE(EPIPE)
     BASE_ERRNO_CASE(EDOM)
     BASE_ERRNO_CASE(ERANGE)
+#ifdef EDEADLK
     BASE_ERRNO_CASE(EDEADLK)
+#endif
+#ifdef ENAMETOOLONG
     BASE_ERRNO_CASE(ENAMETOOLONG)
+#endif
+#ifdef ENOLCK
     BASE_ERRNO_CASE(ENOLCK)
+#endif
+#ifdef ENOSYS
     BASE_ERRNO_CASE(ENOSYS)
+#endif
+#ifdef ENOTEMPTY
     BASE_ERRNO_CASE(ENOTEMPTY)
+#endif
+#ifdef EILSEQ
     BASE_ERRNO_CASE(EILSEQ)
+#endif
 #undef BASE_ERRNO_CASE
     default:
       break;
