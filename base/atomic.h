@@ -505,9 +505,15 @@ STRONG_INLINE void ThreadFence(memory_order mo) noexcept {
   if (mo == memory_order_relaxed)
     return;
   if (mo == memory_order_seq_cst) {
-    // Only seq_cst needs to order a prior store against a later load, which
-    // on x86/x64 takes a real serialising instruction rather than a barrier.
-    ::MemoryBarrier();
+    // Only seq_cst has to order a prior store against a later load, which on
+    // x86/x64 takes a serialising instruction and not just a barrier. MSVC's
+    // MemoryBarrier() macro would do, but it comes from <windows.h>, which
+    // this header will not drag in; mfence is what it expands to anyway.
+#if defined(_M_ARM64) || defined(_M_ARM64EC)
+    __dmb(0x0B);
+#else
+    _mm_mfence();
+#endif
     return;
   }
   BASE_ATOMIC_FENCE();

@@ -14,8 +14,18 @@
 // real barriers, because the shim's own ordering comes from the builtins.
 #pragma once
 
+// Built on the __atomic_* builtins, so MSVC cannot compile this file and does
+// not need to: there the real intrinsics are available and the backend test
+// includes <intrin.h> instead. Saying so here turns a wall of "identifier not
+// found" into one line that names the cause.
+#if defined(_MSC_VER) && !defined(__clang__)
+#error "atomic_msvc_intrin_shim.h stands in for MSVC off Windows; on MSVC use <intrin.h>"
+#endif
+
 #define _ReadWriteBarrier() __atomic_signal_fence(__ATOMIC_SEQ_CST)
-inline void MemoryBarrier() { __atomic_thread_fence(__ATOMIC_SEQ_CST); }
+// The full fence the seq_cst path takes. On the real thing this is the
+// mfence instruction; here the builtin gives the same ordering.
+inline void _mm_mfence() { __atomic_thread_fence(__ATOMIC_SEQ_CST); }
 
 // __iso_volatile_*: an access of that width with no implied ordering. On the
 // real thing single-copy atomicity comes from the hardware for an aligned

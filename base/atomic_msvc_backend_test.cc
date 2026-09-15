@@ -13,12 +13,23 @@
 // own EXPECT macros rather than googletest, matching stl_smoke_test.cc.
 
 #define BASE_ATOMIC_MSVC_INTRINSICS 1
+// On MSVC the real intrinsics are right there, so the shim is neither needed
+// nor usable: it is built on the __atomic_* builtins, which MSVC does not
+// have. Leaving it out there turns this from a stand-in into a test of the
+// backend as it actually ships.
+#if !defined(_MSC_VER) || defined(__clang__)
 #define BASE_ATOMIC_INTRIN_HEADER <base/atomic_msvc_intrin_shim.h>
+#endif
 
 #include <base/atomic.h>
 
-#include <pthread.h>
 #include <stdio.h>
+
+#if defined(_WIN32)
+#include <base/win/minwin.h>
+#else
+#include <pthread.h>
+#endif
 
 static int g_fail = 0;
 #define CHECK(cond)                                                     \
@@ -93,6 +104,55 @@ static void ExerciseInteger(const char* name) {
   static_assert(base::Atomic<T>::is_always_lock_free);
 }
 
+// Shared by the contention check below. At file scope so each platform's
+// thread entry point can have exactly the signature its API asks for,
+// including the calling convention, which a lambda cannot promise.
+constexpr int kContendingThreads = 4;
+constexpr int kPerThread = 50000;
+static base::Atomic<u64> g_counter{0};
+static base::Atomic<u32> g_cas_counter{0};
+
+static void Contend() {
+  for (int i = 0; i < kPerThread; i++) {
+    g_counter.fetch_add(1);
+    u32 seen = g_cas_counter.load(base::memory_order_relaxed);
+    while (!g_cas_counter.compare_exchange_weak(seen, seen + 1,
+                                                base::memory_order_acq_rel,
+                                                base::memory_order_relaxed)) {
+    }
+  }
+}
+
+#if defined(_WIN32)
+static HANDLE g_threads[kContendingThreads];
+static DWORD WINAPI ContendEntry(LPVOID) {
+  Contend();
+  return 0;
+}
+static void StartContender(int index) {
+  g_threads[index] = ::CreateThread(nullptr, 0, ContendEntry, nullptr, 0, nullptr);
+}
+static void JoinContenders() {
+  for (int i = 0; i < kContendingThreads; i++) {
+    ::WaitForSingleObject(g_threads[i], INFINITE);
+    ::CloseHandle(g_threads[i]);
+  }
+}
+#else
+static pthread_t g_threads[kContendingThreads];
+static void* ContendEntry(void*) {
+  Contend();
+  return nullptr;
+}
+static void StartContender(int index) {
+  ::pthread_create(&g_threads[index], nullptr, ContendEntry, nullptr);
+}
+static void JoinContenders() {
+  for (int i = 0; i < kContendingThreads; i++)
+    ::pthread_join(g_threads[i], nullptr);
+}
+#endif
+
 int main() {
   printf("MSVC atomic backend, driven through shimmed intrinsics\n");
   ExerciseInteger<u8>("u8");
@@ -143,31 +203,12 @@ int main() {
     // Single-threaded checks cannot tell an atomic increment from a plain
     // one. This can: four threads racing on one counter and one CAS-guarded
     // word, where a lost update shows up as a short count.
-    constexpr int kThreads = 4;
-    constexpr int kPerThread = 50000;
-    static base::Atomic<u64> counter{0};
-    static base::Atomic<u32> cas_counter{0};
+    for (int t = 0; t < kContendingThreads; t++)
+      StartContender(t);
+    JoinContenders();
 
-    auto worker = [](void*) -> void* {
-      for (int i = 0; i < kPerThread; i++) {
-        counter.fetch_add(1);
-        u32 seen = cas_counter.load(base::memory_order_relaxed);
-        while (!cas_counter.compare_exchange_weak(
-            seen, seen + 1, base::memory_order_acq_rel,
-            base::memory_order_relaxed)) {
-        }
-      }
-      return nullptr;
-    };
-
-    pthread_t threads[kThreads];
-    for (int t = 0; t < kThreads; t++)
-      ::pthread_create(&threads[t], nullptr, worker, nullptr);
-    for (int t = 0; t < kThreads; t++)
-      ::pthread_join(threads[t], nullptr);
-
-    CHECK(counter.load() == u64{kThreads} * kPerThread);
-    CHECK(cas_counter.load() == u32{kThreads} * kPerThread);
+    CHECK(g_counter.load() == u64{kContendingThreads} * kPerThread);
+    CHECK(g_cas_counter.load() == u32{kContendingThreads} * kPerThread);
   }
 
   base::atomic_thread_fence(base::memory_order_seq_cst);

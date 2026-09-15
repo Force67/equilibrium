@@ -149,18 +149,25 @@ if(EQ_BUILD_TESTS)
   # Same test again with _M_IX86 asserted, which selects the compare-exchange
   # loops the backend substitutes for the 64-bit read-modify-writes that
   # 32-bit x86 has no intrinsic for. Nothing else reaches that path.
-  add_executable(base_atomic_msvc_backend_x86_test
-    "${EQ_ROOT}/base/atomic_msvc_backend_test.cc")
-  target_include_directories(base_atomic_msvc_backend_x86_test PRIVATE
-    "${EQ_ROOT}" "${EQ_ROOT}/base")
-  target_compile_definitions(base_atomic_msvc_backend_x86_test PRIVATE
-    _M_IX86=600
-    "PROJECT_NAME=\"base\"")
-  if(NOT WIN32)
-    target_link_libraries(base_atomic_msvc_backend_x86_test PRIVATE Threads::Threads)
+  #
+  # Not on MSVC: there _M_IX86 is the compiler's own architecture macro, and
+  # asserting it on an x64 build contradicts _M_X64 and misleads the SDK
+  # headers. The path is architecture-independent C++, so covering it on one
+  # host covers it everywhere.
+  if(NOT MSVC)
+    add_executable(base_atomic_msvc_backend_x86_test
+      "${EQ_ROOT}/base/atomic_msvc_backend_test.cc")
+    target_include_directories(base_atomic_msvc_backend_x86_test PRIVATE
+      "${EQ_ROOT}" "${EQ_ROOT}/base")
+    target_compile_definitions(base_atomic_msvc_backend_x86_test PRIVATE
+      _M_IX86=600
+      "PROJECT_NAME=\"base\"")
+    if(NOT WIN32)
+      target_link_libraries(base_atomic_msvc_backend_x86_test PRIVATE Threads::Threads)
+    endif()
+    add_test(NAME base_atomic_msvc_backend_x86_test
+             COMMAND base_atomic_msvc_backend_x86_test)
   endif()
-  add_test(NAME base_atomic_msvc_backend_x86_test
-           COMMAND base_atomic_msvc_backend_x86_test)
 
   # The allocator suite compiles the memory subsystem standalone with extra
   # debug verification, driven by its own harness instead of gtest.

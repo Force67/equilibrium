@@ -66,7 +66,7 @@ void SetThreadPriority(Thread::Handle handle, Thread::Priority new_priority) {
   ::SetThreadPriority(handle.handle_, windows_priority);
 }
 
-const Thread::Priority GetThreadPriority(Thread::Handle handle) {
+Thread::Priority GetThreadPriority(Thread::Handle handle) {
   switch (::GetThreadPriority(handle.handle_)) {
     default:
     case THREAD_PRIORITY_BELOW_NORMAL:
@@ -80,7 +80,7 @@ const Thread::Priority GetThreadPriority(Thread::Handle handle) {
   }
 }
 
-const i32 GetNativeThreadPriority(Thread::Handle handle) {
+i32 GetNativeThreadPriority(Thread::Handle handle) {
   return ::GetThreadPriority(handle.handle_);
 }
 

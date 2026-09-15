@@ -203,6 +203,9 @@ struct CHROME_MSG {
 #define STD_INPUT_HANDLE ((DWORD)-10)
 #define STD_OUTPUT_HANDLE ((DWORD)-11)
 #define STD_ERROR_HANDLE ((DWORD)-12)
+
+#define INFINITE 0xFFFFFFFF
+#define WAIT_OBJECT_0 ((DWORD)0x00000000L)
 #define HTNOWHERE 0
 #define MAX_PATH 260
 #define CS_GLOBALCLASS 0x4000
@@ -327,6 +330,25 @@ WINBASEAPI BOOL WINAPI WriteFile(HANDLE hFile,
                                  LPOVERLAPPED lpOverlapped);
 
 WINBASEAPI HANDLE WINAPI GetCurrentProcess(VOID);
+
+// Needed by the allocator and atomic test harnesses, which spawn threads
+// through the platform API rather than link base::Thread.
+typedef DWORD(WINAPI* PTHREAD_START_ROUTINE)(LPVOID lpThreadParameter);
+typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;
+struct _SECURITY_ATTRIBUTES;
+typedef struct _SECURITY_ATTRIBUTES* LPSECURITY_ATTRIBUTES;
+
+WINBASEAPI HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES lpThreadAttributes,
+                                      SIZE_T dwStackSize,
+                                      LPTHREAD_START_ROUTINE lpStartAddress,
+                                      LPVOID lpParameter,
+                                      DWORD dwCreationFlags,
+                                      LPDWORD lpThreadId);
+
+WINBASEAPI DWORD WINAPI WaitForSingleObject(HANDLE hHandle,
+                                            DWORD dwMilliseconds);
+
+WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject);
 
 #ifdef __cplusplus
 }
