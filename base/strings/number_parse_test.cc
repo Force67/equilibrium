@@ -89,7 +89,28 @@ testing::AssertionResult MatchesStrtod(const char* text) {
   u64 expected_bits, actual_bits;
   ::memcpy(&expected_bits, &expected, sizeof(expected_bits));
   ::memcpy(&actual_bits, &actual, sizeof(actual_bits));
-  // Compare the bits, so a one-ulp difference cannot hide behind ==.
+
+  // A NaN's payload is unspecified, and the two libraries pick different
+  // ones: glibc returns a bare quiet NaN for "nan" where the Microsoft CRT
+  // sets every payload bit. Both are correct, so only the sign is compared
+  // here -- strtod does carry that through from "-nan".
+  const bool both_nan = expected != expected && actual != actual;
+  if (both_nan) {
+    if ((expected_bits >> 63) != (actual_bits >> 63)) {
+      return testing::AssertionFailure()
+             << "'" << text << "': NaN sign differs, strtod "
+             << (expected_bits >> 63) << ", base " << (actual_bits >> 63);
+    }
+    if (base_end != libc_end) {
+      return testing::AssertionFailure()
+             << "'" << text << "': consumed " << (base_end - text)
+             << ", strtod consumed " << (libc_end - text);
+    }
+    return testing::AssertionSuccess();
+  }
+
+  // Everything finite is compared bit for bit, so a one-ulp difference
+  // cannot hide behind ==.
   if (expected_bits != actual_bits) {
     char detail[256];
     ::snprintf(detail, sizeof(detail),
