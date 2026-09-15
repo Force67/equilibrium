@@ -9,8 +9,6 @@
 #include <base/memory/move.h>
 #include <base/containers/vector.h>
 
-#include <vector>
-
 namespace base {
 // be careful, this class is designed to live throughout the entire runtime of
 // the application

@@ -14,7 +14,7 @@
 #include <base/meta/traits.h>
 #include <base/strings/char_algorithms.h>
 
-#include <cstring>
+#include <string.h>
 #include <base/math/value_bounds.h>
 
 #define HAS_BASE_STRING_TRAITS 1

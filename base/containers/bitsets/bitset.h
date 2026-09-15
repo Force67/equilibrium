@@ -7,8 +7,8 @@
 #include <base/check.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/builtins_bit.h>
-#include <climits>
-#include <cstring>
+#include <limits.h>
+#include <string.h>
 
 namespace base {
 // construct a collection of N size. E.g sizeof(BitSet) for 64 bits would be 8

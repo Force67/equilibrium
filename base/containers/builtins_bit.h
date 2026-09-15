@@ -4,6 +4,10 @@
 
 #include <base/numeric_limits.h>
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+#endif
+
 namespace base {
 
 #if defined(_MSC_VER)
@@ -43,4 +47,55 @@ template <typename T>
   }
 }
 #endif
+
+// Count of leading zero bits in |value|, as std::countl_zero would give. The
+// builtins are undefined for zero, so that case is answered from the width.
+template <typename T>
+[[nodiscard]] constexpr int CountLeftZero(const T value) noexcept {
+  constexpr int kDigits = static_cast<int>(base::MinMax<T>::digits());
+  if (value == 0)
+    return kDigits;
+#if defined(_MSC_VER) && !defined(__clang__)
+  unsigned long index = 0;
+  if constexpr (kDigits <= 32) {
+    ::_BitScanReverse(&index, static_cast<unsigned long>(value));
+    return kDigits - 1 - static_cast<int>(index);
+  } else {
+    ::_BitScanReverse64(&index, static_cast<unsigned long long>(value));
+    return kDigits - 1 - static_cast<int>(index);
+  }
+#else
+  if constexpr (kDigits <= 32) {
+    // __builtin_clz works on a 32-bit unsigned; narrower types are widened,
+    // so subtract the padding the widening introduced.
+    return __builtin_clz(static_cast<unsigned int>(value)) - (32 - kDigits);
+  } else {
+    return __builtin_clzll(static_cast<unsigned long long>(value));
+  }
+#endif
+}
+
+// Count of trailing zero bits in |value|, as std::countr_zero would give.
+template <typename T>
+[[nodiscard]] constexpr int CountRightZero(const T value) noexcept {
+  constexpr int kDigits = static_cast<int>(base::MinMax<T>::digits());
+  if (value == 0)
+    return kDigits;
+#if defined(_MSC_VER) && !defined(__clang__)
+  unsigned long index = 0;
+  if constexpr (kDigits <= 32) {
+    ::_BitScanForward(&index, static_cast<unsigned long>(value));
+  } else {
+    ::_BitScanForward64(&index, static_cast<unsigned long long>(value));
+  }
+  return static_cast<int>(index);
+#else
+  if constexpr (kDigits <= 32) {
+    return __builtin_ctz(static_cast<unsigned int>(value));
+  } else {
+    return __builtin_ctzll(static_cast<unsigned long long>(value));
+  }
+#endif
+}
+
 }  // namespace base

@@ -17,7 +17,7 @@
 #include <base/numeric_limits.h>
 #include <base/strings/char_algorithms.h>
 
-#include <cstring>
+#include <string.h>
 
 namespace base {
 

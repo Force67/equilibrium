@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <cstring>
+#include <string.h>
 
 #include <base/arch.h>
 #include <base/check.h>
@@ -81,9 +81,9 @@ class StaticFunction<R(Args...), MaxSize> {
     // Storage holds trivially copyable state; invoker_/manager_ know how to
     // operate on the bytes on either side.
     alignas(kStorageAlign) unsigned char tmp[kStorageSize];
-    std::memcpy(tmp, &data_, kStorageSize);
-    std::memcpy(&data_, &other.data_, kStorageSize);
-    std::memcpy(&other.data_, tmp, kStorageSize);
+    ::memcpy(tmp, &data_, kStorageSize);
+    ::memcpy(&data_, &other.data_, kStorageSize);
+    ::memcpy(&other.data_, tmp, kStorageSize);
     base::swap(manager_, other.manager_);
     base::swap(invoker_, other.invoker_);
   }

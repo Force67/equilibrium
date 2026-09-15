@@ -7,7 +7,7 @@
 #include <base/allocator/eq_alloc/eq_allocation_constants.h>
 #include <base/threading/lock_guard.h>
 
-#include <cstring>
+#include <string.h>
 
 namespace base {
 
@@ -173,7 +173,7 @@ void* HeapAllocator::ReAllocate(void* former_block,
     return nullptr;
 
   const mem_size copy_size = old_user_size < new_size ? old_user_size : new_size;
-  std::memcpy(new_block, former_block, copy_size);
+  ::memcpy(new_block, former_block, copy_size);
   Free(former_block);
   return new_block;
 }

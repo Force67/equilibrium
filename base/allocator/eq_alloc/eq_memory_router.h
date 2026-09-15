@@ -8,7 +8,7 @@
 #include <base/export.h>
 #include <base/numeric_limits.h>
 
-#include <cstring>
+#include <string.h>
 
 #include <base/allocator/memory_context.h>
 #include <base/allocator/eq_alloc/allocator.h>

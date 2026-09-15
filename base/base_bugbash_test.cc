@@ -23,7 +23,7 @@
 #include <base/strings/string_ref.h>
 
 #include <string>
-#include <cstring>
+#include <string.h>
 #include <thread>
 #include <atomic>
 

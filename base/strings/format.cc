@@ -3,8 +3,8 @@
 
 #include <base/strings/format.h>
 
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 
 namespace base::fmt_detail {
 namespace {

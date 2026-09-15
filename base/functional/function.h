@@ -7,8 +7,8 @@
 #include <base/check.h>
 #include <base/containers/container_traits.h>
 #include <new>
-#include <cstring>
-#include <cstddef>  // max_align_t
+#include <string.h>
+#include <stddef.h>  // max_align_t
 
 namespace base {
 

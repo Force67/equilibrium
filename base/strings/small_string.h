@@ -24,7 +24,7 @@
 #include <base/strings/base_string.h>  // for HasStringTraits, base::find
 #include <base/strings/char_algorithms.h>
 
-#include <cstring>
+#include <string.h>
 
 namespace base {
 

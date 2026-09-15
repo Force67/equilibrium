@@ -4,8 +4,8 @@
 #include "cuid2.h"
 #include "sha256.h"
 
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 
 #include <base/atomic.h>
 #include <base/random/random.h>

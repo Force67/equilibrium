@@ -5,8 +5,8 @@
 #include <base/check.h>
 #include <base/logging.h>
 
-#include <cstdio>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace base {
 
@@ -38,7 +38,7 @@ void FatalCheckFailure(const char* file, int line, const char* message) {
   // stderr first and unconditionally. The log path runs through a channel
   // filter and an installable callback, either of which can drop the message,
   // and the one thing that must survive a fatal check is the reason for it.
-  std::fprintf(stderr, "fatal check: %s:%d %s\n", file, line,
+  ::fprintf(stderr, "fatal check: %s:%d %s\n", file, line,
                message ? message : "");
 
   // The handler and its log sink may allocate, and the most common fatal check
@@ -48,11 +48,11 @@ void FatalCheckFailure(const char* file, int line, const char* message) {
   if (!reporting) {
     reporting = true;
     char location[512];
-    std::snprintf(location, sizeof(location), "fatal check: %s:%d", file, line);
+    ::snprintf(location, sizeof(location), "fatal check: %s:%d", file, line);
     assert_handler(location, file, "", message);
     reporting = false;
   }
-  std::abort();
+  ::abort();
 }
 }  // namespace detail
 

@@ -6,7 +6,7 @@
 
 #include <base/arch.h>
 #include <base/strings/xstring.h>
-#include <cstdio>
+#include <stdio.h>
 
 namespace base {
 

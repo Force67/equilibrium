@@ -5,8 +5,6 @@
 
 #include <stdio.h>
 
-#include <memory>
-
 #include "base/export.h"
 #include "base/scoped_generic.h"
 #include "build/build_config.h"

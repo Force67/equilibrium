@@ -5,7 +5,7 @@
 
 #include "sha256.h"
 
-#include <cstring>
+#include <string.h>
 
 namespace {
 

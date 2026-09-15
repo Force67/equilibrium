@@ -3,9 +3,9 @@
 
 #include "debugging.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // Neither musl nor Android's bionic ship <execinfo.h>/backtrace(); when
 // building in the fully-static musl mode (see build/musl_static.lua) or for

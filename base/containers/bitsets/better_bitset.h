@@ -8,7 +8,7 @@
 #include <base/memory/cxx_lifetime.h>
 #include <base/containers/builtins_bit.h>
 
-#include <climits>
+#include <limits.h>
 
 namespace base {
 template <mem_size N>

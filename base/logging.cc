@@ -2,8 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 
 #include <base/logging.h>
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 
 namespace base {
 
@@ -18,7 +18,7 @@ void DefaultLogHandler(void* /*user_pointer*/,
                        const char* channel_name,
                        LogLevel ll,
                        const char* msg) {
-  std::fprintf(stderr, "[%s] %s: %s\n", channel_name ? channel_name : "?",
+  ::fprintf(stderr, "[%s] %s: %s\n", channel_name ? channel_name : "?",
                LogLevelToName(ll), msg ? msg : "");
 }
 
@@ -57,7 +57,7 @@ void SetChannelMinLevel(const char* channel_name,
                         LogLevel min_level) noexcept {
   // Update existing entry if present.
   for (int i = 0; i < channel_count; ++i) {
-    if (std::strcmp(channel_table[i].name, channel_name) == 0) {
+    if (::strcmp(channel_table[i].name, channel_name) == 0) {
       channel_table[i].min_level = min_level;
       return;
     }
@@ -77,7 +77,7 @@ bool ShouldLog(const char* channel_name, LogLevel level) noexcept {
     return false;
   if (channel_name) {
     for (int i = 0; i < channel_count; ++i) {
-      if (std::strcmp(channel_table[i].name, channel_name) == 0) {
+      if (::strcmp(channel_table[i].name, channel_name) == 0) {
         return static_cast<int>(level) >=
                static_cast<int>(channel_table[i].min_level);
       }

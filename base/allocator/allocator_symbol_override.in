@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 // These musn't be in a namespace as they override the global symbols.
 
-#include <memory>
+#include <new>  // for std::nothrow_t, mandated by the operator new ABI
 #include <base/export.h>
 #include <base/allocator/allocator_primitives.h>
 

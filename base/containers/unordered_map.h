@@ -20,7 +20,7 @@
 
 #include <initializer_list>
 #include <new>
-#include <cstring>
+#include <string.h>
 
 namespace base {
 

@@ -18,9 +18,18 @@
 
 #include <base/atomic.h>
 
-#include <cstdio>
-#include <cstring>
-#include <thread>
+#include <stdio.h>
+#include <string.h>
+
+// This target links the allocator sources and nothing else, so it spawns
+// threads through the platform API rather than pulling base::Thread (and with
+// it base::String and base::Function) into the link.
+#if defined(OS_WIN)
+#include <base/win/minwin.h>
+#else
+#include <pthread.h>
+#endif
+
 
 using namespace base;
 
@@ -472,11 +481,39 @@ void Bucket_ConcurrentCrossThreadFree() {
     }
   };
 
-  std::thread threads[kThreads];
+  struct WorkerArgs {
+    decltype(&worker) run;
+    int id;
+  };
+  WorkerArgs args[kThreads];
   for (int t = 0; t < kThreads; t++)
-    threads[t] = std::thread(worker, t);
-  for (auto& thread : threads)
-    thread.join();
+    args[t] = {&worker, t};
+
+#if defined(OS_WIN)
+  HANDLE threads[kThreads];
+  const auto entry = [](void* p) -> DWORD {
+    auto* a = static_cast<WorkerArgs*>(p);
+    (*a->run)(a->id);
+    return 0;
+  };
+  for (int t = 0; t < kThreads; t++)
+    threads[t] = ::CreateThread(nullptr, 0, entry, &args[t], 0, nullptr);
+  for (int t = 0; t < kThreads; t++) {
+    ::WaitForSingleObject(threads[t], INFINITE);
+    ::CloseHandle(threads[t]);
+  }
+#else
+  pthread_t threads[kThreads];
+  const auto entry = [](void* p) -> void* {
+    auto* a = static_cast<WorkerArgs*>(p);
+    (*a->run)(a->id);
+    return nullptr;
+  };
+  for (int t = 0; t < kThreads; t++)
+    ::pthread_create(&threads[t], nullptr, entry, &args[t]);
+  for (int t = 0; t < kThreads; t++)
+    ::pthread_join(threads[t], nullptr);
+#endif
 
   EXPECT(failures.load() == 0);
 

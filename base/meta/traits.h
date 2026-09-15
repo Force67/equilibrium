@@ -67,6 +67,49 @@ template <class T>
 inline constexpr bool is_integral_v = is_integral<T>::value;
 
 template <class T>
+struct is_floating_point {
+  static constexpr bool value = false;
+};
+#define BASE_MARK_FLOATING(TYPE)                 \
+  template <>                                    \
+  struct is_floating_point<TYPE> {               \
+    static constexpr bool value = true;          \
+  };                                             \
+  template <>                                    \
+  struct is_floating_point<const TYPE> {         \
+    static constexpr bool value = true;          \
+  };                                             \
+  template <>                                    \
+  struct is_floating_point<volatile TYPE> {      \
+    static constexpr bool value = true;          \
+  };                                             \
+  template <>                                    \
+  struct is_floating_point<const volatile TYPE> {\
+    static constexpr bool value = true;          \
+  };
+BASE_MARK_FLOATING(float)
+BASE_MARK_FLOATING(double)
+BASE_MARK_FLOATING(long double)
+#undef BASE_MARK_FLOATING
+
+template <class T>
+inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
+
+template <class T>
+inline constexpr bool is_arithmetic_v = is_integral_v<T> || is_floating_point_v<T>;
+
+// MSVC spells this one __is_convertible_to; GCC only has __is_convertible.
+template <class From, class To>
+#if defined(_MSC_VER) && !defined(__clang__)
+inline constexpr bool is_convertible_v = __is_convertible_to(From, To);
+#else
+inline constexpr bool is_convertible_v = __is_convertible(From, To);
+#endif
+
+template <class From, class To>
+concept ConvertibleTo = is_convertible_v<From, To>;
+
+template <class T>
 inline constexpr bool is_enum_v = __is_enum(T);
 
 template <class T>

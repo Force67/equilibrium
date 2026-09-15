@@ -4,16 +4,14 @@
 #include "thread_pool.h"
 
 #include <base/threading/lock_guard.h>
-
-#include <chrono>
-#include <thread>
+#include <base/threading/thread.h>
 
 namespace base {
 namespace {
 // Idle nap between queue polls; long enough to keep idle workers near 0%
 // CPU, short enough to not matter for task latency.
 void NapBriefly() {
-  std::this_thread::sleep_for(std::chrono::microseconds(500));
+  base::SleepForMicroseconds(500);
 }
 }  // namespace
 

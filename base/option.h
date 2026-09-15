@@ -6,13 +6,13 @@
 // can find and populate every option without each site hand-rolling getenv.
 #pragma once
 
-#include <cstdlib>
-#include <cstring>
-#include <type_traits>
+#include <stdlib.h>
+#include <string.h>
 
 #include <base/arch.h>
 #include <base/containers/init_chain.h>
 #include <base/export.h>
+#include <base/meta/traits.h>
 #include <base/strings/format.h>
 
 namespace base {
@@ -23,38 +23,38 @@ namespace detail {
 // types, and const char* (which is bound to the source string, not copied).
 template <typename T>
 inline bool ParseOption(const char* text, T& out) {
-  if constexpr (std::is_same_v<T, bool>) {
-    if (!std::strcmp(text, "1") || !std::strcmp(text, "true") ||
-        !std::strcmp(text, "on") || !std::strcmp(text, "yes")) {
+  if constexpr (base::is_same_v<T, bool>) {
+    if (!::strcmp(text, "1") || !::strcmp(text, "true") ||
+        !::strcmp(text, "on") || !::strcmp(text, "yes")) {
       out = true;
       return true;
     }
-    if (!*text || !std::strcmp(text, "0") || !std::strcmp(text, "false") ||
-        !std::strcmp(text, "off") || !std::strcmp(text, "no")) {
+    if (!*text || !::strcmp(text, "0") || !::strcmp(text, "false") ||
+        !::strcmp(text, "off") || !::strcmp(text, "no")) {
       out = false;
       return true;
     }
     // Any other number counts: a knob set to 2 means on, as it would in a shell
     // test, not "unparsable".
     char* end = nullptr;
-    const long long v = std::strtoll(text, &end, 0);
+    const long long v = ::strtoll(text, &end, 0);
     if (end != text && !*end) {
       out = v != 0;
       return true;
     }
     return false;
-  } else if constexpr (std::is_same_v<T, const char*>) {
+  } else if constexpr (base::is_same_v<T, const char*>) {
     out = text;
     return true;
-  } else if constexpr (std::is_integral_v<T>) {
+  } else if constexpr (base::is_integral_v<T>) {
     char* end = nullptr;
-    const long long v = std::strtoll(text, &end, 0);
+    const long long v = ::strtoll(text, &end, 0);
     if (end == text) return false;
     out = static_cast<T>(v);
     return true;
-  } else if constexpr (std::is_floating_point_v<T>) {
+  } else if constexpr (base::is_floating_point_v<T>) {
     char* end = nullptr;
-    const double v = std::strtod(text, &end);
+    const double v = ::strtod(text, &end);
     if (end == text) return false;
     out = static_cast<T>(v);
     return true;
@@ -139,7 +139,7 @@ class Option : public OptionBase {
   void set(T v) { value_ = v; }
 
   mem_size FormatValue(char* buffer, mem_size buffer_size) const override {
-    if constexpr (std::is_same_v<T, const char*>) {
+    if constexpr (base::is_same_v<T, const char*>) {
       if (!value_) {
         if (buffer_size) *buffer = '\0';
         return 0;
@@ -172,7 +172,7 @@ inline mem_size InitOptionsFromEnv() {
     auto* option = const_cast<OptionBase*>(registered);
     const char* env = option->env();
     if (!env) return;
-    if (const char* value = std::getenv(env))
+    if (const char* value = ::getenv(env))
       if (option->SetFromString(value)) ++overridden;
   });
   return overridden;

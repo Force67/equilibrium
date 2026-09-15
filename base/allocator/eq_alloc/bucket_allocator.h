@@ -2,10 +2,9 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <bit>
-
 #include <base/arch.h>
 #include <base/compiler.h>
+#include <base/containers/builtins_bit.h>
 #include <base/export.h>
 #include <base/allocator/eq_alloc/allocator.h>
 #include <base/threading/spinning_mutex.h>
@@ -44,7 +43,7 @@ class BASE_EXPORT BucketAllocator final : public Allocator {
 
   static STRONG_INLINE int ClassIndex(mem_size size) {
     if (size <= 8) return 0;
-    return static_cast<int>(64 - std::countl_zero(static_cast<unsigned long long>(size - 1))) - 3;
+    return static_cast<int>(64 - base::CountLeftZero(static_cast<unsigned long long>(size - 1))) - 3;
   }
 
   struct SlabHeader {

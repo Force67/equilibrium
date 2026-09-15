@@ -4,7 +4,7 @@
 
 #include <base/filesystem/file_util.h>
 
-#include <cerrno>
+#include <errno.h>
 #include <dirent.h>
 #include <fcntl.h>  // for O_NONBLOCK etc
 
