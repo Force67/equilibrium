@@ -44,6 +44,12 @@ class Xorshift {
   u64 state_;
 };
 
+f64 FromBits(u64 bits) {
+  f64 value;
+  ::memcpy(&value, &bits, sizeof(value));
+  return value;
+}
+
 // Builds the equivalent printf spec and compares. Returns false on a
 // mismatch, having already recorded the failure.
 testing::AssertionResult Matches(f64 value, char type, int precision,
@@ -181,8 +187,10 @@ TEST(FloatFormat, General) {
 }
 
 TEST(FloatFormat, NonFinite) {
-  const f64 inf = 1.0 / 0.0;
-  const f64 nan = inf - inf;
+  // Built from bits rather than 1.0 / 0.0, which MSVC rejects outright as a
+  // constant divide by zero instead of folding it to infinity.
+  const f64 inf = FromBits(0x7FF0000000000000ull);
+  const f64 nan = FromBits(0x7FF8000000000000ull);
   for (char type : {'f', 'e', 'g', 'F', 'E', 'G'}) {
     EXPECT_TRUE(Matches(inf, type, 2));
     EXPECT_TRUE(Matches(-inf, type, 2));

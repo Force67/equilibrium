@@ -199,13 +199,25 @@ struct CHROME_MSG {
 #endif
 #define TLS_OUT_OF_INDEXES ((DWORD)0xFFFFFFFF)
 
-// The nStdHandle values GetStdHandle takes.
+// The nStdHandle values GetStdHandle takes. Guarded because a translation
+// unit may reach the real <windows.h> as well, and the SDK spells some of
+// these differently -- WAIT_OBJECT_0 through STATUS_WAIT_0 -- which a bare
+// redefinition would warn on.
+#ifndef STD_INPUT_HANDLE
 #define STD_INPUT_HANDLE ((DWORD)-10)
+#endif
+#ifndef STD_OUTPUT_HANDLE
 #define STD_OUTPUT_HANDLE ((DWORD)-11)
+#endif
+#ifndef STD_ERROR_HANDLE
 #define STD_ERROR_HANDLE ((DWORD)-12)
-
+#endif
+#ifndef INFINITE
 #define INFINITE 0xFFFFFFFF
+#endif
+#ifndef WAIT_OBJECT_0
 #define WAIT_OBJECT_0 ((DWORD)0x00000000L)
+#endif
 #define HTNOWHERE 0
 #define MAX_PATH 260
 #define CS_GLOBALCLASS 0x4000
