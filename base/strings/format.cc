@@ -4,7 +4,8 @@
 #include <base/strings/char_algorithms.h>
 #include <base/strings/format.h>
 
-#include <stdio.h>
+#include <base/strings/float_format.h>
+
 
 namespace base::fmt_detail {
 namespace {
@@ -273,36 +274,42 @@ void FormatInteger(Sink& sink, u64 abs, bool negative,
 }
 
 void FormatFloat(Sink& sink, f64 v, const Spec& spec) noexcept {
-  char fmt[16];
-  int fp = 0;
-  fmt[fp++] = '%';
-  if (spec.sign == '+') fmt[fp++] = '+';
-  else if (spec.sign == ' ') fmt[fp++] = ' ';
-  if (spec.alt) fmt[fp++] = '#';
-  if (spec.precision >= 0) {
-    int n = ::snprintf(fmt + fp, sizeof(fmt) - fp, ".%d", spec.precision);
-    if (n > 0) fp += n;
-  }
   char type = spec.type;
   if (type == '\0') type = (spec.precision >= 0) ? 'f' : 'g';
-  fmt[fp++] = type;
-  fmt[fp] = '\0';
 
-  char out[64];
-  int n = ::snprintf(out, sizeof(out), fmt, v);
-  if (n < 0) return;
-  if (n > (int)sizeof(out) - 1) n = (int)sizeof(out) - 1;
+  // %f of a value near DBL_MAX runs to over 300 characters before the point,
+  // and an explicit precision adds to that, so the inline buffer is sized for
+  // the common case and spills to the heap rather than truncating -- which is
+  // what the snprintf this replaced silently did past 64 characters.
+  char inline_buf[base::kFloatFormatBufferSize];
+  mem_size needed = base::FormatFloatTo(inline_buf, sizeof(inline_buf), v, type,
+                                        spec.precision, spec.sign, spec.alt);
 
+  const char* text = inline_buf;
+  base::String spill;
+  if (needed > sizeof(inline_buf)) {
+    spill.resize(static_cast<base::String::size_type>(needed));
+    base::FormatFloatTo(spill.data(), needed, v, type, spec.precision,
+                        spec.sign, spec.alt);
+    text = spill.data();
+  }
+
+  const int n = static_cast<int>(needed);
   if (spec.zero_pad && !spec.align && spec.width > n) {
-    int pad = spec.width - n;
-    EmitFill(sink, '0', pad);
-    sink.Write(out, static_cast<mem_size>(n));
+    // The sign has to stay ahead of the zero padding, or -1.5 pads to 00-1.5.
+    mem_size body = 0;
+    if (n > 0 && (text[0] == '-' || text[0] == '+' || text[0] == ' ')) {
+      sink.WriteChar(text[0]);
+      body = 1;
+    }
+    EmitFill(sink, '0', spec.width - n);
+    sink.Write(text + body, needed - body);
     return;
   }
 
   char align = spec.align ? spec.align : '>';
   EmitAligned(sink, align, spec.fill, n, spec.width,
-              [&] { sink.Write(out, static_cast<mem_size>(n)); });
+              [&] { sink.Write(text, needed); });
 }
 
 void FormatBool(Sink& sink, bool v, const Spec& spec) noexcept {
