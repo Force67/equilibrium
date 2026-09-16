@@ -15,13 +15,15 @@
 #include <base/meta/traits.h>
 #include <base/strings/format.h>
 #include <base/strings/number_parse.h>
+#include <base/strings/xstring.h>
 
 namespace base {
 namespace detail {
 
 // Parse `text` into `out`. Returns false (leaving `out` untouched) when the
-// text is not a valid value for T. Covers bool, the integral and floating
-// types, and const char* (which is bound to the source string, not copied).
+// text is not a valid value for T. Covers bool and the integral and floating
+// types; a const char* option does not come through here, because it has to
+// own what it is given (Option::ParseFromString).
 template <typename T>
 inline bool ParseOption(const char* text, T& out) {
   if constexpr (base::is_same_v<T, bool>) {
@@ -44,9 +46,6 @@ inline bool ParseOption(const char* text, T& out) {
       return true;
     }
     return false;
-  } else if constexpr (base::is_same_v<T, const char*>) {
-    out = text;
-    return true;
   } else if constexpr (base::is_integral_v<T>) {
     i64 v = 0;
     if (!base::ParseInteger(text, v, /*base_radix=*/0)) return false;
@@ -124,6 +123,18 @@ class BASE_EXPORT OptionBase : public InitChain<OptionBase> {
 // programmatic default. Declare options at namespace scope, not as
 // function-local statics: InitOptionsFromEnv() can only populate options that
 // were already constructed (and thus registered) by the time it runs.
+namespace detail {
+// The buffer a const char* option keeps its value in. Empty for every other T,
+// and empty bases/members cost nothing here, so an Option<int> is the same
+// size it always was.
+template <typename T>
+struct OwnedText {};
+template <>
+struct OwnedText<const char*> {
+  StringU8 text;
+};
+}  // namespace detail
+
 template <typename T>
 class Option : public OptionBase {
  public:
@@ -149,14 +160,32 @@ class Option : public OptionBase {
 
  protected:
   bool ParseFromString(const char* text) override {
-    return detail::ParseOption(text, value_);
+    if constexpr (base::is_same_v<T, const char*>) {
+      // A string option owns its value. What SetFromString is handed is
+      // whatever its caller had at the time -- an environment variable read
+      // into a local, one line of a config file, a name off a command line --
+      // and none of those are still there when the option is next read, so
+      // pointing at the caller's buffer is a use-after-free waiting for the
+      // first reader.
+      if (!text) return false;
+      owned_.text = reinterpret_cast<const char8_t*>(text);
+      value_ = reinterpret_cast<const char*>(owned_.text.c_str());
+      return true;
+    } else {
+      return detail::ParseOption(text, value_);
+    }
   }
 
-  void RestoreDefault() override { value_ = default_; }
+  void RestoreDefault() override {
+    value_ = default_;
+    // The default is a literal the option does not own; drop what it did.
+    if constexpr (base::is_same_v<T, const char*>) owned_.text.clear();
+  }
 
  private:
   T value_;
   const T default_;
+  [[no_unique_address]] detail::OwnedText<T> owned_;
 };
 
 // Populate every registered option that names an environment variable from the
