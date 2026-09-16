@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include "base/arch.h"
 #include "base/containers/span.h"
 #include "base/export.h"
 #include "base/filesystem/path.h"
@@ -117,7 +118,7 @@ class BASE_EXPORT File {
 #endif
 
     // The size of the file in bytes.  Undefined when is_directory is true.
-    int64_t size = 0;
+    i64 size = 0;
 
     // True if the file corresponds to a directory.
     bool is_directory = false;
@@ -131,7 +132,7 @@ class BASE_EXPORT File {
 
   // Creates or opens the given file. This will fail with 'access denied' if the
   // |path| contains path traversal ('..') components.
-  File(const Path& path, uint32_t flags);
+  File(const Path& path, u32 flags);
 
   // Takes ownership of |platform_file| and sets async to false.
   explicit File(ScopedPlatformFile platform_file);
@@ -156,7 +157,7 @@ class BASE_EXPORT File {
   File& operator=(File&& other) noexcept;
 
   // Creates or opens the given file.
-  void Initialize(const Path& path, uint32_t flags);
+  void Initialize(const Path& path, u32 flags);
 
   // Returns |true| if the handle / fd wrapped by this object is valid.  This
   // method doesn't interact with the file system and is thus safe to be called
@@ -184,27 +185,27 @@ class BASE_EXPORT File {
   // Changes current position in the file to an |offset| relative to an origin
   // defined by |whence|. Returns the resultant current position in the file
   // (relative to the start) or -1 in case of error.
-  int64_t Seek(Whence whence, int64_t offset);
+  i64 Seek(Whence whence, i64 offset);
 
   // Simplified versions of Read() and friends (see below) that check the int
   // return value and just return a boolean. They return true if and only if
   // the function read in / wrote out exactly |size| bytes of data.
-  bool ReadAndCheck(int64_t offset, base::Span<uint8_t> data);
-  bool ReadAtCurrentPosAndCheck(base::Span<uint8_t> data);
-  bool WriteAndCheck(int64_t offset, base::Span<const uint8_t> data);
-  bool WriteAtCurrentPosAndCheck(base::Span<const uint8_t> data);
+  bool ReadAndCheck(i64 offset, base::Span<u8> data);
+  bool ReadAtCurrentPosAndCheck(base::Span<u8> data);
+  bool WriteAndCheck(i64 offset, base::Span<const u8> data);
+  bool WriteAtCurrentPosAndCheck(base::Span<const u8> data);
 
   // Reads up to |size| bytes (or until EOF) at |offset|. Returns the number
   // of bytes read, or -1 on error. Makes a best effort to read all data on
   // all platforms; not for stream-oriented files.
-  int Read(int64_t offset, char* data, int size);
+  int Read(i64 offset, char* data, int size);
 
   // Same as Read() without the seek.
   int ReadAtCurrentPos(char* data, int size);
 
   // Like Read() but makes no effort to read all data. Returns the number of
   // bytes read, or -1 on error.
-  int ReadNoBestEffort(int64_t offset, char* data, int size);
+  int ReadNoBestEffort(i64 offset, char* data, int size);
 
   // Same as ReadNoBestEffort() without the seek.
   int ReadAtCurrentPosNoBestEffort(char* data, int size);
@@ -213,7 +214,7 @@ class BASE_EXPORT File {
   // number of bytes written, or -1 on error. Makes a best effort to write all
   // data on all platforms. |data| may be nullptr when |size| is 0. With
   // FLAG_APPEND the offset is ignored and writes go to the end of the file.
-  int Write(int64_t offset, const char* data, size_t size);
+  int Write(i64 offset, const char* data, mem_size size);
 
   // Same as Write() without the seek.
   int WriteAtCurrentPos(const char* data, int size);
@@ -222,12 +223,12 @@ class BASE_EXPORT File {
   int WriteAtCurrentPosNoBestEffort(const char* data, int size);
 
   // Returns the current size of this file, or a negative number on failure.
-  int64_t GetLength();
+  i64 GetLength();
 
   // Truncates the file to the given length. If |length| is greater than the
   // current size of the file, the file is extended with zeros. If the file
   // doesn't exist, |false| is returned.
-  bool SetLength(int64_t length);
+  bool SetLength(i64 length);
 
   // Instructs the filesystem to flush the file to disk. (POSIX: fsync, Windows:
   // FlushFileBuffers).
@@ -286,7 +287,7 @@ class BASE_EXPORT File {
 #endif
 
 #if defined(OS_WIN)
-  static Error OSErrorToFileError(uint32_t last_error);
+  static Error OSErrorToFileError(u32 last_error);
 #elif defined(OS_POSIX) || defined(OS_FUCHSIA)
   static Error OSErrorToFileError(int saved_errno);
 #endif
@@ -313,7 +314,7 @@ class BASE_EXPORT File {
  private:
   // Creates or opens the given file. Only called if |path| has no
   // traversal ('..') components.
-  void DoInitialize(const Path& path, uint32_t flags);
+  void DoInitialize(const Path& path, u32 flags);
 
   void SetPlatformFile(PlatformFile file);
 
