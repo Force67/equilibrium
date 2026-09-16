@@ -37,7 +37,7 @@ void File::Close() {
   file_.Close();
 }
 
-int64_t File::Seek(Whence whence, int64_t offset) {
+i64 File::Seek(Whence whence, i64 offset) {
   BASE_BUGCHECK(IsValid());
 
   LARGE_INTEGER distance, res;
@@ -48,7 +48,7 @@ int64_t File::Seek(Whence whence, int64_t offset) {
   return res.QuadPart;
 }
 
-int File::Read(int64_t offset, char* data, int size) {
+int File::Read(i64 offset, char* data, int size) {
   BASE_BUGCHECK(IsValid());
   BASE_BUGCHECK(!async_);
   if (size < 0)
@@ -85,7 +85,7 @@ int File::ReadAtCurrentPos(char* data, int size) {
   return -1;
 }
 
-int File::ReadNoBestEffort(int64_t offset, char* data, int size) {
+int File::ReadNoBestEffort(i64 offset, char* data, int size) {
   return Read(offset, data, size);
 }
 
@@ -93,7 +93,7 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
   return ReadAtCurrentPos(data, size);
 }
 
-int File::Write(int64_t offset, const char* data, size_t size) {
+int File::Write(i64 offset, const char* data, mem_size size) {
   BASE_BUGCHECK(IsValid());
   BASE_BUGCHECK(!async_);
 
@@ -135,17 +135,17 @@ int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
   return WriteAtCurrentPos(data, size);
 }
 
-int64_t File::GetLength() {
+i64 File::GetLength() {
   BASE_BUGCHECK(IsValid());
 
   LARGE_INTEGER size;
   if (!::GetFileSizeEx(file_.Get(), &size))
     return -1;
 
-  return static_cast<int64_t>(size.QuadPart);
+  return static_cast<i64>(size.QuadPart);
 }
 
-bool File::SetLength(int64_t length) {
+bool File::SetLength(i64 length) {
   BASE_BUGCHECK(IsValid());
 
   // Get the current file pointer.
@@ -253,7 +253,7 @@ bool File::DeleteOnClose(bool delete_on_close) {
 }
 
 // Static.
-File::Error File::OSErrorToFileError(uint32_t last_error) {
+File::Error File::OSErrorToFileError(u32 last_error) {
   switch (last_error) {
     case ERROR_SHARING_VIOLATION:
     case ERROR_UNABLE_TO_REMOVE_REPLACED:  // ReplaceFile failure cases.
@@ -296,7 +296,7 @@ File::Error File::OSErrorToFileError(uint32_t last_error) {
   }
 }
 
-void File::DoInitialize(const Path& path, uint32_t flags) {
+void File::DoInitialize(const Path& path, u32 flags) {
   BASE_BUGCHECK(!IsValid());
 
   DWORD disposition = 0;

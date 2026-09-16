@@ -20,7 +20,7 @@ File::Info::~Info() = default;
 File::File() = default;
 
 #if !defined(OS_NACL)
-File::File(const Path& path, uint32_t flags) : error_details_(FILE_OK) {
+File::File(const Path& path, u32 flags) : error_details_(FILE_OK) {
   Initialize(path, flags);
 }
 #endif
@@ -68,28 +68,28 @@ File& File::operator=(File&& other) noexcept {
 }
 
 #if !defined(OS_NACL)
-void File::Initialize(const Path& path, uint32_t flags) {
+void File::Initialize(const Path& path, u32 flags) {
   path_ = path;
   DoInitialize(path, flags);
 }
 #endif
 
-bool File::ReadAndCheck(int64_t offset, base::Span<uint8_t> data) {
+bool File::ReadAndCheck(i64 offset, base::Span<u8> data) {
   int size = static_cast<int>(data.size());
   return Read(offset, reinterpret_cast<char*>(data.begin()), size) == size;
 }
 
-bool File::ReadAtCurrentPosAndCheck(base::Span<uint8_t> data) {
+bool File::ReadAtCurrentPosAndCheck(base::Span<u8> data) {
   int size = static_cast<int>(data.size());
   return ReadAtCurrentPos(reinterpret_cast<char*>(data.begin()), size) == size;
 }
 
-bool File::WriteAndCheck(int64_t offset, base::Span<const uint8_t> data) {
+bool File::WriteAndCheck(i64 offset, base::Span<const u8> data) {
   int size = static_cast<int>(data.size());
   return Write(offset, reinterpret_cast<const char*>(data.data()), size) == size;
 }
 
-bool File::WriteAtCurrentPosAndCheck(base::Span<const uint8_t> data) {
+bool File::WriteAtCurrentPosAndCheck(base::Span<const u8> data) {
   int size = static_cast<int>(data.size());
   return WriteAtCurrentPos(reinterpret_cast<const char*>(data.data()), size) == size;
 }

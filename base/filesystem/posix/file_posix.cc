@@ -116,7 +116,7 @@ void File::Close() {
   file_.reset();
 }
 
-int64_t File::Seek(Whence whence, int64_t offset) {
+i64 File::Seek(Whence whence, i64 offset) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   BASE_DCHECK(IsValid());
 
@@ -124,7 +124,7 @@ int64_t File::Seek(Whence whence, int64_t offset) {
   return lseek(file_.get(), static_cast<off_t>(offset), static_cast<int>(whence));
 }
 
-int File::Read(int64_t offset, char* data, int size) {
+int File::Read(i64 offset, char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   BASE_DCHECK(IsValid());
   if (size < 0)
@@ -163,7 +163,7 @@ int File::ReadAtCurrentPos(char* data, int size) {
   return bytes_read ? bytes_read : rv;
 }
 
-int File::ReadNoBestEffort(int64_t offset, char* data, int size) {
+int File::ReadNoBestEffort(i64 offset, char* data, int size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   BASE_DCHECK(IsValid());
 
@@ -179,7 +179,7 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
   return HANDLE_EINTR(read(file_.get(), data, size));
 }
 
-int File::Write(int64_t offset, const char* data, size_t size) {
+int File::Write(i64 offset, const char* data, mem_size size) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
 
   // The running total and the return value are both int, so a request larger
@@ -238,7 +238,7 @@ int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
   return HANDLE_EINTR(write(file_.get(), data, size));
 }
 
-int64_t File::GetLength() {
+i64 File::GetLength() {
   BASE_DCHECK(IsValid());
 
   stat_wrapper_t file_info;
@@ -248,7 +248,7 @@ int64_t File::GetLength() {
   return file_info.st_size;
 }
 
-bool File::SetLength(int64_t length) {
+bool File::SetLength(i64 length) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   BASE_DCHECK(IsValid());
 
@@ -332,7 +332,7 @@ File::Error File::OSErrorToFileError(int saved_errno) {
 }
 
 // TODO: consider supporting FLAG_EXCLUSIVE_* here.
-void File::DoInitialize(const Path& path, uint32_t flags) {
+void File::DoInitialize(const Path& path, u32 flags) {
   ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
   BASE_DCHECK(!IsValid());
 

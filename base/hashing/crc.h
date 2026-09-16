@@ -2,6 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <base/arch.h>
 #include <base/compiler.h>
 
 #if defined(__SSE4_2__) && (defined(__GNUC__) || defined(__clang__))
@@ -63,7 +64,7 @@ inline u32 CRC32C_SW(
 inline u32 CRC32C(const byte* data, mem_size length, u32 previousCrc32 = 0xFFFFFFFF) {
   // virtually all 64 bit chips have it
 #ifdef ARCH_X86_64
-  uint32_t crc = ~previousCrc32;
+  u32 crc = ~previousCrc32;
 
   // The Intel instruction uses the iSCSI (Castagnoli) polynomial, for the CRC
   // often referred to as CRC-32C.
