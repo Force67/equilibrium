@@ -5,6 +5,17 @@
 #include <base/time/time.h>
 #include <base/win/minwin.h>
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+// minwin.h defers to the real <windows.h> on mingw, so re-declaring these types
+// and entry points would conflict with the ones already in scope. Adopt them.
+namespace wintypes {
+using ::FILETIME;
+using ::LARGE_INTEGER;
+using ::GetSystemTimeAsFileTime;
+using ::QueryPerformanceCounter;
+using ::QueryPerformanceFrequency;
+}  // namespace wintypes
+#else
 namespace wintypes {
 union LARGE_INTEGER {
   struct {
@@ -27,6 +38,7 @@ extern "C" __declspec(dllimport) void __stdcall GetSystemTimeAsFileTime(wintypes
 extern "C" __declspec(dllimport) int __stdcall QueryPerformanceCounter(wintypes::LARGE_INTEGER*);
 extern "C" __declspec(dllimport) int __stdcall QueryPerformanceFrequency(wintypes::LARGE_INTEGER*);
 }  // namespace wintypes
+#endif
 
 namespace base {
 namespace {
