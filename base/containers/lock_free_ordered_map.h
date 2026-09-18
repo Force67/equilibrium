@@ -297,6 +297,19 @@ class LockFreeOrderedHashMap {
       skip_deleted();
     }
 
+    // Active iterator taking an already-announced guard. Factories that must
+    // dereference nodes to *find* the traversal's start (begin() walks bucket
+    // chains skipping deleted nodes) announce first and hand the live guard
+    // here, so no node is ever touched outside an EBR critical section. The
+    // guard's pin is continuous across the handoff: it stays announced from
+    // before the first load until the iterator dies.
+    IteratorBase(const LockFreeOrderedHashMap<Key, Value>* m,
+                 Node* start_node,
+                 ebr::Guard&& announced)
+        : map(m), currentNode(start_node), guard_(static_cast<ebr::Guard&&>(announced)) {
+      skip_deleted();
+    }
+
     // End sentinel: no epoch pin needed.
     IteratorBase(const LockFreeOrderedHashMap<Key, Value>* m)
         : map(m), currentNode(nullptr), guard_(ebr::Guard::inactive) {}
@@ -330,6 +343,10 @@ class LockFreeOrderedHashMap {
    public:
     OrderIterator(const LockFreeOrderedHashMap<Key, Value>* m, Node* start_node)
         : IteratorBase<OrderIterator>(m, start_node) {}
+    OrderIterator(const LockFreeOrderedHashMap<Key, Value>* m,
+                  Node* start_node, ebr::Guard&& announced)
+        : IteratorBase<OrderIterator>(m, start_node,
+                                      static_cast<ebr::Guard&&>(announced)) {}
     OrderIterator(const LockFreeOrderedHashMap<Key, Value>* m)
         : IteratorBase<OrderIterator>(m) {}
   };
@@ -359,6 +376,11 @@ class LockFreeOrderedHashMap {
                    mem_size b_idx,
                    Node* start_node)
         : IteratorBase<BucketIterator>(m, start_node), bucketIndex(b_idx) {}
+    BucketIterator(const LockFreeOrderedHashMap<Key, Value>* m,
+                   mem_size b_idx, Node* start_node, ebr::Guard&& announced)
+        : IteratorBase<BucketIterator>(m, start_node,
+                                       static_cast<ebr::Guard&&>(announced)),
+          bucketIndex(b_idx) {}
     BucketIterator(const LockFreeOrderedHashMap<Key, Value>* m)
         : IteratorBase<BucketIterator>(m), bucketIndex(m->bucketCount) {}
 
@@ -372,17 +394,27 @@ class LockFreeOrderedHashMap {
   // ---- begin / end ----
 
   OrderIterator order_begin() const {
-    return OrderIterator(this, orderHead.load(base::memory_order_acquire));
+    // Announce before the first load: orderHead may be CAS-swapped the moment
+    // we read it, retiring the node we hold, and a later pass may free it. The
+    // guard is handed to the iterator, keeping the pin continuous.
+    ebr::Guard guard;
+    return OrderIterator(this, orderHead.load(base::memory_order_acquire),
+                         static_cast<ebr::Guard&&>(guard));
   }
   OrderIterator order_end() const { return OrderIterator(this); }
 
+  // The preamble that finds the first live node walks deleted nodes — exactly
+  // the ones GC sweeps, retires and frees — so it must run inside an EBR
+  // critical section. Without the guard, a concurrent collect_garbage() can
+  // free the chain between the bucket-head load and the next hop, and the
+  // iterator starts life on freed memory (observed as crashes in callers that
+  // range-for the map under sustained insert/remove churn).
   BucketIterator begin() const {
+    ebr::Guard guard;
     for (mem_size i = 0; i < bucketCount; ++i) {
       Node* node = buckets[i].load(base::memory_order_acquire);
-      while (node && node->is_deleted.load(base::memory_order_acquire))
-        node = node->bucketNext.load(base::memory_order_acquire);
       if (node)
-        return BucketIterator(this, i, node);
+        return BucketIterator(this, i, node, static_cast<ebr::Guard&&>(guard));
     }
     return end();
   }
