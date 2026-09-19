@@ -16,6 +16,12 @@
 #include <sal.h>
 #include <specstrings.h>
 
+#if defined(__MINGW32__)
+// __int64 is an MSVC keyword. MinGW's runtime header is what defines it there,
+// and nothing else pulled in above reaches it.
+#include <_mingw.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -361,6 +367,9 @@ WINBASEAPI DWORD WINAPI WaitForSingleObject(HANDLE hHandle,
                                             DWORD dwMilliseconds);
 
 WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject);
+
+// Needed for thread_pool.cc.
+WINBASEAPI VOID WINAPI Sleep(DWORD dwMilliseconds);
 
 #ifdef __cplusplus
 }

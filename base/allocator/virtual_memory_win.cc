@@ -1,7 +1,7 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-#include <Windows.h>
+#include <windows.h>
 #include <base/allocator/virtual_memory.h>
 
 namespace base {

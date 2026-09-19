@@ -2,7 +2,7 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
-#include <Shlwapi.h>
+#include <shlwapi.h>
 
 namespace base::win {
 
