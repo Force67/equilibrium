@@ -7,7 +7,7 @@
 #include <base/environment_variables.h>
 
 #if defined(OS_WIN)
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include <base/profiling/profiler_communication.h>

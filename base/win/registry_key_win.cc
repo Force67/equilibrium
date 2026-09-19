@@ -3,7 +3,7 @@
 
 #include "registry_key.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <base/check.h>
 
 extern "C" __declspec(dllimport) DWORD WINAPI ExpandEnvironmentStringsW(LPCWSTR lpSrc,

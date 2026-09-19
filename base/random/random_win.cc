@@ -3,8 +3,8 @@
 
 #include "random.h"
 
-#include <Windows.h>
-#include <Wincrypt.h>
+#include <windows.h>
+#include <wincrypt.h>
 
 namespace base {
 
