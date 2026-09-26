@@ -868,3 +868,14 @@ TEST(BaseStringOverflowDeathTest, WideStringReserveAboveMaxSizeTerminates) {
 }
 
 }  // namespace
+
+namespace {
+TEST(BaseStringFront, ReadsAndWritesFirstCharacter) {
+  base::String s("abc");
+  EXPECT_EQ(s.front(), 'a');
+  s.front() = 'x';
+  EXPECT_EQ(s, "xbc");
+  const base::String& c = s;
+  EXPECT_EQ(c.front(), 'x');
+}
+}  // namespace

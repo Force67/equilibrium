@@ -188,3 +188,29 @@ TEST(BasicStringRefTest, Contains) {
   EXPECT_FALSE(ref.contains("moon"));
 }
 }  // namespace
+namespace {
+// find_*_not_of take (set, pos) like std::string_view, never (set, length).
+TEST(StringRefNotOf, FirstNotOf) {
+  const base::StringRef s("  \tab c  ");
+  EXPECT_EQ(s.find_first_not_of(" \t"), 3u);
+  EXPECT_EQ(s.find_first_not_of(" \t", 4), 4u);
+  EXPECT_EQ(s.find_first_not_of(" \t", 5), 6u);
+  EXPECT_EQ(s.find_first_not_of(' '), 2u);
+  EXPECT_EQ(s.find_first_not_of(" \tabc"), base::StringRef::npos);
+  EXPECT_EQ(s.find_first_not_of("ab", 0, 0), 0u);
+}
+
+TEST(StringRefNotOf, LastNotOf) {
+  const base::StringRef s("  \tab c  ");
+  EXPECT_EQ(s.find_last_not_of(" \t"), 6u);
+  EXPECT_EQ(s.find_last_not_of(" \t", 5), 4u);
+  EXPECT_EQ(s.find_last_not_of(' '), 6u);
+  EXPECT_EQ(s.find_last_not_of(" \tabc"), base::StringRef::npos);
+}
+
+TEST(StringRefNotOf, EmptyHaystack) {
+  const base::StringRef s;
+  EXPECT_EQ(s.find_first_not_of(" "), base::StringRef::npos);
+  EXPECT_EQ(s.find_last_not_of(" "), base::StringRef::npos);
+}
+}  // namespace

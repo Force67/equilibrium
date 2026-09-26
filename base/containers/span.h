@@ -13,11 +13,15 @@
 #include <base/check.h>
 
 #include <base/containers/container_traits.h>
+#include <base/meta/traits.h>
 
 namespace base {
 template <typename T>
 class Span {
  public:
+  static constexpr mem_size npos = static_cast<mem_size>(-1);
+
+  constexpr Span() noexcept : ptr_(nullptr), len_(0) {}
   explicit constexpr Span(const T* ptr, mem_size len) : ptr_(ptr), len_(len) {}
 
   // TODO: disallow creating a span from a span.
@@ -30,10 +34,37 @@ class Span {
   constexpr Span(T (&a)[N]) noexcept  // NOLINT(runtime/explicit)
       : Span(a, N) {}
 
-  const T* data() const noexcept { return ptr_; }
+  // Span<T> -> Span<const T>, also from a temporary, which the container
+  // constructor above cannot bind. The array-pointer test admits added
+  // qualifiers only, never a derived-to-base step that would change stride.
+  template <typename U>
+    requires(!base::is_same_v<U, T> && base::is_convertible_v<U (*)[], T (*)[]>)
+  constexpr Span(const Span<U>& other) noexcept  // NOLINT(runtime/explicit)
+      : Span(other.data(), other.size()) {}
+
+  // Elements are as mutable as T: a Span<u8> is a writable window (File reads
+  // into one), a Span<const u8> is not. begin() has always handed out T*.
+  T* data() const noexcept { return const_cast<T*>(ptr_); }
   mem_size size() const noexcept { return len_; }
   mem_size length() const noexcept { return len_; }
+  mem_size size_bytes() const noexcept { return len_ * sizeof(T); }
   bool empty() const noexcept { return len_ == 0; }
+
+  // Out-of-range bounds are a programmer error, as in operator[].
+  Span first(mem_size count) const noexcept {
+    BASE_DCHECK(count <= len_);
+    return Span(ptr_, count);
+  }
+  Span last(mem_size count) const noexcept {
+    BASE_DCHECK(count <= len_);
+    return Span(ptr_ + (len_ - count), count);
+  }
+  Span subspan(mem_size offset, mem_size count = npos) const noexcept {
+    BASE_DCHECK(offset <= len_);
+    if (count == npos) count = len_ - offset;
+    BASE_DCHECK(count <= len_ - offset);
+    return Span(ptr_ + offset, count);
+  }
 
 #if 0
   template <TRhs>
@@ -42,19 +73,19 @@ class Span {
   }
 #endif
 
-  inline BASE_CONSTEXPR_ND const T& operator[](mem_size index) const noexcept {
+  inline BASE_CONSTEXPR_ND T& operator[](mem_size index) const noexcept {
     BASE_DCHECK(index < len_);
-    return ptr_[index];
+    return data()[index];
   }
 
-  BASE_CONSTEXPR_ND const T& front() const noexcept {
+  BASE_CONSTEXPR_ND T& front() const noexcept {
     BASE_DCHECK(ptr_ && len_ > 0);
-    return *ptr_;
+    return *data();
   }
 
-  BASE_CONSTEXPR_ND const T& back() const noexcept {
+  BASE_CONSTEXPR_ND T& back() const noexcept {
     BASE_DCHECK(ptr_ && len_ > 0);
-    return ptr_[len_ - 1];
+    return data()[len_ - 1];
   }
 
   // iterator to beginning
@@ -73,6 +104,22 @@ class Span {
   const T* ptr_;
   mem_size len_;
 };
+
+namespace span_detail {
+template <typename P>
+struct ElementOf;
+template <typename T>
+struct ElementOf<T*> {
+  using type = T;
+};
+}  // namespace span_detail
+
+// base::Span(container) spans the container's element type, const when the
+// container is.
+template <class TT>
+  requires HasContainerTraits<TT>
+Span(TT&) -> Span<typename span_detail::ElementOf<
+    decltype(static_cast<TT*>(nullptr)->data())>::type>;
 
 // adapter for containers.
 template <class TContainer>

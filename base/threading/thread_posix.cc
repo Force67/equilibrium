@@ -151,6 +151,11 @@ void YieldCurrentThread() {
   ::sched_yield();
 }
 
+u32 GetProcessorCount() {
+  const long count = ::sysconf(_SC_NPROCESSORS_ONLN);
+  return count > 0 ? static_cast<u32>(count) : 1u;
+}
+
 Thread::Handle GetCurrentThreadHandle() {
   return {.pthread_ = PthreadToHandle(::pthread_self())};
 }

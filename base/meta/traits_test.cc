@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <base/arch.h>
+#include <base/memory/cxx_lifetime.h>
 #include <base/meta/traits.h>
 
 namespace {
@@ -92,4 +93,35 @@ TEST(Traits, EvaluateAtCompileTime) {
   EXPECT_FALSE((base::is_convertible_v<int, Explicitly>));
 }
 
+}  // namespace
+
+namespace {
+struct Movable {
+  Movable(Movable&&) noexcept {}
+};
+struct ThrowingMove {
+  ThrowingMove(ThrowingMove&&) {}
+};
+struct NoDefault {
+  explicit NoDefault(int) {}
+};
+struct NonTrivial {
+  ~NonTrivial() {}
+};
+
+static_assert(base::is_same_v<base::remove_cvref_t<const int&>, int>);
+static_assert(base::is_same_v<base::remove_cvref_t<volatile int&&>, int>);
+static_assert(base::is_same_v<base::remove_cvref_t<const int*>, const int*>);
+static_assert(base::is_array_v<int[3]> && base::is_array_v<int[]> && !base::is_array_v<int*>);
+static_assert(base::extent_v<float[4]> == 4 && base::extent_v<int> == 0);
+static_assert(base::is_same_v<base::remove_extent_t<float[4]>, float>);
+static_assert(base::is_same_v<base::remove_extent_t<int[2][3]>, int[3]>);
+static_assert(base::is_trivially_copyable_v<int> && !base::is_trivially_copyable_v<NonTrivial>);
+static_assert(base::is_trivially_destructible_v<int> && !base::is_trivially_destructible_v<NonTrivial>);
+static_assert(base::is_default_constructible_v<int> && !base::is_default_constructible_v<NoDefault>);
+static_assert(base::is_move_constructible_v<Movable>);
+static_assert(base::is_nothrow_move_constructible_v<Movable>);
+static_assert(!base::is_nothrow_move_constructible_v<ThrowingMove>);
+
+TEST(TraitsTest, ObjectTraitsCompile) { SUCCEED(); }
 }  // namespace

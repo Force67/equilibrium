@@ -193,4 +193,73 @@ struct underlying_type {
 template <class E>
 using underlying_type_t = typename underlying_type<E>::type;
 
+template <class T>
+struct remove_cv {
+  using type = T;
+};
+template <class T>
+struct remove_cv<const T> {
+  using type = T;
+};
+template <class T>
+struct remove_cv<volatile T> {
+  using type = T;
+};
+template <class T>
+struct remove_cv<const volatile T> {
+  using type = T;
+};
+template <class T>
+using remove_cv_t = typename remove_cv<T>::type;
+
+namespace traits_detail {
+template <class T>
+struct strip_reference {
+  using type = T;
+};
+template <class T>
+struct strip_reference<T&> {
+  using type = T;
+};
+template <class T>
+struct strip_reference<T&&> {
+  using type = T;
+};
+}  // namespace traits_detail
+
+template <class T>
+struct remove_cvref {
+  using type = remove_cv_t<typename traits_detail::strip_reference<T>::type>;
+};
+template <class T>
+using remove_cvref_t = typename remove_cvref<T>::type;
+
+template <class T>
+inline constexpr bool is_array_v = false;
+template <class T>
+inline constexpr bool is_array_v<T[]> = true;
+template <class T, decltype(sizeof(0)) N>
+inline constexpr bool is_array_v<T[N]> = true;
+
+// Size of the first dimension, 0 for a non-array or an array of unknown bound.
+template <class T>
+inline constexpr decltype(sizeof(0)) extent_v = 0;
+template <class T, decltype(sizeof(0)) N>
+inline constexpr decltype(sizeof(0)) extent_v<T[N]> = N;
+
+// remove_extent lives in base/memory/cxx_lifetime.h.
+
+// The object-lifetime traits have no portable library-free spelling; these
+// builtins are what GCC, Clang and MSVC's own <type_traits> are built on.
+template <class T>
+inline constexpr bool is_trivially_copyable_v = __is_trivially_copyable(T);
+template <class T>
+inline constexpr bool is_trivially_destructible_v = __has_trivial_destructor(T);
+template <class T>
+inline constexpr bool is_default_constructible_v = __is_constructible(T);
+template <class T>
+inline constexpr bool is_move_constructible_v = __is_constructible(T, T&&);
+template <class T>
+inline constexpr bool is_nothrow_move_constructible_v = __is_nothrow_constructible(T, T&&);
+
 }  // namespace base

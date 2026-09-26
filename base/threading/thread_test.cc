@@ -127,4 +127,8 @@ TEST(Thread, SleepUnblocksAWaitingThread) {
   EXPECT_EQ(woke.load(), 1);
 }
 
+TEST(Thread, ProcessorCountIsNonZero) {
+  EXPECT_GE(base::GetProcessorCount(), 1u);
+}
+
 }  // namespace

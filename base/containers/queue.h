@@ -6,6 +6,7 @@
 
 #include <base/arch.h>
 #include <base/containers/deque.h>
+#include <base/memory/move.h>
 
 namespace base {
 
@@ -13,6 +14,7 @@ template <typename T, class TAllocator = DefaultAllocator>
 class Queue {
  public:
   void push(const T& value) { deque_.push_back(value); }
+  void push(T&& value) { deque_.push_back(base::move(value)); }
   void pop() { deque_.pop_front(); }
 
   T& front() { return deque_.front(); }
