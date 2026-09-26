@@ -7,6 +7,7 @@
 
 #if defined(_WIN32) || defined(OS_WIN)
 #include <intrin.h>
+#include <base/win/minwin.h>
 #define PA_YIELD_PROCESSOR _mm_pause()
 #elif defined(__x86_64__) || defined(__i386__)
 #define PA_YIELD_PROCESSOR __asm__ __volatile__("pause")
@@ -24,6 +25,22 @@
 #endif
 
 namespace base {
+
+#if defined(_WIN32) || defined(OS_WIN)
+// Out of line on Windows so spinning_mutex.h never needs minwin.h, which on
+// mingw is all of <windows.h>. lock_ has SRWLOCK's layout, a single pointer.
+void SpinningMutex::LockSlow() {
+  ::AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
+}
+
+bool SpinningMutex::Try() {
+  return !!::TryAcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
+}
+
+void SpinningMutex::Release() {
+  ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
+}
+#endif
 
 void SpinningMutex::Reinit() {
   Release();

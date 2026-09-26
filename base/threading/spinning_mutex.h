@@ -19,7 +19,7 @@ class BASE_EXPORT SpinningMutex {
  public:
   inline constexpr SpinningMutex();
   STRONG_INLINE void Acquire();
-  // Inline on POSIX; out of line on Windows (spinning_mutex_win.cc), so that
+  // Inline on POSIX; out of line on Windows (spinning_mutex.cc), so that
   // this header, which every base::Mutex user includes, never pulls a Windows
   // header and its macros into the including file.
   void Release();
