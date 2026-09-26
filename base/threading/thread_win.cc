@@ -121,6 +121,13 @@ void YieldCurrentThread() {
   ::SwitchToThread();
 }
 
+u32 GetProcessorCount() {
+  // ALL_PROCESSOR_GROUPS counts past the 64-processor group a plain
+  // GetSystemInfo is limited to.
+  const DWORD count = ::GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
+  return count > 0 ? static_cast<u32>(count) : 1u;
+}
+
 u32 GetCurrentThreadIndex() {
   return ::GetCurrentThreadId();
 }

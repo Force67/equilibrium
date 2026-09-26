@@ -436,6 +436,16 @@ class BasicBaseString {
   character_type* begin() noexcept { return get_data(); }
   character_type* end() noexcept { return get_data() + get_size(); }
 
+  character_type& front() {
+    BASE_BUGCHECK(!empty(), "Cannot access .front() of an empty string");
+    return get_data()[0];
+  }
+
+  const character_type& front() const {
+    BASE_BUGCHECK(!empty(), "Cannot access .front() of an empty string");
+    return get_data()[0];
+  }
+
   character_type& back() {
     BASE_BUGCHECK(!empty(), "Cannot access .back() of an empty string");
     return get_data()[get_size() - 1];

@@ -4,6 +4,8 @@
 #include <base/arch.h>
 #include <base/check.h>
 
+#include <stddef.h>
+
 namespace base {
 // a special size value, for indicating when we failed to find something
 static constexpr mem_size kStringNotFoundPos = mem_size(-1);

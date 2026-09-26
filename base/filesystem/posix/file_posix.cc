@@ -92,8 +92,10 @@ File::Error CallFcntlFlock(PlatformFile file, File::LockMode* mode) {
 
 }  // namespace
 
-void File::Info::FromStat(const stat_wrapper_t& /*stat_info*/) {
-  BASE_IMPOSSIBLE;
+void File::Info::FromStat(const stat_wrapper_t& stat_info) {
+  is_directory = S_ISDIR(stat_info.st_mode);
+  is_symbolic_link = S_ISLNK(stat_info.st_mode);
+  size = static_cast<i64>(stat_info.st_size);
 }
 
 bool File::IsValid() const {

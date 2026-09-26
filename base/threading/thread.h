@@ -75,6 +75,10 @@ inline void SleepForMilliseconds(u64 milliseconds) {
 // Offer the rest of this thread's time slice to the scheduler.
 BASE_EXPORT void YieldCurrentThread();
 
+// Number of online logical processors. Never 0; falls back to 1 when the OS
+// cannot say.
+BASE_EXPORT u32 GetProcessorCount();
+
 BASE_EXPORT void SetThreadPriority(Thread::Handle, Thread::Priority new_priority);
 BASE_EXPORT Thread::Priority GetThreadPriority(Thread::Handle);
 BASE_EXPORT i32 GetNativeThreadPriority(Thread::Handle);

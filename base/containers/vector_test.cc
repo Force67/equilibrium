@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <base/containers/vector.h>
+#include <base/strings/xstring.h>
 #include <base/numeric_limits.h>
 
 namespace {
@@ -470,4 +471,35 @@ TEST(VectorOverflowDeathTest, InsertCountThatOverflowsTheSize) {
       "element count sum overflows");
 }
 
+}  // namespace
+
+namespace {
+// std::vector lets an argument name one of its own elements; growing before
+// reading it used to read freed storage.
+TEST(VectorAliasing, PushBackOwnElementWhileGrowing) {
+  base::Vector<base::String> v;
+  v.push_back("a fairly long string that lives on the heap, not inline");
+  for (int i = 0; i < 40; ++i) {
+    v.push_back(v.back());
+    v.emplace_back(v.front());
+  }
+  for (const base::String& s : v) EXPECT_EQ(s, v[0]);
+  EXPECT_EQ(v.size(), 81u);
+}
+
+TEST(VectorAliasing, InsertAndResizeOwnElement) {
+  base::Vector<base::String> v;
+  v.push_back("first element, long enough to need a heap block");
+  v.push_back("second element, also long enough to need a heap block");
+  v.shrink_to_fit();
+  v.insert(v.begin(), v[1]);
+  ASSERT_EQ(v.size(), 3u);
+  EXPECT_EQ(v[0], v[2]);
+  v.insert(v.begin() + 1, 2, v[0]);
+  ASSERT_EQ(v.size(), 5u);
+  EXPECT_EQ(v[1], v[4]);
+  EXPECT_EQ(v[2], v[4]);
+  v.resize(64, v[3]);
+  EXPECT_EQ(v[63], v[3]);
+}
 }  // namespace

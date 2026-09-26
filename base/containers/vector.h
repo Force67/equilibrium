@@ -189,10 +189,11 @@ class Vector {
     return *this;
   }
 
-  void resize(mem_size new_size, const value_type& value) {
+  void resize(mem_size new_size, const value_type& element) {
     const auto current_size = size();
     if (new_size > current_size) {
       const auto count = new_size - current_size;
+      const value_type value(element);  // may name an element; see insert
       if (new_size > capacity()) {
         GrowCapacity(current_size, new_size);
       }
@@ -319,9 +320,12 @@ class Vector {
   }
 
   // single element at a specified position
-  T* insert(T* pos, const T& value) {
+  T* insert(T* pos, const T& element) {
     BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
     const auto index = pos - begin();
+    // A copy first: growing or shifting would move an element of this vector
+    // out from under a reference to it.
+    const T value(element);
 
     if (size() == capacity()) {
       const mem_size new_cap = CalculateNewCapacity(size());
@@ -342,11 +346,12 @@ class Vector {
   }
 
   // Inserts multiple copies of an element
-  void insert(T* pos, mem_size count, const T& value) {
+  void insert(T* pos, mem_size count, const T& element) {
     if (count == 0)
       return;
     BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
     const auto index = pos - begin();
+    const T value(element);  // see insert(pos, value)
 
     const mem_size required = base::CheckedCountSum(size(), count);
     if (required > capacity()) {
@@ -621,12 +626,26 @@ class Vector {
     }
   }
 
+  // Constructs the new element in the new block before the old ones move:
+  // args may name an element of this vector (v.push_back(v.back())), and
+  // growing first would leave them pointing at freed storage.
   template <typename... TArgs>
   void InsertAtEnd(TArgs&&... args) {
     const auto current_size = size();
     const auto new_cap = CalculateNewCapacity(current_size);
-    GrowCapacity(current_size, new_cap);
-    ::new (static_cast<void*>(end_++)) T(base::forward<TArgs>(args)...);
+    T* new_block = Vector::Allocate(new_cap);
+    ::new (static_cast<void*>(new_block + current_size)) T(base::forward<TArgs>(args)...);
+    if (data_) {
+      T* new_spot = new_block;
+      for (T* first = data_; first != end_; ++first, ++new_spot) {
+        ::new (reinterpret_cast<void*>(new_spot)) T(base::move(*first));
+      }
+      base::DestructRange(data_, end_);
+      Vector::Free(data_, capacity());
+    }
+    data_ = new_block;
+    end_ = new_block + current_size + 1;
+    capacity_ = new_block + new_cap;
   }
 
   void GrowCapacity(mem_size current_size, mem_size new_cap) {

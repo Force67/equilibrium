@@ -57,3 +57,29 @@ TEST(AlgorithmTest, SortOrdersAscending) {
 }
 
 }  // namespace
+
+namespace {
+struct Keyed {
+  i32 key;
+  i32 payload;
+};
+
+TEST(AlgorithmBounds, LowerAndUpperBoundWithComparator) {
+  Keyed items[] = {{1, 0}, {3, 1}, {3, 2}, {3, 3}, {7, 4}};
+  auto before = [](const Keyed& k, i32 v) { return k.key < v; };
+  auto after = [](i32 v, const Keyed& k) { return v < k.key; };
+  EXPECT_EQ(base::LowerBound(items, items + 5, 3, before), items + 1);
+  EXPECT_EQ(base::UpperBound(items, items + 5, 3, after), items + 4);
+  EXPECT_EQ(base::LowerBound(items, items + 5, 0, before), items);
+  EXPECT_EQ(base::LowerBound(items, items + 5, 9, before), items + 5);
+  EXPECT_EQ(base::UpperBound(items, items + 5, 7, after), items + 5);
+  EXPECT_EQ(base::LowerBound(items, items, 3, before), items);
+}
+
+TEST(AlgorithmBounds, UpperBoundPlain) {
+  i32 v[] = {1, 2, 2, 2, 5};
+  EXPECT_EQ(base::UpperBound(v, v + 5, 2), v + 4);
+  EXPECT_EQ(base::UpperBound(v, v + 5, 0), v);
+  EXPECT_EQ(base::UpperBound(v, v + 5, 5), v + 5);
+}
+}  // namespace

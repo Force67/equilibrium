@@ -6,6 +6,8 @@
 #include <base/filesystem/file.h>
 #include <base/numeric_limits.h>
 
+#include <stdio.h>
+
 #if 0
 #include <base/filesystem/file_util.h>
 #include <base/filesystem/scoped_temp_dir.h>
@@ -122,4 +124,26 @@ TEST(FileTests, Create) {
   EXPECT_FALSE(base::PathExists(file_path));
 }
 #endif
+}  // namespace
+
+namespace {
+// GetInfo used to leave Info at its defaults on POSIX: FromStat was never
+// filled in, so every file reported size 0.
+TEST(FileTests, GetInfoReportsSizeAndKind) {
+  const base::Path file_path("file_getinfo_test.tmp");
+  {
+    base::File file(file_path, base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE |
+                                   base::File::FLAG_READ);
+    ASSERT_TRUE(file.IsValid());
+    const char kData[] = "0123456789";
+    ASSERT_EQ(file.Write(0, kData, 10), 10);
+
+    base::File::Info info;
+    ASSERT_TRUE(file.GetInfo(&info));
+    EXPECT_EQ(info.size, 10);
+    EXPECT_FALSE(info.is_directory);
+    EXPECT_FALSE(info.is_symbolic_link);
+  }
+  ::remove("file_getinfo_test.tmp");
+}
 }  // namespace

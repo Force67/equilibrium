@@ -97,7 +97,7 @@ inline mem_size CountIf(Iter first, Iter last, Pred pred) {
   return n;
 }
 
-// ── RemoveIf (unstable - swaps to end) ──────────────────────────────
+// ── RemoveIf (keeps the order of what it keeps, like std::remove_if) ──
 template <typename Iter, typename Pred>
 inline Iter RemoveIf(Iter first, Iter last, Pred pred) {
   Iter result = first;
@@ -301,6 +301,39 @@ inline T* LowerBound(T* first, T* last, const T& value) {
       last = mid;
   }
   return first;
+}
+
+// First element for which comp(element, value) is false: std::lower_bound
+// with a comparator, which may compare an element against a different type
+// (a record against its key).
+template <typename T, typename V, typename Comp>
+inline T* LowerBound(T* first, T* last, const V& value, Comp comp) {
+  while (first < last) {
+    T* mid = first + (last - first) / 2;
+    if (comp(*mid, value))
+      first = mid + 1;
+    else
+      last = mid;
+  }
+  return first;
+}
+
+// First element for which comp(value, element) is true: std::upper_bound.
+template <typename T, typename V, typename Comp>
+inline T* UpperBound(T* first, T* last, const V& value, Comp comp) {
+  while (first < last) {
+    T* mid = first + (last - first) / 2;
+    if (!comp(value, *mid))
+      first = mid + 1;
+    else
+      last = mid;
+  }
+  return first;
+}
+
+template <typename T>
+inline T* UpperBound(T* first, T* last, const T& value) {
+  return UpperBound(first, last, value, [](const T& a, const T& b) { return a < b; });
 }
 
 }  // namespace base

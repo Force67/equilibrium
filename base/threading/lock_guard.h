@@ -78,6 +78,17 @@ class UniqueLock {
     return *this;
   }
 
+  // Release and reacquire while keeping the association, so a
+  // base::ConditionVariable can drop the lock across its wait.
+  void lock() {
+    m_->lock();
+    owns_ = true;
+  }
+  void unlock() {
+    m_->unlock();
+    owns_ = false;
+  }
+
   bool owns_lock() const { return owns_; }
   explicit operator bool() const { return owns_; }
 

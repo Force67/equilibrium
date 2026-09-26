@@ -4,6 +4,8 @@
 #include <base/filesystem/path.h>
 #include <base/text/code_point_validation.h>
 
+#include <stddef.h>
+
 namespace base {
 
 namespace {

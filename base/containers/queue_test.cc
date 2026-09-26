@@ -3,6 +3,7 @@
 #include <string>
 
 #include "queue.h"
+#include "base/memory/unique_pointer.h"
 
 namespace base {
 namespace {
@@ -51,6 +52,18 @@ TEST(QueueTest, GrowsPastInitialCapacity) {
     queue.pop();
   }
   EXPECT_TRUE(queue.empty());
+}
+
+TEST(QueueTest, PushMovesMoveOnlyElements) {
+  base::Queue<base::UniquePointer<int>> queue;
+  queue.push(base::MakeUnique<int>(7));
+  auto value = base::MakeUnique<int>(8);
+  queue.push(base::move(value));
+  EXPECT_FALSE(value);
+  ASSERT_EQ(queue.size(), 2u);
+  EXPECT_EQ(*queue.front(), 7);
+  queue.pop();
+  EXPECT_EQ(*queue.front(), 8);
 }
 
 }  // namespace

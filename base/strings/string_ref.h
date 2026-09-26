@@ -14,6 +14,8 @@
 #include <base/hashing/fnv1a.h>
 #include <base/strings/base_string.h>
 
+#include <stddef.h>
+
 namespace base {
 
 // template <typename T>
@@ -373,14 +375,48 @@ class BasicStringRef {
     return base::MemCompare(data_ + (length_ - s.size()), s.data(), s.size() * sizeof(TChar)) == 0;
   }
 
+  // The find_*_not_of family follows std::string_view (and base::String):
+  // the second argument is a position, never a set length.
   constexpr mem_size find_first_not_of(const TChar* s,
                                        mem_size pos,
                                        mem_size count) const {
-    return base::StringSearchNotOf(data_, length(), s, pos, count);
+    for (mem_size i = pos; i < length_; ++i) {
+      if (!ContainsChar(s, count, data_[i]))
+        return i;
+    }
+    return npos;
   }
 
-  constexpr mem_size find_last_not_of(const TChar* s, mem_size count) const {
-    return base::StringSearchLastNotOf(data_, length(), s, count);
+  constexpr mem_size find_first_not_of(const TChar* set, mem_size pos = 0) const {
+    if (!set)
+      return npos;
+    return find_first_not_of(set, pos, base::CountStringLength(set));
+  }
+
+  constexpr mem_size find_first_not_of(TChar c, mem_size pos = 0) const {
+    return find_first_not_of(&c, pos, 1);
+  }
+
+  constexpr mem_size find_last_not_of(const TChar* s, mem_size pos, mem_size count) const {
+    if (length_ == 0)
+      return npos;
+    mem_size i = (pos == npos || pos >= length_) ? length_ - 1 : pos;
+    for (;; --i) {
+      if (!ContainsChar(s, count, data_[i]))
+        return i;
+      if (i == 0)
+        return npos;
+    }
+  }
+
+  constexpr mem_size find_last_not_of(const TChar* set, mem_size pos = npos) const {
+    if (!set)
+      return npos;
+    return find_last_not_of(set, pos, base::CountStringLength(set));
+  }
+
+  constexpr mem_size find_last_not_of(TChar c, mem_size pos = npos) const {
+    return find_last_not_of(&c, pos, 1);
   }
 
 #if 0
@@ -422,6 +458,14 @@ class BasicStringRef {
   }
 
  private:
+  static constexpr bool ContainsChar(const TChar* set, mem_size count, TChar c) {
+    for (mem_size k = 0; k < count; ++k) {
+      if (set[k] == c)
+        return true;
+    }
+    return false;
+  }
+
   static constexpr TChar s_empty_[1] = {0};
   const TChar* data_;
   u32 length_;
