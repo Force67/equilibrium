@@ -7,7 +7,9 @@
 #include "build/build_config.h"
 
 #if defined(OS_WIN)
-#include <windows.h>
+// minwin.h, not <windows.h>: this header reaches every user of base::File, and
+// <windows.h>'s macros (near, far, MemoryBarrier, ...) must not follow it there.
+#include "base/win/minwin.h"
 #include "base/win/scoped_handle.h"
 #endif
 

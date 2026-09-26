@@ -1,14 +1,23 @@
 // Copyright (C) 2026 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
 
-// The lock headers come first, before anything else can pull in <windows.h>:
-// they must not bring its macros along, or every file holding a mutex has names
-// like MemoryBarrier or near rewritten under it.
+// These headers come first, before anything else can pull in <windows.h>: they
+// reach nearly every file and must not bring its macros along, or names like
+// MemoryBarrier or near get rewritten under them.
 #include <base/threading/mutex.h>
 #include <base/threading/spinning_mutex.h>
 
 #if defined(MemoryBarrier) || defined(near) || defined(far) || defined(min) || defined(max)
 #error "a base lock header leaked a Windows macro"
+#endif
+
+// base::File needs HANDLE, which it takes from minwin.h. On mingw minwin.h is
+// all of <windows.h>, so only the other compilers can hold it to this.
+#include <base/filesystem/file.h>
+
+#if !defined(__MINGW32__) && \
+    (defined(MemoryBarrier) || defined(near) || defined(far) || defined(min) || defined(max))
+#error "base/filesystem/file.h leaked a Windows macro"
 #endif
 
 #include <gtest/gtest.h>
