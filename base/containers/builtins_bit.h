@@ -28,9 +28,8 @@ template <typename T>
 #endif  // _M_IX86
   }
 }
-#endif
-
-#if defined(OS_POSIX)
+#else
+// Every non-MSVC compiler, mingw-w64 included, which is not OS_POSIX.
 template <typename T>
 [[nodiscard]] mem_size PopCount(const T value) noexcept {
   constexpr mem_size _Digits = base::MinMax<T>::digits();

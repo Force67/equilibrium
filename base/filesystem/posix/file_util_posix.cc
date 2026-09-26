@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <dirent.h>
 #include <fcntl.h>  // for O_NONBLOCK etc
+#include <stdlib.h>  // realpath, mkdtemp
 
 #include <base/export.h>
 #include <build/build_config.h>

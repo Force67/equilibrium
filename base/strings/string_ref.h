@@ -14,6 +14,8 @@
 #include <base/hashing/fnv1a.h>
 #include <base/strings/base_string.h>
 
+#include <stddef.h>
+
 namespace base {
 
 // template <typename T>

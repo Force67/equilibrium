@@ -616,6 +616,7 @@ TEST(BaseStringAssign, AssignsFromAnotherStringLike) {
 
 // Without the formatter specialization C++23 range formatting takes over and
 // prints ['a', 'b'], and a standard library without it fails to compile at all.
+#if !defined(BASE_NO_STD_FORMAT)
 TEST(BaseStringFormat, FormatsAsTextNotAsARange) {
   const base::String s = "hello";
 
@@ -635,6 +636,7 @@ TEST(BaseStringFormat, FormatsAStringRef) {
 
   EXPECT_EQ(std::format("{}", ref), "world");
 }
+#endif  // !BASE_NO_STD_FORMAT
 
 TEST(BaseStringViewInterop, ConvertsToAStdStringView) {
   base::String s = "meshes/rock.nif";

@@ -6,6 +6,8 @@
 #include <base/standard_streams.h>
 #include <base/strings/format.h>
 
+#include <stddef.h>
+
 namespace base {
 
 namespace {
