@@ -36,7 +36,12 @@ class StaticFunction<R(Args...), MaxSize> {
 
   StaticFunction(StaticFunction&& other) { other.swap(*this); }
 
+  // Not for StaticFunction itself: a non-const lvalue or a const rvalue would
+  // otherwise pick this over the copy constructor and try to store a
+  // StaticFunction inside itself.
   template <class F>
+    requires(!base::is_same_v<base::remove_cvref_t<F>, StaticFunction> &&
+             !base::is_same_v<base::remove_cvref_t<F>, base::nullptr_t>)
   StaticFunction(F&& f) {
     using f_type = base::decay_t<F>;
     static_assert(alignof(f_type) <= kStorageAlign, "invalid alignment");
@@ -72,6 +77,8 @@ class StaticFunction<R(Args...), MaxSize> {
   }
 
   template <typename F>
+    requires(!base::is_same_v<base::remove_cvref_t<F>, StaticFunction> &&
+             !base::is_same_v<base::remove_cvref_t<F>, base::nullptr_t>)
   StaticFunction& operator=(F&& f) {
     StaticFunction(base::forward<F>(f)).swap(*this);
     return *this;
