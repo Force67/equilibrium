@@ -6,6 +6,7 @@
 #include <base/memory/move.h>
 #include <base/memory/cxx_lifetime.h>
 #include <base/check.h>
+#include <base/meta/traits.h>
 #include <base/containers/container_traits.h>
 #include <new>
 #include <stddef.h>  // max_align_t
@@ -195,11 +196,15 @@ struct Function<R(Args...)> {
   bool operator==(decltype(nullptr)) const noexcept { return !has_target_; }
   bool operator!=(decltype(nullptr)) const noexcept { return has_target_; }
 
-  // SFINAE helper: true for everything except Function itself and nullptr_t
+  // SFINAE helper: true for everything except Function itself and nullptr_t.
+  // cv-qualifiers are stripped too: a const Function&& (moving a closure that
+  // captured a Function by copy) would otherwise bind here ahead of the copy
+  // constructor and wrap the Function in another Function, recursing without
+  // bound.
   template <typename T>
   static constexpr bool IsCallable =
-      !base::ISSame<typename base::remove_reference<T>::type, Function> &&
-      !base::ISSame<typename base::remove_reference<T>::type, decltype(nullptr)>;
+      !base::ISSame<base::remove_cvref_t<T>, Function> &&
+      !base::ISSame<base::remove_cvref_t<T>, decltype(nullptr)>;
 
   // Constructor from callable (lambda, functor, function pointer)
   template <typename T>
