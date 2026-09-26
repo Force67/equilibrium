@@ -9,6 +9,9 @@
 #include "base/strings/format.h"
 
 #include <windows.h>
+// This file defines base::CreateDirectory; <windows.h> just mapped the name to
+// CreateDirectoryW. The Win32 call below is spelled CreateDirectoryW directly.
+#undef CreateDirectory
 #include <base/threading/scoped_blocking_call.h>
 
 namespace base {

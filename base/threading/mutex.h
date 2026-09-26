@@ -28,8 +28,6 @@ using SharedMutex = std::shared_mutex;
 
 #if defined(__linux__) || defined(OS_LINUX) || defined(OS_POSIX)
 #include <pthread.h>
-#elif defined(_WIN32) || defined(OS_WIN)
-#include <base/win/minwin.h>
 #endif
 
 namespace base {
@@ -60,24 +58,22 @@ class SharedMutex {
 
 #elif defined(_WIN32) || defined(OS_WIN)
 
-class SharedMutex {
+// Out of line (mutex_win.cc) so this header never pulls a Windows header and
+// its macros into the including file.
+class BASE_EXPORT SharedMutex {
  public:
   constexpr SharedMutex() noexcept = default;
 
   SharedMutex(const SharedMutex&) = delete;
   SharedMutex& operator=(const SharedMutex&) = delete;
 
-  void lock() { ::AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_)); }
-  void unlock() { ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_)); }
-  bool try_lock() {
-    return !!::TryAcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
-  }
+  void lock();
+  void unlock();
+  bool try_lock();
 
-  void lock_shared() { ::AcquireSRWLockShared(reinterpret_cast<PSRWLOCK>(&lock_)); }
-  void unlock_shared() { ::ReleaseSRWLockShared(reinterpret_cast<PSRWLOCK>(&lock_)); }
-  bool try_lock_shared() {
-    return !!::TryAcquireSRWLockShared(reinterpret_cast<PSRWLOCK>(&lock_));
-  }
+  void lock_shared();
+  void unlock_shared();
+  bool try_lock_shared();
 
  private:
   // Matches the SRWLOCK ABI (single void*). SRWLOCK_INIT is {nullptr}.

@@ -11,8 +11,6 @@
 #include <errno.h>
 #include <pthread.h>
 #include <base/atomic.h>
-#elif defined(_WIN32) || defined(OS_WIN)
-#include <base/win/minwin.h>
 #endif
 
 namespace base {
@@ -21,8 +19,11 @@ class BASE_EXPORT SpinningMutex {
  public:
   inline constexpr SpinningMutex();
   STRONG_INLINE void Acquire();
-  STRONG_INLINE void Release();
-  STRONG_INLINE bool Try();
+  // Inline on POSIX; out of line on Windows (spinning_mutex.cc), so that
+  // this header, which every base::Mutex user includes, never pulls a Windows
+  // header and its macros into the including file.
+  void Release();
+  bool Try();
   void AssertAcquired() const {}
   void Reinit();
 
@@ -50,10 +51,8 @@ class BASE_EXPORT SpinningMutex {
 
   base::Atomic<int32_t> state_{kUnlocked};
 #elif defined(_WIN32) || defined(OS_WIN)
-  struct PA_CHROME_SRWLOCK {
-    void* Ptr;
-  };
-  PA_CHROME_SRWLOCK lock_{SRWLOCK_INIT};
+  // SRWLOCK's layout, a single pointer; SRWLOCK_INIT is all zero.
+  void* lock_ = nullptr;
 #endif
 };
 
@@ -80,21 +79,6 @@ STRONG_INLINE void SpinningMutex::Release() {
        kLockedContended)) {
     FutexWake();
   }
-}
-#endif
-
-#if defined(_WIN32) || defined(OS_WIN)
-
-STRONG_INLINE void SpinningMutex::LockSlow() {
-  ::AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
-}
-
-STRONG_INLINE bool SpinningMutex::Try() {
-  return !!::TryAcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
-}
-
-STRONG_INLINE void SpinningMutex::Release() {
-  ::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
 }
 #endif
 

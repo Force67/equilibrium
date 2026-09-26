@@ -4,6 +4,8 @@
 #include <base/logging.h>
 #include <base/filesystem/memory_mapped_file.h>
 
+#include <windows.h>
+
 namespace base {
 
 bool MemoryMappedFile::Map() {
