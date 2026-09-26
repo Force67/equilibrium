@@ -26,6 +26,13 @@
 
 #include <base/arch.h>
 
+// <windows.h> maps CreateDirectory to CreateDirectoryW. Declare and call the
+// base function under its own name whether or not a Windows header came first,
+// as environment_variables.h does for its names.
+#if defined(CreateDirectory)
+#undef CreateDirectory
+#endif
+
 namespace base {
 
 // Create a directory within another directory.
