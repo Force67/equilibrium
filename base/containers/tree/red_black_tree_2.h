@@ -291,6 +291,56 @@ class RedBlackTree2 {
     return node;
   }
 
+  Node* Maximum(Node* node) const {
+    while (node->right != nil_) {
+      node = node->right;
+    }
+    return node;
+  }
+
+  // In-order predecessor; the maximum for nil(), nil() before the minimum.
+  Node* Predecessor(Node* node) const {
+    if (node == nil_)
+      return empty() ? nil_ : Maximum(root_);
+    if (node->left != nil_) {
+      return Maximum(node->left);
+    }
+    Node* parent = node->parent;
+    while (parent != nil_ && node == parent->left) {
+      node = parent;
+      parent = parent->parent;
+    }
+    return parent;
+  }
+
+  // The first node not ordered before `value`, or nil().
+  Node* LowerBound(const T& value) const {
+    Node* found = nil_;
+    for (Node* node = root_; node != nil_;) {
+      if (Comparator::less_than(node->value, value)) {
+        node = node->right;
+      } else {
+        found = node;
+        node = node->left;
+      }
+    }
+    return found;
+  }
+
+  // The first node ordered after `value`, or nil().
+  Node* UpperBound(const T& value) const {
+    Node* found = nil_;
+    for (Node* node = root_; node != nil_;) {
+      if (Comparator::less_than(value, node->value)) {
+        found = node;
+        node = node->left;
+      } else {
+        node = node->right;
+      }
+    }
+    return found;
+  }
+
   // In-order successor; returns nil() past the maximum. Node pointers are
   // stable across Erase (deletion transplants nodes instead of moving
   // values), which is what makes iteration over this tree possible.

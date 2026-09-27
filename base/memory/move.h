@@ -59,6 +59,9 @@ struct is_pointer<T*> {
   static constexpr bool value = true;
 };
 
+template <typename T>
+inline constexpr bool is_pointer_v = is_pointer<T>::value;
+
 // typename remove_reference<T>::type&
 template <typename T>
 constexpr T&& forward(T& x) noexcept {

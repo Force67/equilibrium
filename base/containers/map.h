@@ -65,6 +65,16 @@ class Map {
       node_ = tree_->Successor(node_);
       return before;
     }
+    // From end() this steps to the last element.
+    IteratorBase& operator--() {
+      node_ = tree_->Predecessor(node_);
+      return *this;
+    }
+    IteratorBase operator--(int) {
+      IteratorBase before = *this;
+      node_ = tree_->Predecessor(node_);
+      return before;
+    }
 
     bool operator==(const IteratorBase& other) const {
       return node_ == other.node_;
@@ -133,6 +143,20 @@ class Map {
 
   // 0 or 1, for callers written against the std::map spelling.
   [[nodiscard]] mem_size count(const Key& key) const { return contains(key) ? 1 : 0; }
+
+  // The first element whose key is not less than / greater than `key`.
+  iterator lower_bound(const Key& key) {
+    return iterator(tree_.LowerBound(Probe(key)), &tree_);
+  }
+  const_iterator lower_bound(const Key& key) const {
+    return const_iterator(tree_.LowerBound(Probe(key)), &tree_);
+  }
+  iterator upper_bound(const Key& key) {
+    return iterator(tree_.UpperBound(Probe(key)), &tree_);
+  }
+  const_iterator upper_bound(const Key& key) const {
+    return const_iterator(tree_.UpperBound(Probe(key)), &tree_);
+  }
 
   bool contains(const Key& key) const {
     return tree_.Contains(Probe(key));

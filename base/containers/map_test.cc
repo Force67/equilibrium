@@ -220,6 +220,47 @@ TEST(MapValueSemanticsTest, MoveAssignmentReplacesTheTarget) {
   EXPECT_TRUE(map.empty());
 }
 
+TEST(MapOrderTest, BoundsFindTheNeighbouringKeys) {
+  base::Map<int, int> map;
+  for (int k : {10, 20, 30})
+    map.insert(k, k * 2);
+
+  EXPECT_EQ(map.lower_bound(20)->first, 20);
+  EXPECT_EQ(map.lower_bound(15)->first, 20);
+  EXPECT_EQ(map.upper_bound(20)->first, 30);
+  EXPECT_EQ(map.lower_bound(5)->first, 10);
+  EXPECT_TRUE(map.lower_bound(31) == map.end());
+  EXPECT_TRUE(map.upper_bound(30) == map.end());
+
+  const base::Map<int, int>& cmap = map;
+  EXPECT_EQ(cmap.upper_bound(10)->second, 40);
+}
+
+TEST(MapOrderTest, IteratorsWalkBackwards) {
+  base::Map<int, int> map;
+  for (int k : {3, 1, 2})
+    map.insert(k, k);
+
+  auto it = map.end();
+  --it;
+  EXPECT_EQ(it->first, 3);
+  --it;
+  EXPECT_EQ(it->first, 2);
+  it--;
+  EXPECT_EQ(it->first, 1);
+  EXPECT_TRUE(it == map.begin());
+
+  auto hit = map.upper_bound(2);
+  --hit;
+  EXPECT_EQ(hit->first, 2);
+}
+
+TEST(MapOrderTest, EmptyMapBoundsAreEnd) {
+  base::Map<int, int> map;
+  EXPECT_TRUE(map.lower_bound(1) == map.end());
+  EXPECT_TRUE(map.upper_bound(1) == map.end());
+}
+
 TEST(SetValueSemanticsTest, CopyIsDeepAndIndependent) {
   base::Set<i32> set;
   set.insert(1);
