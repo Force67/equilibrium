@@ -41,6 +41,19 @@ inline OutputIt Copy(InputIt first, InputIt last, OutputIt dest) {
   return dest;
 }
 
+// ── Prev / Next ─────────────────────────────────────────────────────
+// The iterator before / after `it`, which is left alone.
+template <typename Iter>
+inline Iter Prev(Iter it) {
+  --it;
+  return it;
+}
+template <typename Iter>
+inline Iter Next(Iter it) {
+  ++it;
+  return it;
+}
+
 // ── CopyN ───────────────────────────────────────────────────────────
 template <typename InputIt, typename OutputIt>
 inline OutputIt CopyN(InputIt first, mem_size count, OutputIt dest) {

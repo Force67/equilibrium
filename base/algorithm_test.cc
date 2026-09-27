@@ -5,6 +5,7 @@
 
 #include <base/containers/array.h>
 #include <base/containers/hash_map.h>
+#include <base/containers/map.h>
 #include <base/containers/vector.h>
 #include <base/math/value_bounds.h>
 
@@ -125,6 +126,18 @@ TEST(AlgorithmAdditions, ArrayAndVectorOrderLexicographically) {
   EXPECT_TRUE(x < y);
   EXPECT_FALSE(y < x);
   EXPECT_TRUE((base::Vector<int>{0, 9} < base::Vector<int>{1}));
+}
+
+TEST(AlgorithmAdditions, PrevAndNextLeaveTheIteratorAlone) {
+  base::Map<int, int> map;
+  map[1] = 10;
+  map[2] = 20;
+  auto it = map.find(2);
+  EXPECT_EQ(base::Prev(it)->first, 1);
+  EXPECT_EQ(it->first, 2);
+  EXPECT_TRUE(base::Next(it) == map.end());
+  int v[3] = {1, 2, 3};
+  EXPECT_EQ(*base::Next(v), 2);
 }
 
 }  // namespace
