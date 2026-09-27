@@ -3,6 +3,11 @@
 
 #include <gtest/gtest.h>
 
+#include <base/containers/array.h>
+#include <base/containers/hash_map.h>
+#include <base/containers/vector.h>
+#include <base/math/value_bounds.h>
+
 #include <base/algorithm.h>
 #include <base/containers/vector.h>
 
@@ -82,4 +87,44 @@ TEST(AlgorithmBounds, UpperBoundPlain) {
   EXPECT_EQ(base::UpperBound(v, v + 5, 0), v);
   EXPECT_EQ(base::UpperBound(v, v + 5, 5), v + 5);
 }
+TEST(AlgorithmAdditions, CopyNAndNoneOf) {
+  int src[4] = {1, 2, 3, 4};
+  int dst[4] = {};
+  EXPECT_EQ(base::CopyN(src, 3, dst), dst + 3);
+  EXPECT_EQ(dst[2], 3);
+  EXPECT_EQ(dst[3], 0);
+  EXPECT_TRUE(base::NoneOf(src, src + 4, [](int v) { return v > 4; }));
+  EXPECT_FALSE(base::NoneOf(src, src + 4, [](int v) { return v == 2; }));
+}
+
+TEST(AlgorithmAdditions, EraseIfOnANodeContainer) {
+  base::HashMap<int, int> map;
+  for (int i = 0; i < 10; i++)
+    map[i] = i;
+  EXPECT_EQ(base::EraseIf(map, [](const auto& kv) { return kv.second % 3 == 0; }),
+            4u);
+  EXPECT_EQ(map.size(), 6u);
+  EXPECT_FALSE(map.contains(3));
+  base::Vector<int> vec{1, 2, 3, 4};
+  EXPECT_EQ(base::EraseIf(vec, [](int v) { return v % 2 == 0; }), 2u);
+  EXPECT_EQ(vec.size(), 2u);
+}
+
+TEST(AlgorithmAdditions, MinMaxOfAList) {
+  EXPECT_EQ(base::Min({5, 2, 9}), 2);
+  EXPECT_EQ(base::Max({5, 2, 9}), 9);
+  EXPECT_EQ(base::Max<u64>({1, 7}), 7u);
+}
+
+TEST(AlgorithmAdditions, ArrayAndVectorOrderLexicographically) {
+  base::Array<int, 3> a{1, 2, 3}, b{1, 3, 0};
+  EXPECT_TRUE(a < b);
+  EXPECT_FALSE(b < a);
+  EXPECT_FALSE(a < a);
+  base::Vector<int> x{1, 2}, y{1, 2, 0};
+  EXPECT_TRUE(x < y);
+  EXPECT_FALSE(y < x);
+  EXPECT_TRUE((base::Vector<int>{0, 9} < base::Vector<int>{1}));
+}
+
 }  // namespace

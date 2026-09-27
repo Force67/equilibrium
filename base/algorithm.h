@@ -41,6 +41,15 @@ inline OutputIt Copy(InputIt first, InputIt last, OutputIt dest) {
   return dest;
 }
 
+// ── CopyN ───────────────────────────────────────────────────────────
+template <typename InputIt, typename OutputIt>
+inline OutputIt CopyN(InputIt first, mem_size count, OutputIt dest) {
+  for (; count; --count, ++first, ++dest) {
+    *dest = *first;
+  }
+  return dest;
+}
+
 // ── Find ────────────────────────────────────────────────────────────
 template <typename Iter, typename T>
 inline Iter Find(Iter first, Iter last, const T& value) {
@@ -66,6 +75,12 @@ inline bool AnyOf(Iter first, Iter last, Pred pred) {
     if (pred(*first)) return true;
   }
   return false;
+}
+
+// ── NoneOf ──────────────────────────────────────────────────────────
+template <typename Iter, typename Pred>
+inline bool NoneOf(Iter first, Iter last, Pred pred) {
+  return !AnyOf(first, last, pred);
 }
 
 // ── AllOf ───────────────────────────────────────────────────────────
@@ -280,14 +295,29 @@ inline T* Unique(T* first, T* last) {
 // ── EraseIf (container-level erase-remove) ──────────────────────────
 // Drops every element matching `pred` and returns how many went. Takes the
 // container, not a range, so the caller does not hand-write erase(remove_if()).
+// Contiguous containers compact in one pass; node containers (maps, sets)
+// erase element by element, handing `pred` each element as iteration does.
 template <typename TContainer, typename Pred>
 inline mem_size EraseIf(TContainer& container, Pred pred) {
-  auto* first = container.begin();
-  auto* last = container.end();
-  auto* kept = base::RemoveIf(first, last, pred);
-  const mem_size removed = static_cast<mem_size>(last - kept);
-  if (removed > 0) container.erase(kept, last);
-  return removed;
+  if constexpr (base::is_pointer_v<decltype(container.begin())>) {
+    auto* first = container.begin();
+    auto* last = container.end();
+    auto* kept = base::RemoveIf(first, last, pred);
+    const mem_size removed = static_cast<mem_size>(last - kept);
+    if (removed > 0) container.erase(kept, last);
+    return removed;
+  } else {
+    mem_size removed = 0;
+    for (auto it = container.begin(); it != container.end();) {
+      if (pred(*it)) {
+        it = container.erase(it);
+        removed++;
+      } else {
+        ++it;
+      }
+    }
+    return removed;
+  }
 }
 
 // ── LowerBound (binary search) ──────────────────────────────────────
