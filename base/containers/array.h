@@ -94,7 +94,7 @@ class Array {
 };
 
 template <typename T, mem_size N>
-mem_size ArraySize(T (&)[N]) {
+constexpr mem_size ArraySize(const T (&)[N]) noexcept {
   return N;
 }
 }  // namespace base
