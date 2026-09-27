@@ -254,4 +254,44 @@ TEST(ConditionVariable, WaitForWakesOnNotify) {
   ASSERT_TRUE(notifier.Join());
 }
 
+TEST(ConditionVariable, WaitForWithPredicateTimesOut) {
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  Lock lock(mutex);
+  const base::TimeTicks start = base::TimeTicks::Now();
+  EXPECT_FALSE(cv.WaitFor(lock, base::Milliseconds(20), [] { return false; }));
+  EXPECT_GE((base::TimeTicks::Now() - start).InMilliseconds(), 20);
+  EXPECT_TRUE(lock.owns_lock());
+}
+
+TEST(ConditionVariable, WaitForWithPredicateReturnsOnceItHolds) {
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  bool ready = false;
+  Lock lock(mutex);
+  base::Thread notifier(
+      "cv-pred",
+      [&] {
+        base::LockGuard<base::Mutex> guard(mutex);
+        ready = true;
+        cv.NotifyOne();
+      },
+      /*start_now=*/true);
+  EXPECT_TRUE(cv.WaitFor(lock, base::Seconds(60), [&] { return ready; }));
+  lock.unlock();
+  ASSERT_TRUE(notifier.Join());
+}
+
+TEST(ConditionVariable, WaitUntilAPassedDeadlineChecksOnce) {
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  Lock lock(mutex);
+  int calls = 0;
+  EXPECT_TRUE(cv.WaitUntil(lock, base::TimeTicks::Now() - base::Seconds(1),
+                           [&] { return ++calls > 0; }));
+  EXPECT_EQ(calls, 1);
+  EXPECT_FALSE(cv.WaitUntil(lock, base::TimeTicks::Now() - base::Seconds(1),
+                            [] { return false; }));
+}
+
 }  // namespace

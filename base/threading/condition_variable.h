@@ -44,6 +44,29 @@ class BASE_EXPORT ConditionVariable {
     lock.lock();
   }
 
+  // Waits until |pred| holds or |timeout| has passed; returns pred(), so
+  // false means timed out. |lock| must be held on entry and is held again on
+  // return.
+  template <class Lock, class Pred>
+  bool WaitFor(Lock& lock, TimeDelta timeout, Pred pred) {
+    return WaitUntil(lock, TimeTicks::Now() + timeout, pred);
+  }
+
+  // As WaitFor, against a deadline on the monotonic clock.
+  template <class Lock, class Pred>
+  bool WaitUntil(Lock& lock, TimeTicks deadline, Pred pred) {
+    while (!pred()) {
+      const TimeTicks now = TimeTicks::Now();
+      if (now >= deadline)
+        return false;
+      const u32 seq = seq_.load(base::memory_order_relaxed);
+      lock.unlock();
+      WaitWhileEqualsFor(seq, deadline - now);
+      lock.lock();
+    }
+    return true;
+  }
+
   void NotifyOne();
   void NotifyAll();
 
