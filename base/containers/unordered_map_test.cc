@@ -98,6 +98,49 @@ TEST(UnorderedMapTest, LookupSurvivesTombstones) {
   EXPECT_EQ(map.size(), 32u);
 }
 
+// Every key lands in bucket 0, so key 2 sits one slot past key 1.
+struct CollidingHash {
+  mem_size operator()(i32) const { return 0; }
+};
+
+TEST(UnorderedMapTest, SubscriptFindsAKeyPastATombstone) {
+  base::UnorderedMap<i32, i32, CollidingHash> map;
+  map[1] = 10;
+  map[2] = 20;
+  map.erase(1);
+
+  map[2] = 21;
+
+  EXPECT_EQ(map.size(), 1u);
+  EXPECT_EQ(*map.find(2), 21);
+  map.erase(2);
+  EXPECT_EQ(map.find(2), nullptr);
+}
+
+TEST(UnorderedMapTest, InsertAndEmplaceFindAKeyPastATombstone) {
+  base::UnorderedMap<i32, i32, CollidingHash> map;
+  map.insert(1, 10);
+  map.insert(2, 20);
+  map.erase(1);
+
+  EXPECT_FALSE(map.insert(2, 99).second);
+  EXPECT_FALSE(map.emplace(2, 99).second);
+
+  EXPECT_EQ(map.size(), 1u);
+  EXPECT_EQ(*map.find(2), 20);
+}
+
+TEST(UnorderedMapTest, InsertReusesATombstone) {
+  base::UnorderedMap<i32, i32> map;
+  map.insert(1, 10);
+  const mem_size capacity = map.remaining_capacity();
+  map.erase(1);
+
+  map.insert(1, 11);
+
+  EXPECT_EQ(map.remaining_capacity(), capacity);
+}
+
 TEST(UnorderedMapTest, GrowsAndRehashes) {
   base::UnorderedMap<i32, i32> map;
   for (i32 i = 0; i < 1000; ++i) map.insert(i, i);
