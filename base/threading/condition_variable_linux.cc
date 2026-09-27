@@ -13,14 +13,14 @@
 
 namespace base {
 
-void ConditionVariable::WaitWhileEquals(u32 seq) {
+void ConditionVariable::SleepWhileEquals(u32 seq) {
   int saved_errno = errno;
   syscall(SYS_futex, &seq_, FUTEX_WAIT | FUTEX_PRIVATE_FLAG, seq, nullptr,
           nullptr, 0);
   errno = saved_errno;
 }
 
-void ConditionVariable::WaitWhileEqualsFor(u32 seq, TimeDelta timeout) {
+void ConditionVariable::SleepWhileEqualsFor(u32 seq, TimeDelta timeout) {
   const i64 us = timeout.InMicroseconds();
   if (us <= 0)
     return;
@@ -34,16 +34,14 @@ void ConditionVariable::WaitWhileEqualsFor(u32 seq, TimeDelta timeout) {
   errno = saved_errno;
 }
 
-void ConditionVariable::NotifyOne() {
-  seq_.fetch_add(1, base::memory_order_relaxed);
+void ConditionVariable::WakeOne() {
   int saved_errno = errno;
   syscall(SYS_futex, &seq_, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, 1, nullptr,
           nullptr, 0);
   errno = saved_errno;
 }
 
-void ConditionVariable::NotifyAll() {
-  seq_.fetch_add(1, base::memory_order_relaxed);
+void ConditionVariable::WakeAll() {
   int saved_errno = errno;
   syscall(SYS_futex, &seq_, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, INT_MAX, nullptr,
           nullptr, 0);

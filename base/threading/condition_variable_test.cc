@@ -294,4 +294,35 @@ TEST(ConditionVariable, WaitUntilAPassedDeadlineChecksOnce) {
                             [] { return false; }));
 }
 
+TEST(ConditionVariable, PingPongNeverLosesAWakeup) {
+  // Each side waits for the other's turn; a notify that skipped its wake while
+  // the other side was about to sleep would hang this test.
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  int turn = 0;
+  constexpr int kRounds = 100000;
+  base::Thread other(
+      "cv-pong",
+      [&] {
+        for (int i = 0; i < kRounds; i++) {
+          Lock lock(mutex);
+          cv.Wait(lock, [&] { return turn == 1; });
+          turn = 0;
+          lock.unlock();
+          cv.NotifyAll();
+        }
+      },
+      /*start_now=*/true);
+  for (int i = 0; i < kRounds; i++) {
+    {
+      base::LockGuard<base::Mutex> guard(mutex);
+      turn = 1;
+    }
+    cv.NotifyAll();
+    Lock lock(mutex);
+    cv.Wait(lock, [&] { return turn == 0; });
+  }
+  ASSERT_TRUE(other.Join());
+}
+
 }  // namespace

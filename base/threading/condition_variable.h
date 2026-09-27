@@ -67,16 +67,46 @@ class BASE_EXPORT ConditionVariable {
     return true;
   }
 
-  void NotifyOne();
-  void NotifyAll();
+  // Free when nobody waits: the syscall is only made for a sleeper.
+  void NotifyOne() {
+    if (Advance())
+      WakeOne();
+  }
+  void NotifyAll() {
+    if (Advance())
+      WakeAll();
+  }
 
  private:
+  // Moves the sequence on; true when a waiter may be asleep on it. Both this
+  // and a waiter's registration are sequentially consistent, so either the
+  // notifier sees the waiter or the waiter's sleep sees the new sequence.
+  bool Advance() {
+    seq_.fetch_add(1, base::memory_order_seq_cst);
+    return waiters_.load(base::memory_order_seq_cst) != 0;
+  }
+
   // Blocks while seq_ still equals |seq|. May return spuriously.
-  void WaitWhileEquals(u32 seq);
+  void WaitWhileEquals(u32 seq) {
+    waiters_.fetch_add(1, base::memory_order_seq_cst);
+    SleepWhileEquals(seq);
+    waiters_.fetch_sub(1, base::memory_order_relaxed);
+  }
   // As WaitWhileEquals, giving up after |timeout|.
-  void WaitWhileEqualsFor(u32 seq, TimeDelta timeout);
+  void WaitWhileEqualsFor(u32 seq, TimeDelta timeout) {
+    waiters_.fetch_add(1, base::memory_order_seq_cst);
+    SleepWhileEqualsFor(seq, timeout);
+    waiters_.fetch_sub(1, base::memory_order_relaxed);
+  }
+
+  // The platform's address wait and wake on seq_.
+  void SleepWhileEquals(u32 seq);
+  void SleepWhileEqualsFor(u32 seq, TimeDelta timeout);
+  void WakeOne();
+  void WakeAll();
 
   base::Atomic<u32> seq_{0};
+  base::Atomic<u32> waiters_{0};
 };
 
 }  // namespace base

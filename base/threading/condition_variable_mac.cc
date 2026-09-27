@@ -19,11 +19,11 @@ constexpr uint32_t kUlfWakeAll = 0x00000100;
 constexpr uint32_t kUlfNoErrno = 0x01000000;
 }  // namespace
 
-void ConditionVariable::WaitWhileEquals(u32 seq) {
+void ConditionVariable::SleepWhileEquals(u32 seq) {
   __ulock_wait(kUlCompareAndWait | kUlfNoErrno, &seq_, seq, 0);
 }
 
-void ConditionVariable::WaitWhileEqualsFor(u32 seq, TimeDelta timeout) {
+void ConditionVariable::SleepWhileEqualsFor(u32 seq, TimeDelta timeout) {
   const i64 us = timeout.InMicroseconds();
   if (us <= 0)
     return;
@@ -34,13 +34,11 @@ void ConditionVariable::WaitWhileEqualsFor(u32 seq, TimeDelta timeout) {
   __ulock_wait(kUlCompareAndWait | kUlfNoErrno, &seq_, seq, timeout_us);
 }
 
-void ConditionVariable::NotifyOne() {
-  seq_.fetch_add(1, base::memory_order_relaxed);
+void ConditionVariable::WakeOne() {
   __ulock_wake(kUlCompareAndWait | kUlfNoErrno, &seq_, 0);
 }
 
-void ConditionVariable::NotifyAll() {
-  seq_.fetch_add(1, base::memory_order_relaxed);
+void ConditionVariable::WakeAll() {
   __ulock_wake(kUlCompareAndWait | kUlfWakeAll | kUlfNoErrno, &seq_, 0);
 }
 
