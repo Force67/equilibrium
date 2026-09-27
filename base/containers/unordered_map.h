@@ -173,6 +173,37 @@ class UnorderedMap {
     return ~mem_size(0);
   }
 
+  // Returns the slot holding |key| (second = false), or the slot a new |key|
+  // goes into (second = true). The probe must reach an empty slot before
+  // reusing a tombstone, since |key| may sit further along the chain.
+  Pair<mem_size, bool> FindOrPrepareInsert(const K& key) {
+    if (bucket_count_ == 0 ||
+        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
+      GrowAndRehash();
+    }
+
+    constexpr mem_size kNone = ~mem_size(0);
+    mem_size tombstone = kNone;
+    mem_size idx = BucketFor(key);
+    while (slots_[idx].state != kEmpty) {
+      if (slots_[idx].state == kDeleted) {
+        if (tombstone == kNone)
+          tombstone = idx;
+      } else if (equal_(*SlotKey(slots_[idx]), key)) {
+        return {idx, false};
+      }
+      idx = (idx + 1) & (bucket_count_ - 1);
+    }
+    return {tombstone != kNone ? tombstone : idx, true};
+  }
+
+  void MarkOccupied(Slot& s) {
+    if (s.state == kDeleted)
+      --tombstone_count_;
+    s.state = kOccupied;
+    ++size_;
+  }
+
  public:
   UnorderedMap() = default;
 
@@ -264,25 +295,14 @@ class UnorderedMap {
 
   // Element access
   V& operator[](const K& key) {
-    if (bucket_count_ == 0 ||
-        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
-      GrowAndRehash();
+    const Pair<mem_size, bool> slot = FindOrPrepareInsert(key);
+    Slot& s = slots_[slot.first];
+    if (slot.second) {
+      ::new (&s.key_storage[0]) K(key);
+      ::new (&s.val_storage[0]) V();
+      MarkOccupied(s);
     }
-
-    mem_size idx = BucketFor(key);
-    while (true) {
-      if (slots_[idx].state == kEmpty || slots_[idx].state == kDeleted) {
-        ::new (&slots_[idx].key_storage[0]) K(key);
-        ::new (&slots_[idx].val_storage[0]) V();
-        slots_[idx].state = kOccupied;
-        ++size_;
-        return *SlotVal(slots_[idx]);
-      }
-      if (slots_[idx].state == kOccupied && equal_(*SlotKey(slots_[idx]), key)) {
-        return *SlotVal(slots_[idx]);
-      }
-      idx = (idx + 1) & (bucket_count_ - 1);
-    }
+    return *SlotVal(s);
   }
 
   V* find(const K& key) {
@@ -335,47 +355,25 @@ class UnorderedMap {
 
   // Insert or assign
   Pair<V*, bool> insert(const K& key, const V& value) {
-    if (bucket_count_ == 0 ||
-        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
-      GrowAndRehash();
+    const Pair<mem_size, bool> slot = FindOrPrepareInsert(key);
+    Slot& s = slots_[slot.first];
+    if (slot.second) {
+      ::new (&s.key_storage[0]) K(key);
+      ::new (&s.val_storage[0]) V(value);
+      MarkOccupied(s);
     }
-
-    mem_size idx = BucketFor(key);
-    while (true) {
-      if (slots_[idx].state == kEmpty || slots_[idx].state == kDeleted) {
-        ::new (&slots_[idx].key_storage[0]) K(key);
-        ::new (&slots_[idx].val_storage[0]) V(value);
-        slots_[idx].state = kOccupied;
-        ++size_;
-        return {SlotVal(slots_[idx]), true};
-      }
-      if (slots_[idx].state == kOccupied && equal_(*SlotKey(slots_[idx]), key)) {
-        return {SlotVal(slots_[idx]), false};  // already exists
-      }
-      idx = (idx + 1) & (bucket_count_ - 1);
-    }
+    return {SlotVal(s), slot.second};
   }
 
   Pair<V*, bool> insert(const K& key, V&& value) {
-    if (bucket_count_ == 0 ||
-        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
-      GrowAndRehash();
+    const Pair<mem_size, bool> slot = FindOrPrepareInsert(key);
+    Slot& s = slots_[slot.first];
+    if (slot.second) {
+      ::new (&s.key_storage[0]) K(key);
+      ::new (&s.val_storage[0]) V(base::move(value));
+      MarkOccupied(s);
     }
-
-    mem_size idx = BucketFor(key);
-    while (true) {
-      if (slots_[idx].state == kEmpty || slots_[idx].state == kDeleted) {
-        ::new (&slots_[idx].key_storage[0]) K(key);
-        ::new (&slots_[idx].val_storage[0]) V(base::move(value));
-        slots_[idx].state = kOccupied;
-        ++size_;
-        return {SlotVal(slots_[idx]), true};
-      }
-      if (slots_[idx].state == kOccupied && equal_(*SlotKey(slots_[idx]), key)) {
-        return {SlotVal(slots_[idx]), false};
-      }
-      idx = (idx + 1) & (bucket_count_ - 1);
-    }
+    return {SlotVal(s), slot.second};
   }
 
   // emplace under the std spelling; identical semantics (an existing key is
@@ -387,25 +385,14 @@ class UnorderedMap {
 
   template <typename... TArgs>
   Pair<V*, bool> emplace(const K& key, TArgs&&... args) {
-    if (bucket_count_ == 0 ||
-        (size_ + tombstone_count_ + 1) > static_cast<mem_size>(bucket_count_ * kMaxLoadFactor)) {
-      GrowAndRehash();
+    const Pair<mem_size, bool> slot = FindOrPrepareInsert(key);
+    Slot& s = slots_[slot.first];
+    if (slot.second) {
+      ::new (&s.key_storage[0]) K(key);
+      ::new (&s.val_storage[0]) V(base::forward<TArgs>(args)...);
+      MarkOccupied(s);
     }
-
-    mem_size idx = BucketFor(key);
-    while (true) {
-      if (slots_[idx].state == kEmpty || slots_[idx].state == kDeleted) {
-        ::new (&slots_[idx].key_storage[0]) K(key);
-        ::new (&slots_[idx].val_storage[0]) V(base::forward<TArgs>(args)...);
-        slots_[idx].state = kOccupied;
-        ++size_;
-        return {SlotVal(slots_[idx]), true};
-      }
-      if (slots_[idx].state == kOccupied && equal_(*SlotKey(slots_[idx]), key)) {
-        return {SlotVal(slots_[idx]), false};
-      }
-      idx = (idx + 1) & (bucket_count_ - 1);
-    }
+    return {SlotVal(s), slot.second};
   }
 
   void clear() {
