@@ -31,7 +31,7 @@ jobs:
     - name: Configure
       run: cmake -S . -B build-cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DEQ_BUILD_TESTS=ON
     - name: Build
-      run: cmake --build build-cmake --config ${{ matrix.build_type }} --parallel
+      run: cmake --build build-cmake --config ${{ matrix.build_type }} --parallel 4
     - name: Test
       run: ctest --test-dir build-cmake --build-config ${{ matrix.build_type }} --output-on-failure --no-tests=error
     - name: Setup tmate debug session
