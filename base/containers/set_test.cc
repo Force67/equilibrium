@@ -75,4 +75,45 @@ TEST(SetTest, IteratesInSortedOrder) {
   EXPECT_EQ(seen, 3u);
 }
 
+TEST(SetTest, IteratesEveryElementOfALargerTree) {
+  base::Set<i32> set;
+  for (i32 i = 0; i < 100; i++)
+    set.insert((i * 37) % 100);
+
+  i32 expected = 0;
+  for (i32 v : set)
+    EXPECT_EQ(v, expected++);
+  EXPECT_EQ(expected, 100);
+}
+
+TEST(SetTest, InsertReportsWhetherItAdded) {
+  base::Set<i32> set;
+  auto first = set.insert(4);
+  EXPECT_TRUE(first.second);
+  EXPECT_EQ(*first.first, 4);
+  EXPECT_FALSE(set.insert(4).second);
+  EXPECT_EQ(set.size(), 1u);
+}
+
+TEST(SetTest, FindBoundsAndBackwardIteration) {
+  base::Set<i32> set{10, 20, 30};
+  EXPECT_EQ(*set.find(20), 20);
+  EXPECT_TRUE(set.find(25) == set.end());
+  EXPECT_EQ(*set.lower_bound(15), 20);
+  EXPECT_EQ(*set.upper_bound(20), 30);
+  auto it = set.end();
+  --it;
+  EXPECT_EQ(*it, 30);
+  --it;
+  EXPECT_EQ(*it, 20);
+}
+
+TEST(SetTest, EraseByIteratorReturnsTheNext) {
+  base::Set<i32> set{1, 2, 3};
+  auto next = set.erase(set.find(2));
+  EXPECT_EQ(*next, 3);
+  EXPECT_EQ(set.size(), 2u);
+  EXPECT_FALSE(set.contains(2));
+}
+
 }  // namespace

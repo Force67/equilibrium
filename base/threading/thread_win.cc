@@ -135,4 +135,37 @@ u32 GetCurrentThreadIndex() {
 Thread::Handle GetCurrentThreadHandle() {
   return {.handle_ = ::GetCurrentThread()};
 }
+
+bool IsCurrentThread(Thread::Handle handle) {
+  return handle.handle_ && ::GetThreadId(handle.handle_) == ::GetCurrentThreadId();
+}
+
+namespace {
+struct DetachedStart {
+  base::String name;
+  base::Function<void()> functor;
+};
+
+DWORD WINAPI DetachedThreadFunc(LPVOID user_param) {
+  auto* start = static_cast<DetachedStart*>(user_param);
+  base::SetThreadName(base::GetCurrentThreadHandle(), start->name.c_str());
+  start->functor();
+  delete start;
+  return 0;
+}
+}  // namespace
+
+bool SpawnDetachedThread(const base::StringRef name,
+                         base::Function<void()> functor) {
+  auto* start = new DetachedStart{base::String(name.data(), name.length()),
+                                  base::move(functor)};
+  HANDLE handle = ::CreateThread(nullptr, 0, DetachedThreadFunc, start, 0, nullptr);
+  if (!handle) {
+    delete start;
+    return false;
+  }
+  // Nobody waits for it: drop our reference and let it run.
+  ::CloseHandle(handle);
+  return true;
+}
 }  // namespace base

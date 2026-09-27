@@ -1,27 +1,72 @@
 // Copyright (C) 2022 Vincent Hengel.
 // For licensing information see LICENSE at the root of this distribution.
+//
+// base::Set - ordered set over a red-black tree with a std::set-shaped API:
+// in-order bidirectional iterators, insert/find/erase and lower/upper
+// bounds. Node pointers are stable across mutation, so iterators stay valid
+// for everything but the erased element.
 #pragma once
 
 #include <initializer_list>
 
 #include <base/arch.h>
-#include <base/memory/move.h>
+#include <base/containers/pair.h>
 #include <base/containers/tree/red_black_tree_2.h>
+#include <base/memory/move.h>
 
 namespace base {
 
 template <typename T>
 class Set {
- private:
-  class IteratorImpl;
+  using Tree = RedBlackTree2<T>;
+  using Node = typename Tree::Node;
 
  public:
-  using Iterator = IteratorImpl;
+  using value_type = T;
+
+  // Elements are keys: iteration never hands out a mutable reference.
+  class Iterator {
+   public:
+    Iterator() : node_(nullptr), tree_(nullptr) {}
+    Iterator(Node* node, const Tree* tree) : node_(node), tree_(tree) {}
+
+    const T& operator*() const { return node_->value; }
+    const T* operator->() const { return &node_->value; }
+
+    Iterator& operator++() {
+      node_ = tree_->Successor(node_);
+      return *this;
+    }
+    Iterator operator++(int) {
+      Iterator before = *this;
+      node_ = tree_->Successor(node_);
+      return before;
+    }
+    // From end() this steps to the last element.
+    Iterator& operator--() {
+      node_ = tree_->Predecessor(node_);
+      return *this;
+    }
+    Iterator operator--(int) {
+      Iterator before = *this;
+      node_ = tree_->Predecessor(node_);
+      return before;
+    }
+
+    bool operator==(const Iterator& other) const { return node_ == other.node_; }
+    bool operator!=(const Iterator& other) const { return node_ != other.node_; }
+
+   private:
+    friend class Set;
+    Node* node_;
+    const Tree* tree_;
+  };
+  using iterator = Iterator;
+  using const_iterator = Iterator;
 
   Set() : size_(0) {}
 
   Set(const Set& other) : tree_(other.tree_), size_(other.size_) {}
-
   Set& operator=(const Set& other) {
     if (this != &other) {
       tree_ = other.tree_;
@@ -30,11 +75,9 @@ class Set {
     return *this;
   }
 
-  // The moved-from set is left empty, not just stripped of its nodes.
   Set(Set&& other) noexcept : tree_(base::move(other.tree_)), size_(other.size_) {
     other.size_ = 0;
   }
-
   Set& operator=(Set&& other) noexcept {
     if (this != &other) {
       tree_ = base::move(other.tree_);
@@ -44,116 +87,77 @@ class Set {
     return *this;
   }
 
-  // Brace initialization for static tables: {value, value, ...}.
   Set(std::initializer_list<T> values) : size_(0) {
-    for (const T& value : values) Insert(value);
+    for (const T& value : values)
+      insert(value);
   }
 
-  Iterator begin() const { return Iterator(tree_.root(), tree_.nil()); }
-  Iterator end() const { return Iterator(tree_.nil(), tree_.nil()); }
+  Iterator begin() const {
+    return Iterator(tree_.empty() ? tree_.nil() : tree_.Minimum(tree_.root()),
+                    &tree_);
+  }
+  Iterator end() const { return Iterator(tree_.nil(), &tree_); }
 
-  bool empty() const { return tree_.empty(); }
+  bool empty() const { return size_ == 0; }
   mem_size size() const { return size_; }
 
-  void Insert(const T& value) {
-    if (tree_.Insert(value)) {
-      ++size_;
-    }
+  Pair<Iterator, bool> insert(const T& value) {
+    bool inserted = false;
+    Node* node = tree_.FindOrInsert(value, &inserted);
+    size_ += inserted;
+    return {Iterator(node, &tree_), inserted};
+  }
+  Pair<Iterator, bool> insert(T&& value) {
+    bool inserted = false;
+    Node* node = tree_.FindOrInsert(base::move(value), &inserted);
+    size_ += inserted;
+    return {Iterator(node, &tree_), inserted};
   }
 
-  bool Remove(const T& value) {
-    if (tree_.Erase(value)) {
+  Iterator find(const T& value) const {
+    return Iterator(tree_.Find(value), &tree_);
+  }
+  bool contains(const T& value) const { return tree_.Contains(value); }
+  [[nodiscard]] mem_size count(const T& value) const {
+    return contains(value) ? 1 : 0;
+  }
+
+  // The first element not less than / greater than `value`.
+  Iterator lower_bound(const T& value) const {
+    return Iterator(tree_.LowerBound(value), &tree_);
+  }
+  Iterator upper_bound(const T& value) const {
+    return Iterator(tree_.UpperBound(value), &tree_);
+  }
+
+  bool erase(const T& value) {
+    if (!tree_.Erase(value))
+      return false;
+    --size_;
+    return true;
+  }
+  // Returns the element after the erased one.
+  Iterator erase(Iterator it) {
+    Node* next = tree_.Successor(it.node_);
+    if (tree_.Erase(*it))
       --size_;
-      return true;
-    }
-    return false;
+    return Iterator(next, &tree_);
   }
 
-  bool Contains(const T& value) const { return tree_.Contains(value); }
-
-  void Clear() {
+  void clear() {
     tree_.Clear();
     size_ = 0;
   }
 
-  // Lowercase spellings, matching base::Map and the std::set vocabulary.
-  void insert(const T& value) { Insert(value); }
-  bool erase(const T& value) { return Remove(value); }
-  bool contains(const T& value) const { return Contains(value); }
-  [[nodiscard]] mem_size count(const T& value) const { return Contains(value) ? 1 : 0; }
-  void clear() { Clear(); }
+  // PascalCase spellings of the above.
+  bool Insert(const T& value) { return insert(value).second; }
+  bool Remove(const T& value) { return erase(value); }
+  bool Contains(const T& value) const { return contains(value); }
+  void Clear() { clear(); }
 
  private:
-  base::RedBlackTree2<T> tree_;
+  Tree tree_;
   mem_size size_;
-
-  class IteratorImpl {
-   public:
-    using Node = typename RedBlackTree2<T>::Node;
-
-    IteratorImpl(Node* start_node, Node* nil_node) : nil_(nil_node) {
-      // set up the first iterators state
-      find_first(start_node);
-    }
-
-    T& operator*() const { return current_->value; }
-    T* operator->() const { return current_->value; }
-
-    IteratorImpl& operator++() {
-      // If there is a right subtree, the successor is the smallest
-      // element within that subtree.
-      if (current_->right != nil_) {
-        find_first(current_->right);
-      }
-      // Otherwise, the successor is the parent node from our stack.
-      else if (path_top_ >= 0) {
-        current_ = path_[path_top_--];  // Pop from stack
-      }
-      // If there's no right subtree and no parent, we've reached the end.
-      else {
-        current_ = nil_;
-      }
-      return *this;
-    }
-
-    bool operator!=(const IteratorImpl& other) const {
-      return current_ != other.current_;
-    }
-    bool operator==(const IteratorImpl& other) const {
-      return current_ == other.current_;
-    }
-
-   private:
-    // Find the left-most (smallest) node in any given subtree
-    void find_first(Node* node) {
-      path_top_ = -1;  // Reset the stack for the new traversal
-      current_ = node;
-
-      // Traverse down the left spine, pushing every node onto the stack.
-      while (current_ != nil_) {
-        if (path_top_ < kMaxTreeDepth - 1) {
-          path_[++path_top_] = current_;
-        }
-        current_ = current_->left;
-      }
-
-      // The stack now holds the full path. The top of the stack is the
-      // left-most node, which is our first element.
-      if (path_top_ >= 0) {
-        current_ = path_[path_top_--];  // Pop to set current
-      } else {
-        // This case occurs if the initial node was nil (e.g., for end()).
-        current_ = nil_;
-      }
-    }
-
-    Node* current_;
-    Node* nil_;
-
-    static constexpr int kMaxTreeDepth = 128;
-    Node* path_[kMaxTreeDepth];
-    int path_top_;
-  };
 };
 
 }  // namespace base

@@ -345,6 +345,32 @@ class Vector {
     return begin() + index;
   }
 
+  // single element, moved in
+  T* insert(T* pos, T&& element) {
+    BASE_DCHECK(pos >= begin() && pos <= end(), "Vector::insert: Invalid position");
+    const auto index = pos - begin();
+    // Taken first: growing or shifting would move an element of this vector
+    // out from under a reference to it.
+    T value(base::move(element));
+
+    if (size() == capacity()) {
+      const mem_size new_cap = CalculateNewCapacity(size());
+      GrowCapacity(size(), new_cap);
+      pos = begin() + index;
+    }
+
+    MakeHoleForInsert(pos, 1);
+
+    if (pos < end_) {
+      *pos = base::move(value);
+    } else {
+      ::new (static_cast<void*>(pos)) T(base::move(value));
+    }
+
+    end_++;
+    return begin() + index;
+  }
+
   // Inserts multiple copies of an element
   void insert(T* pos, mem_size count, const T& element) {
     if (count == 0)
@@ -583,6 +609,16 @@ class Vector {
   }
 
   bool operator!=(const Vector& other) const { return !(*this == other); }
+
+  // Lexicographic, so a Vector can key an ordered container.
+  bool operator<(const Vector& other) const {
+    const mem_size n = size() < other.size() ? size() : other.size();
+    for (mem_size i = 0; i < n; ++i) {
+      if (data_[i] < other.data_[i]) return true;
+      if (other.data_[i] < data_[i]) return false;
+    }
+    return size() < other.size();
+  }
 
   template <typename TFunc>
   void ForEach(TFunc&& func) {

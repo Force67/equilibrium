@@ -2,6 +2,8 @@
 // For licensing information see LICENSE at the root of this distribution.
 #pragma once
 
+#include <initializer_list>
+
 namespace base {
 template <typename T>
 inline T Min(T a, T b) {
@@ -29,5 +31,24 @@ inline T Max(const T* values, int count) {
     max_val = (values[i] > max_val) ? values[i] : max_val;
   }
   return max_val;
+}
+
+// The smallest / largest of a non-empty list: base::Min({a, b, c}).
+template <typename T>
+inline T Min(std::initializer_list<T> values) {
+  const T* it = values.begin();
+  T result = *it;
+  for (++it; it != values.end(); ++it)
+    result = (*it < result) ? *it : result;
+  return result;
+}
+
+template <typename T>
+inline T Max(std::initializer_list<T> values) {
+  const T* it = values.begin();
+  T result = *it;
+  for (++it; it != values.end(); ++it)
+    result = (*it > result) ? *it : result;
+  return result;
 }
 }  // namespace base

@@ -254,4 +254,75 @@ TEST(ConditionVariable, WaitForWakesOnNotify) {
   ASSERT_TRUE(notifier.Join());
 }
 
+TEST(ConditionVariable, WaitForWithPredicateTimesOut) {
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  Lock lock(mutex);
+  const base::TimeTicks start = base::TimeTicks::Now();
+  EXPECT_FALSE(cv.WaitFor(lock, base::Milliseconds(20), [] { return false; }));
+  EXPECT_GE((base::TimeTicks::Now() - start).InMilliseconds(), 20);
+  EXPECT_TRUE(lock.owns_lock());
+}
+
+TEST(ConditionVariable, WaitForWithPredicateReturnsOnceItHolds) {
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  bool ready = false;
+  Lock lock(mutex);
+  base::Thread notifier(
+      "cv-pred",
+      [&] {
+        base::LockGuard<base::Mutex> guard(mutex);
+        ready = true;
+        cv.NotifyOne();
+      },
+      /*start_now=*/true);
+  EXPECT_TRUE(cv.WaitFor(lock, base::Seconds(60), [&] { return ready; }));
+  lock.unlock();
+  ASSERT_TRUE(notifier.Join());
+}
+
+TEST(ConditionVariable, WaitUntilAPassedDeadlineChecksOnce) {
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  Lock lock(mutex);
+  int calls = 0;
+  EXPECT_TRUE(cv.WaitUntil(lock, base::TimeTicks::Now() - base::Seconds(1),
+                           [&] { return ++calls > 0; }));
+  EXPECT_EQ(calls, 1);
+  EXPECT_FALSE(cv.WaitUntil(lock, base::TimeTicks::Now() - base::Seconds(1),
+                            [] { return false; }));
+}
+
+TEST(ConditionVariable, PingPongNeverLosesAWakeup) {
+  // Each side waits for the other's turn; a notify that skipped its wake while
+  // the other side was about to sleep would hang this test.
+  base::Mutex mutex;
+  base::ConditionVariable cv;
+  int turn = 0;
+  constexpr int kRounds = 100000;
+  base::Thread other(
+      "cv-pong",
+      [&] {
+        for (int i = 0; i < kRounds; i++) {
+          Lock lock(mutex);
+          cv.Wait(lock, [&] { return turn == 1; });
+          turn = 0;
+          lock.unlock();
+          cv.NotifyAll();
+        }
+      },
+      /*start_now=*/true);
+  for (int i = 0; i < kRounds; i++) {
+    {
+      base::LockGuard<base::Mutex> guard(mutex);
+      turn = 1;
+    }
+    cv.NotifyAll();
+    Lock lock(mutex);
+    cv.Wait(lock, [&] { return turn == 0; });
+  }
+  ASSERT_TRUE(other.Join());
+}
+
 }  // namespace

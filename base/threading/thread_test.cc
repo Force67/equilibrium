@@ -131,4 +131,46 @@ TEST(Thread, ProcessorCountIsNonZero) {
   EXPECT_GE(base::GetProcessorCount(), 1u);
 }
 
+TEST(Thread, IsCurrentThreadTellsThreadsApart) {
+  base::Atomic<int> on_itself{0};
+  base::Thread* self = nullptr;
+  base::Atomic<bool> started{false};
+  base::Thread thread(
+      "is-current",
+      [&] {
+        while (!started.load())
+          base::YieldCurrentThread();
+        on_itself.store(base::IsCurrentThread(self->handle()) ? 1 : 2);
+      },
+      /*start_now=*/false);
+  self = &thread;
+  ASSERT_TRUE(thread.Start(base::Thread::Priority::kNormal));
+  EXPECT_FALSE(base::IsCurrentThread(thread.handle()));
+  started.store(true);
+  ASSERT_TRUE(thread.Join());
+  EXPECT_EQ(on_itself.load(), 1);
+  EXPECT_TRUE(base::IsCurrentThread(base::GetCurrentThreadHandle()));
+}
+
+TEST(Thread, DetachedThreadRunsAndFreesItsFunctor) {
+  struct Tracked {
+    base::Atomic<int>* alive;
+    explicit Tracked(base::Atomic<int>* a) : alive(a) { alive->fetch_add(1); }
+    Tracked(const Tracked& o) : alive(o.alive) { alive->fetch_add(1); }
+    ~Tracked() { alive->fetch_sub(1); }
+  };
+  base::Atomic<int> alive{0};
+  base::Atomic<int> ran{0};
+  {
+    Tracked tracked(&alive);
+    ASSERT_TRUE(base::SpawnDetachedThread(
+        "detached", [tracked, &ran] { ran.store(1); }));
+  }
+  // Nobody can join it: poll for the run and for the functor's release.
+  for (int i = 0; i < 5000 && (ran.load() == 0 || alive.load() != 0); i++)
+    base::SleepForMicroseconds(1000);
+  EXPECT_EQ(ran.load(), 1);
+  EXPECT_EQ(alive.load(), 0);
+}
+
 }  // namespace

@@ -8,11 +8,11 @@
 
 namespace base {
 
-void ConditionVariable::WaitWhileEquals(u32 seq) {
+void ConditionVariable::SleepWhileEquals(u32 seq) {
   ::WaitOnAddress(&seq_, &seq, sizeof(seq), INFINITE);
 }
 
-void ConditionVariable::WaitWhileEqualsFor(u32 seq, TimeDelta timeout) {
+void ConditionVariable::SleepWhileEqualsFor(u32 seq, TimeDelta timeout) {
   const i64 us = timeout.InMicroseconds();
   if (us <= 0)
     return;
@@ -24,13 +24,11 @@ void ConditionVariable::WaitWhileEqualsFor(u32 seq, TimeDelta timeout) {
   ::WaitOnAddress(&seq_, &seq, sizeof(seq), wait_ms);
 }
 
-void ConditionVariable::NotifyOne() {
-  seq_.fetch_add(1, base::memory_order_relaxed);
+void ConditionVariable::WakeOne() {
   ::WakeByAddressSingle(&seq_);
 }
 
-void ConditionVariable::NotifyAll() {
-  seq_.fetch_add(1, base::memory_order_relaxed);
+void ConditionVariable::WakeAll() {
   ::WakeByAddressAll(&seq_);
 }
 

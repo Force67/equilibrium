@@ -159,4 +159,40 @@ u32 GetProcessorCount() {
 Thread::Handle GetCurrentThreadHandle() {
   return {.pthread_ = PthreadToHandle(::pthread_self())};
 }
+
+bool IsCurrentThread(Thread::Handle handle) {
+  return ::pthread_equal(::pthread_self(), HandleToPthread(handle.pthread_)) != 0;
+}
+
+namespace {
+struct DetachedStart {
+  base::String name;
+  base::Function<void()> functor;
+};
+
+void* DetachedThreadFunc(void* user_param) {
+  auto* start = static_cast<DetachedStart*>(user_param);
+  base::SetThreadName(base::GetCurrentThreadHandle(), start->name.c_str());
+  start->functor();
+  delete start;
+  return nullptr;
+}
+}  // namespace
+
+bool SpawnDetachedThread(const base::StringRef name,
+                         base::Function<void()> functor) {
+  auto* start = new DetachedStart{base::String(name.data(), name.length()),
+                                  base::move(functor)};
+  pthread_attr_t attributes;
+  pthread_attr_init(&attributes);
+  pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
+  pthread_t handle{};
+  const int ec = ::pthread_create(&handle, &attributes, DetachedThreadFunc, start);
+  pthread_attr_destroy(&attributes);
+  if (ec != 0) {
+    delete start;
+    return false;
+  }
+  return true;
+}
 }  // namespace base

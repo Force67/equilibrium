@@ -79,4 +79,13 @@ TEST(ArrayTest, DataAccessors) {
   EXPECT_EQ(arr.back(), 30);
 }
 
+TEST(ArrayTest, ArraySizeIsConstant) {
+  static constexpr int values[7] = {};
+  const char names[3][4] = {"a", "b", "c"};
+  static_assert(ArraySize(values) == 7);
+  Array<int, ArraySize(values) * 2> doubled;
+  EXPECT_EQ(doubled.size(), 14u);
+  EXPECT_EQ(ArraySize(names), 3u);
+}
+
 }  // namespace base

@@ -80,12 +80,21 @@ class Array {
 
   constexpr bool operator!=(const Array& other) const { return !(*this == other); }
 
+  // Lexicographic, so an Array can key an ordered container.
+  constexpr bool operator<(const Array& other) const {
+    for (mem_size i = 0; i < N; ++i) {
+      if (storage_[i] < other.storage_[i]) return true;
+      if (other.storage_[i] < storage_[i]) return false;
+    }
+    return false;
+  }
+
  private:
   Storage storage_{};
 };
 
 template <typename T, mem_size N>
-mem_size ArraySize(T (&)[N]) {
+constexpr mem_size ArraySize(const T (&)[N]) noexcept {
   return N;
 }
 }  // namespace base
