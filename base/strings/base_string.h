@@ -316,11 +316,13 @@ class BasicBaseString {
     }
   }
 
+  // data(), not c_str(): a view (StringRef) has c_str() too, but a slice of a
+  // longer string is not null-terminated and its c_str() refuses in debug.
   template <class TOther>
     requires(base::HasStringTraits<TOther, value_type>)
   BasicBaseString(const TOther& other) {
     init_empty();
-    assign(other.c_str(), static_cast<size_type>(other.size()));
+    assign(other.data(), static_cast<size_type>(other.size()));
   }
 
   // From any non-owning character range (std::string_view, base::StringRef).

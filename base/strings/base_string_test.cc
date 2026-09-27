@@ -603,6 +603,15 @@ TEST(BaseStringSearch, ReverseFindHonoursThePosition) {
   EXPECT_EQ(s.rfind('.', 2), 1u);
 }
 
+TEST(BaseStringAssign, ConstructsFromAnUnterminatedSlice) {
+  // A slice of a longer string ends before the terminator; copying it must
+  // take (data, size), never c_str().
+  const base::StringRef whole("rxe://config/low.ini");
+  const base::String mount(whole.substr(0, 3));
+  EXPECT_EQ(mount, "rxe");
+  EXPECT_EQ(mount.size(), 3u);
+}
+
 TEST(BaseStringAssign, AssignsFromAnotherStringLike) {
   base::StringRef ref("hello");
   base::String s;
