@@ -36,6 +36,7 @@ class BASE_EXPORT Thread {
 
   // since both are same size anyway, we can use the same type
   bool good() const { return handle_data_.handle_ != nullptr; }
+  Handle handle() const { return handle_data_; }
 
   void SetName(const base::StringRef name);
 
@@ -60,6 +61,15 @@ BASE_EXPORT u32 GetCurrentThreadIndex();
 BASE_EXPORT Thread::Handle GetCurrentThreadHandle();
 
 BASE_EXPORT bool SetThreadName(Thread::Handle, const char* name);
+
+// Whether |handle| names the calling thread.
+BASE_EXPORT bool IsCurrentThread(Thread::Handle handle);
+
+// Runs |functor| on a new thread nobody joins, like a detached std::thread.
+// The thread owns the functor and frees it when it returns. False when no
+// thread could be created.
+BASE_EXPORT bool SpawnDetachedThread(const base::StringRef name,
+                                     base::Function<void()> functor);
 inline bool SetCurrentThreadName(const char* name) {
   return SetThreadName(GetCurrentThreadHandle(), name);
 }
