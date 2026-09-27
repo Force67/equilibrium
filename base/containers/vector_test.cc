@@ -359,6 +359,29 @@ TEST(VectorTest, AssignFromARange) {
   EXPECT_EQ(vec[0], 1);
 }
 
+TEST(VectorTest, InsertMovesTheElementIn) {
+  base::Vector<base::Vector<int>> outer;
+  outer.push_back(base::Vector<int>{1});
+  base::Vector<int> big{7, 8, 9};
+  const int* storage = big.data();
+  outer.insert(outer.begin(), base::move(big));
+  ASSERT_EQ(outer.size(), 2u);
+  EXPECT_EQ(outer[0].data(), storage);  // moved, not copied
+  EXPECT_EQ(outer[0][2], 9);
+  EXPECT_EQ(outer[1][0], 1);
+  EXPECT_TRUE(big.empty());
+}
+
+TEST(VectorTest, InsertMovingAnElementOfItself) {
+  base::Vector<base::Vector<int>> v;
+  v.push_back(base::Vector<int>{1});
+  v.push_back(base::Vector<int>{2});
+  v.insert(v.begin(), base::move(v[1]));
+  ASSERT_EQ(v.size(), 3u);
+  EXPECT_EQ(v[0][0], 2);
+  EXPECT_EQ(v[1][0], 1);
+}
+
 TEST(VectorTest, InsertAnInitializerList) {
   base::Vector<i32> vec = {1, 4};
 
