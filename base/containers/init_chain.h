@@ -7,9 +7,24 @@
 #include <base/arch.h>
 #include <base/compiler.h>
 
+// The chain's root is a function-local static in a class template, so every
+// shared object that instantiates the template gets its own root when it is
+// compiled with -fvisibility=hidden (as a component build is): an Option
+// registered in one .so is then invisible to VisitAll in another. Default
+// visibility makes the root one symbol per process (ELF unique binding), so
+// all objects share one chain. An instantiation is only as visible as its
+// template argument, so every item type (OptionBase, Feature) carries the same
+// annotation. PE has no such binding; there base has to be linked as a DLL for
+// the same guarantee.
+#if defined(__GNUC__) || defined(__clang__)
+#define BASE_SHARED_REGISTRY __attribute__((visibility("default")))
+#else
+#define BASE_SHARED_REGISTRY
+#endif
+
 namespace base {
 template <typename TItem>
-class InitChain {
+class BASE_SHARED_REGISTRY InitChain {
  public:
   constexpr InitChain() noexcept = default;
 

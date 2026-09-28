@@ -67,7 +67,7 @@ inline bool ParseOption(const char* text, T& out) {
 // Type-erased handle so every Option<T>, whatever T is, threads onto one
 // self-registering list (the same InitChain trick base::Feature uses). Walk
 // them with OptionBase::VisitAll, or let InitOptionsFromEnv() drive them.
-class BASE_EXPORT OptionBase : public InitChain<OptionBase> {
+class BASE_EXPORT BASE_SHARED_REGISTRY OptionBase : public InitChain<OptionBase> {
  public:
   OptionBase(const char* opt_name, const char* env_var, const char* description)
       : name_(opt_name), env_(env_var), desc_(description) {
