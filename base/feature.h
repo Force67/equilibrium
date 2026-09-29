@@ -8,7 +8,7 @@
 #include <base/containers/init_chain.h>
 
 namespace base {
-struct BASE_EXPORT Feature : InitChain<Feature> {
+struct BASE_EXPORT BASE_SHARED_REGISTRY Feature : InitChain<Feature> {
   enum class Flags : arch_types::u32 {
     kNone = 1 << 0,
     kHidden = 1 << 1,  //< If this flag isn't set, assume public.
