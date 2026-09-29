@@ -23,6 +23,11 @@ struct BASE_EXPORT BASE_SHARED_REGISTRY Feature : InitChain<Feature> {
 
   inline operator bool() const { return enabled; }
 
+#if defined(_WIN32)
+  // The chain root, out of line so every DLL shares base's (init_chain.h).
+  static InitChain<Feature>*& ChainRoot() noexcept;
+#endif
+
   const char* name;
   Flags flags;
   bool enabled;

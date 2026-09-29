@@ -17,6 +17,10 @@ endif()
 
 option(EQ_BUILD_TESTS "Build the base unit tests" ${eq_is_top_level})
 option(EQ_USE_STD_ATOMIC "Build base::Atomic on top of std::atomic" OFF)
+# A component build on Windows needs base as one DLL: PE gives every DLL its
+# own copy of a static library's globals, so the Option/Feature registries and
+# every other base singleton would otherwise split per module.
+option(EQ_BASE_SHARED "Build base as a shared library" OFF)
 
 # The base headers use C++23 (deducing this, constexpr extensions).
 if(NOT DEFINED CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 23)
@@ -46,7 +50,24 @@ foreach(platform ${eq_excluded_platforms})
   list(FILTER EQ_BASE_SOURCES EXCLUDE REGEX "/${platform}/")
 endforeach()
 
-add_library(eq_base STATIC ${EQ_BASE_SOURCES})
+if(EQ_BASE_SHARED)
+  add_library(eq_base SHARED ${EQ_BASE_SOURCES})
+  target_compile_definitions(eq_base PUBLIC BUILDING_DLL)
+  # BASE_EXPORT marks only part of the API; export the rest of the functions
+  # too. Data crosses the boundary only through BASE_EXPORT (dllimport) or
+  # accessors.
+  set_target_properties(eq_base PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  # That property only drives MSVC-style linkers; GNU ld's equivalent. Without
+  # it, ld exports only the dllexport-marked symbols once any exist.
+  # --exclude-libs keeps the statically linked runtime (libgcc's unwinder,
+  # libstdc++) out of the export table, where it would clash with every
+  # consumer's own copy.
+  if(MINGW)
+    target_link_options(eq_base PRIVATE -Wl,--export-all-symbols,--exclude-libs,ALL)
+  endif()
+else()
+  add_library(eq_base STATIC ${EQ_BASE_SOURCES})
+endif()
 add_library(equilibrium::base ALIAS eq_base)
 target_include_directories(eq_base PUBLIC "${EQ_ROOT}" "${EQ_ROOT}/base")
 target_compile_definitions(eq_base PRIVATE
