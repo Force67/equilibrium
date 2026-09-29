@@ -8,6 +8,15 @@
 // and skip the hand-rolled forward declarations entirely.
 #if defined(__MINGW32__) || defined(__MINGW64__)
 #include <windows.h>
+// The MSVC path below never includes <windows.h>, so no includer of this
+// header sees its macros. Match that for the function-like ones that rename
+// ordinary identifiers (a GetProp method becomes GetPropW in the files that
+// see this header and stays GetProp in the ones that do not, and the link
+// fails). Code that wants the Win32 function calls the W name.
+#undef GetProp
+#undef SetProp
+#undef RemoveProp
+#undef MemoryBarrier
 #else  // MSVC: forward-declare instead of paying for <Windows.h>
 
 

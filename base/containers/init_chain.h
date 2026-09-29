@@ -14,8 +14,12 @@
 // visibility makes the root one symbol per process (ELF unique binding), so
 // all objects share one chain. An instantiation is only as visible as its
 // template argument, so every item type (OptionBase, Feature) carries the same
-// annotation. PE has no such binding; there base has to be linked as a DLL for
-// the same guarantee.
+// annotation.
+//
+// PE has no such binding: every DLL keeps its own copy of an inline static.
+// There the root lives out of line, in TItem::ChainRoot(), which base defines
+// once; with base built as a DLL (EQ_BASE_SHARED) every module reaches the
+// same one.
 #if defined(__GNUC__) || defined(__clang__)
 #define BASE_SHARED_REGISTRY __attribute__((visibility("default")))
 #else
@@ -47,10 +51,14 @@ class BASE_SHARED_REGISTRY InitChain {
   InitChain(const InitChain&) = delete;
   InitChain(InitChain&&) = delete;
 
+#if defined(_WIN32)
+  STRONG_INLINE static InitChain*& root() noexcept { return TItem::ChainRoot(); }
+#else
   STRONG_INLINE static InitChain*& root() noexcept {
     static InitChain* root{nullptr};
     return root;
   }
+#endif
 
   template <typename TFunctor>
   STRONG_INLINE static mem_size VisitAll(const TFunctor functor,

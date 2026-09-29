@@ -97,6 +97,11 @@ class BASE_EXPORT BASE_SHARED_REGISTRY OptionBase : public InitChain<OptionBase>
   // Returns the number of characters written, null terminator excluded.
   virtual mem_size FormatValue(char* buffer, mem_size buffer_size) const = 0;
 
+#if defined(_WIN32)
+  // The chain root, out of line so every DLL shares base's (init_chain.h).
+  static InitChain<OptionBase>*& ChainRoot() noexcept;
+#endif
+
   const char* name() const { return name_; }
   const char* env() const { return env_; }
   const char* desc() const { return desc_; }
